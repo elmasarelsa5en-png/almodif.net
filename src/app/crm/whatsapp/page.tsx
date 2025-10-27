@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { MessageSquare, MessageCircle, Send, Camera, Music, Plane, ArrowRight, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 type Platform = 'whatsapp' | 'messenger' | 'snapchat' | 'instagram' | 'tiktok' | 'telegram' | null;
 
 export default function SocialMediaPlatformsPage() {
+  const router = useRouter();
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>(null);
 
   const platforms = [
@@ -75,7 +77,7 @@ export default function SocialMediaPlatformsPage() {
 
   const handlePlatformClick = (platformId: Platform) => {
     if (platformId === 'whatsapp') {
-      window.location.href = '/crm/whatsapp/connect';
+      router.push('/crm/whatsapp/connect');
     }
   };
 
