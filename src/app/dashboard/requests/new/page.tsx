@@ -179,8 +179,12 @@ export default function NewRequestPage() {
       const occupiedRooms = roomsData.filter((room: Room) => room.status === 'Occupied');
       setRooms(occupiedRooms);
 
-      // تحميل الموظفين من HR (hr_employees) أولاً، وإلا من employees_list
-      let employeesData = JSON.parse(localStorage.getItem('hr_employees') || '[]');
+      // تحميل الموظفين من employees (صفحة HR الجديدة)
+      let employeesData = JSON.parse(localStorage.getItem('employees') || '[]');
+      // إذا لم توجد، جرب من المصادر القديمة
+      if (employeesData.length === 0) {
+        employeesData = JSON.parse(localStorage.getItem('hr_employees') || '[]');
+      }
       if (employeesData.length === 0) {
         employeesData = JSON.parse(localStorage.getItem('employees_list') || '[]');
       }
