@@ -265,7 +265,7 @@ io.on('connection', (socket) => {
 });
 
 // بدء الخادم
-const PORT = process.env.WHATSAPP_PORT || 3001;
+const PORT = process.env.WHATSAPP_PORT || 3002;
 server.listen(PORT, () => {
   console.log(`🚀 WhatsApp Service running on port ${PORT}`);
   initializeWhatsAppClient();
