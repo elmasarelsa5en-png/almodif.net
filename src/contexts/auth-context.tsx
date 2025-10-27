@@ -8,6 +8,10 @@ interface User {
   role: string;
   name: string;
   loginTime: string;
+  isEmployee?: boolean;
+  employeeId?: string;
+  department?: string;
+  permissions?: string[];
 }
 
 interface AuthContextType {
@@ -22,7 +26,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // الصفحات التي لا تحتاج مصادقة
-const PUBLIC_ROUTES = ['/', '/login'];
+const PUBLIC_ROUTES = ['/', '/login', '/employee-login'];
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -33,6 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // التحقق من وجود مستخدم مسجل دخوله
     if (typeof window !== 'undefined') {
+      // Check admin user
       const storedUser = localStorage.getItem('hotel_user');
       if (storedUser) {
         try {
@@ -40,6 +45,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(userData);
         } catch (error) {
           localStorage.removeItem('hotel_user');
+        }
+      } else {
+        // Check employee session
+        const employeeSession = localStorage.getItem('employee_session');
+        if (employeeSession) {
+          try {
+            const employeeData = JSON.parse(employeeSession);
+            setUser({
+              ...employeeData,
+              isEmployee: true
+            });
+          } catch (error) {
+            localStorage.removeItem('employee_session');
+          }
         }
       }
     }
@@ -69,6 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     if (typeof window !== 'undefined') {
       localStorage.removeItem('hotel_user');
+      localStorage.removeItem('employee_session');
     }
     router.push('/');
   };

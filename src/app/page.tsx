@@ -26,7 +26,8 @@ import {
   Shirt,
   DollarSign,
   Settings,
-  Globe
+  Globe,
+  UserCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -114,8 +115,8 @@ export default function HomePage() {
               </div>
             </div>
             
-            {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center gap-3">
+            {/* Desktop Menu */}
+            <div className="hidden lg:flex items-center gap-4">
               <Button 
                 variant="outline" 
                 className="border-white/20 text-white bg-slate-700/50 hover:bg-slate-600/70 backdrop-blur-sm"
@@ -123,6 +124,14 @@ export default function HomePage() {
               >
                 <Globe className="w-4 h-4 ml-2" />
                 {language === 'ar' ? '🇺🇸 English' : '🇸🇦 العربية'}
+              </Button>
+              <Button 
+                variant="outline"
+                className="border-purple-400/30 text-purple-300 bg-purple-900/30 hover:bg-purple-800/50 backdrop-blur-sm"
+                onClick={() => window.location.href = '/employee-login'}
+              >
+                <UserCircle className="w-4 h-4 ml-2" />
+                دخول الموظفين
               </Button>
               <Button 
                 className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-xl"
@@ -155,6 +164,16 @@ export default function HomePage() {
                 >
                   <Globe className="w-4 h-4 ml-2" />
                   {language === 'ar' ? '🇺🇸 English' : '🇸🇦 العربية'}
+                </Button>
+                <Button 
+                  variant="outline"
+                  className="border-purple-400/30 text-purple-300 bg-purple-900/30 w-full justify-start"
+                  onClick={() => {
+                    window.location.href = '/employee-login';
+                  }}
+                >
+                  <UserCircle className="w-4 h-4 ml-2" />
+                  دخول الموظفين
                 </Button>
                 <Button 
                   className="bg-gradient-to-r from-blue-500 to-indigo-600 w-full justify-start"
