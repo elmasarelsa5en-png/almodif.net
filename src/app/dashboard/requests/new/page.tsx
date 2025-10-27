@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { getRequestTypes, type RequestType } from '@/lib/requests-management';
 
 interface GuestRequest {
   id: string;
@@ -54,23 +55,11 @@ interface Employee {
   department?: string;
 }
 
-const REQUEST_TYPES = [
-  'تنظيف الغرفة',
-  'صيانة',
-  'طلب خدمة',
-  'شكوى',
-  'معلومة',
-  'طلب غذائي',
-  'طلب مشروبات',
-  'خدمة الغسيل',
-  'تعديل الحجز',
-  'مساعدة عامة',
-];
-
 export default function NewRequestPage() {
   const router = useRouter();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [requestTypes, setRequestTypes] = useState<RequestType[]>([]);
   const [formData, setFormData] = useState({
     room: '',
     guest: '',
@@ -112,6 +101,10 @@ export default function NewRequestPage() {
         employeesData = JSON.parse(localStorage.getItem('employees_list') || '[]');
       }
       setEmployees(employeesData);
+
+      // تحميل أنواع الطلبات من الإعدادات
+      const types = getRequestTypes();
+      setRequestTypes(types);
     } catch (error) {
       console.error('Error loading data:', error);
     }
@@ -137,7 +130,7 @@ export default function NewRequestPage() {
     if (!formData.room.trim()) newErrors.room = 'رقم الغرفة مطلوب';
     if (!formData.guest.trim()) newErrors.guest = 'اسم النزيل مطلوب';
     if (!formData.type) newErrors.type = 'نوع الطلب مطلوب';
-    if (!formData.notes.trim()) newErrors.notes = 'الملاحظات مطلوبة';
+    // الملاحظات أصبحت اختيارية - تم حذف التحقق منها
     if (!formData.assignedEmployee) newErrors.assignedEmployee = 'يجب تحديد موظف';
 
     setErrors(newErrors);
@@ -372,9 +365,9 @@ export default function NewRequestPage() {
                       }}
                     >
                       <option value="" className="bg-slate-900">-- اختر نوع الطلب --</option>
-                      {REQUEST_TYPES.map((type) => (
-                        <option key={type} value={type} className="bg-slate-900">
-                          {type}
+                      {requestTypes.map((type) => (
+                        <option key={type.id} value={type.name} className="bg-slate-900">
+                          {type.icon && `${type.icon} `}{type.name}
                         </option>
                       ))}
                     </select>
@@ -446,13 +439,13 @@ export default function NewRequestPage() {
                   <label className="text-white/80 text-sm font-semibold flex items-center gap-2">
                     <FileText className="w-4 h-4 text-cyan-400" />
                     الملاحظات
-                    <span className="text-red-400">*</span>
+                    <span className="text-white/50 text-xs">(اختياري)</span>
                   </label>
                   <textarea
                     name="notes"
                     value={formData.notes}
                     onChange={handleInputChange}
-                    placeholder="أدخل الملاحظات والتفاصيل..."
+                    placeholder="أدخل الملاحظات والتفاصيل (اختياري)..."
                     rows={5}
                     className={`w-full bg-white/10 border-2 text-white placeholder:text-white/50 p-3 rounded-lg focus:outline-none resize-none ${
                       errors.notes ? 'border-red-500' : 'border-white/20 focus:border-green-500'
@@ -504,8 +497,9 @@ export default function NewRequestPage() {
                   <p className="font-semibold mb-1">💡 ملاحظة مهمة:</p>
                   <ul className="space-y-1 list-disc list-inside">
                     <li>عند اختيار الغرفة: سيتم تعبئة اسم النزيل ورقم الهاتف تلقائياً</li>
-                    <li>تحديد الموظف: سيتم إخطاره بالطلب فوراً</li>
-                    <li>قبول الموظف: عند قبوله للطلب، سيتم إخطار المدير</li>
+                    <li>تحديد الموظف: سيتم إخطاره بالطلب فوراً مع نغمة صوتية</li>
+                    <li>قبول الموظف: عند قبوله للطلب، سيتم إخطار المدير فوراً</li>
+                    <li>الملاحظات: حقل اختياري يمكن تركه فارغاً</li>
                     <li>جميع الحقول المشار إليها بـ * مطلوبة</li>
                   </ul>
                 </div>

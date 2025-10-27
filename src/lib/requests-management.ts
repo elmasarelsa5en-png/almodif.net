@@ -14,6 +14,15 @@ export interface Employee {
   permissions: string[];
 }
 
+export interface RequestType {
+  id: string;
+  name: string;
+  description?: string;
+  icon?: string;
+  color?: string;
+  createdAt: string;
+}
+
 export interface GuestRequest {
   id: string;
   room: string;
@@ -30,6 +39,81 @@ export interface GuestRequest {
   employeeApprovedAt?: string;
   managerNotified?: boolean;
 }
+
+// ============ Request Types Management ============
+
+/**
+ * الحصول على أنواع الطلبات
+ */
+export const getRequestTypes = (): RequestType[] => {
+  if (typeof window === 'undefined') return [];
+  try {
+    const saved = localStorage.getItem('request_types');
+    if (saved) {
+      return JSON.parse(saved);
+    }
+    // إرجاع القيم الافتراضية إذا لم يكن هناك شيء محفوظ
+    const defaultTypes: RequestType[] = [
+      { id: '1', name: 'تنظيف الغرفة', icon: '🧹', createdAt: new Date().toISOString() },
+      { id: '2', name: 'صيانة', icon: '🔧', createdAt: new Date().toISOString() },
+      { id: '3', name: 'طلب خدمة', icon: '🛎️', createdAt: new Date().toISOString() },
+      { id: '4', name: 'شكوى', icon: '⚠️', createdAt: new Date().toISOString() },
+      { id: '5', name: 'معلومة', icon: 'ℹ️', createdAt: new Date().toISOString() },
+      { id: '6', name: 'طلب غذائي', icon: '🍽️', createdAt: new Date().toISOString() },
+      { id: '7', name: 'طلب مشروبات', icon: '🥤', createdAt: new Date().toISOString() },
+      { id: '8', name: 'خدمة الغسيل', icon: '👔', createdAt: new Date().toISOString() },
+      { id: '9', name: 'تعديل الحجز', icon: '📅', createdAt: new Date().toISOString() },
+      { id: '10', name: 'مساعدة عامة', icon: '🤝', createdAt: new Date().toISOString() },
+    ];
+    saveRequestTypes(defaultTypes);
+    return defaultTypes;
+  } catch {
+    return [];
+  }
+};
+
+/**
+ * حفظ أنواع الطلبات
+ */
+export const saveRequestTypes = (types: RequestType[]): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem('request_types', JSON.stringify(types));
+    window.dispatchEvent(new Event('storage'));
+  } catch (error) {
+    console.error('Error saving request types:', error);
+  }
+};
+
+/**
+ * إضافة نوع طلب جديد
+ */
+export const addRequestType = (type: RequestType): void => {
+  const types = getRequestTypes();
+  types.push(type);
+  saveRequestTypes(types);
+};
+
+/**
+ * تحديث نوع طلب
+ */
+export const updateRequestType = (id: string, updatedData: Partial<RequestType>): void => {
+  const types = getRequestTypes();
+  const index = types.findIndex((t) => t.id === id);
+  if (index !== -1) {
+    types[index] = { ...types[index], ...updatedData };
+    saveRequestTypes(types);
+  }
+};
+
+/**
+ * حذف نوع طلب
+ */
+export const deleteRequestType = (id: string): void => {
+  const types = getRequestTypes();
+  const filtered = types.filter((t) => t.id !== id);
+  saveRequestTypes(filtered);
+};
 
 // ============ Employee Management ============
 
