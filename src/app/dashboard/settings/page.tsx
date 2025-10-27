@@ -15,13 +15,23 @@ import {
   FileText,
   Globe,
   List,
-  Cloud
+  Cloud,
+  Wand2
 } from 'lucide-react';
 
 export default function SettingsPage() {
   const router = useRouter();
 
   const quickActions = [
+    {
+      id: 'firebase-setup',
+      title: 'معالج إعداد Firebase',
+      description: 'إعداد احترافي خطوة بخطوة مع اختبار الاتصال',
+      icon: Wand2,
+      color: 'from-purple-500 via-pink-500 to-orange-500',
+      href: '/dashboard/settings/firebase-setup',
+      badge: '✨ معالج'
+    },
     {
       id: 'sync',
       title: 'مزامنة البيانات',
