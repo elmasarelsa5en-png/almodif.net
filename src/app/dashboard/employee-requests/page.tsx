@@ -24,6 +24,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { playNotificationSound, startEmployeeAlert, stopEmployeeAlert, isEmployeeAlertActive } from '@/lib/notification-sounds';
+import { logAction } from '@/lib/audit-log';
 
 interface GuestRequest {
   id: string;
@@ -163,6 +164,11 @@ export default function EmployeeRequestsPage() {
         : req
     );
     localStorage.setItem('guest-requests', JSON.stringify(updatedAll));
+    
+    // تسجيل الموافقة في Audit Log
+    if (request) {
+      logAction.approveRequest(request.room, request.type, id);
+    }
     
     // إيقاف النغمة المتكررة بعد الموافقة على آخر طلب
     const remainingPending = updatedAll.filter(

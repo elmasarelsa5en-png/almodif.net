@@ -633,5 +633,51 @@ export const logAction = {
       category: 'USER',
       entity: 'مستخدم',
       description: `تسجيل خروج: ${userName}`
-    })
+    }),
+
+  // الطلبات
+  createRequest: (roomNumber: string, requestType: string, requestId: string) =>
+    auditLog.log({
+      action: 'CREATE',
+      category: 'REQUEST',
+      entity: 'طلب',
+      entityId: requestId,
+      description: `طلب جديد: ${requestType} - غرفة ${roomNumber}`
+    }),
+
+  approveRequest: (roomNumber: string, requestType: string, requestId: string) =>
+    auditLog.log({
+      action: 'APPROVE',
+      category: 'REQUEST',
+      entity: 'طلب',
+      entityId: requestId,
+      description: `تمت الموافقة على طلب: ${requestType} - غرفة ${roomNumber}`
+    }),
+
+  rejectRequest: (roomNumber: string, requestType: string, requestId: string, reason?: string) =>
+    auditLog.log({
+      action: 'REJECT',
+      category: 'REQUEST',
+      entity: 'طلب',
+      entityId: requestId,
+      description: `تم رفض طلب: ${requestType} - غرفة ${roomNumber}${reason ? ` - السبب: ${reason}` : ''}`
+    }),
+
+  assignRequest: (roomNumber: string, requestType: string, employeeName: string, requestId: string) =>
+    auditLog.log({
+      action: 'UPDATE',
+      category: 'REQUEST',
+      entity: 'طلب',
+      entityId: requestId,
+      description: `تعيين طلب ${requestType} (غرفة ${roomNumber}) للموظف: ${employeeName}`
+    }),
+
+  completeRequest: (roomNumber: string, requestType: string, requestId: string) =>
+    auditLog.log({
+      action: 'UPDATE',
+      category: 'REQUEST',
+      entity: 'طلب',
+      entityId: requestId,
+      description: `تم إنجاز طلب: ${requestType} - غرفة ${roomNumber}`
+    }),
 };

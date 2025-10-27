@@ -19,6 +19,7 @@ import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { getRequestTypes, type RequestType } from '@/lib/requests-management';
 import { playNotificationSound } from '@/lib/notification-sounds';
+import { logAction } from '@/lib/audit-log';
 
 interface GuestRequest {
   id: string;
@@ -277,6 +278,13 @@ export default function NewRequestPage() {
 
       // Save to localStorage
       localStorage.setItem('guest-requests', JSON.stringify(updatedRequests));
+
+      // تسجيل في Audit Log
+      const assignedEmp = employees.find(emp => emp.id === formData.assignedEmployee);
+      logAction.createRequest(formData.room, formData.type, newRequest.id);
+      if (assignedEmp) {
+        logAction.assignRequest(formData.room, formData.type, assignedEmp.name, newRequest.id);
+      }
 
       // If linked to a section, save there too
       if (selectedType?.linkedSection) {

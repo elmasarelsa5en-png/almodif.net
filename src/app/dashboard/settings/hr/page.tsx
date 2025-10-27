@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { logAction } from '@/lib/audit-log';
 import { 
   ArrowLeft, 
   Users, 
@@ -229,6 +230,7 @@ export default function HRSettingsPage() {
 
     if (editingEmployee) {
       // Update existing employee
+      const oldData = editingEmployee;
       const updated = employees.map(emp => 
         emp.id === editingEmployee.id 
           ? { ...emp, ...formData }
@@ -236,6 +238,14 @@ export default function HRSettingsPage() {
       );
       setEmployees(updated);
       localStorage.setItem('employees', JSON.stringify(updated));
+      
+      // تسجيل التعديل في Audit Log
+      const changes = [];
+      if (oldData.name !== formData.name) changes.push({ field: 'الاسم', oldValue: oldData.name, newValue: formData.name });
+      if (oldData.role !== formData.role) changes.push({ field: 'الدور', oldValue: oldData.role, newValue: formData.role });
+      if (oldData.department !== formData.department) changes.push({ field: 'القسم', oldValue: oldData.department, newValue: formData.department });
+      
+      logAction.updateEmployee(formData.name, editingEmployee.id, changes);
     } else {
       // Add new employee
       const newEmployee: Employee = {
@@ -246,6 +256,9 @@ export default function HRSettingsPage() {
       const updated = [...employees, newEmployee];
       setEmployees(updated);
       localStorage.setItem('employees', JSON.stringify(updated));
+      
+      // تسجيل الإضافة في Audit Log
+      logAction.addEmployee(formData.name, newEmployee.id);
     }
 
     setIsDialogOpen(false);
@@ -253,9 +266,15 @@ export default function HRSettingsPage() {
 
   const handleDelete = (id: string) => {
     if (confirm('هل أنت متأكد من حذف هذا الموظف؟')) {
+      const employee = employees.find(emp => emp.id === id);
       const updated = employees.filter(emp => emp.id !== id);
       setEmployees(updated);
       localStorage.setItem('employees', JSON.stringify(updated));
+      
+      // تسجيل الحذف في Audit Log
+      if (employee) {
+        logAction.deleteEmployee(employee.name, id);
+      }
     }
   };
 
