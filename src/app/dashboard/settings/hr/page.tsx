@@ -37,6 +37,7 @@ import {
 interface Employee {
   id: string;
   username: string;
+  password: string;
   name: string;
   role: string;
   department: string;
@@ -106,6 +107,7 @@ export default function HRSettingsPage() {
   
   const [formData, setFormData] = useState({
     username: '',
+    password: '',
     name: '',
     role: 'reception',
     department: 'استقبال',
@@ -131,7 +133,8 @@ export default function HRSettingsPage() {
         const defaultEmployees: Employee[] = [
           {
             id: '1',
-            username: 'reception_staff',
+            username: 'reception',
+            password: '123456',
             name: 'موظف الاستقبال',
             role: 'reception',
             department: 'استقبال',
@@ -178,6 +181,7 @@ export default function HRSettingsPage() {
       setEditingEmployee(employee);
       setFormData({
         username: employee.username,
+        password: employee.password,
         name: employee.name,
         role: employee.role,
         department: employee.department,
@@ -190,6 +194,7 @@ export default function HRSettingsPage() {
       setEditingEmployee(null);
       setFormData({
         username: '',
+        password: '',
         name: '',
         role: 'reception',
         department: 'استقبال',
@@ -223,8 +228,8 @@ export default function HRSettingsPage() {
   };
 
   const handleSave = () => {
-    if (!formData.username || !formData.name) {
-      alert('الرجاء إدخال اسم المستخدم والاسم الكامل');
+    if (!formData.username || !formData.name || !formData.password) {
+      alert('الرجاء إدخال اسم المستخدم والاسم الكامل وكلمة المرور');
       return;
     }
 
@@ -536,6 +541,16 @@ export default function HRSettingsPage() {
                   />
                 </div>
                 <div>
+                  <Label className="text-purple-200 text-sm">كلمة المرور *</Label>
+                  <Input
+                    type="text"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    placeholder="كلمة المرور"
+                    className="bg-slate-800 border-slate-700 text-white mt-1"
+                  />
+                </div>
+                <div className="col-span-2">
                   <Label className="text-purple-200 text-sm">الاسم الكامل *</Label>
                   <Input
                     value={formData.name}
