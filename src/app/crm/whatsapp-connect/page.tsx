@@ -6,8 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useRouter } from 'next/navigation';
+import io from 'socket.io-client';
 
 type ConnectionStatus = 'disconnected' | 'qr-ready' | 'connecting' | 'connected';
+
+const WHATSAPP_SERVICE_URL = process.env.NEXT_PUBLIC_WHATSAPP_SERVICE_URL || 'http://localhost:3001';
 
 export default function WhatsAppConnectPage() {
   const router = useRouter();
@@ -15,53 +18,109 @@ export default function WhatsAppConnectPage() {
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [phoneNumber, setPhoneNumber] = useState<string>('');
+  const [socket, setSocket] = useState<any>(null);
 
-  // محاكاة QR Code (سيتم استبداله بـ API حقيقي)
-  const generateDummyQR = () => {
-    // QR Code مؤقت - سيتم استبداله بـ WhatsApp Web QR حقيقي
-    return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0id2hpdGUiLz4KICA8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1zaXplPSIxNCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iIGZpbGw9IiMzMzMiPldoYXRzQXBwIFFSIENvZGU8L3RleHQ+Cjwvc3ZnPg==';
+  useEffect(() => {
+    // الاتصال بـ Socket.IO للتحديثات الفورية
+    const newSocket = io(WHATSAPP_SERVICE_URL);
+    setSocket(newSocket);
+
+    newSocket.on('status', (data: any) => {
+      if (data.connected) {
+        setStatus('connected');
+        setPhoneNumber(data.phoneNumber);
+        setQrCode(null);
+      } else if (data.qr) {
+        setStatus('qr-ready');
+        setQrCode(data.qr);
+      }
+    });
+
+    newSocket.on('qr', (data: any) => {
+      setStatus('qr-ready');
+      setQrCode(data.qr);
+    });
+
+    newSocket.on('authenticated', () => {
+      setStatus('connecting');
+      setQrCode(null);
+    });
+
+    newSocket.on('ready', (data: any) => {
+      setStatus('connected');
+      setPhoneNumber(data.phoneNumber);
+      // الانتقال لصفحة المحادثات بعد 2 ثانية
+      setTimeout(() => {
+        router.push('/crm/whatsapp?fullscreen=true');
+      }, 2000);
+    });
+
+    newSocket.on('disconnected', () => {
+      setStatus('disconnected');
+      setPhoneNumber('');
+      setQrCode(null);
+    });
+
+    // التحقق من الحالة الحالية
+    checkStatus();
+
+    return () => {
+      newSocket.close();
+    };
+  }, [router]);
+
+  const checkStatus = async () => {
+    try {
+      const response = await fetch(`${WHATSAPP_SERVICE_URL}/api/status`);
+      const data = await response.json();
+      
+      if (data.connected) {
+        setStatus('connected');
+        setPhoneNumber(data.phoneNumber);
+      } else if (data.needsQR) {
+        setStatus('qr-ready');
+        fetchQR();
+      }
+    } catch (err) {
+      console.error('Error checking status:', err);
+      setError('تعذر الاتصال بخدمة الواتساب. تأكد من تشغيل السيرفر.');
+    }
+  };
+
+  const fetchQR = async () => {
+    try {
+      const response = await fetch(`${WHATSAPP_SERVICE_URL}/api/qr`);
+      const data = await response.json();
+      
+      if (data.qr) {
+        setQrCode(data.qr);
+      }
+    } catch (err) {
+      console.error('Error fetching QR:', err);
+    }
   };
 
   const initiateConnection = async () => {
     setStatus('qr-ready');
     setError(null);
     
-    try {
-      // TODO: استدعاء API للحصول على QR Code حقيقي
-      // const response = await fetch('/api/whatsapp?action=qr');
-      // const data = await response.json();
-      
-      // مؤقتاً: QR Code تجريبي
-      setTimeout(() => {
-        setQrCode(generateDummyQR());
-      }, 500);
-
-      // محاكاة عملية المسح والربط
-      setTimeout(() => {
-        setStatus('connecting');
-      }, 3000);
-
-      setTimeout(() => {
-        setStatus('connected');
-        setPhoneNumber('+966 50 123 4567');
-        // بعد الاتصال، الانتقال لصفحة المحادثات
-        setTimeout(() => {
-          router.push('/crm/whatsapp?fullscreen=true');
-        }, 2000);
-      }, 5000);
-
-    } catch (err) {
-      setError('فشل الاتصال بالواتساب. يرجى المحاولة مرة أخرى.');
-      setStatus('disconnected');
-    }
+    // سيتم توليد QR Code تلقائياً من السيرفر
+    setTimeout(() => {
+      fetchQR();
+    }, 1000);
   };
 
   const disconnect = async () => {
     try {
-      // TODO: استدعاء API لقطع الاتصال
-      setStatus('disconnected');
-      setQrCode(null);
-      setPhoneNumber('');
+      const response = await fetch(`${WHATSAPP_SERVICE_URL}/api/disconnect`, {
+        method: 'POST'
+      });
+      
+      if (response.ok) {
+        setStatus('disconnected');
+        setQrCode(null);
+        setPhoneNumber('');
+      }
     } catch (err) {
       setError('فشل قطع الاتصال.');
     }

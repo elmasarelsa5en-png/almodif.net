@@ -5,7 +5,9 @@
   "main": "whatsapp-server.js",
   "scripts": {
     "start": "node whatsapp-server.js",
-    "dev": "nodemon whatsapp-server.js"
+    "dev": "nodemon whatsapp-server.js",
+    "service": "node whatsapp-service.js",
+    "service:dev": "nodemon whatsapp-service.js"
   },
   "keywords": [
     "whatsapp",
@@ -17,7 +19,11 @@
   "license": "MIT",
   "dependencies": {
     "whatsapp-web.js": "^1.23.0",
-    "qrcode-terminal": "^0.12.0"
+    "qrcode-terminal": "^0.12.0",
+    "qrcode": "^1.5.3",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "socket.io": "^4.6.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
