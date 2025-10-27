@@ -214,3 +214,59 @@ body {
   text-align: right;
   direction: rtl;
 }
+
+/* تحسينات للجوال */
+@media (max-width: 768px) {
+  /* تصغير الخطوط على الجوال */
+  html {
+    font-size: 14px;
+  }
+  
+  /* تحسين المساحات */
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  /* تحسين الجداول على الجوال */
+  table {
+    font-size: 0.875rem;
+  }
+  
+  /* إخفاء عناصر غير ضرورية على الجوال */
+  .hide-mobile {
+    display: none !important;
+  }
+  
+  /* Stack cards vertically on mobile */
+  .grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* أزرار أكبر للمس */
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Modals و Dialogs تأخذ كامل الشاشة */
+  [role="dialog"] {
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    margin: 0 !important;
+  }
+}
+
+/* تحسينات للأجهزة اللوحية */
+@media (min-width: 768px) and (max-width: 1024px) {
+  html {
+    font-size: 15px;
+  }
+}
+
+/* تحسين للشاشات الكبيرة جداً */
+@media (min-width: 1920px) {
+  html {
+    font-size: 18px;
+  }
+}

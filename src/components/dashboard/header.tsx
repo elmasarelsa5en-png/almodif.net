@@ -481,23 +481,23 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
 
         {/* Right Section - Actions & User */}
         <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
-          {/* Search Button */}
+          {/* Search Button - hidden on mobile */}
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setShowSearch(!showSearch)}
-            className="text-white hover:text-blue-200 hover:bg-white/10 border border-white/20 hover:border-white/40 transition-all duration-200 px-3 py-2"
+            className="hidden md:flex text-white hover:text-blue-200 hover:bg-white/10 border border-white/20 hover:border-white/40 transition-all duration-200 px-3 py-2"
             title="البحث"
           >
             بحث
           </Button>
 
-          {/* Conversations */}
+          {/* Conversations - hidden on mobile */}
           <Button
             variant="ghost"
             size="sm"
             onClick={() => router.push('/crm/whatsapp')}
-            className="text-white hover:text-blue-200 hover:bg-white/10 border border-white/20 hover:border-white/40 transition-all duration-200 px-3 py-2"
+            className="hidden lg:flex text-white hover:text-blue-200 hover:bg-white/10 border border-white/20 hover:border-white/40 transition-all duration-200 px-3 py-2"
             title="المحادثات"
           >
             محادثات

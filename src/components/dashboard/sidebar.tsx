@@ -283,9 +283,12 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
       "flex flex-col h-full border-0 rounded-none shadow-2xl transition-all duration-300",
       "bg-black/30 backdrop-blur-xl border-r border-white/10", // خلفية شبه شفافة مع تأثير ضبابي
       "dark:bg-black/30 dark:border-white/10",
-      isCollapsed ? "w-16" : "w-64 sm:w-72",
+      isCollapsed ? "w-16" : "w-72",
       // للجوال: sidebar يكون fixed فوق كل شيء - z-30 أقل من Dropdowns (z-50) والهيدر (z-40)
       "fixed md:relative h-screen z-30",
+      // على الجوال: يخفى الـ sidebar عند الضغط خارجه
+      "md:translate-x-0",
+      isCollapsed && "-translate-x-full md:translate-x-0",
       className
     )}>
       {/* Logo Section */}

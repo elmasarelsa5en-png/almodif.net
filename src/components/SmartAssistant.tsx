@@ -496,16 +496,16 @@ export default function SmartAssistant() {
 
   if (!isOpen) {
     return (
-      <div className="fixed bottom-6 left-6 z-[9999] flex flex-col items-start gap-2">
-        {/* زر المساعد الرئيسي */}
+      <div className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-[9999] flex flex-col items-start gap-2">
+        {/* زر المساعد الرئيسي - أصغر على الجوال */}
         <button
           onClick={() => setIsOpen(true)}
-          className="w-16 h-16 rounded-full shadow-2xl bg-gradient-to-br from-indigo-600 via-blue-600 to-indigo-700 border-4 border-white/40 hover:border-white/60 group relative transition-all duration-300 hover:scale-110 active:scale-95"
+          className="w-14 h-14 md:w-16 md:h-16 rounded-full shadow-2xl bg-gradient-to-br from-indigo-600 via-blue-600 to-indigo-700 border-4 border-white/40 hover:border-white/60 group relative transition-all duration-300 hover:scale-110 active:scale-95"
           title="المساعد الذكي المتقدم"
         >
           <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl"></div>
           <div className="relative z-10 flex items-center justify-center">
-            <Sparkles className="w-8 h-8 text-white" />
+            <Sparkles className="w-7 h-7 md:w-8 md:h-8 text-white" />
           </div>
           {/* Badge للرسائل الجديدة */}
           <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full border-2 border-white flex items-center justify-center shadow-lg">
@@ -517,11 +517,11 @@ export default function SmartAssistant() {
   }
 
   return (
-    <div className="fixed bottom-6 left-6 z-[9999] flex flex-col items-start gap-2">
+    <div className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-[9999] flex flex-col items-start gap-2">
       {/* نافذة المساعد الرئيسية */}
       <div className={cn(
         "bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden transition-all duration-300",
-        isMinimized ? "w-80 h-14" : "w-[480px] h-[600px]"
+        isMinimized ? "w-72 md:w-80 h-14" : "w-[95vw] md:w-[480px] h-[90vh] md:h-[600px]"
       )} style={{
         boxShadow: '0 12px 40px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05)'
       }}>
