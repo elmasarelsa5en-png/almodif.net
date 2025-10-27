@@ -91,6 +91,87 @@ export default function NewRequestPage() {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
+  // تحميل الأصناف الفرعية من الأقسام المرتبطة
+  useEffect(() => {
+    if (selectedType?.linkedSection) {
+      loadLinkedSectionItems(selectedType.linkedSection);
+    }
+  }, [selectedType]);
+
+  const loadLinkedSectionItems = (section: 'coffee' | 'restaurant' | 'laundry') => {
+    try {
+      if (section === 'coffee') {
+        // تحميل منتجات الكوفي
+        const coffeeMenu = JSON.parse(localStorage.getItem('coffee_menu') || '[]');
+        const subItems = coffeeMenu
+          .filter((item: any) => item.available)
+          .map((item: any) => ({
+            id: item.id,
+            name: item.nameAr || item.name,
+            available: item.available,
+            icon: '☕',
+          }));
+        
+        if (selectedType && subItems.length > 0) {
+          setRequestTypes(prev =>
+            prev.map(type =>
+              type.id === selectedType.id
+                ? { ...type, subItems }
+                : type
+            )
+          );
+          setSelectedType(prev => prev ? { ...prev, subItems } : null);
+        }
+      } else if (section === 'restaurant') {
+        // تحميل أطباق المطعم
+        const restaurantMenu = JSON.parse(localStorage.getItem('restaurant_menu') || '[]');
+        const subItems = restaurantMenu
+          .filter((item: any) => item.available)
+          .map((item: any) => ({
+            id: item.id,
+            name: item.nameAr || item.name,
+            available: item.available,
+            icon: '🍽️',
+          }));
+        
+        if (selectedType && subItems.length > 0) {
+          setRequestTypes(prev =>
+            prev.map(type =>
+              type.id === selectedType.id
+                ? { ...type, subItems }
+                : type
+            )
+          );
+          setSelectedType(prev => prev ? { ...prev, subItems } : null);
+        }
+      } else if (section === 'laundry') {
+        // تحميل خدمات المغسلة
+        const laundryServices = JSON.parse(localStorage.getItem('laundry_services') || '[]');
+        const subItems = laundryServices
+          .filter((item: any) => item.available)
+          .map((item: any) => ({
+            id: item.id,
+            name: item.nameAr || item.name,
+            available: item.available,
+            icon: '👔',
+          }));
+        
+        if (selectedType && subItems.length > 0) {
+          setRequestTypes(prev =>
+            prev.map(type =>
+              type.id === selectedType.id
+                ? { ...type, subItems }
+                : type
+            )
+          );
+          setSelectedType(prev => prev ? { ...prev, subItems } : null);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading linked section items:', error);
+    }
+  };
+
   const loadRoomsAndEmployees = () => {
     try {
       // تحميل الشقق المشغولة من localStorage
@@ -193,6 +274,11 @@ export default function NewRequestPage() {
       // Save to localStorage
       localStorage.setItem('guest-requests', JSON.stringify(updatedRequests));
 
+      // If linked to a section, save there too
+      if (selectedType?.linkedSection) {
+        saveToLinkedSection(newRequest, selectedType.linkedSection);
+      }
+
       // Trigger storage event for real-time updates
       window.dispatchEvent(new Event('storage'));
 
@@ -262,6 +348,88 @@ export default function NewRequestPage() {
     // Clear sub-items error if any
     if (errors.subItems) {
       setErrors(prev => ({ ...prev, subItems: '' }));
+    }
+  };
+
+  const saveToLinkedSection = (request: any, section: 'coffee' | 'restaurant' | 'laundry') => {
+    try {
+      if (section === 'coffee') {
+        // حفظ كطلب في الكوفي
+        const coffeeOrders = JSON.parse(localStorage.getItem('coffee_orders') || '[]');
+        const coffeeOrder = {
+          id: request.id,
+          roomNumber: request.room,
+          guestName: request.guest,
+          items: (request.selectedSubItems || []).map((itemId: string) => {
+            const coffeeMenu = JSON.parse(localStorage.getItem('coffee_menu') || '[]');
+            const item = coffeeMenu.find((m: any) => m.id === itemId);
+            return {
+              menuItemId: itemId,
+              menuItemName: item?.nameAr || item?.name || itemId,
+              quantity: 1,
+              price: item?.price || 0,
+            };
+          }),
+          totalAmount: 0, // سيتم حسابه
+          status: 'pending',
+          orderDate: request.createdAt,
+          paymentMethod: 'room_charge',
+          requestId: request.id, // ربط مع الطلب الأصلي
+        };
+        coffeeOrders.unshift(coffeeOrder);
+        localStorage.setItem('coffee_orders', JSON.stringify(coffeeOrders));
+      } else if (section === 'restaurant') {
+        // حفظ كطلب في المطعم
+        const restaurantOrders = JSON.parse(localStorage.getItem('restaurant_orders') || '[]');
+        const restaurantOrder = {
+          id: request.id,
+          roomNumber: request.room,
+          guestName: request.guest,
+          items: (request.selectedSubItems || []).map((itemId: string) => {
+            const restaurantMenu = JSON.parse(localStorage.getItem('restaurant_menu') || '[]');
+            const item = restaurantMenu.find((m: any) => m.id === itemId);
+            return {
+              menuItemId: itemId,
+              menuItemName: item?.nameAr || item?.name || itemId,
+              quantity: 1,
+              price: item?.price || 0,
+            };
+          }),
+          totalAmount: 0,
+          status: 'pending',
+          orderDate: request.createdAt,
+          paymentMethod: 'room_charge',
+          requestId: request.id,
+        };
+        restaurantOrders.unshift(restaurantOrder);
+        localStorage.setItem('restaurant_orders', JSON.stringify(restaurantOrders));
+      } else if (section === 'laundry') {
+        // حفظ كطلب في المغسلة
+        const laundryOrders = JSON.parse(localStorage.getItem('laundry_orders') || '[]');
+        const laundryOrder = {
+          id: request.id,
+          roomNumber: request.room,
+          guestName: request.guest,
+          items: (request.selectedSubItems || []).map((itemId: string) => {
+            const laundryServices = JSON.parse(localStorage.getItem('laundry_services') || '[]');
+            const item = laundryServices.find((s: any) => s.id === itemId);
+            return {
+              serviceId: itemId,
+              serviceName: item?.nameAr || item?.name || itemId,
+              quantity: 1,
+              price: item?.price || 0,
+            };
+          }),
+          totalAmount: 0,
+          status: 'pending',
+          orderDate: request.createdAt,
+          requestId: request.id,
+        };
+        laundryOrders.unshift(laundryOrder);
+        localStorage.setItem('laundry_orders', JSON.stringify(laundryOrders));
+      }
+    } catch (error) {
+      console.error('Error saving to linked section:', error);
     }
   };
 
