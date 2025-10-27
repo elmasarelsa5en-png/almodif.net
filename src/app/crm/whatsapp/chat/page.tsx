@@ -1,0 +1,365 @@
+'use client';
+
+import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { 
+  MessageSquare, 
+  Send, 
+  Search, 
+  MoreVertical, 
+  Phone, 
+  Video, 
+  Paperclip, 
+  Smile,
+  ArrowLeft,
+  Check,
+  CheckCheck,
+  User,
+  Clock
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+
+interface Message {
+  id: string;
+  text: string;
+  timestamp: Date;
+  sender: 'user' | 'customer';
+  status: 'sent' | 'delivered' | 'read';
+}
+
+interface Chat {
+  id: string;
+  name: string;
+  avatar?: string;
+  lastMessage: string;
+  timestamp: string;
+  unread: number;
+  online: boolean;
+}
+
+export default function WhatsAppChatPage() {
+  const router = useRouter();
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Load chats from backend
+    loadChats();
+  }, []);
+
+  useEffect(() => {
+    if (selectedChat) {
+      loadMessages(selectedChat.id);
+    }
+  }, [selectedChat]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const loadChats = async () => {
+    // Mock data - replace with actual API call
+    const mockChats: Chat[] = [
+      {
+        id: '1',
+        name: 'أحمد محمد',
+        lastMessage: 'شكراً جزيلاً، تم الحجز بنجاح',
+        timestamp: '10:30',
+        unread: 2,
+        online: true
+      },
+      {
+        id: '2',
+        name: 'سارة علي',
+        lastMessage: 'هل يمكن تغيير موعد الحجز؟',
+        timestamp: '09:15',
+        unread: 0,
+        online: false
+      },
+      {
+        id: '3',
+        name: 'محمود حسن',
+        lastMessage: 'ما هي الأسعار المتاحة؟',
+        timestamp: 'أمس',
+        unread: 1,
+        online: true
+      }
+    ];
+    setChats(mockChats);
+    if (mockChats.length > 0) {
+      setSelectedChat(mockChats[0]);
+    }
+  };
+
+  const loadMessages = async (chatId: string) => {
+    // Mock messages - replace with actual API call
+    const mockMessages: Message[] = [
+      {
+        id: '1',
+        text: 'مرحباً، أريد حجز غرفة',
+        timestamp: new Date(Date.now() - 3600000),
+        sender: 'customer',
+        status: 'read'
+      },
+      {
+        id: '2',
+        text: 'أهلاً بك! بالتأكيد، ما هي التواريخ المطلوبة؟',
+        timestamp: new Date(Date.now() - 3500000),
+        sender: 'user',
+        status: 'read'
+      },
+      {
+        id: '3',
+        text: 'من 15 إلى 20 نوفمبر',
+        timestamp: new Date(Date.now() - 3400000),
+        sender: 'customer',
+        status: 'read'
+      },
+      {
+        id: '4',
+        text: 'ممتاز! لدينا عدة غرف متاحة. هل تفضل غرفة مفردة أم مزدوجة؟',
+        timestamp: new Date(Date.now() - 3300000),
+        sender: 'user',
+        status: 'read'
+      },
+      {
+        id: '5',
+        text: 'غرفة مزدوجة من فضلك',
+        timestamp: new Date(Date.now() - 3200000),
+        sender: 'customer',
+        status: 'read'
+      },
+      {
+        id: '6',
+        text: 'شكراً جزيلاً، تم الحجز بنجاح',
+        timestamp: new Date(Date.now() - 100000),
+        sender: 'customer',
+        status: 'delivered'
+      }
+    ];
+    setMessages(mockMessages);
+  };
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !selectedChat) return;
+
+    const message: Message = {
+      id: Date.now().toString(),
+      text: newMessage,
+      timestamp: new Date(),
+      sender: 'user',
+      status: 'sent'
+    };
+
+    setMessages(prev => [...prev, message]);
+    setNewMessage('');
+
+    // Send to backend
+    // await sendMessageToWhatsApp(selectedChat.id, newMessage);
+  };
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const filteredChats = chats.filter(chat =>
+    chat.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  return (
+    <div className="h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex" dir="rtl">
+      {/* Sidebar - Chats List */}
+      <div className="w-full md:w-96 bg-white border-l border-gray-200 flex flex-col">
+        {/* Header */}
+        <div className="p-4 bg-gradient-to-r from-blue-500 via-cyan-500 to-blue-600 text-white">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push('/crm/whatsapp')}
+                className="text-white hover:bg-white/20"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+              <h2 className="text-xl font-bold">المحادثات</h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <MessageSquare className="w-6 h-6" />
+            </div>
+          </div>
+          
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="ابحث عن محادثة..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pr-10 bg-white/20 border-white/30 text-white placeholder:text-white/70"
+            />
+          </div>
+        </div>
+
+        {/* Chats List */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="divide-y divide-gray-100">
+            {filteredChats.map((chat) => (
+              <div
+                key={chat.id}
+                onClick={() => setSelectedChat(chat)}
+                className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${
+                  selectedChat?.id === chat.id ? 'bg-blue-50 border-r-4 border-blue-500' : ''
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-lg">
+                      {chat.name[0]}
+                    </div>
+                    {chat.online && (
+                      <div className="absolute bottom-0 left-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                    )}
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <h3 className="font-semibold text-gray-900 truncate">{chat.name}</h3>
+                      <span className="text-xs text-gray-500">{chat.timestamp}</span>
+                    </div>
+                    <p className="text-sm text-gray-600 truncate">{chat.lastMessage}</p>
+                  </div>
+                  
+                  {chat.unread > 0 && (
+                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                      <span className="text-xs text-white font-semibold">{chat.unread}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Main Chat Area */}
+      {selectedChat ? (
+        <div className="flex-1 flex flex-col bg-gradient-to-br from-gray-50 to-blue-50/30">
+          {/* Chat Header */}
+          <div className="bg-white border-b border-gray-200 p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
+                  {selectedChat.name[0]}
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900">{selectedChat.name}</h3>
+                  <p className="text-xs text-gray-500">
+                    {selectedChat.online ? 'متصل الآن' : 'غير متصل'}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" className="text-gray-600">
+                  <Phone className="w-5 h-5" />
+                </Button>
+                <Button variant="ghost" size="sm" className="text-gray-600">
+                  <Video className="w-5 h-5" />
+                </Button>
+                <Button variant="ghost" size="sm" className="text-gray-600">
+                  <MoreVertical className="w-5 h-5" />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Messages Area */}
+          <div className="flex-1 p-4 overflow-y-auto">
+            <div className="space-y-4 max-w-4xl mx-auto">
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${message.sender === 'user' ? 'justify-start' : 'justify-end'}`}
+                >
+                  <div
+                    className={`max-w-md px-4 py-3 rounded-2xl ${
+                      message.sender === 'user'
+                        ? 'bg-white border border-gray-200 text-gray-900'
+                        : 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white'
+                    } shadow-sm`}
+                  >
+                    <p className="text-sm leading-relaxed">{message.text}</p>
+                    <div className={`flex items-center justify-end gap-1 mt-1 ${
+                      message.sender === 'user' ? 'text-gray-500' : 'text-white/80'
+                    }`}>
+                      <span className="text-xs">{formatTime(message.timestamp)}</span>
+                      {message.sender === 'user' && (
+                        <>
+                          {message.status === 'sent' && <Check className="w-3 h-3" />}
+                          {message.status === 'delivered' && <CheckCheck className="w-3 h-3" />}
+                          {message.status === 'read' && <CheckCheck className="w-3 h-3 text-blue-500" />}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
+          </div>
+
+          {/* Message Input */}
+          <div className="bg-white border-t border-gray-200 p-4">
+            <div className="flex items-center gap-3 max-w-4xl mx-auto">
+              <Button variant="ghost" size="sm" className="text-gray-600">
+                <Smile className="w-5 h-5" />
+              </Button>
+              <Button variant="ghost" size="sm" className="text-gray-600">
+                <Paperclip className="w-5 h-5" />
+              </Button>
+              
+              <Input
+                type="text"
+                placeholder="اكتب رسالة..."
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                className="flex-1"
+              />
+              
+              <Button
+                onClick={handleSendMessage}
+                className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white"
+                disabled={!newMessage.trim()}
+              >
+                <Send className="w-5 h-5" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50/30">
+          <div className="text-center">
+            <div className="w-32 h-32 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-2xl">
+              <MessageSquare className="w-16 h-16 text-white" />
+            </div>
+            <h3 className="text-2xl font-bold text-gray-800 mb-2">WhatsApp للأعمال</h3>
+            <p className="text-gray-600">اختر محادثة لبدء المراسلة</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
