@@ -13,7 +13,8 @@ import {
   ServerCog,
   ChevronRight,
   FileText,
-  Globe
+  Globe,
+  List
 } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -27,6 +28,15 @@ export default function SettingsPage() {
       icon: Globe,
       color: 'from-indigo-500 to-purple-500',
       href: '/dashboard/settings/website',
+      badge: 'جديد'
+    },
+    {
+      id: 'request-types',
+      title: 'أنواع طلبات النزلاء',
+      description: 'إدارة الأنواع المتاحة لطلبات النزلاء',
+      icon: List,
+      color: 'from-cyan-500 to-blue-500',
+      href: '/dashboard/settings/request-types',
       badge: 'جديد'
     },
     {
