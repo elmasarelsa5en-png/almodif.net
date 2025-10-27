@@ -41,6 +41,17 @@ export default function WhatsAppConnectPage() {
       
       // Call backend API to generate QR code
       const response = await fetch('http://localhost:3002/qr');
+      
+      // Check if response is ok
+      if (!response.ok) {
+        throw new Error('Backend not available');
+      }
+      
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Backend returned non-JSON response');
+      }
+      
       const data = await response.json();
       
       if (data.qr) {
@@ -48,13 +59,26 @@ export default function WhatsAppConnectPage() {
       }
     } catch (err) {
       console.error('QR generation error:', err);
-      setError('فشل في إنشاء رمز QR. تأكد من تشغيل خادم WhatsApp.');
+      // Use a placeholder QR code for demo
+      setQrCode('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2YwZjBmMCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5RUiBDb2RlPC90ZXh0Pjwvc3ZnPg==');
+      setError('خادم WhatsApp غير متاح حالياً. يرجى تشغيل الخادم أولاً.');
     }
   };
 
   const checkConnection = async () => {
     try {
       const response = await fetch('http://localhost:3002/status');
+      
+      // Check if response is ok
+      if (!response.ok) {
+        return;
+      }
+      
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        return;
+      }
+      
       const data = await response.json();
       
       if (data.isReady) {
@@ -65,6 +89,7 @@ export default function WhatsAppConnectPage() {
       }
     } catch (err) {
       console.error('Connection check error:', err);
+      // Silently fail - backend not available
     }
   };
 
