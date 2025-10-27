@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth-context';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Sidebar from '@/components/dashboard/sidebar';
 import Header from '@/components/dashboard/header';
 import NewsTicker from '@/components/NewsTicker';
@@ -16,7 +16,8 @@ export default function DashboardLayout({
 }) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const pathname = usePathname(); // للاستماع لتغييرات المسار
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true); // مقفول افتراضياً على الموبايل
   const [tickerItems, setTickerItems] = useState<string[]>([]);
 
   // Fetch latest requests for the ticker
@@ -34,6 +35,11 @@ export default function DashboardLayout({
       ...latestItems
     ]);
   }, []);
+
+  // إغلاق القائمة عند تغيير الصفحة (للموبايل)
+  useEffect(() => {
+    setSidebarCollapsed(true);
+  }, [pathname]);
 
   // إذا لم يكن المستخدم مسجل دخوله، إعادة توجيه لصفحة تسجيل الدخول
   useEffect(() => {
@@ -57,12 +63,12 @@ export default function DashboardLayout({
   return (
     <div className="h-screen flex overflow-hidden" dir="rtl">
       <AnimatedBackground />
-      {/* Sidebar - Overlay on mobile */}
-      <div className={`flex-shrink-0 transition-all duration-300 ${sidebarCollapsed ? 'hidden' : 'block'} md:block`}>
+      {/* Sidebar - مخفي افتراضياً على الموبايل */}
+      <div className={`flex-shrink-0 transition-all duration-300 ${sidebarCollapsed ? 'hidden md:block' : 'block'}`}>
         <Sidebar isCollapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
       </div>
 
-      {/* Overlay for mobile when sidebar is open */}
+      {/* Overlay for mobile when sidebar is open - يتم الضغط عليه لإغلاق القائمة */}
       {!sidebarCollapsed && (
         <div 
           className="fixed inset-0 bg-black/50 z-25 md:hidden"
@@ -80,9 +86,9 @@ export default function DashboardLayout({
           <NewsTicker items={tickerItems} />
         </div>
         
-        {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-2 sm:p-3 md:p-6">
-          <div className="max-w-7xl mx-auto">
+        {/* Page Content - مع Padding مناسب للموبايل */}
+        <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
+          <div className="max-w-7xl mx-auto w-full">
             {children}
           </div>
         </main>
