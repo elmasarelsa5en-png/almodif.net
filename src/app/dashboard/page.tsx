@@ -224,55 +224,55 @@ const Dashboard: React.FC = () => {
         {
           id: '1',
           type: 'booking',
-          title: 'New Reservation Confirmed',
-          description: 'John Smith booked Deluxe Suite (Room 205) for 3 nights',
-          time: '2 minutes ago',
+          title: 'تم تأكيد حجز جديد',
+          description: 'قام أحمد محمد بحجز جناح ديلوكس (غرفة 205) لمدة 3 ليالي',
+          time: 'منذ دقيقتين',
           priority: 'high',
           status: 'completed',
           amount: 675,
-          guestName: 'John Smith',
+          guestName: 'أحمد محمد',
           roomNumber: '205'
         },
         {
           id: '2',
           type: 'payment',
-          title: 'Payment Received',
-          description: 'Payment of $450 received from Room 312 - Sarah Johnson',
-          time: '15 minutes ago',
+          title: 'تم استلام دفعة',
+          description: 'تم استلام دفعة 450 ر.س من غرفة 312 - سارة أحمد',
+          time: 'منذ 15 دقيقة',
           priority: 'medium',
           status: 'completed',
           amount: 450,
-          guestName: 'Sarah Johnson',
+          guestName: 'سارة أحمد',
           roomNumber: '312'
         },
         {
           id: '3',
           type: 'checkin',
-          title: 'Guest Check-in',
-          description: 'Michael Davis checked into Executive Suite (Room 401)',
-          time: '32 minutes ago',
+          title: 'تسجيل دخول نزيل',
+          description: 'قام محمد علي بتسجيل الدخول إلى الجناح التنفيذي (غرفة 401)',
+          time: 'منذ 32 دقيقة',
           priority: 'high',
           status: 'completed',
-          guestName: 'Michael Davis',
+          guestName: 'محمد علي',
           roomNumber: '401'
         },
         {
           id: '4',
           type: 'request',
-          title: 'Room Service Request',
-          description: 'Extra towels and toiletries requested for Room 108',
-          time: '1 hour ago',
+          title: 'طلب خدمة الغرف',
+          description: 'تم طلب مناشف إضافية ومستلزمات نظافة للغرفة 108',
+          time: 'منذ ساعة',
           priority: 'low',
           status: 'pending',
-          guestName: 'Emma Wilson',
+          guestName: 'فاطمة حسن',
           roomNumber: '108'
         },
         {
           id: '5',
           type: 'maintenance',
-          title: 'Maintenance Alert',
-          description: 'AC unit in Room 215 needs immediate servicing',
-          time: '2 hours ago',
+          title: 'تنبيه صيانة',
+          description: 'وحدة التكييف في الغرفة 215 تحتاج صيانة فورية',
+          time: 'منذ ساعتين',
           priority: 'high',
           status: 'in-progress',
           roomNumber: '215'
@@ -280,49 +280,49 @@ const Dashboard: React.FC = () => {
         {
           id: '6',
           type: 'checkout',
-          title: 'Guest Checkout',
-          description: 'Robert Brown checked out from Standard Room (Room 103)',
-          time: '3 hours ago',
+          title: 'مغادرة نزيل',
+          description: 'قام خالد عبدالله بتسجيل المغادرة من الغرفة العادية (غرفة 103)',
+          time: 'منذ 3 ساعات',
           priority: 'medium',
           status: 'completed',
-          guestName: 'Robert Brown',
+          guestName: 'خالد عبدالله',
           roomNumber: '103'
         }
       ];
 
       // Generate chart data
       const revenueChartData = [
-        { name: 'Jan', value: 65000, revenue: 65000 },
-        { name: 'Feb', value: 72000, revenue: 72000 },
-        { name: 'Mar', value: 68000, revenue: 68000 },
-        { name: 'Apr', value: 78000, revenue: 78000 },
-        { name: 'May', value: 82000, revenue: 82000 },
-        { name: 'Jun', value: 89000, revenue: 89000 },
-        { name: 'Jul', value: 95000, revenue: 95000 }
+        { name: 'يناير', value: 65000, revenue: 65000 },
+        { name: 'فبراير', value: 72000, revenue: 72000 },
+        { name: 'مارس', value: 68000, revenue: 68000 },
+        { name: 'أبريل', value: 78000, revenue: 78000 },
+        { name: 'مايو', value: 82000, revenue: 82000 },
+        { name: 'يونيو', value: 89000, revenue: 89000 },
+        { name: 'يوليو', value: 95000, revenue: 95000 }
       ];
 
       const occupancyChartData = [
-        { name: 'Mon', value: 85, occupancy: 85 },
-        { name: 'Tue', value: 92, occupancy: 92 },
-        { name: 'Wed', value: 88, occupancy: 88 },
-        { name: 'Thu', value: 95, occupancy: 95 },
-        { name: 'Fri', value: 98, occupancy: 98 },
-        { name: 'Sat', value: 100, occupancy: 100 },
-        { name: 'Sun', value: 78, occupancy: 78 }
+        { name: 'الإثنين', value: 85, occupancy: 85 },
+        { name: 'الثلاثاء', value: 92, occupancy: 92 },
+        { name: 'الأربعاء', value: 88, occupancy: 88 },
+        { name: 'الخميس', value: 95, occupancy: 95 },
+        { name: 'الجمعة', value: 98, occupancy: 98 },
+        { name: 'السبت', value: 100, occupancy: 100 },
+        { name: 'الأحد', value: 78, occupancy: 78 }
       ];
 
       const bookingChartData = [
-        { name: 'Week 1', value: 45, bookings: 45 },
-        { name: 'Week 2', value: 52, bookings: 52 },
-        { name: 'Week 3', value: 48, bookings: 48 },
-        { name: 'Week 4', value: 61, bookings: 61 }
+        { name: 'الأسبوع 1', value: 45, bookings: 45 },
+        { name: 'الأسبوع 2', value: 52, bookings: 52 },
+        { name: 'الأسبوع 3', value: 48, bookings: 48 },
+        { name: 'الأسبوع 4', value: 61, bookings: 61 }
       ];
 
       const roomTypeChartData = [
-        { name: 'Standard', value: 45 },
-        { name: 'Deluxe', value: 30 },
-        { name: 'Suite', value: 15 },
-        { name: 'Executive', value: 10 }
+        { name: 'عادية', value: 45 },
+        { name: 'ديلوكس', value: 30 },
+        { name: 'جناح', value: 15 },
+        { name: 'تنفيذية', value: 10 }
       ];
 
       setStats(mockStats);
@@ -417,7 +417,7 @@ const Dashboard: React.FC = () => {
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-            <p className="text-white text-lg">Loading Dashboard...</p>
+            <p className="text-white text-lg">جاري تحميل لوحة التحكم...</p>
           </div>
         </div>
       </ProtectedRoute>
@@ -477,7 +477,7 @@ const Dashboard: React.FC = () => {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.8, delay: 0.2 }}
                 >
-                  Welcome back! 👋
+                  أهلاً بعودتك! 👋
                 </motion.h1>
                 <motion.p
                   className="text-gray-300 text-lg"
@@ -485,7 +485,7 @@ const Dashboard: React.FC = () => {
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.8, delay: 0.4 }}
                 >
-                  {currentTime.toLocaleDateString('en-US', {
+                  {currentTime.toLocaleDateString('ar-SA', {
                     weekday: 'long',
                     year: 'numeric',
                     month: 'long',
@@ -517,7 +517,7 @@ const Dashboard: React.FC = () => {
                   <div className="flex items-center space-x-2">
                     <Clock className="w-4 h-4 text-white" />
                     <span className="text-white font-medium">
-                      {currentTime.toLocaleTimeString('en-US', {
+                      {currentTime.toLocaleTimeString('ar-SA', {
                         hour: '2-digit',
                         minute: '2-digit'
                       })}
@@ -532,7 +532,7 @@ const Dashboard: React.FC = () => {
                   onClick={testNotification}
                 >
                   <Bell className="w-4 h-4 inline mr-2" />
-                  Test Notifications
+                  اختبار الإشعارات
                 </motion.button>
               </div>
             </div>
@@ -564,7 +564,7 @@ const Dashboard: React.FC = () => {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-gray-300 text-sm">Total Guests</p>
+                  <p className="text-gray-300 text-sm">إجمالي النزلاء</p>
                   <p className="text-3xl font-bold text-white">{stats.totalGuests.toLocaleString()}</p>
                   <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
                     <motion.div
@@ -597,7 +597,7 @@ const Dashboard: React.FC = () => {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-gray-300 text-sm">Monthly Revenue</p>
+                  <p className="text-gray-300 text-sm">الإيرادات الشهرية</p>
                   <p className="text-3xl font-bold text-white">{formatCurrency(stats.totalRevenue)}</p>
                   <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
                     <motion.div
@@ -630,7 +630,7 @@ const Dashboard: React.FC = () => {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-gray-300 text-sm">Occupancy Rate</p>
+                  <p className="text-gray-300 text-sm">معدل الإشغال</p>
                   <p className="text-3xl font-bold text-white">{stats.occupancyRate}%</p>
                   <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
                     <motion.div
@@ -663,7 +663,7 @@ const Dashboard: React.FC = () => {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-gray-300 text-sm">Pending Requests</p>
+                  <p className="text-gray-300 text-sm">الطلبات المعلقة</p>
                   <p className="text-3xl font-bold text-white">{stats.pendingRequests}</p>
                   <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
                     <motion.div
@@ -689,19 +689,19 @@ const Dashboard: React.FC = () => {
               <TabsList className="grid w-full grid-cols-4 bg-white/10 backdrop-blur-xl border border-white/20">
                 <TabsTrigger value="overview" className="data-[state=active]:bg-white/20 data-[state=active]:text-white text-gray-300">
                   <BarChart3 className="w-4 h-4 mr-2" />
-                  Overview
+                  نظرة عامة
                 </TabsTrigger>
                 <TabsTrigger value="analytics" className="data-[state=active]:bg-white/20 data-[state=active]:text-white text-gray-300">
                   <TrendingUp className="w-4 h-4 mr-2" />
-                  Analytics
+                  التحليلات
                 </TabsTrigger>
                 <TabsTrigger value="activity" className="data-[state=active]:bg-white/20 data-[state=active]:text-white text-gray-300">
                   <Activity className="w-4 h-4 mr-2" />
-                  Activity
+                  النشاط
                 </TabsTrigger>
                 <TabsTrigger value="performance" className="data-[state=active]:bg-white/20 data-[state=active]:text-white text-gray-300">
                   <Target className="w-4 h-4 mr-2" />
-                  Performance
+                  الأداء
                 </TabsTrigger>
               </TabsList>
 
@@ -718,10 +718,10 @@ const Dashboard: React.FC = () => {
                       transition={{ duration: 0.6, delay: 1.4 }}
                     >
                       <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-xl font-bold text-white">Revenue Trend</h3>
+                        <h3 className="text-xl font-bold text-white">اتجاه الإيرادات</h3>
                         <div className="flex items-center space-x-2">
                           <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                          <span className="text-gray-300 text-sm">Monthly</span>
+                          <span className="text-gray-300 text-sm">شهري</span>
                         </div>
                       </div>
                       <ResponsiveContainer width="100%" height={300}>
@@ -742,7 +742,7 @@ const Dashboard: React.FC = () => {
                               borderRadius: '8px',
                               color: 'white'
                             }}
-                            formatter={(value) => [formatCurrency(value as number), 'Revenue']}
+                            formatter={(value) => [formatCurrency(value as number), 'الإيرادات']}
                           />
                           <Area
                             type="monotone"
@@ -764,7 +764,7 @@ const Dashboard: React.FC = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 1.6 }}
                       >
-                        <h3 className="text-lg font-bold text-white mb-4">Weekly Occupancy</h3>
+                        <h3 className="text-lg font-bold text-white mb-4">الإشغال الأسبوعي</h3>
                         <ResponsiveContainer width="100%" height={200}>
                           <BarChart data={occupancyData}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -777,7 +777,7 @@ const Dashboard: React.FC = () => {
                                 borderRadius: '8px',
                                 color: 'white'
                               }}
-                              formatter={(value) => [`${value}%`, 'Occupancy']}
+                              formatter={(value) => [`${value}%`, 'الإشغال']}
                             />
                             <Bar dataKey="value" fill="#06B6D4" radius={[4, 4, 0, 0]} />
                           </BarChart>
@@ -790,7 +790,7 @@ const Dashboard: React.FC = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 1.8 }}
                       >
-                        <h3 className="text-lg font-bold text-white mb-4">Monthly Bookings</h3>
+                        <h3 className="text-lg font-bold text-white mb-4">الحجوزات الشهرية</h3>
                         <ResponsiveContainer width="100%" height={200}>
                           <LineChart data={bookingData}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -803,7 +803,7 @@ const Dashboard: React.FC = () => {
                                 borderRadius: '8px',
                                 color: 'white'
                               }}
-                              formatter={(value) => [value, 'Bookings']}
+                              formatter={(value) => [value, 'الحجوزات']}
                             />
                             <Line
                               type="monotone"
@@ -828,7 +828,7 @@ const Dashboard: React.FC = () => {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.6, delay: 2.0 }}
                     >
-                      <h3 className="text-lg font-bold text-white mb-4">Room Types</h3>
+                      <h3 className="text-lg font-bold text-white mb-4">أنواع الغرف</h3>
                       <ResponsiveContainer width="100%" height={200}>
                         <RechartsPieChart>
                           <Pie
@@ -867,22 +867,22 @@ const Dashboard: React.FC = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.6, delay: 2.2 }}
                     >
-                      <h3 className="text-lg font-bold text-white mb-4">Quick Stats</h3>
+                      <h3 className="text-lg font-bold text-white mb-4">إحصائيات سريعة</h3>
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                          <span className="text-gray-300">Available Rooms</span>
+                          <span className="text-gray-300">الغرف المتاحة</span>
                           <span className="text-green-400 font-bold">{stats.availableRooms}</span>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-gray-300">Staff on Duty</span>
+                          <span className="text-gray-300">الموظفون المناوبون</span>
                           <span className="text-blue-400 font-bold">{stats.staffOnDuty}</span>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-gray-300">Avg Stay Duration</span>
-                          <span className="text-purple-400 font-bold">{stats.avgStayDuration} days</span>
+                          <span className="text-gray-300">متوسط مدة الإقامة</span>
+                          <span className="text-purple-400 font-bold">{stats.avgStayDuration} أيام</span>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-gray-300">Maintenance</span>
+                          <span className="text-gray-300">طلبات الصيانة</span>
                           <span className="text-orange-400 font-bold">{stats.maintenanceRequests}</span>
                         </div>
                       </div>
@@ -900,26 +900,26 @@ const Dashboard: React.FC = () => {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.6 }}
                   >
-                    <h3 className="text-xl font-bold text-white mb-6">Revenue Analytics</h3>
+                    <h3 className="text-xl font-bold text-white mb-6">تحليلات الإيرادات</h3>
                     <div className="space-y-4">
                       <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg">
                         <div>
-                          <p className="text-gray-300 text-sm">This Month</p>
+                          <p className="text-gray-300 text-sm">هذا الشهر</p>
                           <p className="text-2xl font-bold text-white">{formatCurrency(stats.totalRevenue)}</p>
                         </div>
                         <div className="text-right">
                           <p className="text-green-400 text-sm">+{stats.monthlyGrowth}%</p>
-                          <p className="text-gray-400 text-xs">vs last month</p>
+                          <p className="text-gray-400 text-xs">مقارنة بالشهر الماضي</p>
                         </div>
                       </div>
                       <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg">
                         <div>
-                          <p className="text-gray-300 text-sm">Average per Guest</p>
+                          <p className="text-gray-300 text-sm">المتوسط لكل نزيل</p>
                           <p className="text-2xl font-bold text-white">{formatCurrency(stats.totalRevenue / stats.totalGuests)}</p>
                         </div>
                         <div className="text-right">
                           <p className="text-blue-400 text-sm">+8.2%</p>
-                          <p className="text-gray-400 text-xs">vs last month</p>
+                          <p className="text-gray-400 text-xs">مقارنة بالشهر الماضي</p>
                         </div>
                       </div>
                     </div>
@@ -931,26 +931,26 @@ const Dashboard: React.FC = () => {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.6, delay: 0.2 }}
                   >
-                    <h3 className="text-xl font-bold text-white mb-6">Occupancy Analytics</h3>
+                    <h3 className="text-xl font-bold text-white mb-6">تحليلات الإشغال</h3>
                     <div className="space-y-4">
                       <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg">
                         <div>
-                          <p className="text-gray-300 text-sm">Current Rate</p>
+                          <p className="text-gray-300 text-sm">المعدل الحالي</p>
                           <p className="text-2xl font-bold text-white">{stats.occupancyRate}%</p>
                         </div>
                         <div className="text-right">
                           <p className="text-green-400 text-sm">+{stats.weeklyGrowth}%</p>
-                          <p className="text-gray-400 text-xs">vs last week</p>
+                          <p className="text-gray-400 text-xs">مقارنة بالأسبوع الماضي</p>
                         </div>
                       </div>
                       <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg">
                         <div>
-                          <p className="text-gray-300 text-sm">Total Rooms</p>
+                          <p className="text-gray-300 text-sm">إجمالي الغرف</p>
                           <p className="text-2xl font-bold text-white">{stats.totalRooms}</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-green-400 text-sm">{stats.availableRooms} available</p>
-                          <p className="text-gray-400 text-xs">ready for booking</p>
+                          <p className="text-green-400 text-sm">{stats.availableRooms} متاحة</p>
+                          <p className="text-gray-400 text-xs">جاهزة للحجز</p>
                         </div>
                       </div>
                     </div>
@@ -967,15 +967,15 @@ const Dashboard: React.FC = () => {
                   transition={{ duration: 0.6 }}
                 >
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-bold text-white">Recent Activity</h2>
+                    <h2 className="text-2xl font-bold text-white">النشاط الأخير</h2>
                     <div className="flex items-center space-x-2">
                       <button className="text-purple-400 hover:text-purple-300 transition-colors duration-200 flex items-center space-x-2">
                         <Filter className="w-4 h-4" />
-                        <span>Filter</span>
+                        <span>تصفية</span>
                       </button>
                       <button className="text-purple-400 hover:text-purple-300 transition-colors duration-200 flex items-center space-x-2">
                         <Download className="w-4 h-4" />
-                        <span>Export</span>
+                        <span>تصدير</span>
                       </button>
                     </div>
                   </div>
@@ -1040,8 +1040,8 @@ const Dashboard: React.FC = () => {
                       </div>
                       <span className="text-yellow-400 text-2xl font-bold">{stats.customerSatisfaction}</span>
                     </div>
-                    <h3 className="text-lg font-bold text-white mb-2">Customer Satisfaction</h3>
-                    <p className="text-gray-300 text-sm mb-4">Based on guest reviews and feedback</p>
+                    <h3 className="text-lg font-bold text-white mb-2">رضا العملاء</h3>
+                    <p className="text-gray-300 text-sm mb-4">بناءً على تقييمات وملاحظات النزلاء</p>
                     <div className="flex items-center space-x-1">
                       {[...Array(5)].map((_, i) => (
                         <Star
@@ -1063,8 +1063,8 @@ const Dashboard: React.FC = () => {
                       </div>
                       <span className="text-green-400 text-2xl font-bold">99.9%</span>
                     </div>
-                    <h3 className="text-lg font-bold text-white mb-2">System Uptime</h3>
-                    <p className="text-gray-300 text-sm mb-4">Server availability this month</p>
+                    <h3 className="text-lg font-bold text-white mb-2">وقت تشغيل النظام</h3>
+                    <p className="text-gray-300 text-sm mb-4">توفر الخادم هذا الشهر</p>
                     <div className="w-full bg-white/20 rounded-full h-2">
                       <div className="bg-gradient-to-r from-green-500 to-emerald-500 h-2 rounded-full w-full"></div>
                     </div>
@@ -1081,8 +1081,8 @@ const Dashboard: React.FC = () => {
                       </div>
                       <span className="text-blue-400 text-2xl font-bold">2.3m</span>
                     </div>
-                    <h3 className="text-lg font-bold text-white mb-2">Response Time</h3>
-                    <p className="text-gray-300 text-sm mb-4">Average response to guest requests</p>
+                    <h3 className="text-lg font-bold text-white mb-2">وقت الاستجابة</h3>
+                    <p className="text-gray-300 text-sm mb-4">متوسط الاستجابة لطلبات النزلاء</p>
                     <div className="w-full bg-white/20 rounded-full h-2">
                       <div className="bg-gradient-to-r from-blue-500 to-cyan-500 h-2 rounded-full w-4/5"></div>
                     </div>
