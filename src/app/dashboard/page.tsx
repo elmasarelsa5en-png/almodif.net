@@ -470,28 +470,39 @@ const Dashboard: React.FC = () => {
             className="mb-8"
           >
             <div className="flex items-center justify-between mb-4">
-              <div>
-                <motion.h1
-                  className="text-5xl font-bold text-white mb-2 bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.8, delay: 0.2 }}
+              <div className="flex items-center gap-4">
+                <motion.div
+                  className="bg-gradient-to-br from-purple-500 to-pink-500 p-4 rounded-2xl shadow-xl"
+                  initial={{ opacity: 0, scale: 0.8, rotate: -10 }}
+                  animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                  transition={{ duration: 0.8, delay: 0.1 }}
+                  whileHover={{ scale: 1.05, rotate: 5 }}
                 >
-                  أهلاً بعودتك! 👋
-                </motion.h1>
-                <motion.p
-                  className="text-gray-300 text-lg"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.8, delay: 0.4 }}
-                >
-                  {currentTime.toLocaleDateString('ar-SA', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </motion.p>
+                  <Sparkles className="w-8 h-8 text-white" />
+                </motion.div>
+                <div>
+                  <motion.h1
+                    className="text-4xl font-bold text-white mb-2 bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.8, delay: 0.2 }}
+                  >
+                    لوحة التحكم
+                  </motion.h1>
+                  <motion.p
+                    className="text-gray-300 text-lg"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.8, delay: 0.4 }}
+                  >
+                    {currentTime.toLocaleDateString('ar-SA', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </motion.p>
+                </div>
               </div>
               <div className="flex items-center space-x-4">
                 {/* Weather Widget */}

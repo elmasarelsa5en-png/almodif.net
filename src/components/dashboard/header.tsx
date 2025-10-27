@@ -481,66 +481,64 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
 
         {/* Right Section - Actions & User */}
         <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
-          {/* Search Button - hidden on mobile */}
+          {/* Search Button - Icon Only */}
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setShowSearch(!showSearch)}
-            className="hidden md:flex text-white hover:text-blue-200 hover:bg-white/10 border border-white/20 hover:border-white/40 transition-all duration-200 px-3 py-2"
+            className="hidden md:flex text-white hover:text-blue-200 hover:bg-white/10 border border-white/20 hover:border-white/40 transition-all duration-200 p-2 w-9 h-9"
             title="البحث"
           >
-            بحث
+            <Search className="w-4 h-4" />
           </Button>
 
-          {/* Conversations - hidden on mobile */}
+          {/* Conversations - Icon Only */}
           <Button
             variant="ghost"
             size="sm"
             onClick={() => router.push('/crm/whatsapp')}
-            className="hidden lg:flex text-white hover:text-blue-200 hover:bg-white/10 border border-white/20 hover:border-white/40 transition-all duration-200 px-3 py-2"
+            className="hidden lg:flex text-white hover:text-blue-200 hover:bg-white/10 border border-white/20 hover:border-white/40 transition-all duration-200 p-2 w-9 h-9"
             title="المحادثات"
           >
-            محادثات
+            <MessageSquare className="w-4 h-4" />
           </Button>
 
-          {/* تم نقل زر AI إلى أيقونة عائمة في الأسفل */}
-
-          {/* Language Toggle */}
+          {/* Language Toggle - Icon Only */}
           <Button
             variant="ghost"
             size="sm"
             onClick={toggleLanguage}
-            className="text-white hover:text-blue-200 hover:bg-white/10 border border-white/20 hover:border-white/40 transition-all duration-200 px-3 py-2"
-            title="تغيير اللغة"
+            className="text-white hover:text-blue-200 hover:bg-white/10 border border-white/20 hover:border-white/40 transition-all duration-200 p-2 w-9 h-9"
+            title={language === 'ar' ? 'Switch to English' : 'التبديل للعربية'}
           >
-            لغة
+            <Globe className="w-4 h-4" />
           </Button>
 
-          {/* Settings - Central Hub */}
+          {/* Settings - Icon Only */}
           <Button
             variant="ghost"
             size="sm"
             onClick={() => router.push('/dashboard/settings')}
-            className="text-white hover:text-blue-200 hover:bg-white/10 border border-white/20 hover:border-white/40 transition-all duration-200 px-3 py-2 hover:scale-110 transition-transform"
+            className="text-white hover:text-blue-200 hover:bg-white/10 border border-white/20 hover:border-white/40 transition-all duration-200 p-2 w-9 h-9 hover:scale-110 transition-transform"
             title="مركز الإعدادات"
           >
-            إعدادات
+            <Settings className="w-4 h-4" />
           </Button>
 
-          {/* Notifications - Dropdown Menu */}
+          {/* Notifications - Icon Only with Badge */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
-                className="relative text-white hover:text-blue-200 hover:bg-white/10 border border-white/20 hover:border-white/40 transition-all duration-200 px-3 py-2"
+                className="relative text-white hover:text-blue-200 hover:bg-white/10 border border-white/20 hover:border-white/40 transition-all duration-200 p-2 w-9 h-9"
                 title="الإشعارات"
               >
-                إشعارات
+                <Bell className="w-4 h-4" />
                 {notificationStats.unread > 0 && (
                   <Badge 
                     variant="destructive" 
-                    className="absolute -top-1 -right-1 w-4 h-4 p-0 flex items-center justify-center text-[10px]"
+                    className="absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center text-[10px]"
                   >
                     {notificationStats.unread}
                   </Badge>
