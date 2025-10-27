@@ -220,13 +220,13 @@ export default function SyncSettingsPage() {
               <Upload className="h-5 w-5" />
               رفع البيانات إلى Firebase
             </CardTitle>
-            <CardDescription className="text-purple-100">
+            <CardDescription className="text-white font-medium">
               انقل البيانات المحلية إلى السحابة للمزامنة بين الأجهزة
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="bg-white/5 rounded-lg p-4 space-y-2 text-sm text-purple-100">
-              <p>📤 سيتم رفع:</p>
+            <div className="bg-black/30 rounded-lg p-4 space-y-2 text-sm text-white">
+              <p className="font-semibold">📤 سيتم رفع:</p>
               <ul className="list-disc list-inside space-y-1 mr-4">
                 <li>جميع الموظفين ({stats.localEmployees})</li>
                 <li>جميع الطلبات ({stats.localRequests})</li>
@@ -260,13 +260,13 @@ export default function SyncSettingsPage() {
               <Download className="h-5 w-5" />
               تحميل البيانات من Firebase
             </CardTitle>
-            <CardDescription className="text-blue-100">
+            <CardDescription className="text-white font-medium">
               حدّث البيانات المحلية من السحابة
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="bg-white/5 rounded-lg p-4 space-y-2 text-sm text-blue-100">
-              <p>📥 سيتم تحميل:</p>
+            <div className="bg-black/30 rounded-lg p-4 space-y-2 text-sm text-white">
+              <p className="font-semibold">📥 سيتم تحميل:</p>
               <ul className="list-disc list-inside space-y-1 mr-4">
                 <li>جميع الموظفين من Firebase ({stats.firebaseEmployees})</li>
                 <li>جميع الطلبات من Firebase ({stats.firebaseRequests})</li>

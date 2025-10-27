@@ -20,6 +20,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import { getRequestTypes, type RequestType } from '@/lib/requests-management';
 import { playNotificationSound } from '@/lib/notification-sounds';
 import { logAction } from '@/lib/audit-log';
+import { addRequest, getEmployees } from '@/lib/firebase-data';
 
 interface GuestRequest {
   id: string;
@@ -173,22 +174,15 @@ export default function NewRequestPage() {
     }
   };
 
-  const loadRoomsAndEmployees = () => {
+  const loadRoomsAndEmployees = async () => {
     try {
-      // تحميل الشقق المشغولة من localStorage
+      // تحميل الشقق المشغولة من localStorage (مؤقتاً)
       const roomsData = JSON.parse(localStorage.getItem('hotel_rooms_data') || '[]');
       const occupiedRooms = roomsData.filter((room: Room) => room.status === 'Occupied');
       setRooms(occupiedRooms);
 
-      // تحميل الموظفين من employees (صفحة HR الجديدة)
-      let employeesData = JSON.parse(localStorage.getItem('employees') || '[]');
-      // إذا لم توجد، جرب من المصادر القديمة
-      if (employeesData.length === 0) {
-        employeesData = JSON.parse(localStorage.getItem('hr_employees') || '[]');
-      }
-      if (employeesData.length === 0) {
-        employeesData = JSON.parse(localStorage.getItem('employees_list') || '[]');
-      }
+      // تحميل الموظفين من Firebase
+      const employeesData = await getEmployees();
       setEmployees(employeesData);
 
       // تحميل أنواع الطلبات من الإعدادات
@@ -229,7 +223,7 @@ export default function NewRequestPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) return;
@@ -237,9 +231,6 @@ export default function NewRequestPage() {
     setIsSubmitting(true);
 
     try {
-      // Generate unique ID
-      const id = `REQ-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
-
       // Build description with sub-items if any
       let fullDescription = formData.notes;
       if (selectedType?.hasSubItems && selectedSubItems.length > 0) {
@@ -252,9 +243,8 @@ export default function NewRequestPage() {
         fullDescription = `${formData.type}: ${subItemNames}${formData.notes ? '\n' + formData.notes : ''}`;
       }
 
-      // Create request object
+      // Create request object for Firebase
       const newRequest: any = {
-        id,
         room: formData.room,
         guest: formData.guest,
         phone: formData.phone || undefined,
@@ -270,29 +260,20 @@ export default function NewRequestPage() {
         linkedSection: selectedType?.linkedSection,
       };
 
-      // Get existing requests
-      const existingRequests = JSON.parse(localStorage.getItem('guest-requests') || '[]');
-
-      // Add new request at the beginning
-      const updatedRequests = [newRequest, ...existingRequests];
-
-      // Save to localStorage
-      localStorage.setItem('guest-requests', JSON.stringify(updatedRequests));
+      // Save to Firebase
+      const docId = await addRequest(newRequest);
 
       // تسجيل في Audit Log
       const assignedEmp = employees.find(emp => emp.id === formData.assignedEmployee);
-      logAction.createRequest(formData.room, formData.type, newRequest.id);
+      logAction.createRequest(formData.room, formData.type, docId);
       if (assignedEmp) {
-        logAction.assignRequest(formData.room, formData.type, assignedEmp.name, newRequest.id);
+        logAction.assignRequest(formData.room, formData.type, assignedEmp.name, docId);
       }
 
-      // If linked to a section, save there too
+      // If linked to a section, save there too (still using localStorage for compatibility)
       if (selectedType?.linkedSection) {
-        saveToLinkedSection(newRequest, selectedType.linkedSection);
+        saveToLinkedSection({ ...newRequest, id: docId }, selectedType.linkedSection);
       }
-
-      // Trigger storage event for real-time updates
-      window.dispatchEvent(new Event('storage'));
 
       // Play notification sound for the assigned employee
       playNotificationSound('new-request');

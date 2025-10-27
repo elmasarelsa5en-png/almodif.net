@@ -19,6 +19,7 @@ import {
   FileText,
   ChevronDown,
   RefreshCw,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,27 +27,12 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
-
-interface GuestRequest {
-  id: string;
-  room: string;
-  guest: string;
-  phone?: string;
-  type: string;
-  description: string;
-  notes: string;
-  status: 'pending' | 'in-progress' | 'completed' | 'rejected' | 'awaiting_employee_approval';
-  createdAt: string;
-  approvedBy?: string;
-  approvedAt?: string;
-  completedAt?: string;
-  assignedTo?: string;
-  assignedEmployee?: string;
-  priority: 'low' | 'medium' | 'high';
-  employeeApprovalStatus?: 'pending' | 'approved' | 'rejected';
-  employeeApprovedAt?: string;
-  managerNotified?: boolean;
-}
+import { 
+  subscribeToRequests, 
+  updateRequest, 
+  deleteRequest as deleteRequestFromFirebase,
+  GuestRequest 
+} from '@/lib/firebase-data';
 
 const STATUS_CONFIG = {
   pending: { label: 'قيد الانتظار', color: 'bg-yellow-500/20 text-yellow-300', icon: '⏳' },
@@ -71,30 +57,19 @@ export default function RequestsPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load requests from localStorage
+  // Load requests from Firebase with real-time updates
   useEffect(() => {
-    const loadRequests = () => {
-      try {
-        const saved = localStorage.getItem('guest-requests');
-        const data = saved ? JSON.parse(saved) : [];
-        setRequests(data);
-        setFilteredRequests(data);
-      } catch (error) {
-        console.error('خطأ في تحميل الطلبات:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    setIsLoading(true);
+    
+    // Subscribe to real-time updates
+    const unsubscribe = subscribeToRequests((requestsData) => {
+      setRequests(requestsData);
+      setFilteredRequests(requestsData);
+      setIsLoading(false);
+    });
 
-    loadRequests();
-
-    // Listen for storage updates
-    const handleStorageChange = () => {
-      loadRequests();
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
   }, []);
 
   // Filter requests
@@ -118,21 +93,26 @@ export default function RequestsPage() {
     setFilteredRequests(filtered);
   }, [requests, statusFilter, searchTerm]);
 
-  const updateRequestStatus = (id: string, newStatus: GuestRequest['status']) => {
-    const updated = requests.map((r) =>
-      r.id === id ? { ...r, status: newStatus, approvedAt: new Date().toISOString() } : r
-    );
-    setRequests(updated);
-    localStorage.setItem('guest-requests', JSON.stringify(updated));
-    window.dispatchEvent(new Event('storage'));
+  const updateRequestStatus = async (id: string, newStatus: GuestRequest['status']) => {
+    try {
+      await updateRequest(id, { 
+        status: newStatus, 
+        approvedAt: new Date().toISOString() 
+      });
+    } catch (error) {
+      console.error('Error updating request:', error);
+      alert('حدث خطأ أثناء تحديث الطلب');
+    }
   };
 
-  const deleteRequest = (id: string) => {
+  const deleteRequest = async (id: string) => {
     if (confirm('هل أنت متأكد من حذف هذا الطلب؟')) {
-      const updated = requests.filter((r) => r.id !== id);
-      setRequests(updated);
-      localStorage.setItem('guest-requests', JSON.stringify(updated));
-      window.dispatchEvent(new Event('storage'));
+      try {
+        await deleteRequestFromFirebase(id);
+      } catch (error) {
+        console.error('Error deleting request:', error);
+        alert('حدث خطأ أثناء حذف الطلب');
+      }
     }
   };
 

@@ -4,6 +4,14 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { logAction } from '@/lib/audit-log';
 import { 
+  getEmployees, 
+  addEmployee, 
+  updateEmployee, 
+  deleteEmployee,
+  subscribeToEmployees,
+  Employee 
+} from '@/lib/firebase-data';
+import { 
   ArrowLeft, 
   Users, 
   UserPlus, 
@@ -11,7 +19,8 @@ import {
   Trash2, 
   Shield,
   Search,
-  Filter
+  Filter,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -33,20 +42,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-
-interface Employee {
-  id: string;
-  username: string;
-  password: string;
-  name: string;
-  role: string;
-  department: string;
-  email?: string;
-  phone?: string;
-  status: 'available' | 'busy' | 'offline';
-  createdAt: string;
-  permissions?: string[];
-}
 
 const ROLES = [
   { value: 'admin', label: 'مدير', color: 'bg-red-500' },
@@ -104,6 +99,7 @@ export default function HRSettingsPage() {
   const [filterDepartment, setFilterDepartment] = useState<string>('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+  const [loading, setLoading] = useState(true);
   
   const [formData, setFormData] = useState({
     username: '',
@@ -117,40 +113,18 @@ export default function HRSettingsPage() {
     permissions: [] as string[],
   });
 
-  // Load employees from localStorage
+  // Load employees from Firebase with real-time updates
   useEffect(() => {
-    const loadEmployees = () => {
-      const saved = localStorage.getItem('employees');
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          setEmployees(parsed);
-        } catch (e) {
-          console.error('Error loading employees', e);
-        }
-      } else {
-        // Initialize with default employees
-        const defaultEmployees: Employee[] = [
-          {
-            id: '1',
-            username: 'reception',
-            password: '123456',
-            name: 'موظف الاستقبال',
-            role: 'reception',
-            department: 'استقبال',
-            email: 'reception@hotel.com',
-            phone: '0500000001',
-            status: 'available',
-            createdAt: new Date().toISOString(),
-            permissions: ['view_dashboard', 'manage_requests', 'approve_requests', 'view_rooms', 'view_bookings'],
-          }
-        ];
-        setEmployees(defaultEmployees);
-        localStorage.setItem('employees', JSON.stringify(defaultEmployees));
-      }
-    };
+    setLoading(true);
     
-    loadEmployees();
+    // Subscribe to real-time updates
+    const unsubscribe = subscribeToEmployees((employeesData) => {
+      setEmployees(employeesData);
+      setLoading(false);
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
   }, []);
 
   // Filter employees
@@ -227,68 +201,69 @@ export default function HRSettingsPage() {
     return categories;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.username || !formData.name || !formData.password) {
       alert('الرجاء إدخال اسم المستخدم والاسم الكامل وكلمة المرور');
       return;
     }
 
-    if (editingEmployee) {
-      // Update existing employee
-      const oldData = editingEmployee;
-      const updated = employees.map(emp => 
-        emp.id === editingEmployee.id 
-          ? { ...emp, ...formData }
-          : emp
-      );
-      setEmployees(updated);
-      localStorage.setItem('employees', JSON.stringify(updated));
-      
-      // تسجيل التعديل في Audit Log
-      const changes = [];
-      if (oldData.name !== formData.name) changes.push({ field: 'الاسم', oldValue: oldData.name, newValue: formData.name });
-      if (oldData.role !== formData.role) changes.push({ field: 'الدور', oldValue: oldData.role, newValue: formData.role });
-      if (oldData.department !== formData.department) changes.push({ field: 'القسم', oldValue: oldData.department, newValue: formData.department });
-      
-      logAction.updateEmployee(formData.name, editingEmployee.id, changes);
-    } else {
-      // Add new employee
-      const newEmployee: Employee = {
-        id: Date.now().toString(),
-        ...formData,
-        createdAt: new Date().toISOString(),
-      };
-      const updated = [...employees, newEmployee];
-      setEmployees(updated);
-      localStorage.setItem('employees', JSON.stringify(updated));
-      
-      // تسجيل الإضافة في Audit Log
-      logAction.addEmployee(formData.name, newEmployee.id);
-    }
+    try {
+      if (editingEmployee) {
+        // Update existing employee in Firebase
+        const oldData = editingEmployee;
+        const updatedData = { ...formData };
+        await updateEmployee(editingEmployee.id, updatedData);
+        
+        // تسجيل التعديل في Audit Log
+        const changes = [];
+        if (oldData.name !== formData.name) changes.push({ field: 'الاسم', oldValue: oldData.name, newValue: formData.name });
+        if (oldData.role !== formData.role) changes.push({ field: 'الدور', oldValue: oldData.role, newValue: formData.role });
+        if (oldData.department !== formData.department) changes.push({ field: 'القسم', oldValue: oldData.department, newValue: formData.department });
+        
+        logAction.updateEmployee(formData.name, editingEmployee.id, changes);
+      } else {
+        // Add new employee to Firebase
+        const newEmployee: Omit<Employee, 'id'> = {
+          ...formData,
+          createdAt: new Date().toISOString(),
+        };
+        const docId = await addEmployee(newEmployee);
+        
+        // تسجيل الإضافة في Audit Log
+        logAction.addEmployee(formData.name, docId);
+      }
 
-    setIsDialogOpen(false);
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error('Error saving employee:', error);
+      alert('حدث خطأ أثناء الحفظ');
+    }
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('هل أنت متأكد من حذف هذا الموظف؟')) {
-      const employee = employees.find(emp => emp.id === id);
-      const updated = employees.filter(emp => emp.id !== id);
-      setEmployees(updated);
-      localStorage.setItem('employees', JSON.stringify(updated));
-      
-      // تسجيل الحذف في Audit Log
-      if (employee) {
-        logAction.deleteEmployee(employee.name, id);
+      try {
+        const employee = employees.find(emp => emp.id === id);
+        await deleteEmployee(id);
+        
+        // تسجيل الحذف في Audit Log
+        if (employee) {
+          logAction.deleteEmployee(employee.name, id);
+        }
+      } catch (error) {
+        console.error('Error deleting employee:', error);
+        alert('حدث خطأ أثناء الحذف');
       }
     }
   };
 
-  const handleStatusChange = (id: string, status: Employee['status']) => {
-    const updated = employees.map(emp => 
-      emp.id === id ? { ...emp, status } : emp
-    );
-    setEmployees(updated);
-    localStorage.setItem('employees', JSON.stringify(updated));
+  const handleStatusChange = async (id: string, status: Employee['status']) => {
+    try {
+      await updateEmployee(id, { status });
+    } catch (error) {
+      console.error('Error updating status:', error);
+      alert('حدث خطأ أثناء تحديث الحالة');
+    }
   };
 
   const getRoleInfo = (role: string) => {
@@ -335,7 +310,11 @@ export default function HRSettingsPage() {
               <CardTitle className="text-sm text-purple-200">إجمالي الموظفين</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-white">{employees.length}</p>
+              {loading ? (
+                <Loader2 className="h-8 w-8 animate-spin text-white" />
+              ) : (
+                <p className="text-3xl font-bold text-white">{employees.length}</p>
+              )}
             </CardContent>
           </Card>
           <Card className="bg-white/10 border-white/20">
@@ -343,9 +322,13 @@ export default function HRSettingsPage() {
               <CardTitle className="text-sm text-purple-200">متاح</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-green-400">
-                {employees.filter(e => e.status === 'available').length}
-              </p>
+              {loading ? (
+                <Loader2 className="h-8 w-8 animate-spin text-green-400" />
+              ) : (
+                <p className="text-3xl font-bold text-green-400">
+                  {employees.filter(e => e.status === 'available').length}
+                </p>
+              )}
             </CardContent>
           </Card>
           <Card className="bg-white/10 border-white/20">
@@ -353,9 +336,13 @@ export default function HRSettingsPage() {
               <CardTitle className="text-sm text-purple-200">مشغول</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-yellow-400">
-                {employees.filter(e => e.status === 'busy').length}
-              </p>
+              {loading ? (
+                <Loader2 className="h-8 w-8 animate-spin text-yellow-400" />
+              ) : (
+                <p className="text-3xl font-bold text-yellow-400">
+                  {employees.filter(e => e.status === 'busy').length}
+                </p>
+              )}
             </CardContent>
           </Card>
           <Card className="bg-white/10 border-white/20">
@@ -363,9 +350,13 @@ export default function HRSettingsPage() {
               <CardTitle className="text-sm text-purple-200">غير متصل</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-gray-400">
-                {employees.filter(e => e.status === 'offline').length}
-              </p>
+              {loading ? (
+                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+              ) : (
+                <p className="text-3xl font-bold text-gray-400">
+                  {employees.filter(e => e.status === 'offline').length}
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>
