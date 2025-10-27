@@ -121,6 +121,8 @@ export default function EmployeeRequestsPage() {
 
   // Approve request
   const approveRequest = (id: string) => {
+    const request = requests.find(r => r.id === id);
+    
     const updated = requests.map((r) =>
       r.id === id
         ? {
@@ -148,6 +150,33 @@ export default function EmployeeRequestsPage() {
         : req
     );
     localStorage.setItem('guest-requests', JSON.stringify(updatedAll));
+    
+    // Update linked section order if exists
+    if (request && (request as any).linkedSection && (request as any).originalOrderId) {
+      const linkedSection = (request as any).linkedSection;
+      const originalOrderId = (request as any).originalOrderId;
+      
+      if (linkedSection === 'coffee') {
+        const coffeeOrders = JSON.parse(localStorage.getItem('coffee_orders') || '[]');
+        const updatedOrders = coffeeOrders.map((order: any) => 
+          order.id === originalOrderId ? { ...order, status: 'preparing', approvedByReception: true } : order
+        );
+        localStorage.setItem('coffee_orders', JSON.stringify(updatedOrders));
+      } else if (linkedSection === 'laundry') {
+        const laundryRequests = JSON.parse(localStorage.getItem('LAUNDRY_REQUESTS_STORAGE_KEY') || '[]');
+        const updatedRequests = laundryRequests.map((req: any) => 
+          req.id === originalOrderId ? { ...req, status: 'InProgress', approvedByReception: true } : req
+        );
+        localStorage.setItem('LAUNDRY_REQUESTS_STORAGE_KEY', JSON.stringify(updatedRequests));
+      } else if (linkedSection === 'restaurant') {
+        const restaurantOrders = JSON.parse(localStorage.getItem('restaurant_orders') || '[]');
+        const updatedOrders = restaurantOrders.map((order: any) => 
+          order.id === originalOrderId ? { ...order, status: 'preparing', approvedByReception: true } : order
+        );
+        localStorage.setItem('restaurant_orders', JSON.stringify(updatedOrders));
+      }
+    }
+    
     window.dispatchEvent(new Event('storage'));
 
     // Play approval sound
@@ -159,6 +188,8 @@ export default function EmployeeRequestsPage() {
 
   // Reject request
   const rejectRequest = (id: string) => {
+    const request = requests.find(r => r.id === id);
+    
     const updated = requests.map((r) =>
       r.id === id
         ? {
@@ -184,6 +215,33 @@ export default function EmployeeRequestsPage() {
         : req
     );
     localStorage.setItem('guest-requests', JSON.stringify(updatedAll));
+    
+    // Update linked section order if exists
+    if (request && (request as any).linkedSection && (request as any).originalOrderId) {
+      const linkedSection = (request as any).linkedSection;
+      const originalOrderId = (request as any).originalOrderId;
+      
+      if (linkedSection === 'coffee') {
+        const coffeeOrders = JSON.parse(localStorage.getItem('coffee_orders') || '[]');
+        const updatedOrders = coffeeOrders.map((order: any) => 
+          order.id === originalOrderId ? { ...order, status: 'cancelled', rejectedByReception: true } : order
+        );
+        localStorage.setItem('coffee_orders', JSON.stringify(updatedOrders));
+      } else if (linkedSection === 'laundry') {
+        const laundryRequests = JSON.parse(localStorage.getItem('LAUNDRY_REQUESTS_STORAGE_KEY') || '[]');
+        const updatedRequests = laundryRequests.map((req: any) => 
+          req.id === originalOrderId ? { ...req, status: 'Cancelled' as any, rejectedByReception: true } : req
+        );
+        localStorage.setItem('LAUNDRY_REQUESTS_STORAGE_KEY', JSON.stringify(updatedRequests));
+      } else if (linkedSection === 'restaurant') {
+        const restaurantOrders = JSON.parse(localStorage.getItem('restaurant_orders') || '[]');
+        const updatedOrders = restaurantOrders.map((order: any) => 
+          order.id === originalOrderId ? { ...order, status: 'cancelled', rejectedByReception: true } : order
+        );
+        localStorage.setItem('restaurant_orders', JSON.stringify(updatedOrders));
+      }
+    }
+    
     window.dispatchEvent(new Event('storage'));
 
     // Play rejection sound
