@@ -17,6 +17,9 @@ export default function WhatsAppConnectPage() {
   const [countdown, setCountdown] = useState<number>(60);
 
   useEffect(() => {
+    // Check connection first
+    checkConnectionStatus();
+    
     // Generate QR code
     generateQRCode();
     
@@ -33,6 +36,33 @@ export default function WhatsAppConnectPage() {
 
     return () => clearInterval(timer);
   }, []);
+
+  const checkConnectionStatus = async () => {
+    try {
+      const response = await fetch('http://localhost:3002/api/status');
+      
+      if (!response.ok) {
+        return;
+      }
+      
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        return;
+      }
+      
+      const data = await response.json();
+      
+      // If already connected, redirect to chat
+      if (data.connected) {
+        setStep('connected');
+        setTimeout(() => {
+          router.push('/crm/whatsapp/chat');
+        }, 1500);
+      }
+    } catch (err) {
+      console.error('Status check error:', err);
+    }
+  };
 
   const generateQRCode = async () => {
     try {
@@ -54,14 +84,25 @@ export default function WhatsAppConnectPage() {
       
       const data = await response.json();
       
-      if (data.qr) {
+      if (data.connected) {
+        // Already connected
+        setStep('connected');
+        setTimeout(() => {
+          router.push('/crm/whatsapp/chat');
+        }, 1500);
+      } else if (data.qr) {
+        // QR code available
         setQrCode(data.qr);
+        setStep('scanning');
+      } else if (data.error) {
+        // Show error message
+        setError(data.error === 'QR not ready yet' 
+          ? 'جاري تحضير رمز QR، يرجى الانتظار...' 
+          : 'حدث خطأ في الاتصال');
       }
     } catch (err) {
       console.error('QR generation error:', err);
-      // Use a placeholder QR code for demo
-      setQrCode('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2YwZjBmMCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5RUiBDb2RlPC90ZXh0Pjwvc3ZnPg==');
-      setError('خادم WhatsApp غير متاح حالياً. يرجى تشغيل الخادم أولاً.');
+      setError('خادم WhatsApp غير متاح حالياً. يرجى التأكد من تشغيل الخادم.');
     }
   };
 
