@@ -23,6 +23,7 @@ import { Input } from '@/components/ui/input';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { playNotificationSound } from '@/lib/notification-sounds';
 
 interface GuestRequest {
   id: string;
@@ -55,6 +56,7 @@ export default function EmployeeRequestsPage() {
   const [statusFilter, setStatusFilter] = useState<string>('pending');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [previousRequestCount, setPreviousRequestCount] = useState(0);
 
   // Load requests assigned to current employee
   useEffect(() => {
@@ -65,6 +67,18 @@ export default function EmployeeRequestsPage() {
 
         // Filter requests assigned to current user
         const myRequests = allRequests.filter((req: GuestRequest) => req.assignedEmployee === user?.username);
+        
+        // Check for new pending requests and play sound
+        const newPendingRequests = myRequests.filter(
+          (req: GuestRequest) => req.employeeApprovalStatus === 'pending'
+        );
+        
+        if (newPendingRequests.length > previousRequestCount && previousRequestCount > 0) {
+          // Play notification sound for new request
+          playNotificationSound('new-request');
+        }
+        
+        setPreviousRequestCount(newPendingRequests.length);
         setRequests(myRequests);
         setFilteredRequests(myRequests);
       } catch (error) {
@@ -136,6 +150,9 @@ export default function EmployeeRequestsPage() {
     localStorage.setItem('guest-requests', JSON.stringify(updatedAll));
     window.dispatchEvent(new Event('storage'));
 
+    // Play approval sound
+    playNotificationSound('approval');
+
     // Add notification for manager
     addManagerNotification(id, 'approved');
   };
@@ -168,6 +185,9 @@ export default function EmployeeRequestsPage() {
     );
     localStorage.setItem('guest-requests', JSON.stringify(updatedAll));
     window.dispatchEvent(new Event('storage'));
+
+    // Play rejection sound
+    playNotificationSound('rejection');
 
     // Add notification for manager
     addManagerNotification(id, 'rejected');

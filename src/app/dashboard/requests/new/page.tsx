@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { getRequestTypes, type RequestType } from '@/lib/requests-management';
+import { playNotificationSound } from '@/lib/notification-sounds';
 
 interface GuestRequest {
   id: string;
@@ -175,6 +176,9 @@ export default function NewRequestPage() {
 
       // Trigger storage event for real-time updates
       window.dispatchEvent(new Event('storage'));
+
+      // Play notification sound for the assigned employee
+      playNotificationSound('new-request');
 
       // Show success message
       setSuccessMessage('✅ تم إنشاء الطلب بنجاح! سيتم إخطار الموظف والمدير.');
