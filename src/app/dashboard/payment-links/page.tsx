@@ -299,11 +299,11 @@ ${link.paymentMethods.includes('apple-pay') ? '🍎 Apple Pay\n' : ''}${link.pay
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="SAR">ريال سعودي (SAR)</SelectItem>
-                      <SelectItem value="USD">دولار أمريكي (USD)</SelectItem>
-                      <SelectItem value="EUR">يورو (EUR)</SelectItem>
-                      <SelectItem value="AED">درهم إماراتي (AED)</SelectItem>
+                    <SelectContent className="bg-slate-900 border-white/20">
+                      <SelectItem value="SAR" className="text-white focus:bg-white/10 focus:text-white">ريال سعودي (SAR)</SelectItem>
+                      <SelectItem value="USD" className="text-white focus:bg-white/10 focus:text-white">دولار أمريكي (USD)</SelectItem>
+                      <SelectItem value="EUR" className="text-white focus:bg-white/10 focus:text-white">يورو (EUR)</SelectItem>
+                      <SelectItem value="AED" className="text-white focus:bg-white/10 focus:text-white">درهم إماراتي (AED)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -388,12 +388,12 @@ ${link.paymentMethods.includes('apple-pay') ? '🍎 Apple Pay\n' : ''}${link.pay
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">يوم واحد</SelectItem>
-                      <SelectItem value="3">3 أيام</SelectItem>
-                      <SelectItem value="7">7 أيام</SelectItem>
-                      <SelectItem value="14">14 يوم</SelectItem>
-                      <SelectItem value="30">30 يوم</SelectItem>
+                    <SelectContent className="bg-slate-900 border-white/20">
+                      <SelectItem value="1" className="text-white focus:bg-white/10 focus:text-white">يوم واحد</SelectItem>
+                      <SelectItem value="3" className="text-white focus:bg-white/10 focus:text-white">3 أيام</SelectItem>
+                      <SelectItem value="7" className="text-white focus:bg-white/10 focus:text-white">7 أيام</SelectItem>
+                      <SelectItem value="14" className="text-white focus:bg-white/10 focus:text-white">14 يوم</SelectItem>
+                      <SelectItem value="30" className="text-white focus:bg-white/10 focus:text-white">30 يوم</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -512,12 +512,12 @@ ${link.paymentMethods.includes('apple-pay') ? '🍎 Apple Pay\n' : ''}${link.pay
                 <Filter className="w-4 h-4 ml-2" />
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">جميع الحالات</SelectItem>
-                <SelectItem value="active">نشط</SelectItem>
-                <SelectItem value="paid">مدفوع</SelectItem>
-                <SelectItem value="expired">منتهي</SelectItem>
-                <SelectItem value="cancelled">ملغي</SelectItem>
+              <SelectContent className="bg-slate-900 border-white/20">
+                <SelectItem value="all" className="text-white focus:bg-white/10 focus:text-white">جميع الحالات</SelectItem>
+                <SelectItem value="active" className="text-white focus:bg-white/10 focus:text-white">نشط</SelectItem>
+                <SelectItem value="paid" className="text-white focus:bg-white/10 focus:text-white">مدفوع</SelectItem>
+                <SelectItem value="expired" className="text-white focus:bg-white/10 focus:text-white">منتهي</SelectItem>
+                <SelectItem value="cancelled" className="text-white focus:bg-white/10 focus:text-white">ملغي</SelectItem>
               </SelectContent>
             </Select>
           </div>

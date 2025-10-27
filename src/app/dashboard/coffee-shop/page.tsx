@@ -488,9 +488,9 @@ export default function CoffeeShopPage() {
                             <SelectTrigger className="h-8 text-xs border-slate-700 bg-slate-900">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent className="bg-slate-900">
+                            <SelectContent className="bg-slate-900 border-white/20">
                               {ORDER_STATUSES.map((st) => (
-                                <SelectItem key={st.value} value={st.value}>
+                                <SelectItem key={st.value} value={st.value} className="text-white focus:bg-white/10 focus:text-white">
                                   {st.label}
                                 </SelectItem>
                               ))}
@@ -541,10 +541,10 @@ export default function CoffeeShopPage() {
                   <SelectTrigger className="h-8 text-sm border-slate-700 bg-slate-950">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-900">
-                    <SelectItem value="all">جميع</SelectItem>
+                  <SelectContent className="bg-slate-900 border-white/20">
+                    <SelectItem value="all" className="text-white focus:bg-white/10 focus:text-white">جميع</SelectItem>
                     {ORDER_STATUSES.map((st) => (
-                      <SelectItem key={st.value} value={st.value}>
+                      <SelectItem key={st.value} value={st.value} className="text-white focus:bg-white/10 focus:text-white">
                         {st.label}
                       </SelectItem>
                     ))}
@@ -605,10 +605,10 @@ export default function CoffeeShopPage() {
                   <SelectTrigger className="border-slate-700 bg-slate-900">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-900">
-                    <SelectItem value="room_charge">على الحساب</SelectItem>
-                    <SelectItem value="cash">نقدي</SelectItem>
-                    <SelectItem value="card">بطاقة</SelectItem>
+                  <SelectContent className="bg-slate-900 border-white/20">
+                    <SelectItem value="room_charge" className="text-white focus:bg-white/10 focus:text-white">على الحساب</SelectItem>
+                    <SelectItem value="cash" className="text-white focus:bg-white/10 focus:text-white">نقدي</SelectItem>
+                    <SelectItem value="card" className="text-white focus:bg-white/10 focus:text-white">بطاقة</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -621,9 +621,9 @@ export default function CoffeeShopPage() {
                   <SelectTrigger className="border-slate-700 bg-slate-900">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-900">
+                  <SelectContent className="bg-slate-900 border-white/20">
                     {occupiedRooms.map((room) => (
-                      <SelectItem key={room.number} value={room.number}>
+                      <SelectItem key={room.number} value={room.number} className="text-white focus:bg-white/10 focus:text-white">
                         {room.number} - {room.guestName}
                       </SelectItem>
                     ))}
@@ -705,9 +705,9 @@ export default function CoffeeShopPage() {
                   <SelectTrigger className="border-slate-700 bg-slate-900">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-900">
+                  <SelectContent className="bg-slate-900 border-white/20">
                     {Object.entries(categoryDictionary).map(([v, l]) => (
-                      <SelectItem key={v} value={v}>
+                      <SelectItem key={v} value={v} className="text-white focus:bg-white/10 focus:text-white">
                         {l}
                       </SelectItem>
                     ))}

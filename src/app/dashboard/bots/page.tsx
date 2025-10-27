@@ -650,12 +650,12 @@ export default function BotsPage() {
                   <SelectTrigger className="bg-white/10 border-white/20 text-white">
                     <SelectValue placeholder="اختر النوع" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="reservation">حجوزات</SelectItem>
-                    <SelectItem value="customer_service">خدمة عملاء</SelectItem>
-                    <SelectItem value="restaurant">مطعم</SelectItem>
-                    <SelectItem value="maintenance">صيانة</SelectItem>
-                    <SelectItem value="general">عام</SelectItem>
+                  <SelectContent className="bg-slate-900 border-white/20">
+                    <SelectItem value="reservation" className="text-white focus:bg-white/10 focus:text-white">حجوزات</SelectItem>
+                    <SelectItem value="customer_service" className="text-white focus:bg-white/10 focus:text-white">خدمة عملاء</SelectItem>
+                    <SelectItem value="restaurant" className="text-white focus:bg-white/10 focus:text-white">مطعم</SelectItem>
+                    <SelectItem value="maintenance" className="text-white focus:bg-white/10 focus:text-white">صيانة</SelectItem>
+                    <SelectItem value="general" className="text-white focus:bg-white/10 focus:text-white">عام</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -665,11 +665,11 @@ export default function BotsPage() {
                   <SelectTrigger className="bg-white/10 border-white/20 text-white">
                     <SelectValue placeholder="اختر النموذج" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="gpt-4">GPT-4</SelectItem>
-                    <SelectItem value="gpt-3.5">GPT-3.5</SelectItem>
-                    <SelectItem value="claude">Claude</SelectItem>
-                    <SelectItem value="palm">PaLM</SelectItem>
+                  <SelectContent className="bg-slate-900 border-white/20">
+                    <SelectItem value="gpt-4" className="text-white focus:bg-white/10 focus:text-white">GPT-4</SelectItem>
+                    <SelectItem value="gpt-3.5" className="text-white focus:bg-white/10 focus:text-white">GPT-3.5</SelectItem>
+                    <SelectItem value="claude" className="text-white focus:bg-white/10 focus:text-white">Claude</SelectItem>
+                    <SelectItem value="palm" className="text-white focus:bg-white/10 focus:text-white">PaLM</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -679,10 +679,10 @@ export default function BotsPage() {
                   <SelectTrigger className="bg-white/10 border-white/20 text-white">
                     <SelectValue placeholder="اختر اللغة" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ar">العربية</SelectItem>
-                    <SelectItem value="en">الإنجليزية</SelectItem>
-                    <SelectItem value="fr">الفرنسية</SelectItem>
+                  <SelectContent className="bg-slate-900 border-white/20">
+                    <SelectItem value="ar" className="text-white focus:bg-white/10 focus:text-white">العربية</SelectItem>
+                    <SelectItem value="en" className="text-white focus:bg-white/10 focus:text-white">الإنجليزية</SelectItem>
+                    <SelectItem value="fr" className="text-white focus:bg-white/10 focus:text-white">الفرنسية</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

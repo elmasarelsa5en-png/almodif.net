@@ -214,11 +214,11 @@ export default function AnalyticsPage() {
                   <SelectTrigger className="w-32 bg-white/10 border-white/20 text-white">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="week">هذا الأسبوع</SelectItem>
-                    <SelectItem value="month">هذا الشهر</SelectItem>
-                    <SelectItem value="quarter">هذا الربع</SelectItem>
-                    <SelectItem value="year">هذا العام</SelectItem>
+                  <SelectContent className="bg-slate-900 border-white/20">
+                    <SelectItem value="week" className="text-white focus:bg-white/10 focus:text-white">هذا الأسبوع</SelectItem>
+                    <SelectItem value="month" className="text-white focus:bg-white/10 focus:text-white">هذا الشهر</SelectItem>
+                    <SelectItem value="quarter" className="text-white focus:bg-white/10 focus:text-white">هذا الربع</SelectItem>
+                    <SelectItem value="year" className="text-white focus:bg-white/10 focus:text-white">هذا العام</SelectItem>
                   </SelectContent>
                 </Select>
                 

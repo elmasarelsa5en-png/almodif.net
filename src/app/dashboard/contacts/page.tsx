@@ -598,11 +598,11 @@ export default function ContactsPage() {
                   <SelectTrigger className="bg-white/10 border-white/20 text-white">
                     <SelectValue placeholder="اختر المستوى" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="standard">عادي</SelectItem>
-                    <SelectItem value="silver">فضي</SelectItem>
-                    <SelectItem value="gold">ذهبي</SelectItem>
-                    <SelectItem value="platinum">بلاتيني</SelectItem>
+                  <SelectContent className="bg-slate-900 border-white/20">
+                    <SelectItem value="standard" className="text-white focus:bg-white/10 focus:text-white">عادي</SelectItem>
+                    <SelectItem value="silver" className="text-white focus:bg-white/10 focus:text-white">فضي</SelectItem>
+                    <SelectItem value="gold" className="text-white focus:bg-white/10 focus:text-white">ذهبي</SelectItem>
+                    <SelectItem value="platinum" className="text-white focus:bg-white/10 focus:text-white">بلاتيني</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

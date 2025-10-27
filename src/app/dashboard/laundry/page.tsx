@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Shirt, ShoppingCart, X, Plus, Minus, Trash2, CreditCard, Wallet, UserCircle, CheckCircle, Search, Clock } from 'lucide-react';
+import { Shirt, ShoppingCart, X, Plus, Minus, Trash2, CreditCard, Wallet, UserCircle, CheckCircle, Search, Clock, Sparkles, Wind, Droplets, Star } from 'lucide-react';
 import { getRoomsFromStorage } from '@/lib/rooms-data';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -220,6 +220,21 @@ export default function LaundryPage() {
     }
   };
 
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'washing':
+        return <Droplets className="w-12 h-12 text-white" />;
+      case 'ironing':
+        return <Wind className="w-12 h-12 text-white" />;
+      case 'dry-cleaning':
+        return <Sparkles className="w-12 h-12 text-white" />;
+      case 'special':
+        return <Star className="w-12 h-12 text-white" />;
+      default:
+        return <Shirt className="w-12 h-12 text-white" />;
+    }
+  };
+
   const handleCheckout = () => {
     console.log('Laundry order processed:', { cart, customerType, total });
     setCart([]);
@@ -247,20 +262,20 @@ export default function LaundryPage() {
               <SelectTrigger className="w-40 bg-white/10 border-white/20 text-white">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="guest">
+              <SelectContent className="bg-slate-900 border-white/20">
+                <SelectItem value="guest" className="text-white focus:bg-white/10 focus:text-white">
                   <div className="flex items-center gap-2">
                     <UserCircle className="w-4 h-4" />
                     نزيل الفندق
                   </div>
                 </SelectItem>
-                <SelectItem value="staff">
+                <SelectItem value="staff" className="text-white focus:bg-white/10 focus:text-white">
                   <div className="flex items-center gap-2">
                     <Badge className="w-4 h-4" />
                     موظف
                   </div>
                 </SelectItem>
-                <SelectItem value="external">
+                <SelectItem value="external" className="text-white focus:bg-white/10 focus:text-white">
                   <div className="flex items-center gap-2">
                     <UserCircle className="w-4 h-4" />
                     عميل خارجي
@@ -275,9 +290,9 @@ export default function LaundryPage() {
                 <SelectTrigger className="w-40 bg-white/10 border-white/20 text-white">
                   <SelectValue placeholder="اختر الغرفة" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-slate-900 border-white/20">
                   {rooms.map(room => (
-                    <SelectItem key={room.id} value={room.number}>
+                    <SelectItem key={room.id} value={room.number} className="text-white focus:bg-white/10 focus:text-white">
                       غرفة {room.number}
                     </SelectItem>
                   ))}
@@ -318,9 +333,9 @@ export default function LaundryPage() {
             <SelectTrigger className="bg-white/10 border-white/20 text-white">
               <SelectValue placeholder="اختر نوع الخدمة" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-slate-900 border-white/20">
               {categories.map(category => (
-                <SelectItem key={category.id} value={category.id}>
+                <SelectItem key={category.id} value={category.id} className="text-white focus:bg-white/10 focus:text-white">
                   {category.name}
                 </SelectItem>
               ))}
@@ -334,7 +349,7 @@ export default function LaundryPage() {
             <Card key={service.id} className="bg-white/10 border-white/20 hover:bg-white/15 transition-colors">
               <CardContent className="p-4">
                 <div className={`aspect-square bg-gradient-to-br ${getCategoryColor(service.category)} rounded-lg mb-3 flex items-center justify-center`}>
-                  <Shirt className="w-12 h-12 text-white" />
+                  {getCategoryIcon(service.category)}
                 </div>
                 
                 <h3 className="text-white font-semibold mb-1">{service.nameAr}</h3>
