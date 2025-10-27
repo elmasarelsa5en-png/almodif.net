@@ -34,7 +34,8 @@ import {
   Calendar, // أيقونة الحجوزات
   Globe, // أيقونة منصات الحجز
   Link2, // أيقونة روابط الدفع
-  CreditCard // أيقونة بطاقات الدفع
+  CreditCard, // أيقونة بطاقات الدفع
+  List // أيقونة قوائم الأصناف
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -121,14 +122,6 @@ const navigationItems: NavigationItem[] = [
     href: '/dashboard/inventory',
     permission: 'view:inventory',
   },
-
-  {
-    icon: MessagesSquare, // استخدام الأيقونة الجديدة
-    labelKey: 'internalChat', // مفتاح ترجمة جديد
-    descKey: 'internalChatDesc', // مفتاح وصف جديد
-    href: '/dashboard/chat', // مسار جديد للصفحة
-    permission: 'view:internal_chat',
-  },
   {
     icon: Link2,
     labelKey: 'paymentLinks',
@@ -188,6 +181,13 @@ const navigationItems: NavigationItem[] = [
     ]
   },
   {
+    icon: MessagesSquare,
+    labelKey: 'internalChat',
+    descKey: 'internalChatDesc',
+    href: '/dashboard/chat',
+    permission: 'view:internal_chat',
+  },
+  {
     icon: MessageSquare,
     labelKey: 'crmWhatsapp',
     descKey: 'crmWhatsappDesc',
@@ -207,6 +207,29 @@ const navigationItems: NavigationItem[] = [
         descKey: 'botsDesc',
         href: '/crm/whatsapp/auto-reply',
         permission: 'manage:whatsapp_bot',
+      }
+    ]
+  },
+  {
+    icon: Settings,
+    labelKey: 'settings',
+    descKey: 'settingsDesc',
+    href: '/dashboard/settings',
+    permission: 'manage:settings',
+    subItems: [
+      {
+        icon: List,
+        labelKey: 'menuItems',
+        descKey: 'menuItemsDesc',
+        href: '/dashboard/settings/menu-items',
+        permission: 'manage:menu_items',
+      },
+      {
+        icon: Users,
+        labelKey: 'hrManagement',
+        descKey: 'hrManagementDesc',
+        href: '/dashboard/settings/hr',
+        permission: 'manage:employees',
       }
     ]
   },
