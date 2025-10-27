@@ -1,750 +1,1497 @@
-'use client';
+'use client';'use client';
 
-import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
-import {
-  MessageSquare,
-  MessageCircle,
-  Plus,
-  Bot,
-  ClipboardList,
-  Send,
-  X,
-  ArrowRight,
-  Phone,
-  Clock,
-  User,
-  FileText,
-  CheckCircle,
-  AlertCircle,
-  TrendingUp,
-  Users,
-  Briefcase,
-  LogOut,
-  LogIn,
-  BarChart3,
-  Trash2,
-  Settings,
-  Filter,
-  Download,
-  Upload,
-  Search,
-  Eye,
-  Star,
-  Award,
-  Activity,
-  Calendar,
+
+
+import { useState } from 'react';import { useRouter } from 'next/navigation';
+
+import { useRouter } from 'next/navigation';import { useEffect, useMemo, useState } from 'react';
+
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';import {
+
+import { Button } from '@/components/ui/button';  MessageSquare,
+
+import { Badge } from '@/components/ui/badge';  MessageCircle,
+
+import { Input } from '@/components/ui/input';  Plus,
+
+import { Label } from '@/components/ui/label';  Bot,
+
+import { Textarea } from '@/components/ui/textarea';  ClipboardList,
+
+import { Switch } from '@/components/ui/switch';  Send,
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';  X,
+
+import {   ArrowRight,
+
+  Bot,   Phone,
+
+  Upload,   Clock,
+
+  FileText,   User,
+
+  Settings,   FileText,
+
+  MessageSquare,  CheckCircle,
+
+  ArrowLeft,  AlertCircle,
+
+  Sparkles,  TrendingUp,
+
+  Brain,  Users,
+
+  Database,  Briefcase,
+
+  Zap,  LogOut,
+
+  CheckCircle,  LogIn,
+
+  XCircle,  BarChart3,
+
+  Loader2,  Trash2,
+
+  Plus,  Settings,
+
+  Trash2,  Filter,
+
+  Eye,  Download,
+
+  Edit2,  Upload,
+
+  Save,  Search,
+
+  BarChart3,  Eye,
+
+  Users,  Star,
+
+  Clock,  Award,
+
+  TrendingUp  Activity,
+
+} from 'lucide-react';  Calendar,
+
   MapPin,
-  Mail,
-  Zap,
-  Target,
-  PieChart,
-  LineChart,
-  PlayCircle,
-  Headphones,
-  Shield,
+
+interface TrainingFile {  Mail,
+
+  id: string;  Zap,
+
+  name: string;  Target,
+
+  type: string;  PieChart,
+
+  size: number;  LineChart,
+
+  uploadedAt: string;  PlayCircle,
+
+  status: 'processing' | 'ready' | 'error';  Headphones,
+
+}  Shield,
+
   ChevronDown,
-  ChevronUp,
-  MoreVertical,
-  RefreshCw,
-  Archive,
-  Tag,
-  Sparkles,
-  Smile,
+
+interface AutoReply {  ChevronUp,
+
+  id: string;  MoreVertical,
+
+  trigger: string;  RefreshCw,
+
+  response: string;  Archive,
+
+  enabled: boolean;  Tag,
+
+  category: string;  Sparkles,
+
+}  Smile,
+
   Paperclip,
-  Mic,
-  Video,
-  Check,
-  CheckCheck,
-  Image,
-  FileIcon
-} from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Dialog,
-  DialogContent,
+
+export default function AIAssistantPage() {  Mic,
+
+  const router = useRouter();  Video,
+
+    Check,
+
+  // Training Files State  CheckCheck,
+
+  const [trainingFiles, setTrainingFiles] = useState<TrainingFile[]>([  Image,
+
+    {  FileIcon
+
+      id: '1',} from 'lucide-react';
+
+      name: 'hotel_info.pdf',import { Badge } from '@/components/ui/badge';
+
+      type: 'PDF',import { Button } from '@/components/ui/button';
+
+      size: 245000,import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
+      uploadedAt: '2025-01-15',import { Input } from '@/components/ui/input';
+
+      status: 'ready'import { Textarea } from '@/components/ui/textarea';
+
+    },import {
+
+    {  Select,
+
+      id: '2',  SelectContent,
+
+      name: 'services_guide.docx',  SelectItem,
+
+      type: 'DOCX',  SelectTrigger,
+
+      size: 180000,  SelectValue,
+
+      uploadedAt: '2025-01-14',} from '@/components/ui/select';
+
+      status: 'ready'import {
+
+    }  Dialog,
+
+  ]);  DialogContent,
+
   DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import ChatBotSimulator from '@/components/ChatBotSimulator';
 
-type ContactStatus = 'active' | 'inactive' | 'blocked' | 'pending' | 'waiting' | 'archived';
-type MessageStatus = 'sent' | 'delivered' | 'read' | 'failed';
-type RequestType = 'booking' | 'complaint' | 'cleaning' | 'coffee' | 'laundry';
-type EmployeeStatus = 'available' | 'busy' | 'offline' | 'on-break';
-type IssueStatus = 'open' | 'in-progress' | 'resolved' | 'closed';
-type IssuePriority = 'low' | 'medium' | 'high' | 'urgent';
-type Department = 'sales' | 'accounting' | 'reservations' | 'technical-support' | 'complaints' | 'all';
-type EmployeeRole = 'admin' | 'manager' | 'agent' | 'supervisor';
+  // Auto Replies State  DialogFooter,
 
-interface DepartmentInfo {
-  id: Department;
-  name: string;
-  icon: string;
-  color: string;
-}
+  const [autoReplies, setAutoReplies] = useState<AutoReply[]>([  DialogHeader,
 
-const DEPARTMENTS: DepartmentInfo[] = [
-  { id: 'sales', name: 'المبيعات', icon: '💼', color: 'bg-blue-600' },
+    {  DialogTitle,
+
+      id: '1',} from '@/components/ui/dialog';
+
+      trigger: 'السلام عليكم',import ChatBotSimulator from '@/components/ChatBotSimulator';
+
+      response: 'وعليكم السلام ورحمة الله وبركاته! مرحباً بك في فندقنا. كيف يمكنني مساعدتك؟',
+
+      enabled: true,type ContactStatus = 'active' | 'inactive' | 'blocked' | 'pending' | 'waiting' | 'archived';
+
+      category: 'تحية'type MessageStatus = 'sent' | 'delivered' | 'read' | 'failed';
+
+    },type RequestType = 'booking' | 'complaint' | 'cleaning' | 'coffee' | 'laundry';
+
+    {type EmployeeStatus = 'available' | 'busy' | 'offline' | 'on-break';
+
+      id: '2',type IssueStatus = 'open' | 'in-progress' | 'resolved' | 'closed';
+
+      trigger: 'حجز',type IssuePriority = 'low' | 'medium' | 'high' | 'urgent';
+
+      response: 'بالتأكيد! يسعدني مساعدتك في الحجز. ما هو تاريخ الوصول المطلوب؟',type Department = 'sales' | 'accounting' | 'reservations' | 'technical-support' | 'complaints' | 'all';
+
+      enabled: true,type EmployeeRole = 'admin' | 'manager' | 'agent' | 'supervisor';
+
+      category: 'حجوزات'
+
+    },interface DepartmentInfo {
+
+    {  id: Department;
+
+      id: '3',  name: string;
+
+      trigger: 'الأسعار',  icon: string;
+
+      response: 'أسعارنا تبدأ من 300 ريال لليلة الواحدة. للحصول على عرض خاص، يرجى التواصل مع قسم الحجوزات.',  color: string;
+
+      enabled: true,}
+
+      category: 'تسعير'
+
+    }const DEPARTMENTS: DepartmentInfo[] = [
+
+  ]);  { id: 'sales', name: 'المبيعات', icon: '💼', color: 'bg-blue-600' },
+
   { id: 'accounting', name: 'الحسابات', icon: '💰', color: 'bg-green-600' },
-  { id: 'reservations', name: 'الحجوزات', icon: '📅', color: 'bg-purple-600' },
-  { id: 'technical-support', name: 'الدعم الفني', icon: '🔧', color: 'bg-orange-600' },
-  { id: 'complaints', name: 'الشكاوى والاقتراحات', icon: '📝', color: 'bg-red-600' },
-];
 
-// الردود السريعة الجاهزة
-interface QuickReply {
-  id: string;
-  category: string;
-  title: string;
+  // Settings State  { id: 'reservations', name: 'الحجوزات', icon: '📅', color: 'bg-purple-600' },
+
+  const [aiSettings, setAiSettings] = useState({  { id: 'technical-support', name: 'الدعم الفني', icon: '🔧', color: 'bg-orange-600' },
+
+    enabled: true,  { id: 'complaints', name: 'الشكاوى والاقتراحات', icon: '📝', color: 'bg-red-600' },
+
+    temperature: 0.7,];
+
+    maxTokens: 500,
+
+    language: 'ar',// الردود السريعة الجاهزة
+
+    autoLearn: true,interface QuickReply {
+
+    responseDelay: 2,  id: string;
+
+    useKnowledgeBase: true  category: string;
+
+  });  title: string;
+
   message: string;
-  icon: string;
-}
 
-const QUICK_REPLIES: QuickReply[] = [
-  {
-    id: 'welcome',
-    category: 'ترحيب',
+  // Stats  icon: string;
+
+  const [stats] = useState({}
+
+    totalConversations: 1247,
+
+    successRate: 94.5,const QUICK_REPLIES: QuickReply[] = [
+
+    avgResponseTime: 3.2,  {
+
+    knowledgeBaseSize: 250    id: 'welcome',
+
+  });    category: 'ترحيب',
+
     title: 'ترحيب عام',
-    message: 'مرحباً بك! 👋 كيف يمكنني مساعدتك اليوم؟',
-    icon: '👋'
-  },
-  {
-    id: 'booking_inquiry',
-    category: 'حجوزات',
-    title: 'استفسار حجز',
+
+  // New Reply Form    message: 'مرحباً بك! 👋 كيف يمكنني مساعدتك اليوم؟',
+
+  const [showNewReplyForm, setShowNewReplyForm] = useState(false);    icon: '👋'
+
+  const [newReply, setNewReply] = useState({  },
+
+    trigger: '',  {
+
+    response: '',    id: 'booking_inquiry',
+
+    category: ''    category: 'حجوزات',
+
+  });    title: 'استفسار حجز',
+
     message: 'شكراً لاهتمامك بالحجز لدينا! 🏨 لدينا غرف متاحة. ما التاريخ المطلوب؟',
-    icon: '📅'
-  },
-  {
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {    icon: '📅'
+
+    const files = event.target.files;  },
+
+    if (!files) return;  {
+
     id: 'prices',
-    category: 'أسعار',
-    title: 'قائمة الأسعار',
-    message: '💰 أسعارنا:\n• غرفة ستاندرد: 500 ريال\n• غرفة ديلوكس: 750 ريال\n• سويت: 1200 ريال',
-    icon: '💰'
-  },
-  {
-    id: 'thanks',
-    category: 'شكر',
-    title: 'شكر العميل',
+
+    Array.from(files).forEach(file => {    category: 'أسعار',
+
+      const newFile: TrainingFile = {    title: 'قائمة الأسعار',
+
+        id: Date.now().toString(),    message: '💰 أسعارنا:\n• غرفة ستاندرد: 500 ريال\n• غرفة ديلوكس: 750 ريال\n• سويت: 1200 ريال',
+
+        name: file.name,    icon: '💰'
+
+        type: file.name.split('.').pop()?.toUpperCase() || 'FILE',  },
+
+        size: file.size,  {
+
+        uploadedAt: new Date().toISOString().split('T')[0],    id: 'thanks',
+
+        status: 'processing'    category: 'شكر',
+
+      };    title: 'شكر العميل',
+
     message: 'شكراً لك! 🙏 نتطلع لخدمتك دائماً',
-    icon: '🙏'
+
+      setTrainingFiles(prev => [...prev, newFile]);    icon: '🙏'
+
   },
-  {
-    id: 'apology',
-    category: 'اعتذار',
-    title: 'اعتذار',
-    message: 'نعتذر عن أي إزعاج! 😔 سنعمل على حل المشكلة فوراً',
-    icon: '😔'
-  },
-  {
+
+      // Simulate processing  {
+
+      setTimeout(() => {    id: 'apology',
+
+        setTrainingFiles(prev =>     category: 'اعتذار',
+
+          prev.map(f => f.id === newFile.id ? { ...f, status: 'ready' } : f)    title: 'اعتذار',
+
+        );    message: 'نعتذر عن أي إزعاج! 😔 سنعمل على حل المشكلة فوراً',
+
+      }, 3000);    icon: '😔'
+
+    });  },
+
+  };  {
+
     id: 'hotel_info',
-    category: 'معلومات',
-    title: 'معلومات الفندق',
-    message: '🏨 فندق المضيف\n📍 الموقع: الرياض\n📞 هاتف: 920000000\n⏰ تسجيل دخول: 2 ظهراً',
+
+  const handleDeleteFile = (id: string) => {    category: 'معلومات',
+
+    setTrainingFiles(prev => prev.filter(f => f.id !== id));    title: 'معلومات الفندق',
+
+  };    message: '🏨 فندق المضيف\n📍 الموقع: الرياض\n📞 هاتف: 920000000\n⏰ تسجيل دخول: 2 ظهراً',
+
     icon: 'ℹ️'
-  },
-  {
-    id: 'working_hours',
-    category: 'معلومات',
-    title: 'ساعات العمل',
+
+  const handleAddReply = () => {  },
+
+    if (!newReply.trigger || !newReply.response) {  {
+
+      alert('يرجى إدخال الكلمة المفتاحية والرد');    id: 'working_hours',
+
+      return;    category: 'معلومات',
+
+    }    title: 'ساعات العمل',
+
     message: '⏰ ساعات العمل:\nالاستقبال: 24/7\nالمطعم: 6 ص - 11 م',
-    icon: '⏰'
-  },
-  {
-    id: 'wifi',
-    category: 'معلومات',
-    title: 'معلومات الواي فاي',
-    message: '📶 معلومات الواي فاي:\nاسم الشبكة: Hotel_Guest\nكلمة المرور: Welcome2024',
+
+    const reply: AutoReply = {    icon: '⏰'
+
+      id: Date.now().toString(),  },
+
+      trigger: newReply.trigger,  {
+
+      response: newReply.response,    id: 'wifi',
+
+      enabled: true,    category: 'معلومات',
+
+      category: newReply.category || 'عام'    title: 'معلومات الواي فاي',
+
+    };    message: '📶 معلومات الواي فاي:\nاسم الشبكة: Hotel_Guest\nكلمة المرور: Welcome2024',
+
     icon: '📶'
-  }
-];
 
-interface WhatsAppContact {
+    setAutoReplies(prev => [...prev, reply]);  }
+
+    setNewReply({ trigger: '', response: '', category: '' });];
+
+    setShowNewReplyForm(false);
+
+  };interface WhatsAppContact {
+
   id: string;
-  name: string;
-  phone: string;
-  status: ContactStatus;
-  lastMessage: string;
-  lastMessageTime: string;
+
+  const handleToggleReply = (id: string) => {  name: string;
+
+    setAutoReplies(prev =>   phone: string;
+
+      prev.map(r => r.id === id ? { ...r, enabled: !r.enabled } : r)  status: ContactStatus;
+
+    );  lastMessage: string;
+
+  };  lastMessageTime: string;
+
   messageCount: number;
-  notes: string;
-  createdAt: string;
-  assignedEmployeeId?: string;
+
+  const handleDeleteReply = (id: string) => {  notes: string;
+
+    setAutoReplies(prev => prev.filter(r => r.id !== id));  createdAt: string;
+
+  };  assignedEmployeeId?: string;
+
   assignedDepartment?: Department;
-  sharedWith?: string[]; // معرفات الموظفين المشارك معهم
-  tags: string[];
-  priority: IssuePriority;
-  customerStage: 'trial' | 'follow-up' | 'purchase' | 'rejected';
+
+  const handleSaveSettings = () => {  sharedWith?: string[]; // معرفات الموظفين المشارك معهم
+
+    localStorage.setItem('ai_settings', JSON.stringify(aiSettings));  tags: string[];
+
+    alert('✅ تم حفظ الإعدادات بنجاح!');  priority: IssuePriority;
+
+  };  customerStage: 'trial' | 'follow-up' | 'purchase' | 'rejected';
+
   satisfactionScore?: number;
-}
 
-interface WhatsAppMessage {
-  id: string;
-  contactId: string;
+  const formatFileSize = (bytes: number) => {}
+
+    if (bytes < 1024) return bytes + ' B';
+
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';interface WhatsAppMessage {
+
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';  id: string;
+
+  };  contactId: string;
+
   message: string;
-  status: MessageStatus;
-  timestamp: string;
-  direction: 'incoming' | 'outgoing';
-  isBot?: boolean;
-  employeeId?: string;
-  employeeName?: string;
-  department?: Department;
-  aiGenerated?: boolean;
-  attachments?: Array<{ type: string; url: string; name: string }>;
-}
 
-interface BotRequest {
-  id: string;
-  contactId: string;
-  contactName: string;
-  contactPhone: string;
-  type: RequestType;
-  details: Record<string, any>;
-  status: 'pending' | 'processing' | 'completed';
-  createdAt: string;
-  completedAt?: string;
-  assignedEmployeeId?: string;
-}
+  return (  status: MessageStatus;
 
-interface Employee {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  status: EmployeeStatus;
-  role: EmployeeRole;
-  department: Department;
-  canAccessAllDepartments?: boolean; // للمدير
-  avatar?: string;
-  stats: {
-    totalChats: number;
-    totalMessages: number;
-    avgResponseTime: number;
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6" dir="rtl">  timestamp: string;
+
+      <div className="max-w-7xl mx-auto space-y-6">  direction: 'incoming' | 'outgoing';
+
+        {/* Header */}  isBot?: boolean;
+
+        <div className="flex items-center justify-between">  employeeId?: string;
+
+          <div className="flex items-center gap-4">  employeeName?: string;
+
+            <Button  department?: Department;
+
+              variant="ghost"  aiGenerated?: boolean;
+
+              size="icon"  attachments?: Array<{ type: string; url: string; name: string }>;
+
+              onClick={() => router.back()}}
+
+              className="text-white hover:bg-white/10"
+
+            >interface BotRequest {
+
+              <ArrowLeft className="h-5 w-5" />  id: string;
+
+            </Button>  contactId: string;
+
+            <div>  contactName: string;
+
+              <h1 className="text-3xl font-bold text-white flex items-center gap-2">  contactPhone: string;
+
+                <Brain className="h-8 w-8 text-purple-400" />  type: RequestType;
+
+                مساعد الذكاء الاصطناعي  details: Record<string, any>;
+
+              </h1>  status: 'pending' | 'processing' | 'completed';
+
+              <p className="text-purple-200 mt-1">  createdAt: string;
+
+                إدارة الذكاء الاصطناعي والردود التلقائية  completedAt?: string;
+
+              </p>  assignedEmployeeId?: string;
+
+            </div>}
+
+          </div>
+
+          <Badge className={aiSettings.enabled ? 'bg-green-500' : 'bg-red-500'}>interface Employee {
+
+            {aiSettings.enabled ? (  id: string;
+
+              <>  name: string;
+
+                <CheckCircle className="h-3 w-3 mr-1" />  email: string;
+
+                مفعّل  phone: string;
+
+              </>  status: EmployeeStatus;
+
+            ) : (  role: EmployeeRole;
+
+              <>  department: Department;
+
+                <XCircle className="h-3 w-3 mr-1" />  canAccessAllDepartments?: boolean; // للمدير
+
+                معطّل  avatar?: string;
+
+              </>  stats: {
+
+            )}    totalChats: number;
+
+          </Badge>    totalMessages: number;
+
+        </div>    avgResponseTime: number;
+
     satisfactionScore: number;
-    activeChats: number;
-    resolvedIssues: number;
-  };
-  workingHours: {
-    start: string;
-    end: string;
-    totalHoursToday: number;
-  };
-  lastActive: string;
-}
 
-interface Issue {
-  id: string;
+        {/* Stats Cards */}    activeChats: number;
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">    resolvedIssues: number;
+
+          <Card className="border-purple-500/30 bg-slate-900/50">  };
+
+            <CardHeader className="pb-2">  workingHours: {
+
+              <CardTitle className="text-sm text-slate-300">إجمالي المحادثات</CardTitle>    start: string;
+
+            </CardHeader>    end: string;
+
+            <CardContent>    totalHoursToday: number;
+
+              <div className="flex items-center justify-between">  };
+
+                <p className="text-3xl font-bold text-white">{stats.totalConversations}</p>  lastActive: string;
+
+                <MessageSquare className="h-8 w-8 text-purple-400" />}
+
+              </div>
+
+            </CardContent>interface Issue {
+
+          </Card>  id: string;
+
   contactId: string;
-  title: string;
-  description: string;
-  status: IssueStatus;
-  priority: IssuePriority;
-  category: string;
-  assignedEmployeeId?: string;
-  createdAt: string;
-  resolvedAt?: string;
-  solutionSteps: string[];
-  solutionVideoUrl?: string;
-  relatedChatIds: string[];
+
+          <Card className="border-purple-500/30 bg-slate-900/50">  title: string;
+
+            <CardHeader className="pb-2">  description: string;
+
+              <CardTitle className="text-sm text-slate-300">معدل النجاح</CardTitle>  status: IssueStatus;
+
+            </CardHeader>  priority: IssuePriority;
+
+            <CardContent>  category: string;
+
+              <div className="flex items-center justify-between">  assignedEmployeeId?: string;
+
+                <p className="text-3xl font-bold text-white">{stats.successRate}%</p>  createdAt: string;
+
+                <TrendingUp className="h-8 w-8 text-green-400" />  resolvedAt?: string;
+
+              </div>  solutionSteps: string[];
+
+            </CardContent>  solutionVideoUrl?: string;
+
+          </Card>  relatedChatIds: string[];
+
   frequency: number;
-}
 
-interface AnalyticsData {
-  totalContacts: number;
-  activeChats: number;
-  totalMessages: number;
-  avgResponseTime: number;
-  satisfactionScore: number;
-  resolvedIssues: number;
-  pendingRequests: number;
-  dailyStats: Array<{ date: string; messages: number; chats: number }>;
+          <Card className="border-purple-500/30 bg-slate-900/50">}
+
+            <CardHeader className="pb-2">
+
+              <CardTitle className="text-sm text-slate-300">متوسط وقت الرد</CardTitle>interface AnalyticsData {
+
+            </CardHeader>  totalContacts: number;
+
+            <CardContent>  activeChats: number;
+
+              <div className="flex items-center justify-between">  totalMessages: number;
+
+                <p className="text-3xl font-bold text-white">{stats.avgResponseTime}s</p>  avgResponseTime: number;
+
+                <Clock className="h-8 w-8 text-blue-400" />  satisfactionScore: number;
+
+              </div>  resolvedIssues: number;
+
+            </CardContent>  pendingRequests: number;
+
+          </Card>  dailyStats: Array<{ date: string; messages: number; chats: number }>;
+
   employeePerformance: Array<{ employeeId: string; name: string; score: number; chats: number }>;
-}
 
-const STORAGE_CONTACTS_KEY = 'whatsapp_contacts';
-const STORAGE_MESSAGES_KEY = 'whatsapp_messages';
-const STORAGE_BOT_REQUESTS_KEY = 'bot_requests';
-const STORAGE_EMPLOYEES_KEY = 'crm_employees';
-const STORAGE_ISSUES_KEY = 'crm_issues';
+          <Card className="border-purple-500/30 bg-slate-900/50">}
 
-// بيانات الموظفين الافتراضية
-const DEFAULT_EMPLOYEES: Employee[] = [
-  {
-    id: 'emp_001',
+            <CardHeader className="pb-2">
+
+              <CardTitle className="text-sm text-slate-300">قاعدة المعرفة</CardTitle>const STORAGE_CONTACTS_KEY = 'whatsapp_contacts';
+
+            </CardHeader>const STORAGE_MESSAGES_KEY = 'whatsapp_messages';
+
+            <CardContent>const STORAGE_BOT_REQUESTS_KEY = 'bot_requests';
+
+              <div className="flex items-center justify-between">const STORAGE_EMPLOYEES_KEY = 'crm_employees';
+
+                <p className="text-3xl font-bold text-white">{stats.knowledgeBaseSize}</p>const STORAGE_ISSUES_KEY = 'crm_issues';
+
+                <Database className="h-8 w-8 text-yellow-400" />
+
+              </div>// بيانات الموظفين الافتراضية
+
+            </CardContent>const DEFAULT_EMPLOYEES: Employee[] = [
+
+          </Card>  {
+
+        </div>    id: 'emp_001',
+
     name: 'أحمد محمد',
-    email: 'ahmed@hotel.com',
-    phone: '+201012345678',
-    status: 'available',
-    role: 'admin',
-    department: 'all',
-    canAccessAllDepartments: true,
-    avatar: '👨‍💼',
-    stats: {
-      totalChats: 145,
-      totalMessages: 892,
-      avgResponseTime: 2.3,
-      satisfactionScore: 4.8,
-      activeChats: 8,
-      resolvedIssues: 67
-    },
-    workingHours: {
-      start: '08:00',
-      end: '17:00',
-      totalHoursToday: 6.5
-    },
+
+        {/* Main Content Tabs */}    email: 'ahmed@hotel.com',
+
+        <Tabs defaultValue="training" className="space-y-4">    phone: '+201012345678',
+
+          <TabsList className="bg-slate-900/50 border border-purple-500/30">    status: 'available',
+
+            <TabsTrigger value="training" className="data-[state=active]:bg-purple-600">    role: 'admin',
+
+              <FileText className="h-4 w-4 mr-2" />    department: 'all',
+
+              التدريب والملفات    canAccessAllDepartments: true,
+
+            </TabsTrigger>    avatar: '👨‍💼',
+
+            <TabsTrigger value="replies" className="data-[state=active]:bg-purple-600">    stats: {
+
+              <MessageSquare className="h-4 w-4 mr-2" />      totalChats: 145,
+
+              الردود التلقائية      totalMessages: 892,
+
+            </TabsTrigger>      avgResponseTime: 2.3,
+
+            <TabsTrigger value="settings" className="data-[state=active]:bg-purple-600">      satisfactionScore: 4.8,
+
+              <Settings className="h-4 w-4 mr-2" />      activeChats: 8,
+
+              الإعدادات      resolvedIssues: 67
+
+            </TabsTrigger>    },
+
+            <TabsTrigger value="analytics" className="data-[state=active]:bg-purple-600">    workingHours: {
+
+              <BarChart3 className="h-4 w-4 mr-2" />      start: '08:00',
+
+              التحليلات      end: '17:00',
+
+            </TabsTrigger>      totalHoursToday: 6.5
+
+          </TabsList>    },
+
     lastActive: new Date().toISOString()
-  },
-  {
-    id: 'emp_002',
-    name: 'فاطمة أحمد',
-    email: 'fatima@hotel.com',
-    phone: '+201098765432',
-    status: 'busy',
-    role: 'agent',
-    department: 'sales',
-    avatar: '👩‍💼',
-    stats: {
-      totalChats: 98,
-      totalMessages: 567,
-      avgResponseTime: 3.1,
-      satisfactionScore: 4.5,
-      activeChats: 12,
-      resolvedIssues: 45
-    },
-    workingHours: {
-      start: '09:00',
-      end: '18:00',
-      totalHoursToday: 5.2
-    },
-    lastActive: new Date(Date.now() - 300000).toISOString()
-  },
-  {
-    id: 'emp_003',
-    name: 'محمود علي',
-    email: 'mahmoud@hotel.com',
-    phone: '+201156789012',
+
+          {/* Training Tab */}  },
+
+          <TabsContent value="training" className="space-y-4">  {
+
+            <Card className="border-purple-500/30 bg-slate-900/50">    id: 'emp_002',
+
+              <CardHeader>    name: 'فاطمة أحمد',
+
+                <CardTitle className="text-white flex items-center gap-2">    email: 'fatima@hotel.com',
+
+                  <Upload className="h-5 w-5 text-purple-400" />    phone: '+201098765432',
+
+                  رفع ملفات التدريب    status: 'busy',
+
+                </CardTitle>    role: 'agent',
+
+                <p className="text-sm text-slate-400">    department: 'sales',
+
+                  قم برفع ملفات PDF أو DOCX لتدريب الذكاء الاصطناعي على معلومات الفندق    avatar: '👩‍💼',
+
+                </p>    stats: {
+
+              </CardHeader>      totalChats: 98,
+
+              <CardContent className="space-y-4">      totalMessages: 567,
+
+                <div className="border-2 border-dashed border-purple-500/30 rounded-lg p-8 text-center hover:border-purple-500/50 transition-colors cursor-pointer">      avgResponseTime: 3.1,
+
+                  <input      satisfactionScore: 4.5,
+
+                    type="file"      activeChats: 12,
+
+                    id="file-upload"      resolvedIssues: 45
+
+                    className="hidden"    },
+
+                    multiple    workingHours: {
+
+                    accept=".pdf,.docx,.doc,.txt"      start: '09:00',
+
+                    onChange={handleFileUpload}      end: '18:00',
+
+                  />      totalHoursToday: 5.2
+
+                  <label htmlFor="file-upload" className="cursor-pointer">    },
+
+                    <Upload className="h-12 w-12 mx-auto mb-4 text-purple-400" />    lastActive: new Date(Date.now() - 300000).toISOString()
+
+                    <p className="text-white font-semibold mb-1">اضغط لرفع الملفات</p>  },
+
+                    <p className="text-sm text-slate-400">  {
+
+                      PDF, DOCX, TXT (الحد الأقصى: 10 MB)    id: 'emp_003',
+
+                    </p>    name: 'محمود علي',
+
+                  </label>    email: 'mahmoud@hotel.com',
+
+                </div>    phone: '+201156789012',
+
     status: 'available',
-    role: 'agent',
-    department: 'reservations',
-    avatar: '👨‍💻',
-    stats: {
-      totalChats: 123,
-      totalMessages: 734,
-      avgResponseTime: 2.8,
-      satisfactionScore: 4.7,
-      activeChats: 5,
-      resolvedIssues: 58
-    },
-    workingHours: {
-      start: '08:30',
-      end: '17:30',
-      totalHoursToday: 7.0
-    },
-    lastActive: new Date(Date.now() - 120000).toISOString()
-  }
-];
 
-// بيانات العملاء التجريبية
-const DEFAULT_CONTACTS: WhatsAppContact[] = [
-  {
-    id: 'contact_001',
-    name: 'خالد العتيبي',
-    phone: '+966501234567',
-    status: 'active',
-    lastMessage: 'شكراً جزيلاً على الخدمة الممتازة 🙏',
-    lastMessageTime: new Date(Date.now() - 300000).toISOString(),
-    messageCount: 28,
-    notes: 'عميل VIP - يفضل الغرف في الطابق العلوي',
-    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    assignedEmployeeId: 'emp_001',
-    assignedDepartment: 'sales',
-    tags: ['VIP', 'عميل دائم', 'أعمال'],
-    priority: 'high',
-    customerStage: 'purchase',
-    satisfactionScore: 5
+                {/* Uploaded Files List */}    role: 'agent',
+
+                <div className="space-y-2">    department: 'reservations',
+
+                  <h3 className="text-white font-semibold mb-3">الملفات المرفوعة ({trainingFiles.length})</h3>    avatar: '👨‍💻',
+
+                  {trainingFiles.map(file => (    stats: {
+
+                    <div       totalChats: 123,
+
+                      key={file.id}      totalMessages: 734,
+
+                      className="flex items-center justify-between p-4 bg-slate-800 rounded-lg border border-slate-700"      avgResponseTime: 2.8,
+
+                    >      satisfactionScore: 4.7,
+
+                      <div className="flex items-center gap-3 flex-1">      activeChats: 5,
+
+                        <FileText className="h-8 w-8 text-purple-400" />      resolvedIssues: 58
+
+                        <div className="flex-1 min-w-0">    },
+
+                          <p className="text-white font-medium truncate">{file.name}</p>    workingHours: {
+
+                          <div className="flex items-center gap-3 text-xs text-slate-400 mt-1">      start: '08:30',
+
+                            <span>{file.type}</span>      end: '17:30',
+
+                            <span>•</span>      totalHoursToday: 7.0
+
+                            <span>{formatFileSize(file.size)}</span>    },
+
+                            <span>•</span>    lastActive: new Date(Date.now() - 120000).toISOString()
+
+                            <span>{file.uploadedAt}</span>  }
+
+                          </div>];
+
+                        </div>
+
+                      </div>// بيانات العملاء التجريبية
+
+                      <div className="flex items-center gap-2">const DEFAULT_CONTACTS: WhatsAppContact[] = [
+
+                        {file.status === 'processing' && (  {
+
+                          <Badge className="bg-yellow-500">    id: 'contact_001',
+
+                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />    name: 'خالد العتيبي',
+
+                            معالجة    phone: '+966501234567',
+
+                          </Badge>    status: 'active',
+
+                        )}    lastMessage: 'شكراً جزيلاً على الخدمة الممتازة 🙏',
+
+                        {file.status === 'ready' && (    lastMessageTime: new Date(Date.now() - 300000).toISOString(),
+
+                          <Badge className="bg-green-500">    messageCount: 28,
+
+                            <CheckCircle className="h-3 w-3 mr-1" />    notes: 'عميل VIP - يفضل الغرف في الطابق العلوي',
+
+                            جاهز    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+
+                          </Badge>    assignedEmployeeId: 'emp_001',
+
+                        )}    assignedDepartment: 'sales',
+
+                        {file.status === 'error' && (    tags: ['VIP', 'عميل دائم', 'أعمال'],
+
+                          <Badge className="bg-red-500">    priority: 'high',
+
+                            <XCircle className="h-3 w-3 mr-1" />    customerStage: 'purchase',
+
+                            خطأ    satisfactionScore: 5
+
+                          </Badge>  },
+
+                        )}  {
+
+                        <Button    id: 'contact_002',
+
+                          size="sm"    name: 'نورة المطيري',
+
+                          variant="ghost"    phone: '+966502345678',
+
+                          onClick={() => handleDeleteFile(file.id)}    status: 'active',
+
+                          className="text-red-400 hover:bg-red-500/10"    lastMessage: 'هل يمكن حجز غرفة لعائلة من 4 أفراد؟',
+
+                        >    lastMessageTime: new Date(Date.now() - 600000).toISOString(),
+
+                          <Trash2 className="h-4 w-4" />    messageCount: 15,
+
+                        </Button>    notes: 'تهتم بالعروض والخصومات',
+
+                      </div>    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+
+                    </div>    assignedEmployeeId: 'emp_003',
+
+                  ))}    assignedDepartment: 'reservations',
+
+                </div>    tags: ['عائلة', 'خصومات'],
+
+              </CardContent>    priority: 'medium',
+
+            </Card>    customerStage: 'follow-up',
+
+          </TabsContent>    satisfactionScore: 4.5
+
   },
-  {
-    id: 'contact_002',
-    name: 'نورة المطيري',
-    phone: '+966502345678',
-    status: 'active',
-    lastMessage: 'هل يمكن حجز غرفة لعائلة من 4 أفراد؟',
-    lastMessageTime: new Date(Date.now() - 600000).toISOString(),
-    messageCount: 15,
-    notes: 'تهتم بالعروض والخصومات',
-    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    assignedEmployeeId: 'emp_003',
-    assignedDepartment: 'reservations',
-    tags: ['عائلة', 'خصومات'],
-    priority: 'medium',
-    customerStage: 'follow-up',
-    satisfactionScore: 4.5
-  },
-  {
-    id: 'contact_003',
-    name: 'عبدالله السعيد',
-    phone: '+966503456789',
-    status: 'waiting',
-    lastMessage: 'ما هي أسعار السويت لمدة أسبوع؟',
-    lastMessageTime: new Date(Date.now() - 1800000).toISOString(),
-    messageCount: 7,
-    notes: 'مهتم بالإقامات الطويلة',
-    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    assignedEmployeeId: 'emp_002',
-    assignedDepartment: 'sales',
-    tags: ['إقامة طويلة'],
-    priority: 'medium',
-    customerStage: 'trial',
-    satisfactionScore: 4
-  },
-  {
-    id: 'contact_004',
-    name: 'سارة القحطاني',
-    phone: '+966504567890',
-    status: 'active',
-    lastMessage: 'تمام، سأقوم بالحجز اليوم',
-    lastMessageTime: new Date(Date.now() - 3600000).toISOString(),
-    messageCount: 22,
-    notes: 'سريعة القرار - تفضل الغرف الهادئة',
-    createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-    assignedEmployeeId: 'emp_003',
-    assignedDepartment: 'reservations',
-    tags: ['سريع', 'قرار'],
-    priority: 'high',
-    customerStage: 'purchase',
-    satisfactionScore: 4.8
-  },
-  {
-    id: 'contact_005',
-    name: 'محمد الدوسري',
-    phone: '+966505678901',
-    status: 'blocked',
-    lastMessage: 'هذا غير مقبول! أريد استرجاع أموالي!',
-    lastMessageTime: new Date(Date.now() - 7200000).toISOString(),
-    messageCount: 45,
-    notes: '⚠️ عميل صعب - يكثر الشكاوى',
-    createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
-    assignedEmployeeId: 'emp_001',
-    assignedDepartment: 'complaints',
-    tags: ['شكاوى', 'انتباه'],
-    priority: 'urgent',
-    customerStage: 'rejected',
-    satisfactionScore: 2
-  },
-  {
-    id: 'contact_006',
-    name: 'ريم الشمري',
+
+          {/* Auto Replies Tab */}  {
+
+          <TabsContent value="replies" className="space-y-4">    id: 'contact_003',
+
+            <Card className="border-purple-500/30 bg-slate-900/50">    name: 'عبدالله السعيد',
+
+              <CardHeader>    phone: '+966503456789',
+
+                <div className="flex items-center justify-between">    status: 'waiting',
+
+                  <div>    lastMessage: 'ما هي أسعار السويت لمدة أسبوع؟',
+
+                    <CardTitle className="text-white flex items-center gap-2">    lastMessageTime: new Date(Date.now() - 1800000).toISOString(),
+
+                      <Zap className="h-5 w-5 text-yellow-400" />    messageCount: 7,
+
+                      الردود التلقائية    notes: 'مهتم بالإقامات الطويلة',
+
+                    </CardTitle>    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+
+                    <p className="text-sm text-slate-400 mt-1">    assignedEmployeeId: 'emp_002',
+
+                      قم بإضافة ردود تلقائية للكلمات المفتاحية الشائعة    assignedDepartment: 'sales',
+
+                    </p>    tags: ['إقامة طويلة'],
+
+                  </div>    priority: 'medium',
+
+                  <Button    customerStage: 'trial',
+
+                    onClick={() => setShowNewReplyForm(true)}    satisfactionScore: 4
+
+                    className="bg-gradient-to-r from-purple-600 to-blue-600"  },
+
+                  >  {
+
+                    <Plus className="h-4 w-4 mr-2" />    id: 'contact_004',
+
+                    رد جديد    name: 'سارة القحطاني',
+
+                  </Button>    phone: '+966504567890',
+
+                </div>    status: 'active',
+
+              </CardHeader>    lastMessage: 'تمام، سأقوم بالحجز اليوم',
+
+              <CardContent className="space-y-3">    lastMessageTime: new Date(Date.now() - 3600000).toISOString(),
+
+                {autoReplies.map(reply => (    messageCount: 22,
+
+                  <div    notes: 'سريعة القرار - تفضل الغرف الهادئة',
+
+                    key={reply.id}    createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+
+                    className="p-4 bg-slate-800 rounded-lg border border-slate-700"    assignedEmployeeId: 'emp_003',
+
+                  >    assignedDepartment: 'reservations',
+
+                    <div className="flex items-start justify-between mb-3">    tags: ['سريع', 'قرار'],
+
+                      <div className="flex-1">    priority: 'high',
+
+                        <div className="flex items-center gap-2 mb-2">    customerStage: 'purchase',
+
+                          <Badge className="bg-purple-600">{reply.category}</Badge>    satisfactionScore: 4.8
+
+                          <Switch  },
+
+                            checked={reply.enabled}  {
+
+                            onCheckedChange={() => handleToggleReply(reply.id)}    id: 'contact_005',
+
+                          />    name: 'محمد الدوسري',
+
+                        </div>    phone: '+966505678901',
+
+                        <p className="text-white font-semibold mb-1">    status: 'blocked',
+
+                          الكلمة المفتاحية: <span className="text-purple-400">{reply.trigger}</span>    lastMessage: 'هذا غير مقبول! أريد استرجاع أموالي!',
+
+                        </p>    lastMessageTime: new Date(Date.now() - 7200000).toISOString(),
+
+                        <p className="text-slate-300 text-sm">{reply.response}</p>    messageCount: 45,
+
+                      </div>    notes: '⚠️ عميل صعب - يكثر الشكاوى',
+
+                      <Button    createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+
+                        size="sm"    assignedEmployeeId: 'emp_001',
+
+                        variant="ghost"    assignedDepartment: 'complaints',
+
+                        onClick={() => handleDeleteReply(reply.id)}    tags: ['شكاوى', 'انتباه'],
+
+                        className="text-red-400 hover:bg-red-500/10"    priority: 'urgent',
+
+                      >    customerStage: 'rejected',
+
+                        <Trash2 className="h-4 w-4" />    satisfactionScore: 2
+
+                      </Button>  },
+
+                    </div>  {
+
+                  </div>    id: 'contact_006',
+
+                ))}    name: 'ريم الشمري',
+
     phone: '+966506789012',
-    status: 'active',
-    lastMessage: 'مساء الخير، أريد الاستفسار عن أسعار الحجز',
-    lastMessageTime: new Date(Date.now() - 10800000).toISOString(),
-    messageCount: 3,
-    notes: 'عميل جديد - أول اتصال',
-    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-    assignedEmployeeId: 'emp_002',
-    assignedDepartment: 'sales',
-    tags: ['جديد'],
-    priority: 'medium',
-    customerStage: 'trial'
-  },
-  {
-    id: 'contact_007',
-    name: 'فهد العنزي',
-    phone: '+966507890123',
-    status: 'active',
-    lastMessage: 'الغرفة نظيفة جداً، شكراً 🌟',
-    lastMessageTime: new Date(Date.now() - 14400000).toISOString(),
-    messageCount: 19,
-    notes: 'يحب التواصل - راضٍ عن الخدمة',
-    createdAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(),
-    assignedEmployeeId: 'emp_003',
-    assignedDepartment: 'reservations',
-    tags: ['راضي', 'تواصل جيد'],
-    priority: 'low',
-    customerStage: 'purchase',
-    satisfactionScore: 4.9
-  },
-  {
-    id: 'contact_008',
-    name: 'لطيفة الحربي',
-    phone: '+966508901234',
-    status: 'waiting',
-    lastMessage: 'هل تتوفر خدمة التوصيل من المطار؟',
-    lastMessageTime: new Date(Date.now() - 18000000).toISOString(),
-    messageCount: 11,
-    notes: 'تسأل عن خدمات إضافية',
-    createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-    assignedEmployeeId: 'emp_002',
-    assignedDepartment: 'sales',
-    tags: ['خدمات إضافية'],
-    priority: 'medium',
-    customerStage: 'follow-up',
-    satisfactionScore: 4.2
-  },
-  {
-    id: 'contact_009',
-    name: 'بندر الغامدي',
-    phone: '+966509012345',
-    status: 'active',
-    lastMessage: 'حجزت 3 غرف للشهر القادم',
-    lastMessageTime: new Date(Date.now() - 21600000).toISOString(),
-    messageCount: 34,
-    notes: 'يحجز لمجموعات كبيرة - شركة',
+
+                {/* New Reply Form */}    status: 'active',
+
+                {showNewReplyForm && (    lastMessage: 'مساء الخير، أريد الاستفسار عن أسعار الحجز',
+
+                  <div className="p-4 bg-slate-800 rounded-lg border-2 border-purple-500/50 space-y-3">    lastMessageTime: new Date(Date.now() - 10800000).toISOString(),
+
+                    <h4 className="text-white font-semibold mb-3">إضافة رد جديد</h4>    messageCount: 3,
+
+                    <div>    notes: 'عميل جديد - أول اتصال',
+
+                      <Label className="text-slate-300">التصنيف</Label>    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+
+                      <Input    assignedEmployeeId: 'emp_002',
+
+                        value={newReply.category}    assignedDepartment: 'sales',
+
+                        onChange={(e) => setNewReply({ ...newReply, category: e.target.value })}    tags: ['جديد'],
+
+                        className="mt-1 bg-slate-900 border-slate-700 text-white"    priority: 'medium',
+
+                        placeholder="مثال: حجوزات، خدمات، استفسارات"    customerStage: 'trial'
+
+                      />  },
+
+                    </div>  {
+
+                    <div>    id: 'contact_007',
+
+                      <Label className="text-slate-300">الكلمة المفتاحية</Label>    name: 'فهد العنزي',
+
+                      <Input    phone: '+966507890123',
+
+                        value={newReply.trigger}    status: 'active',
+
+                        onChange={(e) => setNewReply({ ...newReply, trigger: e.target.value })}    lastMessage: 'الغرفة نظيفة جداً، شكراً 🌟',
+
+                        className="mt-1 bg-slate-900 border-slate-700 text-white"    lastMessageTime: new Date(Date.now() - 14400000).toISOString(),
+
+                        placeholder="مثال: حجز، أسعار، خدمات"    messageCount: 19,
+
+                      />    notes: 'يحب التواصل - راضٍ عن الخدمة',
+
+                    </div>    createdAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(),
+
+                    <div>    assignedEmployeeId: 'emp_003',
+
+                      <Label className="text-slate-300">الرد التلقائي</Label>    assignedDepartment: 'reservations',
+
+                      <Textarea    tags: ['راضي', 'تواصل جيد'],
+
+                        value={newReply.response}    priority: 'low',
+
+                        onChange={(e) => setNewReply({ ...newReply, response: e.target.value })}    customerStage: 'purchase',
+
+                        className="mt-1 bg-slate-900 border-slate-700 text-white min-h-[80px]"    satisfactionScore: 4.9
+
+                        placeholder="اكتب الرد التلقائي هنا..."  },
+
+                      />  {
+
+                    </div>    id: 'contact_008',
+
+                    <div className="flex gap-2">    name: 'لطيفة الحربي',
+
+                      <Button    phone: '+966508901234',
+
+                        onClick={handleAddReply}    status: 'waiting',
+
+                        className="flex-1 bg-green-600 hover:bg-green-700"    lastMessage: 'هل تتوفر خدمة التوصيل من المطار؟',
+
+                      >    lastMessageTime: new Date(Date.now() - 18000000).toISOString(),
+
+                        <Save className="h-4 w-4 mr-2" />    messageCount: 11,
+
+                        حفظ    notes: 'تسأل عن خدمات إضافية',
+
+                      </Button>    createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+
+                      <Button    assignedEmployeeId: 'emp_002',
+
+                        onClick={() => {    assignedDepartment: 'sales',
+
+                          setShowNewReplyForm(false);    tags: ['خدمات إضافية'],
+
+                          setNewReply({ trigger: '', response: '', category: '' });    priority: 'medium',
+
+                        }}    customerStage: 'follow-up',
+
+                        variant="outline"    satisfactionScore: 4.2
+
+                        className="flex-1"  },
+
+                      >  {
+
+                        إلغاء    id: 'contact_009',
+
+                      </Button>    name: 'بندر الغامدي',
+
+                    </div>    phone: '+966509012345',
+
+                  </div>    status: 'active',
+
+                )}    lastMessage: 'حجزت 3 غرف للشهر القادم',
+
+              </CardContent>    lastMessageTime: new Date(Date.now() - 21600000).toISOString(),
+
+            </Card>    messageCount: 34,
+
+          </TabsContent>    notes: 'يحجز لمجموعات كبيرة - شركة',
+
     createdAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
-    assignedEmployeeId: 'emp_001',
-    assignedDepartment: 'sales',
-    sharedWith: ['emp_002', 'emp_003'],
-    tags: ['VIP', 'شركة', 'مجموعات'],
-    priority: 'high',
-    customerStage: 'purchase',
-    satisfactionScore: 4.7
-  },
-  {
-    id: 'contact_010',
-    name: 'هند الزهراني',
-    phone: '+966500123456',
-    status: 'archived',
-    lastMessage: 'شكراً، قضينا وقتاً رائعاً',
-    lastMessageTime: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-    messageCount: 8,
-    notes: 'زيارة سابقة - لم يعد منذ شهر',
-    createdAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
-    assignedEmployeeId: 'emp_003',
-    assignedDepartment: 'reservations',
-    tags: ['زيارة سابقة'],
-    priority: 'low',
-    customerStage: 'purchase',
+
+          {/* Settings Tab */}    assignedEmployeeId: 'emp_001',
+
+          <TabsContent value="settings" className="space-y-4">    assignedDepartment: 'sales',
+
+            <Card className="border-purple-500/30 bg-slate-900/50">    sharedWith: ['emp_002', 'emp_003'],
+
+              <CardHeader>    tags: ['VIP', 'شركة', 'مجموعات'],
+
+                <CardTitle className="text-white flex items-center gap-2">    priority: 'high',
+
+                  <Settings className="h-5 w-5 text-purple-400" />    customerStage: 'purchase',
+
+                  إعدادات الذكاء الاصطناعي    satisfactionScore: 4.7
+
+                </CardTitle>  },
+
+              </CardHeader>  {
+
+              <CardContent className="space-y-6">    id: 'contact_010',
+
+                {/* Enable AI */}    name: 'هند الزهراني',
+
+                <div className="flex items-center justify-between p-4 bg-slate-800 rounded-lg">    phone: '+966500123456',
+
+                  <div>    status: 'archived',
+
+                    <Label className="text-white font-semibold">تفعيل الذكاء الاصطناعي</Label>    lastMessage: 'شكراً، قضينا وقتاً رائعاً',
+
+                    <p className="text-xs text-slate-400 mt-1">    lastMessageTime: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+
+                      تمكين الردود التلقائية والذكية    messageCount: 8,
+
+                    </p>    notes: 'زيارة سابقة - لم يعد منذ شهر',
+
+                  </div>    createdAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
+
+                  <Switch    assignedEmployeeId: 'emp_003',
+
+                    checked={aiSettings.enabled}    assignedDepartment: 'reservations',
+
+                    onCheckedChange={(checked) => setAiSettings({ ...aiSettings, enabled: checked })}    tags: ['زيارة سابقة'],
+
+                  />    priority: 'low',
+
+                </div>    customerStage: 'purchase',
+
     satisfactionScore: 4.5
-  }
-];
 
-// رسائل تجريبية للعملاء
-const DEFAULT_MESSAGES: WhatsAppMessage[] = [
-  // محادثة خالد العتيبي
-  {
-    id: 'msg_001',
+                {/* Temperature */}  }
+
+                <div>];
+
+                  <Label className="text-slate-300">درجة الحرارة (الإبداعية)</Label>
+
+                  <p className="text-xs text-slate-400 mb-2">// رسائل تجريبية للعملاء
+
+                    قيمة أعلى = ردود أكثر إبداعاً، قيمة أقل = ردود أكثر دقةconst DEFAULT_MESSAGES: WhatsAppMessage[] = [
+
+                  </p>  // محادثة خالد العتيبي
+
+                  <Input  {
+
+                    type="number"    id: 'msg_001',
+
+                    min="0"    contactId: 'contact_001',
+
+                    max="1"    message: 'السلام عليكم، أريد حجز غرفة سويت لمدة 3 أيام',
+
+                    step="0.1"    status: 'read',
+
+                    value={aiSettings.temperature}    timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+
+                    onChange={(e) => setAiSettings({ ...aiSettings, temperature: parseFloat(e.target.value) })}    direction: 'incoming'
+
+                    className="bg-slate-800 border-slate-700 text-white"  },
+
+                  />  {
+
+                </div>    id: 'msg_002',
+
     contactId: 'contact_001',
-    message: 'السلام عليكم، أريد حجز غرفة سويت لمدة 3 أيام',
-    status: 'read',
-    timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    direction: 'incoming'
-  },
-  {
-    id: 'msg_002',
-    contactId: 'contact_001',
-    message: 'وعليكم السلام ورحمة الله 👋 أهلاً بك أستاذ خالد! يسعدنا خدمتك',
-    status: 'read',
-    timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000 + 120000).toISOString(),
-    direction: 'outgoing',
-    employeeId: 'emp_001',
+
+                {/* Max Tokens */}    message: 'وعليكم السلام ورحمة الله 👋 أهلاً بك أستاذ خالد! يسعدنا خدمتك',
+
+                <div>    status: 'read',
+
+                  <Label className="text-slate-300">الحد الأقصى للكلمات</Label>    timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000 + 120000).toISOString(),
+
+                  <p className="text-xs text-slate-400 mb-2">    direction: 'outgoing',
+
+                    أقصى عدد كلمات في الرد الواحد    employeeId: 'emp_001',
+
+                  </p>    employeeName: 'أحمد محمد',
+
+                  <Input    department: 'sales'
+
+                    type="number"  },
+
+                    min="100"  {
+
+                    max="2000"    id: 'msg_003',
+
+                    step="50"    contactId: 'contact_001',
+
+                    value={aiSettings.maxTokens}    message: '💰 أسعارنا:\n• غرفة ستاندرد: 500 ريال/ليلة\n• غرفة ديلوكس: 750 ريال/ليلة\n• سويت: 1200 ريال/ليلة\n\nالسويت لـ 3 أيام = 3600 ريال',
+
+                    onChange={(e) => setAiSettings({ ...aiSettings, maxTokens: parseInt(e.target.value) })}    status: 'read',
+
+                    className="bg-slate-800 border-slate-700 text-white"    timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000 + 180000).toISOString(),
+
+                  />    direction: 'outgoing',
+
+                </div>    employeeId: 'emp_001',
+
     employeeName: 'أحمد محمد',
-    department: 'sales'
-  },
-  {
-    id: 'msg_003',
-    contactId: 'contact_001',
-    message: '💰 أسعارنا:\n• غرفة ستاندرد: 500 ريال/ليلة\n• غرفة ديلوكس: 750 ريال/ليلة\n• سويت: 1200 ريال/ليلة\n\nالسويت لـ 3 أيام = 3600 ريال',
-    status: 'read',
-    timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000 + 180000).toISOString(),
-    direction: 'outgoing',
-    employeeId: 'emp_001',
-    employeeName: 'أحمد محمد',
-    department: 'sales'
-  },
-  {
-    id: 'msg_004',
-    contactId: 'contact_001',
-    message: 'ممتاز، احجز لي من تاريخ 25/10',
-    status: 'read',
-    timestamp: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
-    direction: 'incoming'
-  },
-  {
-    id: 'msg_005',
-    contactId: 'contact_001',
+
+                {/* Language */}    department: 'sales'
+
+                <div>  },
+
+                  <Label className="text-slate-300">اللغة الافتراضية</Label>  {
+
+                  <select    id: 'msg_004',
+
+                    value={aiSettings.language}    contactId: 'contact_001',
+
+                    onChange={(e) => setAiSettings({ ...aiSettings, language: e.target.value })}    message: 'ممتاز، احجز لي من تاريخ 25/10',
+
+                    className="w-full mt-1 bg-slate-800 border border-slate-700 text-white rounded-md px-3 py-2"    status: 'read',
+
+                  >    timestamp: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
+
+                    <option value="ar">العربية</option>    direction: 'incoming'
+
+                    <option value="en">الإنجليزية</option>  },
+
+                    <option value="both">كلاهما</option>  {
+
+                  </select>    id: 'msg_005',
+
+                </div>    contactId: 'contact_001',
+
     message: 'تم التأكيد! ✅ حجز رقم #12345\nالسويت جاهزة لك من 25/10\nنتطلع لاستقبالك 🏨',
-    status: 'read',
-    timestamp: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000 + 60000).toISOString(),
-    direction: 'outgoing',
-    employeeId: 'emp_001',
-    employeeName: 'أحمد محمد',
-    department: 'sales'
-  },
-  {
-    id: 'msg_006',
-    contactId: 'contact_001',
-    message: 'شكراً جزيلاً على الخدمة الممتازة 🙏',
-    status: 'delivered',
-    timestamp: new Date(Date.now() - 300000).toISOString(),
-    direction: 'incoming'
-  },
-  
+
+                {/* Response Delay */}    status: 'read',
+
+                <div>    timestamp: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000 + 60000).toISOString(),
+
+                  <Label className="text-slate-300">تأخير الرد (ثانية)</Label>    direction: 'outgoing',
+
+                  <p className="text-xs text-slate-400 mb-2">    employeeId: 'emp_001',
+
+                    وقت الانتظار قبل إرسال الرد التلقائي    employeeName: 'أحمد محمد',
+
+                  </p>    department: 'sales'
+
+                  <Input  },
+
+                    type="number"  {
+
+                    min="0"    id: 'msg_006',
+
+                    max="10"    contactId: 'contact_001',
+
+                    step="0.5"    message: 'شكراً جزيلاً على الخدمة الممتازة 🙏',
+
+                    value={aiSettings.responseDelay}    status: 'delivered',
+
+                    onChange={(e) => setAiSettings({ ...aiSettings, responseDelay: parseFloat(e.target.value) })}    timestamp: new Date(Date.now() - 300000).toISOString(),
+
+                    className="bg-slate-800 border-slate-700 text-white"    direction: 'incoming'
+
+                  />  },
+
+                </div>  
+
   // محادثة نورة المطيري
-  {
-    id: 'msg_007',
-    contactId: 'contact_002',
-    message: 'مرحباً، هل عندكم عروض للعائلات؟',
-    status: 'read',
-    timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    direction: 'incoming'
-  },
-  {
-    id: 'msg_008',
-    contactId: 'contact_002',
-    message: 'مرحباً بك! 👋 نعم، لدينا عرض العائلات:\n• 2 غرفة متجاورة\n• خصم 20%\n• إفطار مجاني للأطفال',
-    status: 'read',
+
+                {/* Auto Learn */}  {
+
+                <div className="flex items-center justify-between p-4 bg-slate-800 rounded-lg">    id: 'msg_007',
+
+                  <div>    contactId: 'contact_002',
+
+                    <Label className="text-white font-semibold">التعلم التلقائي</Label>    message: 'مرحباً، هل عندكم عروض للعائلات؟',
+
+                    <p className="text-xs text-slate-400 mt-1">    status: 'read',
+
+                      تحسين الردود بناءً على المحادثات السابقة    timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+
+                    </p>    direction: 'incoming'
+
+                  </div>  },
+
+                  <Switch  {
+
+                    checked={aiSettings.autoLearn}    id: 'msg_008',
+
+                    onCheckedChange={(checked) => setAiSettings({ ...aiSettings, autoLearn: checked })}    contactId: 'contact_002',
+
+                  />    message: 'مرحباً بك! 👋 نعم، لدينا عرض العائلات:\n• 2 غرفة متجاورة\n• خصم 20%\n• إفطار مجاني للأطفال',
+
+                </div>    status: 'read',
+
     timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000 + 90000).toISOString(),
-    direction: 'outgoing',
-    employeeId: 'emp_003',
-    employeeName: 'محمود علي - الحجوزات',
-    department: 'reservations'
-  },
+
+                {/* Use Knowledge Base */}    direction: 'outgoing',
+
+                <div className="flex items-center justify-between p-4 bg-slate-800 rounded-lg">    employeeId: 'emp_003',
+
+                  <div>    employeeName: 'محمود علي - الحجوزات',
+
+                    <Label className="text-white font-semibold">استخدام قاعدة المعرفة</Label>    department: 'reservations'
+
+                    <p className="text-xs text-slate-400 mt-1">  },
+
+                      الرجوع للملفات المرفوعة عند الرد  {
+
+                    </p>    id: 'msg_009',
+
+                  </div>    contactId: 'contact_002',
+
+                  <Switch    message: 'رائع! وما السعر بعد الخصم؟',
+
+                    checked={aiSettings.useKnowledgeBase}    status: 'read',
+
+                    onCheckedChange={(checked) => setAiSettings({ ...aiSettings, useKnowledgeBase: checked })}    timestamp: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+
+                  />    direction: 'incoming'
+
+                </div>  },
+
   {
-    id: 'msg_009',
-    contactId: 'contact_002',
-    message: 'رائع! وما السعر بعد الخصم؟',
-    status: 'read',
-    timestamp: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-    direction: 'incoming'
-  },
+
+                <Button    id: 'msg_010',
+
+                  onClick={handleSaveSettings}    contactId: 'contact_002',
+
+                  className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"    message: 'بعد الخصم: 800 ريال/ليلة للغرفتين 💰',
+
+                >    status: 'read',
+
+                  <Save className="h-4 w-4 mr-2" />    timestamp: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000 + 120000).toISOString(),
+
+                  حفظ الإعدادات    direction: 'outgoing',
+
+                </Button>    employeeId: 'emp_003',
+
+              </CardContent>    employeeName: 'محمود علي - الحجوزات',
+
+            </Card>    department: 'reservations'
+
+          </TabsContent>  },
+
   {
-    id: 'msg_010',
-    contactId: 'contact_002',
-    message: 'بعد الخصم: 800 ريال/ليلة للغرفتين 💰',
-    status: 'read',
-    timestamp: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000 + 120000).toISOString(),
-    direction: 'outgoing',
-    employeeId: 'emp_003',
-    employeeName: 'محمود علي - الحجوزات',
-    department: 'reservations'
-  },
-  {
-    id: 'msg_011',
-    contactId: 'contact_002',
-    message: 'هل يمكن حجز غرفة لعائلة من 4 أفراد؟',
-    status: 'delivered',
-    timestamp: new Date(Date.now() - 600000).toISOString(),
-    direction: 'incoming'
-  },
-  
-  // محادثة عبدالله السعيد
-  {
-    id: 'msg_012',
-    contactId: 'contact_003',
-    message: 'السلام عليكم، أريد معلومات عن الإقامة الطويلة',
-    status: 'read',
-    timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    direction: 'incoming'
-  },
-  {
-    id: 'msg_013',
-    contactId: 'contact_003',
-    message: 'وعليكم السلام! 👋 لدينا عروض خاصة للإقامات الطويلة:\n• أسبوع: خصم 15%\n• شهر: خصم 25%',
-    status: 'read',
-    timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000 + 180000).toISOString(),
-    direction: 'outgoing',
+
+          {/* Analytics Tab */}    id: 'msg_011',
+
+          <TabsContent value="analytics" className="space-y-4">    contactId: 'contact_002',
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">    message: 'هل يمكن حجز غرفة لعائلة من 4 أفراد؟',
+
+              <Card className="border-purple-500/30 bg-slate-900/50">    status: 'delivered',
+
+                <CardHeader>    timestamp: new Date(Date.now() - 600000).toISOString(),
+
+                  <CardTitle className="text-white text-sm">أداء الردود</CardTitle>    direction: 'incoming'
+
+                </CardHeader>  },
+
+                <CardContent>  
+
+                  <div className="space-y-3">  // محادثة عبدالله السعيد
+
+                    <div className="flex items-center justify-between">  {
+
+                      <span className="text-slate-400 text-sm">ردود ناجحة</span>    id: 'msg_012',
+
+                      <span className="text-green-400 font-bold">1,178</span>    contactId: 'contact_003',
+
+                    </div>    message: 'السلام عليكم، أريد معلومات عن الإقامة الطويلة',
+
+                    <div className="flex items-center justify-between">    status: 'read',
+
+                      <span className="text-slate-400 text-sm">ردود فاشلة</span>    timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+
+                      <span className="text-red-400 font-bold">69</span>    direction: 'incoming'
+
+                    </div>  },
+
+                    <div className="flex items-center justify-between">  {
+
+                      <span className="text-slate-400 text-sm">تحتاج تدخل بشري</span>    id: 'msg_013',
+
+                      <span className="text-yellow-400 font-bold">142</span>    contactId: 'contact_003',
+
+                    </div>    message: 'وعليكم السلام! 👋 لدينا عروض خاصة للإقامات الطويلة:\n• أسبوع: خصم 15%\n• شهر: خصم 25%',
+
+                  </div>    status: 'read',
+
+                </CardContent>    timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000 + 180000).toISOString(),
+
+              </Card>    direction: 'outgoing',
+
     employeeId: 'emp_002',
-    employeeName: 'فاطمة أحمد - المبيعات',
-    department: 'sales'
-  },
+
+              <Card className="border-purple-500/30 bg-slate-900/50">    employeeName: 'فاطمة أحمد - المبيعات',
+
+                <CardHeader>    department: 'sales'
+
+                  <CardTitle className="text-white text-sm">التصنيفات الأكثر استخداماً</CardTitle>  },
+
+                </CardHeader>  {
+
+                <CardContent>    id: 'msg_014',
+
+                  <div className="space-y-3">    contactId: 'contact_003',
+
+                    <div className="flex items-center justify-between">    message: 'ما هي أسعار السويت لمدة أسبوع؟',
+
+                      <span className="text-slate-400 text-sm">حجوزات</span>    status: 'sent',
+
+                      <Badge className="bg-blue-600">487</Badge>    timestamp: new Date(Date.now() - 1800000).toISOString(),
+
+                    </div>    direction: 'incoming'
+
+                    <div className="flex items-center justify-between">  },
+
+                      <span className="text-slate-400 text-sm">استفسارات</span>  
+
+                      <Badge className="bg-purple-600">325</Badge>  // محادثة محمد الدوسري (المشاكل)
+
+                    </div>  {
+
+                    <div className="flex items-center justify-between">    id: 'msg_015',
+
+                      <span className="text-slate-400 text-sm">خدمات</span>    contactId: 'contact_005',
+
+                      <Badge className="bg-green-600">211</Badge>    message: 'الغرفة غير نظيفة! أريد تغيير فوراً!',
+
+                    </div>    status: 'read',
+
+                  </div>    timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+
+                </CardContent>    direction: 'incoming'
+
+              </Card>  },
+
   {
-    id: 'msg_014',
-    contactId: 'contact_003',
-    message: 'ما هي أسعار السويت لمدة أسبوع؟',
-    status: 'sent',
-    timestamp: new Date(Date.now() - 1800000).toISOString(),
-    direction: 'incoming'
-  },
-  
-  // محادثة محمد الدوسري (المشاكل)
-  {
-    id: 'msg_015',
-    contactId: 'contact_005',
-    message: 'الغرفة غير نظيفة! أريد تغيير فوراً!',
-    status: 'read',
-    timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    direction: 'incoming'
-  },
-  {
-    id: 'msg_016',
-    contactId: 'contact_005',
-    message: 'نعتذر بشدة عن هذا التقصير 😔 سنرسل فريق التنظيف فوراً وسنغير الغرفة',
-    status: 'read',
-    timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 + 60000).toISOString(),
-    direction: 'outgoing',
-    employeeId: 'emp_001',
-    employeeName: 'أحمد محمد - المدير',
-    department: 'complaints'
-  },
-  {
-    id: 'msg_017',
-    contactId: 'contact_005',
-    message: 'هذا غير مقبول! أريد استرجاع أموالي!',
-    status: 'read',
-    timestamp: new Date(Date.now() - 7200000).toISOString(),
-    direction: 'incoming'
-  }
+
+              <Card className="border-purple-500/30 bg-slate-900/50 md:col-span-2">    id: 'msg_016',
+
+                <CardHeader>    contactId: 'contact_005',
+
+                  <CardTitle className="text-white text-sm">أوقات الذروة</CardTitle>    message: 'نعتذر بشدة عن هذا التقصير 😔 سنرسل فريق التنظيف فوراً وسنغير الغرفة',
+
+                </CardHeader>    status: 'read',
+
+                <CardContent>    timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 + 60000).toISOString(),
+
+                  <div className="grid grid-cols-4 gap-2">    direction: 'outgoing',
+
+                    {['9-12 ص', '12-3 م', '3-6 م', '6-9 م', '9-12 م'].map((time, idx) => (    employeeId: 'emp_001',
+
+                      <div key={time} className="text-center p-3 bg-slate-800 rounded-lg">    employeeName: 'أحمد محمد - المدير',
+
+                        <p className="text-xs text-slate-400 mb-1">{time}</p>    department: 'complaints'
+
+                        <p className="text-lg font-bold text-white">{Math.floor(Math.random() * 200) + 50}</p>  },
+
+                      </div>  {
+
+                    ))}    id: 'msg_017',
+
+                  </div>    contactId: 'contact_005',
+
+                </CardContent>    message: 'هذا غير مقبول! أريد استرجاع أموالي!',
+
+              </Card>    status: 'read',
+
+            </div>    timestamp: new Date(Date.now() - 7200000).toISOString(),
+
+          </TabsContent>    direction: 'incoming'
+
+        </Tabs>  }
+
 ];
 
-// الأسئلة الشائعة والحلول
-const COMMON_ISSUES = [
-  {
-    category: 'فنية',
-    title: 'مشكلة في تسجيل الدخول',
-    solution: 'امسح الكاش وحاول مرة أخرى',
-    videoUrl: 'https://youtube.com/watch?v=example1'
-  },
-  {
-    category: 'خدمة الغرف',
-    title: 'تأخر التنظيف',
-    solution: 'سيتم إرسال الفريق خلال 15 دقيقة',
-    videoUrl: ''
-  },
-  {
-    category: 'الفواتير',
-    title: 'خطأ في الفاتورة',
-    solution: 'سيتم مراجعة الفاتورة وتصحيحها',
-    videoUrl: 'https://youtube.com/watch?v=example3'
-  }
-];
+        {/* Quick Actions */}
 
-// قائمة الإيموجي الشائعة
-const EMOJI_LIST = [
-  { category: 'وجوه', emojis: ['😀', '😃', '😄', '😁', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🥸', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓'] },
-  { category: 'إيماءات', emojis: ['👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏'] },
-  { category: 'قلوب', emojis: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❤️‍🔥', '❤️‍🩹', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟'] },
-  { category: 'حيوانات', emojis: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🐧', '🐦', '🐤', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦄', '🐝', '🐛', '🦋', '🐌', '🐞', '🐜', '🦟', '🦗'] },
-  { category: 'طعام', emojis: ['🍇', '🍈', '🍉', '🍊', '🍋', '🍌', '🍍', '🥭', '🍎', '🍏', '🍐', '🍑', '🍒', '🍓', '🫐', '🥝', '🍅', '🫒', '🥥', '🥑', '🍆', '🥔', '🥕', '🌽', '🌶️', '🫑', '🥒', '🥬', '🥦', '🧄', '🧅', '🍄', '🥜', '🌰', '🍞', '🥐', '🥖', '🫓', '🥨', '🥯', '🥞', '🧇', '🧀', '🍖', '🍗', '🥩', '🥓', '🍔', '🍟', '🍕', '🌭', '🥪', '🌮', '🌯', '🫔', '🥙', '🧆', '🥚', '🍳', '🥘', '🍲', '🫕', '🥣', '🥗', '🍿', '🧈', '🧂', '🥫', '🍱', '🍘', '🍙', '🍚', '🍛', '🍜', '🍝', '🍠', '🍢', '🍣', '🍤', '🍥', '🥮', '🍡', '🥟', '🥠', '🥡', '🦀', '🦞', '🦐', '🦑', '🦪', '🍦', '🍧', '🍨', '🍩', '🍪', '🎂', '🍰', '🧁', '🥧', '🍫', '🍬', '🍭', '🍮', '🍯', '🍼', '🥛', '☕', '🫖', '🍵', '🍶', '🍾', '🍷', '🍸', '🍹', '🍺', '🍻', '🥂', '🥃', '🥤', '🧋', '🧃', '🧉', '🧊'] },
-  { category: 'رياضة', emojis: ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🪀', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🪃', '🥅', '⛳', '🪁', '🏹', '🎣', '🤿', '🥊', '🥋', '🎽', '🛹', '🛼', '🛷', '⛸️', '🥌', '🎿', '⛷️', '🏂', '🪂', '🏋️', '🤼', '🤸', '🤺', '⛹️', '🤾', '🏌️', '🏇', '🧘', '🏊', '🤽', '🚣', '🧗', '🚴', '🚵', '🎪', '🎭', '🎨', '🎬', '🎤', '🎧', '🎼', '🎹', '🥁', '🪘', '🎷', '🎺', '🪗', '🎸', '🪕', '🎻', '🎲', '♟️', '🎯', '🎳', '🎮', '🎰', '🧩'] },
-  { category: 'سفر', emojis: ['🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🛻', '🚚', '🚛', '🚜', '🦯', '🦽', '🦼', '🛴', '🚲', '🛵', '🏍️', '🛺', '🚨', '🚔', '🚍', '🚘', '🚖', '🚡', '🚠', '🚟', '🚃', '🚋', '🚞', '🚝', '🚄', '🚅', '🚈', '🚂', '🚆', '🚇', '🚊', '🚉', '✈️', '🛫', '🛬', '🛩️', '💺', '🛰️', '🚀', '🛸', '🚁', '🛶', '⛵', '🚤', '🛥️', '🛳️', '⛴️', '🚢', '⚓', '⛽', '🚧', '🚦', '🚥', '🚏', '🗺️', '🗿', '🗽', '🗼', '🏰', '🏯', '🏟️', '🎡', '🎢', '🎠', '⛲', '⛱️', '🏖️', '🏝️', '🏜️', '🌋', '⛰️', '🏔️', '🗻', '🏕️', '⛺', '🛖', '🏠', '🏡', '🏘️', '🏚️', '🏗️', '🏭', '🏢', '🏬', '🏣', '🏤', '🏥', '🏦', '🏨', '🏪', '🏫', '🏩', '💒', '🏛️', '⛪', '🕌', '🛕', '🕍', '⛩️', '🕋'] }
-];
+        <Card className="border-purple-500/30 bg-slate-900/50">// الأسئلة الشائعة والحلول
 
-const REQUEST_TYPES: Array<{ value: RequestType; label: string; icon: string }> = [
-  { value: 'booking', label: 'حجز غرفة', icon: '🏨' },
-  { value: 'complaint', label: 'شكوى', icon: '⚠️' },
-  { value: 'cleaning', label: 'تنظيف الغرفة', icon: '🧹' },
-  { value: 'coffee', label: 'طلب كوفي', icon: '☕' },
-  { value: 'laundry', label: 'غسيل الملابس', icon: '👕' }
-];
+          <CardHeader>const COMMON_ISSUES = [
 
-const BOT_CONVERSATIONS: Record<RequestType, string[]> = {
-  booking: [
-    'شكراً لتواصلك معنا! 🏨 نود توفير أفضل خدماتنا لك',
-    'كم عدد الأشخاص الذين ستقيمون؟',
+            <CardTitle className="text-white">إجراءات سريعة</CardTitle>  {
+
+          </CardHeader>    category: 'فنية',
+
+          <CardContent>    title: 'مشكلة في تسجيل الدخول',
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">    solution: 'امسح الكاش وحاول مرة أخرى',
+
+              <Button     videoUrl: 'https://youtube.com/watch?v=example1'
+
+                variant="outline"   },
+
+                className="h-20"  {
+
+                onClick={() => router.push('/whatsapp-bot')}    category: 'خدمة الغرف',
+
+              >    title: 'تأخر التنظيف',
+
+                <div className="text-center">    solution: 'سيتم إرسال الفريق خلال 15 دقيقة',
+
+                  <Bot className="h-6 w-6 mx-auto mb-1 text-green-400" />    videoUrl: ''
+
+                  <p className="text-sm">إعدادات WhatsApp</p>  },
+
+                </div>  {
+
+              </Button>    category: 'الفواتير',
+
+                  title: 'خطأ في الفاتورة',
+
+              <Button     solution: 'سيتم مراجعة الفاتورة وتصحيحها',
+
+                variant="outline"     videoUrl: 'https://youtube.com/watch?v=example3'
+
+                className="h-20"  }
+
+                onClick={() => router.push('/dashboard/chat')}];
+
+              >
+
+                <div className="text-center">// قائمة الإيموجي الشائعة
+
+                  <Users className="h-6 w-6 mx-auto mb-1 text-blue-400" />const EMOJI_LIST = [
+
+                  <p className="text-sm">المحادثات النشطة</p>  { category: 'وجوه', emojis: ['😀', '😃', '😄', '😁', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🥸', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓'] },
+
+                </div>  { category: 'إيماءات', emojis: ['👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏'] },
+
+              </Button>  { category: 'قلوب', emojis: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❤️‍🔥', '❤️‍🩹', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟'] },
+
+                { category: 'حيوانات', emojis: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🐧', '🐦', '🐤', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦄', '🐝', '🐛', '🦋', '🐌', '🐞', '🐜', '🦟', '🦗'] },
+
+              <Button   { category: 'طعام', emojis: ['🍇', '🍈', '🍉', '🍊', '🍋', '🍌', '🍍', '🥭', '🍎', '🍏', '🍐', '🍑', '🍒', '🍓', '🫐', '🥝', '🍅', '🫒', '🥥', '🥑', '🍆', '🥔', '🥕', '🌽', '🌶️', '🫑', '🥒', '🥬', '🥦', '🧄', '🧅', '🍄', '🥜', '🌰', '🍞', '🥐', '🥖', '🫓', '🥨', '🥯', '🥞', '🧇', '🧀', '🍖', '🍗', '🥩', '🥓', '🍔', '🍟', '🍕', '🌭', '🥪', '🌮', '🌯', '🫔', '🥙', '🧆', '🥚', '🍳', '🥘', '🍲', '🫕', '🥣', '🥗', '🍿', '🧈', '🧂', '🥫', '🍱', '🍘', '🍙', '🍚', '🍛', '🍜', '🍝', '🍠', '🍢', '🍣', '🍤', '🍥', '🥮', '🍡', '🥟', '🥠', '🥡', '🦀', '🦞', '🦐', '🦑', '🦪', '🍦', '🍧', '🍨', '🍩', '🍪', '🎂', '🍰', '🧁', '🥧', '🍫', '🍬', '🍭', '🍮', '🍯', '🍼', '🥛', '☕', '🫖', '🍵', '🍶', '🍾', '🍷', '🍸', '🍹', '🍺', '🍻', '🥂', '🥃', '🥤', '🧋', '🧃', '🧉', '🧊'] },
+
+                variant="outline"   { category: 'رياضة', emojis: ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🪀', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🪃', '🥅', '⛳', '🪁', '🏹', '🎣', '🤿', '🥊', '🥋', '🎽', '🛹', '🛼', '🛷', '⛸️', '🥌', '🎿', '⛷️', '🏂', '🪂', '🏋️', '🤼', '🤸', '🤺', '⛹️', '🤾', '🏌️', '🏇', '🧘', '🏊', '🤽', '🚣', '🧗', '🚴', '🚵', '🎪', '🎭', '🎨', '🎬', '🎤', '🎧', '🎼', '🎹', '🥁', '🪘', '🎷', '🎺', '🪗', '🎸', '🪕', '🎻', '🎲', '♟️', '🎯', '🎳', '🎮', '🎰', '🧩'] },
+
+                className="h-20"  { category: 'سفر', emojis: ['🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🛻', '🚚', '🚛', '🚜', '🦯', '🦽', '🦼', '🛴', '🚲', '🛵', '🏍️', '🛺', '🚨', '🚔', '🚍', '🚘', '🚖', '🚡', '🚠', '🚟', '🚃', '🚋', '🚞', '🚝', '🚄', '🚅', '🚈', '🚂', '🚆', '🚇', '🚊', '🚉', '✈️', '🛫', '🛬', '🛩️', '💺', '🛰️', '🚀', '🛸', '🚁', '🛶', '⛵', '🚤', '🛥️', '🛳️', '⛴️', '🚢', '⚓', '⛽', '🚧', '🚦', '🚥', '🚏', '🗺️', '🗿', '🗽', '🗼', '🏰', '🏯', '🏟️', '🎡', '🎢', '🎠', '⛲', '⛱️', '🏖️', '🏝️', '🏜️', '🌋', '⛰️', '🏔️', '🗻', '🏕️', '⛺', '🛖', '🏠', '🏡', '🏘️', '🏚️', '🏗️', '🏭', '🏢', '🏬', '🏣', '🏤', '🏥', '🏦', '🏨', '🏪', '🏫', '🏩', '💒', '🏛️', '⛪', '🕌', '🛕', '🕍', '⛩️', '🕋'] }
+
+                onClick={() => router.push('/dashboard/requests')}];
+
+              >
+
+                <div className="text-center">const REQUEST_TYPES: Array<{ value: RequestType; label: string; icon: string }> = [
+
+                  <MessageSquare className="h-6 w-6 mx-auto mb-1 text-purple-400" />  { value: 'booking', label: 'حجز غرفة', icon: '🏨' },
+
+                  <p className="text-sm">طلبات النزلاء</p>  { value: 'complaint', label: 'شكوى', icon: '⚠️' },
+
+                </div>  { value: 'cleaning', label: 'تنظيف الغرفة', icon: '🧹' },
+
+              </Button>  { value: 'coffee', label: 'طلب كوفي', icon: '☕' },
+
+            </div>  { value: 'laundry', label: 'غسيل الملابس', icon: '👕' }
+
+          </CardContent>];
+
+        </Card>
+
+      </div>const BOT_CONVERSATIONS: Record<RequestType, string[]> = {
+
+    </div>  booking: [
+
+  );    'شكراً لتواصلك معنا! 🏨 نود توفير أفضل خدماتنا لك',
+
+}    'كم عدد الأشخاص الذين ستقيمون؟',
+
     'ما هو نوع الغرفة المفضل لديك؟ (ستاندرد/ديلوكس/سويت)',
     'ما تاريخ دخول وخروج الإقامة؟',
     'تم تسجيل طلب الحجز بنجاح! سيتم التواصل معك قريباً ✅'
