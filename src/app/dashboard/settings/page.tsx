@@ -14,13 +14,23 @@ import {
   ChevronRight,
   FileText,
   Globe,
-  List
+  List,
+  Cloud
 } from 'lucide-react';
 
 export default function SettingsPage() {
   const router = useRouter();
 
   const quickActions = [
+    {
+      id: 'sync',
+      title: 'مزامنة البيانات',
+      description: 'المزامنة بين الأجهزة عبر Firebase - حل مشكلة عدم ظهور البيانات',
+      icon: Cloud,
+      color: 'from-cyan-500 to-blue-500',
+      href: '/dashboard/settings/sync',
+      badge: '⭐ مهم'
+    },
     {
       id: 'website',
       title: 'الموقع الإلكتروني',
