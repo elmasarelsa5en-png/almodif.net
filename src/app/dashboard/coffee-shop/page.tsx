@@ -306,35 +306,34 @@ export default function CoffeeShopPage() {
   };
 
   const sendToReception = (order: CoffeeOrder) => {
-    // Get all employees and find available reception staff
-    const employeesData = localStorage.getItem('employees');
-    const employees = employeesData ? JSON.parse(employeesData) : [];
-    const receptionStaff = employees.find((emp: any) => 
-      emp.department === 'استقبال' && emp.status === 'available'
-    );
-
-    if (!receptionStaff) {
-      alert('لا يوجد موظف استقبال متاح حالياً');
-      return;
+    // Get current user as the assigned employee (or create a default reception user)
+    const currentUser = typeof window !== 'undefined' ? localStorage.getItem('hotel_user') : null;
+    let assignedEmployee = 'reception_staff';
+    
+    if (currentUser) {
+      try {
+        const userData = JSON.parse(currentUser);
+        // If current user is not reception, assign to a default reception account
+        assignedEmployee = userData.role === 'reception' ? userData.username : 'reception_staff';
+      } catch (e) {
+        console.error('Error parsing user data', e);
+      }
     }
 
     // Create guest request from coffee order
     const guestRequest = {
       id: uid(),
-      guestName: order.guestName,
-      roomNumber: order.roomNumber,
-      requestType: 'coffee',
-      requestDescription: order.items.map(item => 
-        `${item.menuItemName} × ${item.quantity}`
-      ).join(', '),
+      room: order.roomNumber,
+      guest: order.guestName,
+      phone: '',
+      type: 'طلب كوفي شوب',
+      notes: `${order.items.map(item => `${item.menuItemName} × ${item.quantity}`).join(', ')}\nالمبلغ: ${order.totalAmount.toFixed(2)} ر.س`,
+      status: 'pending',
+      createdAt: new Date().toISOString(),
       priority: 'medium' as const,
-      status: 'awaiting_employee_approval' as const,
-      requestDate: new Date().toISOString(),
-      assignedTo: receptionStaff.id,
-      assignedToName: receptionStaff.name,
-      notes: `طلب من الكوفي شوب - المبلغ: ${order.totalAmount.toFixed(2)} ر.س`,
-      selectedSubItems: order.items.map(item => item.menuItemId),
-      linkedSection: 'coffee' as const,
+      assignedEmployee: assignedEmployee,
+      employeeApprovalStatus: 'pending' as const,
+      linkedSection: 'coffee',
       originalOrderId: order.id
     };
 
@@ -348,6 +347,9 @@ export default function CoffeeShopPage() {
     setOrders((prev) => prev.map((o) => 
       o.id === order.id ? { ...o, sentToReception: true, receptionRequestId: guestRequest.id } : o
     ));
+
+    // Trigger storage event for other tabs/components
+    window.dispatchEvent(new Event('storage'));
 
     // Play notification sound
     playNotificationSound('new-request');
