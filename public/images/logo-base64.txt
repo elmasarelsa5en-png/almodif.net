@@ -1,0 +1,2 @@
+<!-- Al-Modif Logo - This file contains the base64 encoded logo for invoice printing -->
+<!-- The actual logo image should be placed at: public/images/almodif-logo.png -->

@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 اختبار صفحات الإعدادات - Al Modif CRM</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 50%, #312e81 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.4);
+            border-radius: 20px;
+            color: #86efac;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.6s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .card:nth-child(1) { animation-delay: 0.1s; }
+        .card:nth-child(2) { animation-delay: 0.2s; }
+        .card:nth-child(3) { animation-delay: 0.3s; }
+        .card:nth-child(4) { animation-delay: 0.4s; }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 8px;
+        }
+
+        .card p {
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: white;
+        }
+
+        .btn-local {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+        }
+
+        .btn-local:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-live {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .btn-live:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .checklist {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 40px;
+        }
+
+        .checklist h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .checkbox-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .checkbox-item.checked {
+            background: rgba(34, 197, 94, 0.2);
+            border-right: 4px solid #22c55e;
+        }
+
+        .info-box {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .info-box h3 {
+            color: #60a5fa;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #22c55e);
+            width: 0%;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .server-info {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .server-status {
+            width: 12px;
+            height: 12px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 اختبار صفحات الإعدادات</h1>
+            <p style="color: rgba(255,255,255,0.8); margin-top: 10px;">Al Modif CRM - October 19, 2025</p>
+            <span class="status-badge">✅ 52 صفحة تم بناؤها بنجاح</span>
+        </div>
+
+        <div class="server-info">
+            <div class="server-status"></div>
+            <div>
+                <strong>الخادم المحلي يعمل:</strong> http://localhost:3000
+            </div>
+        </div>
+
+        <div class="grid">
+            <!-- Card 1: Settings Hub -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                        ⚙️
+                    </div>
+                    <div>
+                        <h3>مركز الإعدادات</h3>
+                        <span style="font-size: 0.85rem; color: #60a5fa;">الصفحة المركزية</span>
+                    </div>
+                </div>
+                <p>الصفحة الرئيسية لجميع إعدادات النظام. يجب أن تعرض 12 كارت مع badges للـ AI.</p>
+                <div class="button-group">
+                    <a href="http://localhost:3000/dashboard/settings" target="_blank" class="btn btn-local">
+                        🏠 فتح محلياً
+                    </a>
+                    <a href="https://al-modif-crm.web.app/dashboard/settings" target="_blank" class="btn btn-live">
+                        🌐 فتح مباشرة
+                    </a>
+                </div>
+            </div>
+
+            <!-- Card 2: AI Settings -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon" style="background: linear-gradient(135deg, #a855f7, #ec4899);">
+                        🤖
+                    </div>
+                    <div>
+                        <h3>مساعد الذكاء الاصطناعي</h3>
+                        <span style="font-size: 0.85rem; color: #c084fc;">AI Badge</span>
+                    </div>
+                </div>
+                <p>إعدادات الردود التلقائية الذكية عبر WhatsApp. اختر بين Off/Local/OpenAI.</p>
+                <div class="button-group">
+                    <a href="http://localhost:3000/settings/ai-settings" target="_blank" class="btn btn-local">
+                        🏠 فتح محلياً
+                    </a>
+                    <a href="https://al-modif-crm.web.app/settings/ai-settings" target="_blank" class="btn btn-live">
+                        🌐 فتح مباشرة
+                    </a>
+                </div>
+            </div>
+
+            <!-- Card 3: Rooms Catalog -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                        📚
+                    </div>
+                    <div>
+                        <h3>كتالوج الغرف الذكي</h3>
+                        <span style="font-size: 0.85rem; color: #34d399;">AI Badge</span>
+                    </div>
+                </div>
+                <p>قاعدة بيانات الغرف للذكاء الاصطناعي. نظام CRUD كامل مع localStorage.</p>
+                <div class="button-group">
+                    <a href="http://localhost:3000/settings/rooms-catalog" target="_blank" class="btn btn-local">
+                        🏠 فتح محلياً
+                    </a>
+                    <a href="https://al-modif-crm.web.app/settings/rooms-catalog" target="_blank" class="btn btn-live">
+                        🌐 فتح مباشرة
+                    </a>
+                </div>
+            </div>
+
+            <!-- Card 4: Sound Settings -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon" style="background: linear-gradient(135deg, #ec4899, #db2777);">
+                        🔔
+                    </div>
+                    <div>
+                        <h3>إعدادات الأصوات</h3>
+                        <span style="font-size: 0.85rem; color: #f472b6;">Sound Badge</span>
+                    </div>
+                </div>
+                <p>إعدادات الإشعارات وأصوات التنبيهات لجميع أقسام النظام.</p>
+                <div class="button-group">
+                    <a href="http://localhost:3000/sound-settings" target="_blank" class="btn btn-local">
+                        🏠 فتح محلياً
+                    </a>
+                    <a href="https://al-modif-crm.web.app/sound-settings" target="_blank" class="btn btn-live">
+                        🌐 فتح مباشرة
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Checklist -->
+        <div class="checklist">
+            <h2>📝 قائمة التحقق</h2>
+            <div id="checklistItems"></div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar">0%</div>
+            </div>
+        </div>
+
+        <!-- Info Box -->
+        <div class="info-box">
+            <h3>💡 نصائح الاختبار</h3>
+            <ul style="padding-right: 20px; line-height: 2;">
+                <li>تأكد من تسجيل الدخول قبل اختبار الصفحات</li>
+                <li>جرب كل زر وكل رابط في كل صفحة</li>
+                <li>تحقق من أن البيانات تُحفظ في localStorage</li>
+                <li>أعد تحميل الصفحات للتأكد من استمرار البيانات</li>
+                <li>اختبر الـ Animations بالـ hover على العناصر</li>
+                <li>إذا واجهت مشكلة، افتح Console (F12) لرؤية الأخطاء</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const checklistData = [
+            { id: 1, text: '✅ صفحة الإعدادات المركزية تفتح بدون تسجيل خروج' },
+            { id: 2, text: '✅ جميع الـ 12 كارت ظاهرة بشكل صحيح' },
+            { id: 3, text: '✅ كارتات AI تظهر مع badges صحيحة' },
+            { id: 4, text: '✅ Quick Actions تعمل (4 أزرار)' },
+            { id: 5, text: '🤖 صفحة AI Settings تفتح بدون تسجيل خروج' },
+            { id: 6, text: '🤖 3 كروت اختيار الوضع تظهر' },
+            { id: 7, text: '🤖 نموذج OpenAI يظهر عند الاختيار' },
+            { id: 8, text: '🤖 زر الحفظ يعمل والبيانات تُحفظ' },
+            { id: 9, text: '📚 صفحة Rooms Catalog تفتح بدون تسجيل خروج' },
+            { id: 10, text: '📚 نموذج إضافة غرفة يعمل' },
+            { id: 11, text: '📚 الغرف تُعرض في Grid بشكل صحيح' },
+            { id: 12, text: '📚 تبديل الحالة والحذف يعملان' },
+            { id: 13, text: '🔔 صفحة Sound Settings تفتح بدون تسجيل خروج' },
+            { id: 14, text: '🔔 إعدادات الأصوات تعمل بشكل صحيح' },
+            { id: 15, text: '✨ جميع Animations تعمل (hover effects)' },
+            { id: 16, text: '✨ التنقل بين الصفحات يعمل بسلاسة' }
+        ];
+
+        const checklistContainer = document.getElementById('checklistItems');
+        const progressBar = document.getElementById('progressBar');
+
+        function renderChecklist() {
+            checklistContainer.innerHTML = '';
+            checklistData.forEach(item => {
+                const isChecked = localStorage.getItem(`test_${item.id}`) === 'true';
+                const div = document.createElement('div');
+                div.className = `checkbox-item ${isChecked ? 'checked' : ''}`;
+                div.innerHTML = `
+                    <input type="checkbox" id="check_${item.id}" ${isChecked ? 'checked' : ''}>
+                    <label for="check_${item.id}" style="cursor: pointer; flex: 1;">${item.text}</label>
+                `;
+                div.querySelector('input').addEventListener('change', (e) => {
+                    localStorage.setItem(`test_${item.id}`, e.target.checked);
+                    updateProgress();
+                    if (e.target.checked) {
+                        div.classList.add('checked');
+                    } else {
+                        div.classList.remove('checked');
+                    }
+                });
+                checklistContainer.appendChild(div);
+            });
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const total = checklistData.length;
+            const checked = checklistData.filter(item => 
+                localStorage.getItem(`test_${item.id}`) === 'true'
+            ).length;
+            const percentage = Math.round((checked / total) * 100);
+            progressBar.style.width = `${percentage}%`;
+            progressBar.textContent = `${percentage}% (${checked}/${total})`;
+        }
+
+        renderChecklist();
+
+        // Reset button (hidden, can be triggered from console)
+        window.resetTests = function() {
+            if (confirm('هل تريد مسح جميع نتائج الاختبار؟')) {
+                checklistData.forEach(item => {
+                    localStorage.removeItem(`test_${item.id}`);
+                });
+                renderChecklist();
+                alert('تم مسح جميع النتائج! ✅');
+            }
+        };
+
+        console.log('💡 نصيحة: لمسح جميع نتائج الاختبار، اكتب في Console: resetTests()');
+    </script>
+</body>
+</html>

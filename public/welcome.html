@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>شاشة الترحيب</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .video-container {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+    }
+    video {
+      max-width: 100vw;
+      max-height: 100vh;
+      background: #000;
+      border-radius: 0;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="video-container">
+    <video id="welcomeVideo" src="welcome.mp4" autoplay playsinline onended="goToHome()" preload="auto"></video>
+  </div>
+  <script>
+    function goToHome() {
+      window.location.href = "index.html";
+    }
+    // في حال أراد المستخدم تخطي الفيديو
+    document.getElementById('welcomeVideo').addEventListener('click', goToHome);
+    // fallback: الانتقال تلقائياً بعد 30 ثانية لو حدثت مشكلة
+    setTimeout(goToHome, 30000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+/* --- خلفية الفقاعات --- */
+.bubblesContainer {
+  position: fixed; /* استخدام fixed لتغطية الشاشة بالكامل */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1; /* وضعها خلف كل المحتوى */
+  background: linear-gradient(to bottom right, #0f172a, #1e3a8a, #312e81); /* استعادة الخلفية المتدرجة الأصلية */
+  overflow: hidden;
+}
+
+.bubble {
+  position: absolute;
+  bottom: -150px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+  animation: bubble-rise 20s linear infinite; /* زيادة السرعة من 25s إلى 20s */
+  backdrop-filter: blur(1px);
+}
+
+/* --- تخصيص عشوائي للفقاعات بسرعات جديدة --- */
+.bubble:nth-child(1) { width: 80px; height: 80px; left: 10%; animation-duration: 14s; }
+.bubble:nth-child(2) { width: 30px; height: 30px; left: 20%; animation-duration: 11s; animation-delay: 2s; }
+.bubble:nth-child(3) { width: 50px; height: 50px; left: 35%; animation-duration: 18s; }
+.bubble:nth-child(4) { width: 100px; height: 100px; left: 50%; animation-duration: 16s; animation-delay: 3s; }
+.bubble:nth-child(5) { width: 40px; height: 40px; left: 65%; animation-duration: 13s; }
+.bubble:nth-child(6) { width: 65px; height: 65px; left: 80%; animation-duration: 20s; animation-delay: 1s; }
+.bubble:nth-child(7) { width: 25px; height: 25px; left: 90%; animation-duration: 15s; }
+.bubble:nth-child(8) { width: 45px; height: 45px; left: 5%; animation-duration: 22s; animation-delay: 4s; }
+.bubble:nth-child(9) { width: 70px; height: 70px; left: 25%; animation-duration: 12s; }
+.bubble:nth-child(10) { width: 90px; height: 90px; left: 75%; animation-duration: 17s; animation-delay: 5s; }
+
+/* --- تعريف حركة الصعود للفقاعات --- */
+@keyframes bubble-rise {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  10%, 90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-110vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* إيقاف الحركة على شاشات الجوال لتحسين الأداء */
+@media (max-width: 768px) {
+  .bubble {
+    animation: none !important;
+  }
+}

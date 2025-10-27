@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Create Desktop Icon</title>
+</head>
+<body>
+    <h1>إنشاء أيقونة احترافية للتطبيق</h1>
+    <canvas id="canvas" width="512" height="512"></canvas>
+    <br><br>
+    <button onclick="downloadPNG()">تحميل PNG (512x512)</button>
+    <button onclick="downloadICO()">تحميل ICO</button>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // خلفية متدرجة
+        const gradient = ctx.createLinearGradient(0, 0, 512, 512);
+        gradient.addColorStop(0, '#0ea5e9'); // أزرق فاتح
+        gradient.addColorStop(1, '#3b82f6'); // أزرق داكن
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 512, 512);
+
+        // رسم صليب طبي (للأسنان)
+        ctx.fillStyle = 'white';
+        // صليب أفقي
+        ctx.fillRect(156, 206, 200, 100);
+        // صليب عمودي
+        ctx.fillRect(206, 156, 100, 200);
+
+        // رسم دائرة في المنتصف
+        ctx.beginPath();
+        ctx.arc(256, 256, 40, 0, Math.PI * 2);
+        ctx.fillStyle = '#0ea5e9';
+        ctx.fill();
+
+        // رسم سن بسيط
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        // تاج السن
+        ctx.moveTo(256, 220);
+        ctx.lineTo(276, 240);
+        ctx.lineTo(266, 260);
+        ctx.lineTo(256, 280);
+        ctx.lineTo(246, 260);
+        ctx.lineTo(236, 240);
+        ctx.closePath();
+        ctx.fill();
+
+        // الجذر
+        ctx.fillRect(251, 280, 10, 20);
+
+        // إضافة حدود دائرية
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.lineWidth = 8;
+        ctx.strokeRect(20, 20, 472, 472);
+
+        function downloadPNG() {
+            const link = document.createElement('a');
+            link.download = 'dental-icon-512.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        function downloadICO() {
+            // تحويل إلى ICO يحتاج مكتبة خارجية
+            // لكن يمكن حفظ PNG واستخدام أداة تحويل أونلاين
+            alert('احفظ الصورة PNG أولاً، ثم استخدم موقع: https://convertio.co/png-ico/');
+        }
+    </script>
+</body>
+</html>

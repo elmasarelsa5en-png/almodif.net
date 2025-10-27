@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إعادة تعيين المستخدمين</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .info-box {
+            background: #f0f7ff;
+            border-right: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        .label {
+            font-weight: bold;
+            color: #333;
+        }
+        .value {
+            color: #667eea;
+            font-family: monospace;
+            font-size: 18px;
+        }
+        .btn-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        button {
+            flex: 1;
+            padding: 15px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .btn-reset {
+            background: #667eea;
+            color: white;
+        }
+        .btn-reset:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .btn-view {
+            background: #48bb78;
+            color: white;
+        }
+        .btn-view:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(72, 187, 120, 0.4);
+        }
+        .btn-clear {
+            background: #f56565;
+            color: white;
+        }
+        .btn-clear:hover {
+            background: #e53e3e;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 101, 101, 0.4);
+        }
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+        .message.success {
+            background: #c6f6d5;
+            color: #22543d;
+            display: block;
+        }
+        .message.error {
+            background: #fed7d7;
+            color: #742a2a;
+            display: block;
+        }
+        .users-list {
+            background: #f7fafc;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .user-item {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-right: 3px solid #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 إعادة تعيين المستخدمين</h1>
+        
+        <div class="info-box">
+            <h3 style="margin-top: 0; color: #667eea;">بيانات المستخدم الافتراضي:</h3>
+            <div class="info-item">
+                <span class="label">اسم المستخدم:</span>
+                <span class="value">akram</span>
+            </div>
+            <div class="info-item">
+                <span class="label">البريد الإلكتروني:</span>
+                <span class="value">akram@almodif.com</span>
+            </div>
+            <div class="info-item">
+                <span class="label">كلمة المرور:</span>
+                <span class="value">Aa123456</span>
+            </div>
+            <div class="info-item">
+                <span class="label">الصلاحية:</span>
+                <span class="value">admin</span>
+            </div>
+        </div>
+
+        <div class="btn-container">
+            <button class="btn-reset" onclick="resetUsers()">
+                🔄 إعادة إنشاء المستخدمين
+            </button>
+            <button class="btn-view" onclick="viewUsers()">
+                👀 عرض المستخدمين
+            </button>
+            <button class="btn-clear" onclick="clearAll()">
+                🗑️ مسح الكل
+            </button>
+        </div>
+
+        <div id="message" class="message"></div>
+        <div id="usersList" class="users-list" style="display: none;"></div>
+    </div>
+
+    <script>
+        function resetUsers() {
+            try {
+                // إنشاء مستخدم افتراضي جديد
+                const defaultUser = {
+                    uid: 'user_akram',
+                    email: 'akram@almodif.com',
+                    name: 'akram',
+                    password: 'Aa123456',
+                    role: 'admin',
+                    createdAt: new Date().toISOString()
+                };
+
+                // حفظ في localStorage
+                const users = [defaultUser];
+                localStorage.setItem('users', JSON.stringify(users));
+                
+                // مسح الجلسة الحالية
+                localStorage.removeItem('user');
+
+                showMessage('success', '✅ تم إعادة إنشاء المستخدم بنجاح! يمكنك الآن تسجيل الدخول بـ: akram / Aa123456');
+            } catch (error) {
+                showMessage('error', '❌ حدث خطأ: ' + error.message);
+            }
+        }
+
+        function viewUsers() {
+            try {
+                const users = JSON.parse(localStorage.getItem('users') || '[]');
+                const usersList = document.getElementById('usersList');
+                
+                if (users.length === 0) {
+                    usersList.innerHTML = '<p style="text-align: center; color: #999;">لا يوجد مستخدمين</p>';
+                } else {
+                    usersList.innerHTML = users.map((user, index) => `
+                        <div class="user-item">
+                            <strong>${index + 1}. ${user.name}</strong><br>
+                            📧 ${user.email}<br>
+                            🔑 ${user.password}<br>
+                            👤 ${user.role}<br>
+                            🆔 ${user.uid}
+                        </div>
+                    `).join('');
+                }
+                
+                usersList.style.display = 'block';
+                showMessage('success', `تم العثور على ${users.length} مستخدم`);
+            } catch (error) {
+                showMessage('error', '❌ حدث خطأ: ' + error.message);
+            }
+        }
+
+        function clearAll() {
+            if (confirm('⚠️ هل أنت متأكد من مسح جميع البيانات؟ سيتم حذف جميع المستخدمين والجلسات!')) {
+                localStorage.clear();
+                document.getElementById('usersList').style.display = 'none';
+                showMessage('success', '✅ تم مسح جميع البيانات بنجاح!');
+            }
+        }
+
+        function showMessage(type, text) {
+            const messageEl = document.getElementById('message');
+            messageEl.className = `message ${type}`;
+            messageEl.textContent = text;
+            
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, 5000);
+        }
+
+        // عرض المستخدمين عند تحميل الصفحة
+        window.onload = () => {
+            viewUsers();
+        };
+    </script>
+</body>
+</html>

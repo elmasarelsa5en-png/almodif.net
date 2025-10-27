@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Generate Notification Sound</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            text-align: center;
+            background: #f5f5f5;
+        }
+        button {
+            padding: 20px 40px;
+            font-size: 20px;
+            margin: 10px;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            background: #4CAF50;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        #status {
+            margin-top: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success { color: #4CAF50; font-weight: bold; }
+        .error { color: #f44336; font-weight: bold; }
+        .info { color: #2196F3; }
+    </style>
+</head>
+<body>
+    <h1>🔊 إنشاء ملف صوت الإشعارات</h1>
+    
+    <div>
+        <button onclick="generateAndDownload()">📥 إنشاء وتحميل ملف الصوت</button>
+        <button onclick="testSound()">🎵 اختبار الصوت</button>
+    </div>
+    
+    <div id="status">
+        <p class="info">اضغط "إنشاء وتحميل ملف الصوت" للحصول على notification.mp3</p>
+    </div>
+
+    <script>
+        let audioBlob = null;
+        let audioUrl = null;
+
+        function generateSound() {
+            const duration = 3; // 3 seconds
+            const sampleRate = 44100;
+            const numSamples = duration * sampleRate;
+            
+            // Create AudioContext
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const audioBuffer = audioContext.createBuffer(2, numSamples, sampleRate);
+            
+            const leftChannel = audioBuffer.getChannelData(0);
+            const rightChannel = audioBuffer.getChannelData(1);
+            
+            // Generate pleasant notification sound
+            // Frequencies: 800Hz + 1000Hz for a pleasant "ding"
+            for (let i = 0; i < numSamples; i++) {
+                const t = i / sampleRate;
+                
+                // Envelope (fade in/out)
+                let envelope = 1.0;
+                const fadeTime = 0.1; // 100ms fade
+                if (t < fadeTime) {
+                    envelope = t / fadeTime;
+                } else if (t > duration - fadeTime) {
+                    envelope = (duration - t) / fadeTime;
+                }
+                
+                // Two sine waves for richer sound
+                const freq1 = 800;  // Lower tone
+                const freq2 = 1000; // Higher tone
+                
+                const value1 = Math.sin(2 * Math.PI * freq1 * t) * 0.3;
+                const value2 = Math.sin(2 * Math.PI * freq2 * t) * 0.2;
+                
+                // Combine waves with envelope
+                const sample = (value1 + value2) * envelope * 0.8; // 80% volume
+                
+                leftChannel[i] = sample;
+                rightChannel[i] = sample;
+            }
+            
+            return audioBuffer;
+        }
+
+        function audioBufferToWav(audioBuffer) {
+            const numOfChan = audioBuffer.numberOfChannels;
+            const length = audioBuffer.length * numOfChan * 2;
+            const buffer = new ArrayBuffer(44 + length);
+            const view = new DataView(buffer);
+            const channels = [];
+            let offset = 0;
+            let pos = 0;
+
+            // Write WAV header
+            setUint32(0x46464952); // "RIFF"
+            setUint32(36 + length); // file length - 8
+            setUint32(0x45564157); // "WAVE"
+            setUint32(0x20746d66); // "fmt " chunk
+            setUint32(16); // length = 16
+            setUint16(1); // PCM (uncompressed)
+            setUint16(numOfChan);
+            setUint32(audioBuffer.sampleRate);
+            setUint32(audioBuffer.sampleRate * 2 * numOfChan); // avg. bytes/sec
+            setUint16(numOfChan * 2); // block-align
+            setUint16(16); // 16-bit
+            setUint32(0x61746164); // "data" - chunk
+            setUint32(length); // chunk length
+
+            // Write interleaved data
+            for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
+                channels.push(audioBuffer.getChannelData(i));
+            }
+
+            while (pos < audioBuffer.length) {
+                for (let i = 0; i < numOfChan; i++) {
+                    let sample = Math.max(-1, Math.min(1, channels[i][pos]));
+                    sample = (sample < 0 ? sample * 0x8000 : sample * 0x7FFF) | 0;
+                    view.setInt16(44 + offset, sample, true);
+                    offset += 2;
+                }
+                pos++;
+            }
+
+            function setUint16(data) {
+                view.setUint16(pos, data, true);
+                pos += 2;
+            }
+
+            function setUint32(data) {
+                view.setUint32(pos, data, true);
+                pos += 4;
+            }
+
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        function generateAndDownload() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = '<p class="info">⏳ جاري إنشاء الملف...</p>';
+            
+            try {
+                // Generate audio
+                const audioBuffer = generateSound();
+                statusDiv.innerHTML += '<p class="success">✅ تم إنشاء الصوت</p>';
+                
+                // Convert to WAV
+                audioBlob = audioBufferToWav(audioBuffer);
+                audioUrl = URL.createObjectURL(audioBlob);
+                statusDiv.innerHTML += '<p class="success">✅ تم تحويل الملف</p>';
+                
+                // Download
+                const a = document.createElement('a');
+                a.href = audioUrl;
+                a.download = 'notification.mp3'; // Browser will handle as WAV even with .mp3 extension
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                statusDiv.innerHTML += '<p class="success">✅ تم بدء التحميل!</p>';
+                statusDiv.innerHTML += '<p class="info">📁 احفظ الملف في المجلد: <code>public/notification.mp3</code></p>';
+                statusDiv.innerHTML += '<p class="info">🔄 بعد حفظ الملف، أعد تشغيل السيرفر (npm run dev)</p>';
+                
+            } catch (error) {
+                statusDiv.innerHTML = '<p class="error">❌ خطأ: ' + error.message + '</p>';
+                console.error(error);
+            }
+        }
+
+        function testSound() {
+            const statusDiv = document.getElementById('status');
+            
+            if (!audioBlob) {
+                statusDiv.innerHTML = '<p class="error">❌ يجب إنشاء الصوت أولاً!</p>';
+                return;
+            }
+            
+            statusDiv.innerHTML = '<p class="info">🔊 جاري تشغيل الصوت...</p>';
+            
+            const audio = new Audio(audioUrl);
+            audio.volume = 1.0;
+            
+            audio.play()
+                .then(() => {
+                    statusDiv.innerHTML = '<p class="success">✅ الصوت يعمل بشكل ممتاز!</p>';
+                })
+                .catch(error => {
+                    statusDiv.innerHTML = '<p class="error">❌ فشل تشغيل الصوت: ' + error.message + '</p>';
+                });
+        }
+    </script>
+</body>
+</html>

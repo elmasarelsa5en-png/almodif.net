@@ -1,0 +1,95 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/auth-context';
+import { useRouter } from 'next/navigation';
+import Sidebar from '@/components/dashboard/sidebar';
+import Header from '@/components/dashboard/header';
+import NewsTicker from '@/components/NewsTicker';
+import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
+import SmartAssistant from '@/components/SmartAssistant';
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { user, isLoading } = useAuth();
+  const router = useRouter();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [tickerItems, setTickerItems] = useState<string[]>([]);
+
+  // Fetch latest requests for the ticker
+  useEffect(() => {
+    const guestRequests = JSON.parse(localStorage.getItem('guest-requests') || '[]');
+    const latestItems = guestRequests
+      .slice(-5) // Get last 5 items
+      .reverse() // Show newest first
+      .map((req: any) => 
+        `طلب جديد: ${req.description} لغرفة ${req.room}`
+      );
+    
+    setTickerItems([
+      '✨ أهلاً بك في نظام المضيف الذكي ✨',
+      ...latestItems
+    ]);
+  }, []);
+
+  // إذا لم يكن المستخدم مسجل دخوله، إعادة توجيه لصفحة تسجيل الدخول
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push('/login');
+    }
+  }, [isLoading, user, router]);
+
+  // شاشة تحميل أثناء التحقق من المصادقة أو إعادة التوجيه
+  if (isLoading || !user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white text-lg">جاري التحميل...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-screen flex" dir="rtl">
+      <AnimatedBackground />
+      {/* Sidebar - Hidden on mobile when collapsed */}
+      <div className={`flex-shrink-0 transition-all duration-300 ${sidebarCollapsed ? 'hidden md:block' : 'block'}`}>
+        <Sidebar isCollapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
+      </div>
+
+      {/* Overlay for mobile when sidebar is open */}
+      {!sidebarCollapsed && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-25 md:hidden"
+          onClick={() => setSidebarCollapsed(true)}
+        />
+      )}
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-w-0 relative">
+        {/* Header */}
+        <Header onMenuClick={() => setSidebarCollapsed(!sidebarCollapsed)} />
+        
+        {/* News Ticker Section - يظهر في كل الصفحات */}
+        <div className="px-3 sm:px-4 md:px-6 pt-3">
+          <NewsTicker items={tickerItems} />
+        </div>
+        
+        {/* Page Content */}
+        <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
+          <div className="max-w-7xl mx-auto">
+            {children}
+          </div>
+        </main>
+      </div>
+
+      {/* مساعد المضيف الذكي - يظهر في جميع صفحات الداشبورد */}
+      <SmartAssistant />
+    </div>
+  );
+}

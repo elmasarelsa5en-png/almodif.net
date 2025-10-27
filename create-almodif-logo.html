@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Create AL Modif Logo</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #fff;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            border: 1px solid #ccc;
+            display: block;
+            margin: 20px auto;
+        }
+        button {
+            display: block;
+            margin: 10px auto;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background: #3b1d82;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background: #2a1560;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center;">AL Modif Logo Creator</h1>
+    <canvas id="canvas" width="512" height="512"></canvas>
+    <button onclick="downloadPNG()">Download PNG (512x512)</button>
+    <button onclick="downloadICO()">Download ICO</button>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Background - Purple gradient
+        const gradient = ctx.createLinearGradient(0, 0, 512, 512);
+        gradient.addColorStop(0, '#3b1d82');
+        gradient.addColorStop(1, '#2a1560');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 512, 512);
+
+        // Draw "AM" letters in 3D style
+        ctx.save();
+        
+        // Letter A - Blue
+        ctx.fillStyle = '#7eb3d6';
+        ctx.font = 'bold 200px Arial';
+        ctx.fillText('A', 80, 280);
+        
+        // Letter A shadow
+        ctx.fillStyle = '#5a8fb8';
+        ctx.fillText('A', 85, 285);
+        
+        // Letter M - Cyan
+        ctx.fillStyle = '#4fc3c3';
+        ctx.font = 'bold 200px Arial';
+        ctx.fillText('M', 240, 280);
+        
+        // Letter M shadow
+        ctx.fillStyle = '#3a9a9a';
+        ctx.fillText('M', 245, 285);
+        
+        ctx.restore();
+
+        // Purple swoosh/curve
+        ctx.beginPath();
+        ctx.strokeStyle = '#9b59d0';
+        ctx.lineWidth = 15;
+        ctx.bezierCurveTo(50, 350, 250, 150, 450, 350);
+        ctx.stroke();
+
+        // Hotel building simple icon (top right)
+        ctx.fillStyle = '#4a2d7a';
+        ctx.fillRect(350, 60, 80, 100);
+        
+        // Windows on building
+        ctx.fillStyle = '#9b7ac5';
+        for(let i = 0; i < 3; i++) {
+            for(let j = 0; j < 2; j++) {
+                ctx.fillRect(360 + j*30, 75 + i*25, 15, 15);
+            }
+        }
+        
+        // HOTEL text
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 14px Arial';
+        ctx.fillText('HOTEL', 355, 55);
+
+        // Gear icon
+        ctx.fillStyle = '#9b59d0';
+        ctx.beginPath();
+        ctx.arc(450, 130, 20, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Text at bottom
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 48px Arial';
+        ctx.fillText('AL Modif', 130, 380);
+        
+        ctx.font = '16px Arial';
+        ctx.fillText('Hotel & Property Management Solutions', 80, 420);
+
+        function downloadPNG() {
+            const link = document.createElement('a');
+            link.download = 'almodif-logo-512.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        function downloadICO() {
+            alert('احفظ الصورة PNG أولاً، ثم استخدم موقع: https://convertio.co/png-ico/');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار صوت الإشعارات</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 1.2em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 10px;
+            font-weight: bold;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .status {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            background: #f0f0f0;
+            font-size: 1.1em;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔊 اختبار صوت الإشعارات</h1>
+        
+        <button class="btn" onclick="playSound()">
+            ▶️ تشغيل الصوت
+        </button>
+        
+        <button class="btn" onclick="testMaxVolume()">
+            🔊 اختبار بأقصى صوت
+        </button>
+        
+        <button class="btn" onclick="testLoop()">
+            🔁 تشغيل متكرر (3 مرات)
+        </button>
+        
+        <div id="status" class="status" style="display:none;"></div>
+        
+        <div class="info">
+            <strong>ملاحظة:</strong><br>
+            - تأكد من عدم كتم الصوت<br>
+            - بعض المتصفحات تحتاج تفاعل المستخدم أولاً<br>
+            - ملف الصوت: /notification.mp3<br>
+            - المدة: 3 ثوان<br>
+            - الصوت: عالي جداً
+        </div>
+    </div>
+
+    <audio id="audioPlayer" src="/notification.mp3" preload="auto"></audio>
+
+    <script>
+        const audioPlayer = document.getElementById('audioPlayer');
+        const statusDiv = document.getElementById('status');
+
+        function showStatus(message, isSuccess = true) {
+            statusDiv.style.display = 'block';
+            statusDiv.textContent = message;
+            statusDiv.className = isSuccess ? 'status success' : 'status error';
+        }
+
+        function playSound() {
+            console.log('🔊 Playing notification sound...');
+            
+            // إنشاء audio جديد
+            const audio = new Audio('/notification.mp3');
+            audio.volume = 1.0; // أقصى صوت
+            
+            const playPromise = audio.play();
+            
+            if (playPromise !== undefined) {
+                playPromise
+                    .then(() => {
+                        console.log('✅ Sound played successfully!');
+                        showStatus('✅ تم تشغيل الصوت بنجاح!', true);
+                    })
+                    .catch(error => {
+                        console.error('❌ Failed to play:', error);
+                        showStatus('❌ فشل تشغيل الصوت: ' + error.message, false);
+                    });
+            }
+        }
+
+        function testMaxVolume() {
+            console.log('🔊 Testing with maximum volume...');
+            
+            const audio = new Audio('/notification.mp3');
+            audio.volume = 1.0; // 100%
+            
+            audio.play()
+                .then(() => {
+                    showStatus('✅ الصوت يعمل بأقصى ارتفاع!', true);
+                })
+                .catch(error => {
+                    showStatus('❌ خطأ: ' + error.message, false);
+                });
+        }
+
+        function testLoop() {
+            console.log('🔁 Testing with loop (3 times)...');
+            
+            let playCount = 0;
+            const maxPlays = 3;
+            
+            function playNext() {
+                if (playCount < maxPlays) {
+                    const audio = new Audio('/notification.mp3');
+                    audio.volume = 1.0;
+                    
+                    audio.onended = () => {
+                        playCount++;
+                        showStatus(`🔊 تم التشغيل ${playCount} من ${maxPlays}`, true);
+                        if (playCount < maxPlays) {
+                            setTimeout(playNext, 500); // توقف نصف ثانية بين كل تشغيل
+                        } else {
+                            showStatus('✅ انتهى الاختبار! تم التشغيل 3 مرات', true);
+                        }
+                    };
+                    
+                    audio.play().catch(error => {
+                        showStatus('❌ خطأ: ' + error.message, false);
+                    });
+                }
+            }
+            
+            playNext();
+        }
+
+        // اختبار تلقائي عند التحميل (بعد تفاعل المستخدم)
+        document.addEventListener('click', function firstClick() {
+            console.log('👆 First user interaction detected');
+            document.removeEventListener('click', firstClick);
+        }, { once: true });
+    </script>
+</body>
+</html>

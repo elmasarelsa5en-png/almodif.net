@@ -1,0 +1,498 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import {
+  Bed,
+  Users,
+  User,
+  Wifi,
+  Car,
+  Coffee,
+  Tv,
+  Bath,
+  Wind,
+  Star,
+  Calendar,
+  Clock,
+  CheckCircle,
+  AlertTriangle,
+  DollarSign,
+  Eye,
+  Edit,
+  Plus,
+  Search,
+  Filter,
+  ArrowLeft,
+  MapPin,
+  Phone,
+  Image,
+  Settings,
+  RefreshCw,
+  TrendingUp,
+  Home
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useRouter } from 'next/navigation';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { RoomService } from '@/lib/database';
+
+export default function RoomsPage() {
+  const router = useRouter();
+  const [selectedFilter, setSelectedFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [rooms, setRooms] = useState([]);
+  const [roomStats, setRoomStats] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Load rooms data from Firestore
+  useEffect(() => {
+    const loadRooms = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const roomsData = await RoomService.getAllRooms();
+        setRooms(roomsData);
+
+        // Calculate stats from rooms data
+        const totalRooms = roomsData.length;
+        const availableRooms = roomsData.filter(room => room.status === 'available').length;
+        const occupiedRooms = roomsData.filter(room => room.status === 'occupied').length;
+        const maintenanceRooms = roomsData.filter(room => room.status === 'maintenance').length;
+
+        setRoomStats([
+          {
+            title: 'إجمالي الغرف',
+            value: totalRooms.toString(),
+            change: '+2%',
+            changeType: 'increase',
+            icon: Home,
+            color: 'from-blue-500 to-indigo-600',
+            description: 'العدد الكلي'
+          },
+          {
+            title: 'غرف متاحة',
+            value: availableRooms.toString(),
+            change: '+8%',
+            changeType: 'increase',
+            icon: CheckCircle,
+            color: 'from-green-500 to-emerald-600',
+            description: 'جاهزة للحجز'
+          },
+          {
+            title: 'غرف محجوزة',
+            value: occupiedRooms.toString(),
+            change: '+12%',
+            changeType: 'increase',
+            icon: Calendar,
+            color: 'from-purple-500 to-pink-600',
+            description: 'مشغولة حالياً'
+          },
+          {
+            title: 'تحت الصيانة',
+            value: maintenanceRooms.toString(),
+            change: '-2%',
+            changeType: 'decrease',
+            icon: Settings,
+            color: 'from-orange-500 to-red-600',
+            description: 'تحتاج صيانة'
+          }
+        ]);
+
+      } catch (err) {
+        console.error('Error loading rooms:', err);
+        setError('فشل في تحميل بيانات الغرف');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadRooms();
+  }, []);
+
+  // Default room stats (fallback)
+  const defaultRoomStats = [
+    {
+      title: 'إجمالي الغرف',
+      value: '0',
+      change: '+0%',
+      changeType: 'increase',
+      icon: Home,
+      color: 'from-blue-500 to-indigo-600',
+      description: 'العدد الكلي'
+    },
+    {
+      title: 'غرف متاحة',
+      value: '0',
+      change: '+0%',
+      changeType: 'increase',
+      icon: CheckCircle,
+      color: 'from-green-500 to-emerald-600',
+      description: 'جاهزة للحجز'
+    },
+    {
+      title: 'غرف محجوزة',
+      value: '0',
+      change: '+0%',
+      changeType: 'increase',
+      icon: Calendar,
+      color: 'from-purple-500 to-pink-600',
+      description: 'مشغولة حالياً'
+    },
+    {
+      title: 'تحت الصيانة',
+      value: '0',
+      change: '-0%',
+      changeType: 'decrease',
+      icon: Settings,
+      color: 'from-orange-500 to-red-600',
+      description: 'تحتاج صيانة'
+    }
+  ];
+
+  const getRoomTypeName = (type) => {
+    const types = {
+      'standard': 'غرفة عادية',
+      'deluxe': 'غرفة ديلوكس', 
+      'suite': 'جناح',
+      'family': 'غرفة عائلية'
+    };
+    return types[type] || type;
+  };
+
+  const getStatusBadge = (status) => {
+    const statuses = {
+      'available': { label: 'متاحة', class: 'bg-green-500/20 text-green-400', icon: CheckCircle },
+      'occupied': { label: 'مشغولة', class: 'bg-blue-500/20 text-blue-400', icon: Users },
+      'cleaning': { label: 'تنظيف', class: 'bg-yellow-500/20 text-yellow-400', icon: Clock },
+      'maintenance': { label: 'صيانة', class: 'bg-red-500/20 text-red-400', icon: AlertTriangle },
+      'reserved': { label: 'محجوزة', class: 'bg-purple-500/20 text-purple-400', icon: Calendar }
+    };
+    return statuses[status] || { label: status, class: 'bg-gray-500/20 text-gray-400', icon: AlertTriangle };
+  };
+
+  const getViewName = (view) => {
+    const views = {
+      'sea': 'إطلالة بحرية',
+      'garden': 'إطلالة على الحديقة',
+      'city': 'إطلالة على المدينة',
+      'mountain': 'إطلالة جبلية',
+      'pool': 'إطلالة على المسبح'
+    };
+    return views[view] || view;
+  };
+
+  const getAmenityIcon = (amenity) => {
+    const amenities = {
+      'wifi': <Wifi className="w-4 h-4" />,
+      'tv': <Tv className="w-4 h-4" />,
+      'ac': <Wind className="w-4 h-4" />,
+      'minibar': <Coffee className="w-4 h-4" />,
+      'balcony': <MapPin className="w-4 h-4" />,
+      'safe': <Settings className="w-4 h-4" />,
+      'jacuzzi': <Bath className="w-4 h-4" />,
+      'kitchenette': <Home className="w-4 h-4" />
+    };
+    return amenities[amenity] || <Settings className="w-4 h-4" />;
+  };
+
+  const filteredRooms = rooms.filter(room => {
+    const matchesSearch = room.number?.includes(searchTerm) ||
+                         getRoomTypeName(room.type).toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         room.guestName?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    if (selectedFilter === 'all') return matchesSearch;
+    return matchesSearch && room.status === selectedFilter;
+  });
+
+  if (isLoading) {
+    return (
+      <ProtectedRoute>
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900 flex items-center justify-center">
+          <div className="text-white text-xl">جاري تحميل الغرف...</div>
+        </div>
+      </ProtectedRoute>
+    );
+  }
+
+  if (error) {
+    return (
+      <ProtectedRoute>
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900 flex items-center justify-center">
+          <div className="text-red-400 text-xl">{error}</div>
+        </div>
+      </ProtectedRoute>
+    );
+  }
+
+  return (
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900 p-4 lg:p-6 relative overflow-hidden" dir="rtl">
+        {/* خلفية تزيينية */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-20 left-20 w-32 h-32 bg-indigo-500/20 rounded-full blur-xl animate-pulse"></div>
+          <div className="absolute bottom-20 right-20 w-40 h-40 bg-blue-500/20 rounded-full blur-2xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
+        </div>
+
+        <div className="relative z-10 space-y-6">
+          {/* Header */}
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 lg:p-6 shadow-2xl border border-white/20">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <Button
+                  onClick={() => router.back()}
+                  variant="outline"
+                  className="border-white/20 bg-white/10 text-white hover:bg-white/20"
+                >
+                  <ArrowLeft className="w-4 h-4 ml-2" />
+                  العودة
+                </Button>
+                <div className="w-14 h-14 lg:w-16 lg:h-16 bg-gradient-to-r from-indigo-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <Bed className="w-7 h-7 lg:w-8 lg:h-8 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl lg:text-4xl font-bold bg-gradient-to-r from-white to-indigo-200 bg-clip-text text-transparent">
+                    إدارة الغرف
+                  </h1>
+                  <p className="text-indigo-200/80 text-sm lg:text-base">
+                    متابعة وإدارة جميع الغرف والأجنحة
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Button
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                >
+                  <Plus className="w-4 h-4 ml-2" />
+                  إضافة غرفة
+                </Button>
+
+                <Button
+                  variant="outline"
+                  className="border-white/20 bg-white/10 text-white hover:bg-white/20"
+                >
+                  <RefreshCw className="w-4 h-4 ml-2" />
+                  تحديث
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+            {(roomStats.length > 0 ? roomStats : defaultRoomStats).map((stat, index) => (
+              <Card key={index} className="bg-white/10 backdrop-blur-md border-white/20 shadow-2xl hover:bg-white/15 transition-all duration-300 group hover:scale-105">
+                <CardContent className="p-4 lg:p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className={`w-12 h-12 lg:w-14 lg:h-14 bg-gradient-to-r ${stat.color} rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
+                      <stat.icon className="w-6 h-6 lg:w-7 lg:h-7 text-white" />
+                    </div>
+                    <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${
+                      stat.changeType === 'increase' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                    }`}>
+                      <TrendingUp className="w-3 h-3" />
+                      {stat.change}
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-white/70 text-sm">{stat.title}</p>
+                    <p className="text-2xl lg:text-3xl font-bold text-white">{stat.value}</p>
+                    <p className="text-white/50 text-xs">{stat.description}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Filters and Search */}
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 lg:p-6 shadow-2xl border border-white/20">
+            <div className="flex flex-col lg:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 w-5 h-5" />
+                  <Input
+                    placeholder="البحث في الغرف..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50 pr-10"
+                  />
+                </div>
+              </div>
+              <Select value={selectedFilter} onValueChange={setSelectedFilter}>
+                <SelectTrigger className="bg-white/10 border-white/20 text-white w-full lg:w-48">
+                  <SelectValue placeholder="تصفية حسب الحالة" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">جميع الغرف</SelectItem>
+                  <SelectItem value="available">متاحة</SelectItem>
+                  <SelectItem value="occupied">مشغولة</SelectItem>
+                  <SelectItem value="maintenance">صيانة</SelectItem>
+                  <SelectItem value="cleaning">تنظيف</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Rooms Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
+            {filteredRooms.map((room) => {
+              const statusBadge = getStatusBadge(room.status);
+              return (
+                <Card key={room.id} className="bg-white/10 backdrop-blur-md border-white/20 shadow-2xl hover:bg-white/15 transition-all duration-300 group hover:scale-105 cursor-pointer" onClick={() => setSelectedRoom(room)}>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-indigo-500/20 rounded-lg flex items-center justify-center">
+                          <Bed className="w-4 h-4 text-indigo-400" />
+                        </div>
+                        <CardTitle className="text-white text-lg">غرفة {room.number}</CardTitle>
+                      </div>
+                      <Badge className={`${statusBadge.class} border-0`}>
+                        <statusBadge.icon className="w-3 h-3 ml-1" />
+                        {statusBadge.label}
+                      </Badge>
+                    </div>
+                    <CardDescription className="text-white/70">
+                      {getRoomTypeName(room.type)}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div className="flex items-center gap-2 text-white/70">
+                        <Users className="w-4 h-4" />
+                        <span>{room.capacity} أشخاص</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-white/70">
+                        <DollarSign className="w-4 h-4" />
+                        <span>{room.pricePerNight} ريال</span>
+                      </div>
+                    </div>
+
+                    {room.guestName && (
+                      <div className="flex items-center gap-2 p-2 bg-blue-500/20 rounded-lg">
+                        <User className="w-4 h-4 text-blue-400" />
+                        <span className="text-blue-300 text-sm">{room.guestName}</span>
+                      </div>
+                    )}
+
+                    <div className="flex flex-wrap gap-1">
+                      {room.amenities?.slice(0, 4).map((amenity, index) => (
+                        <div key={index} className="w-6 h-6 bg-white/10 rounded flex items-center justify-center text-white/70">
+                          {getAmenityIcon(amenity)}
+                        </div>
+                      ))}
+                      {room.amenities?.length > 4 && (
+                        <div className="w-6 h-6 bg-white/10 rounded flex items-center justify-center text-white/70 text-xs">
+                          +{room.amenities.length - 4}
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          {filteredRooms.length === 0 && (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Bed className="w-8 h-8 text-white/50" />
+              </div>
+              <h3 className="text-white text-xl font-semibold mb-2">لا توجد غرف</h3>
+              <p className="text-white/70">لم يتم العثور على غرف تطابق معايير البحث</p>
+            </div>
+          )}
+        </div>
+
+        {/* Room Details Dialog */}
+        {selectedRoom && (
+          <Dialog open={!!selectedRoom} onOpenChange={() => setSelectedRoom(null)}>
+            <DialogContent className="max-w-2xl bg-slate-900 border-white/20" dir="rtl">
+              <DialogHeader>
+                <DialogTitle className="text-white text-2xl">تفاصيل الغرفة {selectedRoom.number}</DialogTitle>
+                <DialogDescription className="text-white/70">
+                  معلومات شاملة عن الغرفة والحجز الحالي
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-6">
+                {/* Room Info */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="bg-white/10 rounded-lg p-4 text-center">
+                    <Bed className="w-6 h-6 text-indigo-400 mx-auto mb-2" />
+                    <p className="text-white/70 text-sm">النوع</p>
+                    <p className="text-white font-semibold">{getRoomTypeName(selectedRoom.type)}</p>
+                  </div>
+                  <div className="bg-white/10 rounded-lg p-4 text-center">
+                    <Users className="w-6 h-6 text-green-400 mx-auto mb-2" />
+                    <p className="text-white/70 text-sm">السعة</p>
+                    <p className="text-white font-semibold">{selectedRoom.capacity} أشخاص</p>
+                  </div>
+                  <div className="bg-white/10 rounded-lg p-4 text-center">
+                    <DollarSign className="w-6 h-6 text-yellow-400 mx-auto mb-2" />
+                    <p className="text-white/70 text-sm">السعر</p>
+                    <p className="text-white font-semibold">{selectedRoom.pricePerNight} ريال</p>
+                  </div>
+                  <div className="bg-white/10 rounded-lg p-4 text-center">
+                    <MapPin className="w-6 h-6 text-purple-400 mx-auto mb-2" />
+                    <p className="text-white/70 text-sm">الطابق</p>
+                    <p className="text-white font-semibold">{selectedRoom.floor}</p>
+                  </div>
+                </div>
+
+                {/* Guest Info */}
+                {selectedRoom.guestName && (
+                  <div className="bg-blue-500/20 rounded-lg p-4">
+                    <h4 className="text-blue-300 font-semibold mb-2">النزيل الحالي</h4>
+                    <div className="flex items-center gap-3">
+                      <User className="w-5 h-5 text-blue-400" />
+                      <span className="text-white">{selectedRoom.guestName}</span>
+                    </div>
+                    {selectedRoom.checkOut && (
+                      <div className="flex items-center gap-3 mt-2">
+                        <Calendar className="w-5 h-5 text-blue-400" />
+                        <span className="text-white/70">تاريخ المغادرة: {new Date(selectedRoom.checkOut).toLocaleDateString('ar-SA')}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Amenities */}
+                <div>
+                  <h4 className="text-white font-semibold mb-3">المرافق والخدمات</h4>
+                  <div className="grid grid-cols-4 md:grid-cols-6 gap-3">
+                    {selectedRoom.amenities?.map((amenity, index) => (
+                      <div key={index} className="bg-white/10 rounded-lg p-3 text-center">
+                        <div className="text-white/70 mb-1">{getAmenityIcon(amenity)}</div>
+                        <p className="text-white/70 text-xs capitalize">{amenity}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <DialogFooter className="gap-2">
+                <Button variant="outline" onClick={() => setSelectedRoom(null)} className="border-white/20 bg-white/10 text-white hover:bg-white/20">
+                  إغلاق
+                </Button>
+                <Button className="bg-indigo-600 hover:bg-indigo-700">
+                  <Edit className="w-4 h-4 ml-2" />
+                  تعديل
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
+    </ProtectedRoute>
+  );
+}

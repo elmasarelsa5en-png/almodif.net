@@ -1,0 +1,216 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* نظام الألوان الاحترافي للمضيف */
+:root {
+  --background: #0f172a; /* Dark background */
+  --foreground: #f1f5f9; /* Light foreground */
+  
+  /* الألوان الأساسية - التدرج الأزرق البنفسجي */
+  --primary-50: #f0f9ff;
+  --primary-100: #e0f2fe;
+  --primary-200: #bae6fd;
+  --primary-300: #7dd3fc;
+  --primary-400: #38bdf8;
+  --primary-500: #0ea5e9;
+  --primary-600: #0284c7;
+  --primary-700: #0369a1;
+  --primary-800: #075985;
+  --primary-900: #0c4a6e;
+  
+  /* الألوان الثانوية - البنفسجي */
+  --secondary-50: #faf5ff;
+  --secondary-100: #f3e8ff;
+  --secondary-200: #e9d5ff;
+  --secondary-300: #d8b4fe;
+  --secondary-400: #c084fc;
+  --secondary-500: #a855f7;
+  --secondary-600: #9333ea;
+  --secondary-700: #7c3aed;
+  --secondary-800: #6b21a8;
+  --secondary-900: #581c87;
+  
+  /* التدرجات */
+  --gradient-primary: linear-gradient(135deg, var(--primary-600) 0%, var(--secondary-600) 100%);
+  --gradient-primary-hover: linear-gradient(135deg, var(--primary-700) 0%, var(--secondary-700) 100%);
+  --gradient-light: linear-gradient(135deg, var(--primary-50) 0%, var(--secondary-50) 100%);
+  --gradient-hero: linear-gradient(135deg, var(--primary-50) 0%, var(--secondary-50) 50%, var(--primary-100) 100%);
+}
+
+body {
+  /* التدرج اللوني المتحرك الجديد */
+  background: linear-gradient(-45deg, #581c87, #1e1b4b, #0c4a6e, #3b0764);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+  
+  color: var(--foreground);
+  font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+  direction: rtl;
+}
+
+/* تخصيص شريط التمرير (Scrollbar) بلون موف */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1e1b4b; /* خلفية داكنة */
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #a855f7 0%, #9333ea 50%, #7c3aed 100%);
+  border-radius: 10px;
+  border: 2px solid #1e1b4b;
+  transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #c084fc 0%, #a855f7 50%, #9333ea 100%);
+  border-color: #2d1b69;
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, #d8b4fe 0%, #c084fc 50%, #a855f7 100%);
+}
+
+/* Firefox Scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #9333ea #1e1b4b;
+}
+
+/* كلاسات مساعدة للألوان */
+.bg-primary-gradient {
+  background: var(--gradient-primary);
+}
+
+.bg-primary-gradient:hover {
+  background: var(--gradient-primary-hover);
+}
+
+.bg-light-gradient {
+  background: var(--gradient-light);
+}
+
+.bg-hero-gradient {
+  background: var(--gradient-hero);
+}
+
+.text-primary {
+  color: var(--primary-600);
+}
+
+.text-secondary {
+  color: var(--secondary-600);
+}
+
+/* أنيميشن للتدرجات */
+.gradient-animation {
+  background: linear-gradient(-45deg, var(--primary-600), var(--secondary-600), var(--primary-700), var(--secondary-700));
+  background-size: 400% 400%;
+  animation: gradientShift 4s ease infinite;
+}
+
+/* أنيميشن للشريط الإخباري */
+.animate-ticker {
+  animation: ticker-scroll linear infinite;
+}
+
+/* أنيميشن للفقاعات المتحركة في الخلفية */
+.animate-float {
+  animation: float-up ease-in-out infinite;
+}
+
+.animate-twinkle {
+  animation: twinkle ease-in-out infinite;
+  opacity: 0;
+}
+
+/* تأثير توهج لنص الشريط الإخباري */
+.ticker-text-glow {
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.4), 0 0 12px rgba(192, 132, 252, 0.3);
+}
+
+/* أنيميشن للشهاب */
+.shooting-star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background-color: white;
+  border-radius: 50%;
+  box-shadow: 0 0 10px 0 rgba(255, 255, 255, 0.4);
+  opacity: 0;
+  animation: shooting-star-animation linear infinite;
+}
+
+.shooting-star::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 150px;
+  height: 1px;
+  background: linear-gradient(to right, white, transparent);
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes ticker-scroll {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes float-up {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-150vh);
+    opacity: 0;
+  }
+}
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes shooting-star-animation {
+  0% {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50vw, 50vh);
+    opacity: 0;
+  }
+}
+
+/* تحسينات الخطوط العربية */
+.arabic-text {
+  font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+  text-align: right;
+  direction: rtl;
+}
