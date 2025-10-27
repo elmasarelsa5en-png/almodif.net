@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Coffee, Edit2, Minus, Plus, Trash2, CheckCircle } from 'lucide-react';
+import { Coffee, Edit2, Minus, Plus, Trash2, CheckCircle, Send } from 'lucide-react';
 import { getRoomsFromStorage } from '@/lib/rooms-data';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { playNotificationSound } from '@/lib/notification-sounds';
 
 type OrderStatus = 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
 
@@ -39,6 +40,8 @@ type CoffeeOrder = {
   status: OrderStatus;
   orderDate: string;
   paymentMethod: 'room_charge' | 'cash' | 'card';
+  sentToReception?: boolean;
+  receptionRequestId?: string;
 };
 
 interface OrderFormState {
@@ -302,6 +305,56 @@ export default function CoffeeShopPage() {
     setOrders((prev) => prev.filter((o) => o.id !== orderId));
   };
 
+  const sendToReception = (order: CoffeeOrder) => {
+    // Get all employees and find available reception staff
+    const employeesData = localStorage.getItem('employees');
+    const employees = employeesData ? JSON.parse(employeesData) : [];
+    const receptionStaff = employees.find((emp: any) => 
+      emp.department === 'استقبال' && emp.status === 'available'
+    );
+
+    if (!receptionStaff) {
+      alert('لا يوجد موظف استقبال متاح حالياً');
+      return;
+    }
+
+    // Create guest request from coffee order
+    const guestRequest = {
+      id: uid(),
+      guestName: order.guestName,
+      roomNumber: order.roomNumber,
+      requestType: 'coffee',
+      requestDescription: order.items.map(item => 
+        `${item.menuItemName} × ${item.quantity}`
+      ).join(', '),
+      priority: 'medium' as const,
+      status: 'awaiting_employee_approval' as const,
+      requestDate: new Date().toISOString(),
+      assignedTo: receptionStaff.id,
+      assignedToName: receptionStaff.name,
+      notes: `طلب من الكوفي شوب - المبلغ: ${order.totalAmount.toFixed(2)} ر.س`,
+      selectedSubItems: order.items.map(item => item.menuItemId),
+      linkedSection: 'coffee' as const,
+      originalOrderId: order.id
+    };
+
+    // Save to guest requests
+    const requestsData = localStorage.getItem('guest-requests');
+    const requests = requestsData ? JSON.parse(requestsData) : [];
+    requests.unshift(guestRequest);
+    localStorage.setItem('guest-requests', JSON.stringify(requests));
+
+    // Update order status to indicate it's sent to reception
+    setOrders((prev) => prev.map((o) => 
+      o.id === order.id ? { ...o, sentToReception: true, receptionRequestId: guestRequest.id } : o
+    ));
+
+    // Play notification sound
+    playNotificationSound('new-request');
+
+    alert('تم إرسال الطلب للاستقبال بنجاح ✓');
+  };
+
   const handleToggleAvailability = (itemId: string) => {
     setMenu((prev) => prev.map((item) => (item.id === itemId ? { ...item, available: !item.available } : item)));
   };
@@ -428,7 +481,7 @@ export default function CoffeeShopPage() {
                           <Badge className={`${status.color} border-none text-xs`}>{status.label}</Badge>
                         </div>
                         <p className="text-xs sm:text-sm text-slate-300 mb-2">{order.items.length} عنصر - {formatCurrency(order.totalAmount)}</p>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                           <Select value={order.status} onValueChange={(s) => handleStatusChange(order.id, s as OrderStatus)}>
                             <SelectTrigger className="h-8 text-xs border-slate-700 bg-slate-900">
                               <SelectValue />
@@ -444,6 +497,22 @@ export default function CoffeeShopPage() {
                           <Button size="sm" variant="ghost" onClick={() => openOrderModal(order)} className="h-8 px-2 text-xs">
                             تعديل
                           </Button>
+                          {!order.sentToReception && (order.status === 'pending' || order.status === 'preparing') && (
+                            <Button 
+                              size="sm" 
+                              onClick={() => sendToReception(order)} 
+                              className="h-8 px-2 text-xs bg-blue-600 hover:bg-blue-700 text-white"
+                            >
+                              <Send className="h-3 w-3 mr-1" />
+                              إرسال للاستقبال
+                            </Button>
+                          )}
+                          {order.sentToReception && (
+                            <Badge className="bg-green-600 text-white text-xs h-8 px-2 flex items-center">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              تم الإرسال
+                            </Badge>
+                          )}
                         </div>
                       </div>
                     );

@@ -11,10 +11,12 @@ import {
   Trash2,
   Edit2,
   BellRing,
+  Send,
 } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { getRoomsFromStorage } from '@/lib/rooms-data'
+import { playNotificationSound } from '@/lib/notification-sounds';
 
 /**
  * Single-file Laundry Managem                      <SelectContent>
@@ -60,6 +62,8 @@ type LaundryRequest = {
   total: number;
   status: Status;
   createdAt: string;
+  sentToReception?: boolean;
+  receptionRequestId?: string;
 };
 
 /* ------------------------------- Helpers ---------------------------------- */
@@ -341,6 +345,57 @@ export default function LaundryPage() {
     notify(`حالة الطلب تغيرت إلى ${meta.label}`, `طلب ${id}`);
   };
 
+  const sendToReception = (request: LaundryRequest) => {
+    // Get all employees and find available reception staff
+    const employeesData = localStorage.getItem('employees');
+    const employees = employeesData ? JSON.parse(employeesData) : [];
+    const receptionStaff = employees.find((emp: any) => 
+      emp.department === 'استقبال' && emp.status === 'available'
+    );
+
+    if (!receptionStaff) {
+      alert('لا يوجد موظف استقبال متاح حالياً');
+      return;
+    }
+
+    // Create guest request from laundry request
+    const guestRequest = {
+      id: uid(),
+      guestName: `نزيل غرفة ${request.roomNumber}`,
+      roomNumber: request.roomNumber,
+      requestType: 'laundry',
+      requestDescription: request.lines.map(line => {
+        const item = menu.find(m => m.id === line.itemId);
+        return `${item?.name || 'صنف'} × ${line.qty}`;
+      }).join(', '),
+      priority: 'medium' as const,
+      status: 'awaiting_employee_approval' as const,
+      requestDate: new Date().toISOString(),
+      assignedTo: receptionStaff.id,
+      assignedToName: receptionStaff.name,
+      notes: `طلب من المغسلة - المبلغ: ${formatCurrency(request.total)}`,
+      selectedSubItems: request.lines.map(line => line.itemId),
+      linkedSection: 'laundry' as const,
+      originalOrderId: request.id
+    };
+
+    // Save to guest requests
+    const requestsData = localStorage.getItem('guest-requests');
+    const guestRequests = requestsData ? JSON.parse(requestsData) : [];
+    guestRequests.unshift(guestRequest);
+    localStorage.setItem('guest-requests', JSON.stringify(guestRequests));
+
+    // Update request status to indicate it's sent to reception
+    setRequests((prev) => prev.map((r) => 
+      r.id === request.id ? { ...r, sentToReception: true, receptionRequestId: guestRequest.id } : r
+    ));
+
+    // Play notification sound
+    playNotificationSound('new-request');
+
+    alert('تم إرسال الطلب للاستقبال بنجاح ✓');
+  };
+
   /* -------------------------- Utility Renderers -------------------------- */
   const countNew = requests.filter((r) => r.status === 'Pending').length;
   const countCompletedToday = requests.filter((r) => {
@@ -432,7 +487,7 @@ export default function LaundryPage() {
                         <StatusBadge status={r.status} />
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <div className="flex justify-end items-center gap-2">
+                        <div className="flex justify-end items-center gap-2 flex-wrap">
                           <button
                             title="تعديل"
                             onClick={() => openEdit(r.id)}
@@ -474,6 +529,25 @@ export default function LaundryPage() {
                             >
                               تم التسليم
                             </button>
+                          )}
+
+                          {/* Send to reception button */}
+                          {!r.sentToReception && (r.status === 'Pending' || r.status === 'InProgress') && (
+                            <button
+                              onClick={() => sendToReception(r)}
+                              className="px-3 py-1 rounded-lg bg-amber-600 text-white text-sm hover:bg-amber-700 transition-colors flex items-center gap-1"
+                              title="إرسال للاستقبال"
+                            >
+                              <Send size={14} />
+                              إرسال للاستقبال
+                            </button>
+                          )}
+
+                          {r.sentToReception && (
+                            <span className="px-3 py-1 rounded-lg bg-green-600 text-white text-xs flex items-center gap-1">
+                              <CheckCircle size={14} />
+                              تم الإرسال
+                            </span>
                           )}
                         </div>
                       </td>
