@@ -496,7 +496,7 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push('/crm/whatsapp')}
+            onClick={() => router.push('/crm/whatsapp?fullscreen=true')}
             className="hidden lg:flex text-white hover:text-blue-200 hover:bg-white/10 border border-white/20 hover:border-white/40 transition-all duration-200 p-2 w-9 h-9"
             title="المحادثات"
           >

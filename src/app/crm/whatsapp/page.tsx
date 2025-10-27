@@ -838,6 +838,9 @@ export default function WhatsAppCRMPage() {
   // حالة المساعد الذكي
   const [isChatOpen, setIsChatOpen] = useState(false);
   
+  // حالة Full Screen Mode
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  
   // حالة نموذج إضافة جهة اتصال
   const [showAddContactDialog, setShowAddContactDialog] = useState(false);
   const [newContact, setNewContact] = useState({
@@ -850,6 +853,14 @@ export default function WhatsAppCRMPage() {
     notes: '',
     priority: 'medium' as IssuePriority
   });
+
+  // التحقق من URL parameter للـ fullscreen
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('fullscreen') === 'true') {
+      setIsFullScreen(true);
+    }
+  }, []);
 
   // حفظ واستعادة آخر محادثة محددة
   useEffect(() => {
@@ -1467,9 +1478,30 @@ export default function WhatsAppCRMPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 p-2 sm:p-6" dir="rtl">
+      {/* زر Toggle للـ Full Screen */}
+      <Button
+        onClick={() => setIsFullScreen(!isFullScreen)}
+        className="fixed top-4 left-4 z-50 bg-purple-600/90 hover:bg-purple-700 backdrop-blur-sm border border-purple-400/30 shadow-xl"
+        size="sm"
+        title={isFullScreen ? "إظهار الهيدر والإحصائيات" : "إخفاء الهيدر والإحصائيات"}
+      >
+        {isFullScreen ? (
+          <>
+            <ChevronDown className="h-4 w-4 mr-1" />
+            إظهار
+          </>
+        ) : (
+          <>
+            <ChevronUp className="h-4 w-4 mr-1" />
+            إخفاء
+          </>
+        )}
+      </Button>
+
       <div className="mx-auto max-w-[1800px] space-y-4">
         {/* الهيدر المحسّن */}
-        <header className="bg-gradient-to-r from-purple-900/40 to-blue-900/40 backdrop-blur-md border border-purple-700/30 rounded-2xl p-4 sm:p-6 shadow-2xl">
+        {!isFullScreen && (
+          <header className="bg-gradient-to-r from-purple-900/40 to-blue-900/40 backdrop-blur-md border border-purple-700/30 rounded-2xl p-4 sm:p-6 shadow-2xl">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-2">
               <div className="flex items-center gap-3">
@@ -1505,8 +1537,10 @@ export default function WhatsAppCRMPage() {
             </div>
           </div>
         </header>
+        )}
 
         {/* الإحصائيات المتقدمة */}
+        {!isFullScreen && (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
           <Card 
             onClick={() => router.push('/crm/customers')}
@@ -1628,6 +1662,7 @@ export default function WhatsAppCRMPage() {
             </CardContent>
           </Card>
         </div>
+        )}
 
         {/* التابات المحسّنة */}
         <div className="flex gap-2 overflow-x-auto pb-2 border-b border-purple-800/30">
