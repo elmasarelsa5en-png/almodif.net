@@ -575,7 +575,7 @@ export default function HRSettingsPage() {
                     className="bg-slate-800 border-slate-700 text-white mt-1"
                   />
                 </div>
-                <div>
+                <div className="col-span-2">
                   <Label className="text-purple-200 text-sm">الحالة</Label>
                   <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value as Employee['status'] })}>
                     <SelectTrigger className="bg-slate-800 border-slate-700 text-white mt-1">
