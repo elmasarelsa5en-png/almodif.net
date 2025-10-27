@@ -23,7 +23,7 @@ import { Input } from '@/components/ui/input';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { playNotificationSound } from '@/lib/notification-sounds';
+import { playNotificationSound, startEmployeeAlert, stopEmployeeAlert, isEmployeeAlertActive } from '@/lib/notification-sounds';
 
 interface GuestRequest {
   id: string;
@@ -73,9 +73,18 @@ export default function EmployeeRequestsPage() {
           (req: GuestRequest) => req.employeeApprovalStatus === 'pending'
         );
         
-        if (newPendingRequests.length > previousRequestCount && previousRequestCount > 0) {
-          // Play notification sound for new request
-          playNotificationSound('new-request');
+        // تشغيل النغمة المتكررة إذا كان هناك طلبات معلقة
+        if (newPendingRequests.length > 0) {
+          if (!isEmployeeAlertActive()) {
+            console.log(`🔔 Found ${newPendingRequests.length} pending requests, starting alert...`);
+            startEmployeeAlert();
+          }
+        } else {
+          // إيقاف النغمة إذا لم يعد هناك طلبات معلقة
+          if (isEmployeeAlertActive()) {
+            console.log('🔕 No pending requests, stopping alert...');
+            stopEmployeeAlert();
+          }
         }
         
         setPreviousRequestCount(newPendingRequests.length);
@@ -96,8 +105,12 @@ export default function EmployeeRequestsPage() {
     };
 
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, [user?.username]);
+    
+    // Cleanup: إيقاف النغمة عند الخروج من الصفحة
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [user?.username, requests.length]);
 
   // Filter requests
   useEffect(() => {
@@ -150,6 +163,18 @@ export default function EmployeeRequestsPage() {
         : req
     );
     localStorage.setItem('guest-requests', JSON.stringify(updatedAll));
+    
+    // إيقاف النغمة المتكررة بعد الموافقة على آخر طلب
+    const remainingPending = updatedAll.filter(
+      (req: GuestRequest) => 
+        req.assignedEmployee === user?.username && 
+        req.employeeApprovalStatus === 'pending'
+    );
+    
+    if (remainingPending.length === 0) {
+      console.log('✅ All requests approved, stopping alert...');
+      stopEmployeeAlert();
+    }
     
     // Update linked section order if exists
     if (request && (request as any).linkedSection && (request as any).originalOrderId) {

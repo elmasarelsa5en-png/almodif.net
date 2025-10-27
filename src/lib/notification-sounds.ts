@@ -1,7 +1,11 @@
 // نظام الأصوات الاحترافي للإشعارات - يستخدم Web Audio API
 // بدون الحاجة لملفات صوتية خارجية
 
-export type NotificationSoundType = 'new-request' | 'approval' | 'rejection' | 'general';
+export type NotificationSoundType = 'new-request' | 'approval' | 'rejection' | 'general' | 'employee-alert';
+
+// متغير عام للتحكم في النغمة المتكررة
+let employeeAlertInterval: NodeJS.Timeout | null = null;
+let employeeAlertAudioContext: AudioContext | null = null;
 
 /**
  * تشغيل صوت إشعار بناءً على النوع
@@ -21,6 +25,9 @@ export function playNotificationSound(type: NotificationSoundType = 'general') {
         break;
       case 'rejection':
         playRejectionSound(audioContext);
+        break;
+      case 'employee-alert':
+        playEmployeeAlertSound(audioContext);
         break;
       case 'general':
       default:
@@ -90,6 +97,66 @@ function playGeneralSound(audioContext: AudioContext) {
   // نغمتين متماثلتين
   createTone(audioContext, 900, now, duration, 0.3);
   createTone(audioContext, 900, now + duration + 0.1, duration, 0.3);
+}
+
+/**
+ * صوت تنبيه الموظف - نغمة لافتة للانتباه 🔊
+ * تشغل مرة واحدة عند استدعائها
+ * تستخدم في حلقة متكررة عبر startEmployeeAlert
+ */
+function playEmployeeAlertSound(audioContext: AudioContext) {
+  const now = audioContext.currentTime;
+  const duration = 0.2;
+  
+  // نغمتين: 850Hz → 1100Hz (لافتة للانتباه)
+  createTone(audioContext, 850, now, duration, 0.35);
+  createTone(audioContext, 1100, now + duration + 0.05, duration, 0.4);
+}
+
+/**
+ * بدء تشغيل نغمة التنبيه المتكررة للموظف 🔔
+ * تستمر في التشغيل كل 3 ثوانٍ حتى يتم إيقافها
+ */
+export function startEmployeeAlert() {
+  // إيقاف أي تنبيه سابق
+  stopEmployeeAlert();
+  
+  console.log('🔔 Starting employee alert (repeating every 3 seconds)...');
+  
+  // تشغيل النغمة فوراً
+  playNotificationSound('employee-alert');
+  
+  // تكرار النغمة كل 3 ثوانٍ
+  employeeAlertInterval = setInterval(() => {
+    playNotificationSound('employee-alert');
+  }, 3000); // 3 ثوانٍ
+  
+  // حفظ في localStorage للإشارة إلى وجود تنبيه نشط
+  localStorage.setItem('employee-alert-active', 'true');
+}
+
+/**
+ * إيقاف نغمة التنبيه المتكررة 🔕
+ */
+export function stopEmployeeAlert() {
+  if (employeeAlertInterval) {
+    console.log('🔕 Stopping employee alert...');
+    clearInterval(employeeAlertInterval);
+    employeeAlertInterval = null;
+    
+    // إزالة من localStorage
+    localStorage.removeItem('employee-alert-active');
+    
+    // تشغيل صوت الموافقة للإشارة إلى التوقف
+    playNotificationSound('approval');
+  }
+}
+
+/**
+ * التحقق من وجود تنبيه نشط
+ */
+export function isEmployeeAlertActive(): boolean {
+  return employeeAlertInterval !== null || localStorage.getItem('employee-alert-active') === 'true';
 }
 
 /**
