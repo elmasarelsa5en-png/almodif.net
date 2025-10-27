@@ -61,6 +61,8 @@ export default function NewRequestPage() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [requestTypes, setRequestTypes] = useState<RequestType[]>([]);
+  const [selectedType, setSelectedType] = useState<RequestType | null>(null);
+  const [selectedSubItems, setSelectedSubItems] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     room: '',
     guest: '',
@@ -131,6 +133,9 @@ export default function NewRequestPage() {
     if (!formData.room.trim()) newErrors.room = 'رقم الغرفة مطلوب';
     if (!formData.guest.trim()) newErrors.guest = 'اسم النزيل مطلوب';
     if (!formData.type) newErrors.type = 'نوع الطلب مطلوب';
+    if (selectedType?.hasSubItems && selectedSubItems.length === 0) {
+      newErrors.subItems = 'يجب اختيار صنف واحد على الأقل';
+    }
     // الملاحظات أصبحت اختيارية - تم حذف التحقق منها
     if (!formData.assignedEmployee) newErrors.assignedEmployee = 'يجب تحديد موظف';
 
@@ -149,20 +154,34 @@ export default function NewRequestPage() {
       // Generate unique ID
       const id = `REQ-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 
+      // Build description with sub-items if any
+      let fullDescription = formData.notes;
+      if (selectedType?.hasSubItems && selectedSubItems.length > 0) {
+        const subItemNames = selectedSubItems
+          .map(itemId => {
+            const item = selectedType.subItems?.find(si => si.id === itemId);
+            return item ? item.name : itemId;
+          })
+          .join(' + ');
+        fullDescription = `${formData.type}: ${subItemNames}${formData.notes ? '\n' + formData.notes : ''}`;
+      }
+
       // Create request object
-      const newRequest: GuestRequest = {
+      const newRequest: any = {
         id,
         room: formData.room,
         guest: formData.guest,
         phone: formData.phone || undefined,
         type: formData.type,
-        description: formData.notes, // الملاحظات
+        description: fullDescription,
         notes: formData.notes,
         status: 'awaiting_employee_approval',
         createdAt: new Date().toISOString(),
         priority: formData.priority,
         assignedEmployee: formData.assignedEmployee,
         employeeApprovalStatus: 'pending',
+        selectedSubItems: selectedSubItems.length > 0 ? selectedSubItems : undefined,
+        linkedSection: selectedType?.linkedSection,
       };
 
       // Get existing requests
@@ -194,6 +213,8 @@ export default function NewRequestPage() {
         priority: 'medium',
         assignedEmployee: '',
       });
+      setSelectedSubItems([]);
+      setSelectedType(null);
 
       // Redirect after 2 seconds
       setTimeout(() => {
@@ -209,6 +230,14 @@ export default function NewRequestPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    
+    // Handle request type change
+    if (name === 'type') {
+      const type = requestTypes.find(t => t.name === value);
+      setSelectedType(type || null);
+      setSelectedSubItems([]);
+    }
+    
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -219,6 +248,20 @@ export default function NewRequestPage() {
         ...prev,
         [name]: '',
       }));
+    }
+  };
+
+  const toggleSubItem = (itemId: string) => {
+    setSelectedSubItems(prev => {
+      if (prev.includes(itemId)) {
+        return prev.filter(id => id !== itemId);
+      } else {
+        return [...prev, itemId];
+      }
+    });
+    // Clear sub-items error if any
+    if (errors.subItems) {
+      setErrors(prev => ({ ...prev, subItems: '' }));
     }
   };
 
@@ -377,6 +420,48 @@ export default function NewRequestPage() {
                     </select>
                     {errors.type && <p className="text-red-400 text-xs">{errors.type}</p>}
                   </div>
+
+                  {/* Sub-Items Selection - Shows if type has sub-items */}
+                  {selectedType?.hasSubItems && selectedType.subItems && selectedType.subItems.length > 0 && (
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-white/80 text-sm font-semibold flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-cyan-400" />
+                        اختر الأصناف المطلوبة
+                        <span className="text-red-400">*</span>
+                      </label>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {selectedType.subItems.map((item) => (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => toggleSubItem(item.id)}
+                            className={`p-3 rounded-lg border-2 transition-all text-sm font-semibold flex items-center gap-2 ${
+                              selectedSubItems.includes(item.id)
+                                ? 'bg-green-500/30 border-green-400 text-green-200'
+                                : 'bg-white/10 border-white/20 text-white/70 hover:bg-white/20'
+                            }`}
+                          >
+                            {item.icon && <span className="text-xl">{item.icon}</span>}
+                            <span>{item.name}</span>
+                            {selectedSubItems.includes(item.id) && <span className="mr-auto">✓</span>}
+                          </button>
+                        ))}
+                      </div>
+                      {errors.subItems && <p className="text-red-400 text-xs">{errors.subItems}</p>}
+                      
+                      {/* Selected items summary */}
+                      {selectedSubItems.length > 0 && (
+                        <div className="mt-3 p-3 bg-green-500/20 border border-green-500/30 rounded-lg">
+                          <p className="text-green-200 text-sm font-semibold">
+                            ✓ تم اختيار: {selectedSubItems.map(id => {
+                              const item = selectedType.subItems?.find(si => si.id === id);
+                              return item?.name;
+                            }).join(' + ')}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Assigned Employee */}
                   <div className="space-y-2 md:col-span-2">

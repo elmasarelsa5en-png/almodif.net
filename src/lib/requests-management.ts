@@ -14,12 +14,23 @@ export interface Employee {
   permissions: string[];
 }
 
+export interface SubItem {
+  id: string;
+  name: string;
+  available: boolean;
+  icon?: string;
+}
+
 export interface RequestType {
   id: string;
   name: string;
   description?: string;
   icon?: string;
   color?: string;
+  category: 'service' | 'items' | 'food' | 'laundry' | 'general';
+  hasSubItems: boolean;
+  subItems?: SubItem[];
+  linkedSection?: 'coffee' | 'restaurant' | 'laundry'; // ربط بالأقسام
   createdAt: string;
 }
 
@@ -38,6 +49,8 @@ export interface GuestRequest {
   employeeApprovalStatus?: 'pending' | 'approved' | 'rejected';
   employeeApprovedAt?: string;
   managerNotified?: boolean;
+  selectedSubItems?: string[]; // الأصناف الفرعية المختارة
+  linkedSection?: 'coffee' | 'restaurant' | 'laundry'; // القسم المرتبط
 }
 
 // ============ Request Types Management ============
@@ -54,16 +67,105 @@ export const getRequestTypes = (): RequestType[] => {
     }
     // إرجاع القيم الافتراضية إذا لم يكن هناك شيء محفوظ
     const defaultTypes: RequestType[] = [
-      { id: '1', name: 'تنظيف الغرفة', icon: '🧹', createdAt: new Date().toISOString() },
-      { id: '2', name: 'صيانة', icon: '🔧', createdAt: new Date().toISOString() },
-      { id: '3', name: 'طلب خدمة', icon: '🛎️', createdAt: new Date().toISOString() },
-      { id: '4', name: 'شكوى', icon: '⚠️', createdAt: new Date().toISOString() },
-      { id: '5', name: 'معلومة', icon: 'ℹ️', createdAt: new Date().toISOString() },
-      { id: '6', name: 'طلب غذائي', icon: '🍽️', createdAt: new Date().toISOString() },
-      { id: '7', name: 'طلب مشروبات', icon: '🥤', createdAt: new Date().toISOString() },
-      { id: '8', name: 'خدمة الغسيل', icon: '👔', createdAt: new Date().toISOString() },
-      { id: '9', name: 'تعديل الحجز', icon: '📅', createdAt: new Date().toISOString() },
-      { id: '10', name: 'مساعدة عامة', icon: '🤝', createdAt: new Date().toISOString() },
+      { 
+        id: '1', 
+        name: 'تنظيف الغرفة', 
+        icon: '🧹', 
+        category: 'service',
+        hasSubItems: false,
+        createdAt: new Date().toISOString() 
+      },
+      { 
+        id: '2', 
+        name: 'صيانة', 
+        icon: '🔧', 
+        category: 'service',
+        hasSubItems: false,
+        createdAt: new Date().toISOString() 
+      },
+      { 
+        id: '3', 
+        name: 'أدوات نظافة', 
+        icon: '🧴', 
+        category: 'items',
+        hasSubItems: true,
+        subItems: [
+          { id: 'soap', name: 'صابون', available: true, icon: '🧼' },
+          { id: 'shampoo', name: 'شامبو', available: true, icon: '🧴' },
+          { id: 'conditioner', name: 'بلسم', available: true, icon: '💆' },
+          { id: 'toothpaste', name: 'معجون أسنان', available: true, icon: '🪥' },
+          { id: 'toothbrush', name: 'فرشاة أسنان', available: true, icon: '🪥' },
+        ],
+        createdAt: new Date().toISOString() 
+      },
+      { 
+        id: '4', 
+        name: 'طراحة (فراش)', 
+        icon: '🛏️', 
+        category: 'items',
+        hasSubItems: true,
+        subItems: [
+          { id: 'mattress', name: 'مرتبة', available: true, icon: '🛏️' },
+          { id: 'pillow', name: 'مخدة', available: true, icon: '😴' },
+          { id: 'blanket', name: 'بطانية', available: true, icon: '🧣' },
+          { id: 'sheet', name: 'مفرش', available: true, icon: '🛏️' },
+        ],
+        createdAt: new Date().toISOString() 
+      },
+      { 
+        id: '5', 
+        name: 'كوفي شوب', 
+        icon: '☕', 
+        category: 'food',
+        hasSubItems: true,
+        linkedSection: 'coffee',
+        subItems: [],
+        createdAt: new Date().toISOString() 
+      },
+      { 
+        id: '6', 
+        name: 'مطعم', 
+        icon: '🍽️', 
+        category: 'food',
+        hasSubItems: true,
+        linkedSection: 'restaurant',
+        subItems: [],
+        createdAt: new Date().toISOString() 
+      },
+      { 
+        id: '7', 
+        name: 'مغسلة', 
+        icon: '👔', 
+        category: 'laundry',
+        hasSubItems: true,
+        linkedSection: 'laundry',
+        subItems: [],
+        createdAt: new Date().toISOString() 
+      },
+      { 
+        id: '8', 
+        name: 'شكوى', 
+        icon: '⚠️', 
+        category: 'general',
+        hasSubItems: false,
+        createdAt: new Date().toISOString() 
+      },
+      { 
+        id: '9', 
+        name: 'استفسار', 
+        icon: 'ℹ️', 
+        category: 'general',
+        hasSubItems: false,
+        createdAt: new Date().toISOString() 
+      },
+      { 
+        id: '10', 
+        name: 'مساعدة عامة', 
+        icon: '🤝', 
+        category: 'general',
+        hasSubItems: false,
+        createdAt: new Date().toISOString() 
+      },
     ];
     saveRequestTypes(defaultTypes);
     return defaultTypes;
