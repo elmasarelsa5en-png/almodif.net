@@ -51,11 +51,22 @@ export default function WhatsAppChatPage() {
   useEffect(() => {
     // Load chats from backend
     loadChats();
+    
+    // Reload chats every 5 seconds
+    const interval = setInterval(loadChats, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
     if (selectedChat) {
       loadMessages(selectedChat.id);
+      
+      // Reload messages every 3 seconds when chat is selected
+      const interval = setInterval(() => {
+        loadMessages(selectedChat.id);
+      }, 3000);
+      
+      return () => clearInterval(interval);
     }
   }, [selectedChat]);
 
@@ -64,7 +75,44 @@ export default function WhatsAppChatPage() {
   }, [messages]);
 
   const loadChats = async () => {
-    // Mock data - replace with actual API call
+    try {
+      const response = await fetch('http://localhost:3002/api/chats');
+      
+      if (!response.ok) {
+        console.error('Failed to load chats');
+        return;
+      }
+      
+      const data = await response.json();
+      
+      if (data.chats && data.chats.length > 0) {
+        // Convert backend format to frontend format
+        const formattedChats: Chat[] = data.chats.map((chat: any) => ({
+          id: chat.id,
+          name: chat.name,
+          avatar: chat.profilePicUrl,
+          lastMessage: chat.lastMessage?.body || 'لا توجد رسائل',
+          timestamp: formatTimestamp(chat.timestamp),
+          unread: chat.unreadCount || 0,
+          online: false // WhatsApp Web doesn't provide online status
+        }));
+        
+        setChats(formattedChats);
+        
+        // Auto-select first chat if none selected
+        if (!selectedChat && formattedChats.length > 0) {
+          setSelectedChat(formattedChats[0]);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading chats:', error);
+      // Keep using mock data if backend fails
+      loadMockChats();
+    }
+  };
+  
+  const loadMockChats = () => {
+    // Mock data - fallback when backend is not available
     const mockChats: Chat[] = [
       {
         id: '1',
@@ -96,9 +144,56 @@ export default function WhatsAppChatPage() {
       setSelectedChat(mockChats[0]);
     }
   };
+  
+  const formatTimestamp = (timestamp: number) => {
+    const date = new Date(timestamp * 1000);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    
+    if (days === 0) {
+      return date.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+    } else if (days === 1) {
+      return 'أمس';
+    } else if (days < 7) {
+      return `${days} أيام`;
+    } else {
+      return date.toLocaleDateString('ar-EG');
+    }
+  };
 
   const loadMessages = async (chatId: string) => {
-    // Mock messages - replace with actual API call
+    try {
+      const response = await fetch(`http://localhost:3002/api/messages/${chatId}`);
+      
+      if (!response.ok) {
+        console.error('Failed to load messages');
+        return;
+      }
+      
+      const data = await response.json();
+      
+      if (data.messages) {
+        // Convert backend format to frontend format
+        const formattedMessages: Message[] = data.messages.map((msg: any) => ({
+          id: msg.id,
+          text: msg.body,
+          timestamp: new Date(msg.timestamp * 1000),
+          sender: msg.fromMe ? 'user' : 'customer',
+          status: msg.ack === 3 ? 'read' : msg.ack === 2 ? 'delivered' : 'sent'
+        }));
+        
+        setMessages(formattedMessages);
+      }
+    } catch (error) {
+      console.error('Error loading messages:', error);
+      // Load mock messages if backend fails
+      loadMockMessages();
+    }
+  };
+  
+  const loadMockMessages = () => {
+    // Mock messages - fallback
     const mockMessages: Message[] = [
       {
         id: '1',
@@ -153,7 +248,7 @@ export default function WhatsAppChatPage() {
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !selectedChat) return;
 
-    const message: Message = {
+    const tempMessage: Message = {
       id: Date.now().toString(),
       text: newMessage,
       timestamp: new Date(),
@@ -161,11 +256,52 @@ export default function WhatsAppChatPage() {
       status: 'sent'
     };
 
-    setMessages(prev => [...prev, message]);
+    // Add message to UI immediately
+    setMessages(prev => [...prev, tempMessage]);
+    const messageToSend = newMessage;
     setNewMessage('');
 
-    // Send to backend
-    // await sendMessageToWhatsApp(selectedChat.id, newMessage);
+    try {
+      // Send to backend
+      const response = await fetch('http://localhost:3002/api/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          chatId: selectedChat.id,
+          message: messageToSend
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+
+      const data = await response.json();
+      
+      // Update message with real ID
+      setMessages(prev => 
+        prev.map(msg => 
+          msg.id === tempMessage.id 
+            ? { ...msg, id: data.messageId, status: 'delivered' }
+            : msg
+        )
+      );
+      
+      // Reload messages to get the latest
+      setTimeout(() => loadMessages(selectedChat.id), 1000);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      // Update message status to show error
+      setMessages(prev => 
+        prev.map(msg => 
+          msg.id === tempMessage.id 
+            ? { ...msg, status: 'sent' }
+            : msg
+        )
+      );
+    }
   };
 
   const formatTime = (date: Date) => {

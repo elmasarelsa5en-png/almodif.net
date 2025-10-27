@@ -40,7 +40,7 @@ export default function WhatsAppConnectPage() {
       setError('');
       
       // Call backend API to generate QR code
-      const response = await fetch('http://localhost:3002/qr');
+      const response = await fetch('http://localhost:3002/api/qr');
       
       // Check if response is ok
       if (!response.ok) {
@@ -67,7 +67,7 @@ export default function WhatsAppConnectPage() {
 
   const checkConnection = async () => {
     try {
-      const response = await fetch('http://localhost:3002/status');
+      const response = await fetch('http://localhost:3002/api/status');
       
       // Check if response is ok
       if (!response.ok) {
@@ -81,7 +81,7 @@ export default function WhatsAppConnectPage() {
       
       const data = await response.json();
       
-      if (data.isReady) {
+      if (data.connected) {
         setStep('connected');
         setTimeout(() => {
           router.push('/crm/whatsapp/chat');
