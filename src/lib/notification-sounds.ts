@@ -12,6 +12,30 @@ let employeeAlertAudioContext: AudioContext | null = null;
  */
 export function playNotificationSound(type: NotificationSoundType = 'general') {
   try {
+    // التحقق من إعدادات الأصوات
+    const settingsStr = localStorage.getItem('sound-settings');
+    if (settingsStr) {
+      const settings = JSON.parse(settingsStr);
+      
+      // إذا كانت الأصوات معطلة بالكامل
+      if (!settings.enabled) {
+        console.log('🔇 Sounds are disabled globally');
+        return;
+      }
+      
+      // إذا كان هذا الصوت معطل
+      if (settings.sounds && settings.sounds[type] && !settings.sounds[type].enabled) {
+        console.log(`🔇 Sound "${type}" is disabled`);
+        return;
+      }
+      
+      // تطبيق مستوى الصوت
+      if (settings.volume && settings.volume !== 70) {
+        // يمكن استخدام هذه القيمة لضبط الصوت في المستقبل
+        console.log(`🔊 Volume set to ${settings.volume}%`);
+      }
+    }
+    
     console.log(`🔊 Playing ${type} sound...`);
     
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -115,21 +139,35 @@ function playEmployeeAlertSound(audioContext: AudioContext) {
 
 /**
  * بدء تشغيل نغمة التنبيه المتكررة للموظف 🔔
- * تستمر في التشغيل كل 3 ثوانٍ حتى يتم إيقافها
+ * تستمر في التشغيل كل X ثوانٍ (حسب الإعدادات) حتى يتم إيقافها
  */
 export function startEmployeeAlert() {
   // إيقاف أي تنبيه سابق
   stopEmployeeAlert();
   
-  console.log('🔔 Starting employee alert (repeating every 3 seconds)...');
+  // التحقق من الإعدادات
+  let intervalSeconds = 3; // القيمة الافتراضية
+  const settingsStr = localStorage.getItem('sound-settings');
+  if (settingsStr) {
+    try {
+      const settings = JSON.parse(settingsStr);
+      if (settings.employeeAlertInterval) {
+        intervalSeconds = settings.employeeAlertInterval;
+      }
+    } catch (error) {
+      console.error('Error parsing sound settings:', error);
+    }
+  }
+  
+  console.log(`🔔 Starting employee alert (repeating every ${intervalSeconds} seconds)...`);
   
   // تشغيل النغمة فوراً
   playNotificationSound('employee-alert');
   
-  // تكرار النغمة كل 3 ثوانٍ
+  // تكرار النغمة
   employeeAlertInterval = setInterval(() => {
     playNotificationSound('employee-alert');
-  }, 3000); // 3 ثوانٍ
+  }, intervalSeconds * 1000);
   
   // حفظ في localStorage للإشارة إلى وجود تنبيه نشط
   localStorage.setItem('employee-alert-active', 'true');

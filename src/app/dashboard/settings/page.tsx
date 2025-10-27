@@ -72,8 +72,8 @@ export default function SettingsPage() {
       description: 'تخصيص التنبيهات الصوتية للنظام',
       icon: Volume2,
       color: 'from-orange-500 to-red-500',
-      href: '/sound-settings',
-      badge: null
+      href: '/dashboard/settings/sound-settings',
+      badge: 'جديد'
     },
     {
       id: 'ai-assistant',
