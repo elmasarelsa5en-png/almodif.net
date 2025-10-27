@@ -43,15 +43,16 @@ interface Employee {
   phone?: string;
   status: 'available' | 'busy' | 'offline';
   createdAt: string;
+  permissions?: string[];
 }
 
 const ROLES = [
   { value: 'admin', label: 'مدير', color: 'bg-red-500' },
   { value: 'manager', label: 'مشرف', color: 'bg-orange-500' },
   { value: 'reception', label: 'استقبال', color: 'bg-blue-500' },
-  { value: 'housekeeping', label: 'خدمات الغرف', color: 'bg-green-500' },
+  { value: 'housekeeping', label: 'خدمات غرف', color: 'bg-green-500' },
   { value: 'maintenance', label: 'صيانة', color: 'bg-yellow-500' },
-  { value: 'coffee_staff', label: 'كوفي شوب', color: 'bg-amber-600' },
+  { value: 'coffee_staff', label: 'كوفي', color: 'bg-amber-600' },
   { value: 'laundry_staff', label: 'مغسلة', color: 'bg-purple-500' },
   { value: 'restaurant_staff', label: 'مطعم', color: 'bg-pink-500' },
 ];
@@ -64,6 +65,26 @@ const DEPARTMENTS = [
   'مطعم',
   'مغسلة',
   'إدارة'
+];
+
+const PERMISSIONS = [
+  { id: 'view_dashboard', label: 'عرض لوحة التحكم', category: 'عام' },
+  { id: 'manage_rooms', label: 'إدارة الغرف', category: 'غرف' },
+  { id: 'view_rooms', label: 'عرض الغرف', category: 'غرف' },
+  { id: 'manage_bookings', label: 'إدارة الحجوزات', category: 'حجوزات' },
+  { id: 'view_bookings', label: 'عرض الحجوزات', category: 'حجوزات' },
+  { id: 'manage_guests', label: 'إدارة النزلاء', category: 'نزلاء' },
+  { id: 'view_guests', label: 'عرض النزلاء', category: 'نزلاء' },
+  { id: 'manage_requests', label: 'إدارة طلبات النزلاء', category: 'طلبات' },
+  { id: 'approve_requests', label: 'الموافقة على الطلبات', category: 'طلبات' },
+  { id: 'view_requests', label: 'عرض الطلبات', category: 'طلبات' },
+  { id: 'manage_coffee', label: 'إدارة الكوفي شوب', category: 'خدمات' },
+  { id: 'manage_restaurant', label: 'إدارة المطعم', category: 'خدمات' },
+  { id: 'manage_laundry', label: 'إدارة المغسلة', category: 'خدمات' },
+  { id: 'manage_maintenance', label: 'إدارة الصيانة', category: 'خدمات' },
+  { id: 'manage_employees', label: 'إدارة الموظفين', category: 'موارد بشرية' },
+  { id: 'view_reports', label: 'عرض التقارير', category: 'تقارير' },
+  { id: 'manage_settings', label: 'إدارة الإعدادات', category: 'إعدادات' },
 ];
 
 const STATUS_CONFIG = {
@@ -90,6 +111,7 @@ export default function HRSettingsPage() {
     email: '',
     phone: '',
     status: 'available' as const,
+    permissions: [] as string[],
   });
 
   // Load employees from localStorage
@@ -116,6 +138,7 @@ export default function HRSettingsPage() {
             phone: '0500000001',
             status: 'available',
             createdAt: new Date().toISOString(),
+            permissions: ['view_dashboard', 'manage_requests', 'approve_requests', 'view_rooms', 'view_bookings'],
           }
         ];
         setEmployees(defaultEmployees);
@@ -160,6 +183,7 @@ export default function HRSettingsPage() {
         email: employee.email || '',
         phone: employee.phone || '',
         status: employee.status,
+        permissions: employee.permissions || [],
       });
     } else {
       setEditingEmployee(null);
@@ -171,9 +195,30 @@ export default function HRSettingsPage() {
         email: '',
         phone: '',
         status: 'available',
+        permissions: [],
       });
     }
     setIsDialogOpen(true);
+  };
+
+  const togglePermission = (permissionId: string) => {
+    setFormData(prev => {
+      const permissions = prev.permissions.includes(permissionId)
+        ? prev.permissions.filter(p => p !== permissionId)
+        : [...prev.permissions, permissionId];
+      return { ...prev, permissions };
+    });
+  };
+
+  const getPermissionsByCategory = () => {
+    const categories: Record<string, typeof PERMISSIONS> = {};
+    PERMISSIONS.forEach(perm => {
+      if (!categories[perm.category]) {
+        categories[perm.category] = [];
+      }
+      categories[perm.category].push(perm);
+    });
+    return categories;
   };
 
   const handleSave = () => {
@@ -447,98 +492,138 @@ export default function HRSettingsPage() {
 
       {/* Add/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-2xl">
+        <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-xl">
               {editingEmployee ? 'تعديل موظف' : 'إضافة موظف جديد'}
             </DialogTitle>
             <DialogDescription className="text-purple-200">
-              {editingEmployee ? 'تعديل معلومات الموظف' : 'إضافة موظف جديد للنظام'}
+              {editingEmployee ? 'تعديل معلومات الموظف والصلاحيات' : 'إضافة موظف جديد للنظام مع تحديد الصلاحيات'}
             </DialogDescription>
           </DialogHeader>
           
-          <div className="grid grid-cols-2 gap-4 py-4">
+          <div className="space-y-6 py-4">
+            {/* Basic Info */}
             <div>
-              <Label className="text-purple-200">اسم المستخدم *</Label>
-              <Input
-                value={formData.username}
-                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                placeholder="username"
-                className="bg-slate-800 border-slate-700 text-white"
-              />
+              <h3 className="text-sm font-semibold text-purple-300 mb-3">المعلومات الأساسية</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-purple-200 text-sm">اسم المستخدم *</Label>
+                  <Input
+                    value={formData.username}
+                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                    placeholder="username"
+                    className="bg-slate-800 border-slate-700 text-white mt-1"
+                  />
+                </div>
+                <div>
+                  <Label className="text-purple-200 text-sm">الاسم الكامل *</Label>
+                  <Input
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="الاسم بالكامل"
+                    className="bg-slate-800 border-slate-700 text-white mt-1"
+                  />
+                </div>
+                <div>
+                  <Label className="text-purple-200 text-sm">الدور الوظيفي</Label>
+                  <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
+                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-900 border-slate-700">
+                      {ROLES.map(role => (
+                        <SelectItem key={role.value} value={role.value}>
+                          <div className="flex items-center gap-2">
+                            <div className={`w-2 h-2 rounded-full ${role.color}`}></div>
+                            {role.label}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-purple-200 text-sm">القسم</Label>
+                  <Select value={formData.department} onValueChange={(value) => setFormData({ ...formData, department: value })}>
+                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-900 border-slate-700">
+                      {DEPARTMENTS.map(dept => (
+                        <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-purple-200 text-sm">البريد الإلكتروني</Label>
+                  <Input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    placeholder="email@example.com"
+                    className="bg-slate-800 border-slate-700 text-white mt-1"
+                  />
+                </div>
+                <div>
+                  <Label className="text-purple-200 text-sm">رقم الهاتف</Label>
+                  <Input
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    placeholder="05xxxxxxxx"
+                    className="bg-slate-800 border-slate-700 text-white mt-1"
+                  />
+                </div>
+                <div>
+                  <Label className="text-purple-200 text-sm">الحالة</Label>
+                  <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value as Employee['status'] })}>
+                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-900 border-slate-700">
+                      <SelectItem value="available">متاح</SelectItem>
+                      <SelectItem value="busy">مشغول</SelectItem>
+                      <SelectItem value="offline">غير متصل</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
+
+            {/* Permissions */}
             <div>
-              <Label className="text-purple-200">الاسم الكامل *</Label>
-              <Input
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="الاسم بالكامل"
-                className="bg-slate-800 border-slate-700 text-white"
-              />
-            </div>
-            <div>
-              <Label className="text-purple-200">الدور الوظيفي</Label>
-              <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
-                <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-slate-700">
-                  {ROLES.map(role => (
-                    <SelectItem key={role.value} value={role.value}>
-                      {role.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label className="text-purple-200">القسم</Label>
-              <Select value={formData.department} onValueChange={(value) => setFormData({ ...formData, department: value })}>
-                <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-slate-700">
-                  {DEPARTMENTS.map(dept => (
-                    <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label className="text-purple-200">البريد الإلكتروني</Label>
-              <Input
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                placeholder="email@example.com"
-                className="bg-slate-800 border-slate-700 text-white"
-              />
-            </div>
-            <div>
-              <Label className="text-purple-200">رقم الهاتف</Label>
-              <Input
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                placeholder="05xxxxxxxx"
-                className="bg-slate-800 border-slate-700 text-white"
-              />
-            </div>
-            <div>
-              <Label className="text-purple-200">الحالة</Label>
-              <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value as Employee['status'] })}>
-                <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-slate-700">
-                  <SelectItem value="available">متاح</SelectItem>
-                  <SelectItem value="busy">مشغول</SelectItem>
-                  <SelectItem value="offline">غير متصل</SelectItem>
-                </SelectContent>
-              </Select>
+              <h3 className="text-sm font-semibold text-purple-300 mb-3">الصلاحيات</h3>
+              <div className="space-y-4">
+                {Object.entries(getPermissionsByCategory()).map(([category, perms]) => (
+                  <div key={category} className="bg-slate-800/50 rounded-lg p-4">
+                    <h4 className="text-sm font-medium text-purple-200 mb-3">{category}</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      {perms.map(perm => (
+                        <label
+                          key={perm.id}
+                          className="flex items-center gap-2 cursor-pointer hover:bg-slate-700/50 p-2 rounded transition-colors"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={formData.permissions.includes(perm.id)}
+                            onChange={() => togglePermission(perm.id)}
+                            className="w-4 h-4 rounded border-slate-600 bg-slate-700 text-purple-600 focus:ring-purple-500 focus:ring-offset-slate-900"
+                          />
+                          <span className="text-sm text-slate-200">{perm.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-slate-400 mt-3">
+                تم تحديد {formData.permissions.length} صلاحية من أصل {PERMISSIONS.length}
+              </p>
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <Button
               variant="ghost"
               onClick={() => setIsDialogOpen(false)}
