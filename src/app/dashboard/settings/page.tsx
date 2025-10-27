@@ -16,7 +16,11 @@ import {
   Globe,
   List,
   Cloud,
-  Wand2
+  Wand2,
+  UtensilsCrossed,
+  Coffee,
+  Shirt,
+  Bell
 } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -42,13 +46,22 @@ export default function SettingsPage() {
       badge: '⭐ مهم'
     },
     {
+      id: 'menu-items',
+      title: 'قوائم الأصناف',
+      description: 'إدارة أصناف الكوفي والمطعم والمغسلة - رفع Excel والصور',
+      icon: UtensilsCrossed,
+      color: 'from-green-500 via-emerald-500 to-teal-500',
+      href: '/dashboard/settings/menu-items',
+      badge: '🔥 جديد'
+    },
+    {
       id: 'website',
       title: 'الموقع الإلكتروني',
       description: 'إنشاء وإدارة موقع الفندق للحجز أونلاين',
       icon: Globe,
       color: 'from-indigo-500 to-purple-500',
       href: '/dashboard/settings/website',
-      badge: 'جديد'
+      badge: null
     },
     {
       id: 'request-types',
@@ -93,7 +106,16 @@ export default function SettingsPage() {
       icon: Volume2,
       color: 'from-orange-500 to-red-500',
       href: '/dashboard/settings/sound-settings',
-      badge: 'جديد'
+      badge: null
+    },
+    {
+      id: 'notifications',
+      title: 'إعدادات الإشعارات',
+      description: 'تخصيص الإشعارات الذكية وأذونات التنبيهات',
+      icon: Bell,
+      color: 'from-yellow-500 to-orange-500',
+      href: '/dashboard/settings/notifications',
+      badge: null
     },
     {
       id: 'ai-assistant',
