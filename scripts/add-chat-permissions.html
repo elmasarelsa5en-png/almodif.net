@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إضافة صلاحيات المحادثات لجميع الموظفين</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .description {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .permission-list {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .permission-list h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .permission-list ul {
+            list-style: none;
+        }
+        .permission-list li {
+            padding: 8px 0;
+            color: #444;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .permission-list li:last-child {
+            border-bottom: none;
+        }
+        .permission-list li::before {
+            content: "✓";
+            color: #28a745;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .progress {
+            margin-top: 20px;
+            display: none;
+        }
+        .progress-bar {
+            background: #f0f0f0;
+            border-radius: 10px;
+            height: 30px;
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        .log {
+            margin-top: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            border-radius: 5px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .log-entry {
+            padding: 3px 0;
+            color: #666;
+        }
+        .log-entry.success {
+            color: #28a745;
+        }
+        .log-entry.error {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 إضافة صلاحيات المحادثات</h1>
+        <p class="description">
+            سيتم إضافة صلاحيات المحادثات التالية لجميع الموظفين في النظام:
+        </p>
+
+        <div class="permission-list">
+            <h3>💬 صلاحيات المحادثات</h3>
+            <ul>
+                <li>الوصول للمحادثات (access_chat)</li>
+                <li>إرسال رسائل (send_message)</li>
+                <li>بدء محادثة جديدة (start_new_chat)</li>
+                <li>تعديل رسائله (edit_own_message)</li>
+                <li>حذف رسائله (delete_own_message)</li>
+                <li>رؤية حالة الاتصال (view_online_status)</li>
+                <li>رفع الملفات (upload_files)</li>
+                <li>رابط المحادثات (view_chat_link)</li>
+            </ul>
+        </div>
+
+        <button id="addPermissionsBtn" onclick="addChatPermissions()">
+            ✨ إضافة الصلاحيات لجميع الموظفين
+        </button>
+
+        <div class="progress" id="progress">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill">0%</div>
+            </div>
+            <div class="log" id="log"></div>
+        </div>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCelygg7SjT7KY7U7E0EPuvMzfFvJpb7mM",
+            authDomain: "al-modif-crm.firebaseapp.com",
+            projectId: "al-modif-crm",
+            storageBucket: "al-modif-crm.firebasestorage.app",
+            messagingSenderId: "362080715447",
+            appId: "1:362080715447:web:41493bfaf1b7b80e1ec332",
+            measurementId: "G-7KT7NS9E00"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Chat permissions to add
+        const chatPermissions = [
+            'access_chat',
+            'send_message',
+            'start_new_chat',
+            'edit_own_message',
+            'delete_own_message',
+            'view_online_status',
+            'upload_files',
+            'view_chat_link'
+        ];
+
+        function addLog(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString('ar-EG')}] ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function updateProgress(current, total) {
+            const percentage = Math.round((current / total) * 100);
+            const progressFill = document.getElementById('progressFill');
+            progressFill.style.width = percentage + '%';
+            progressFill.textContent = percentage + '%';
+        }
+
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = message;
+            resultDiv.className = type;
+            resultDiv.style.display = 'block';
+        }
+
+        async function addChatPermissions() {
+            const btn = document.getElementById('addPermissionsBtn');
+            const progressDiv = document.getElementById('progress');
+            const resultDiv = document.getElementById('result');
+            
+            btn.disabled = true;
+            btn.textContent = '⏳ جاري الإضافة...';
+            progressDiv.style.display = 'block';
+            resultDiv.style.display = 'none';
+            document.getElementById('log').innerHTML = '';
+
+            try {
+                addLog('🔍 جاري البحث عن جميع الموظفين...');
+                
+                // Get all employees
+                const employeesSnapshot = await db.collection('employees').get();
+                const totalEmployees = employeesSnapshot.size;
+                
+                addLog(`✅ تم العثور على ${totalEmployees} موظف`, 'success');
+
+                if (totalEmployees === 0) {
+                    throw new Error('لم يتم العثور على أي موظفين');
+                }
+
+                let successCount = 0;
+                let errorCount = 0;
+                let current = 0;
+
+                // Update each employee
+                for (const doc of employeesSnapshot.docs) {
+                    current++;
+                    const employeeData = doc.data();
+                    const employeeName = employeeData.name || doc.id;
+                    
+                    try {
+                        addLog(`📝 معالجة: ${employeeName}...`);
+                        
+                        // Get current permissions
+                        const currentPermissions = employeeData.permissions || [];
+                        
+                        // Add chat permissions if not already present
+                        const newPermissions = [...currentPermissions];
+                        let addedCount = 0;
+                        
+                        chatPermissions.forEach(permission => {
+                            if (!newPermissions.includes(permission)) {
+                                newPermissions.push(permission);
+                                addedCount++;
+                            }
+                        });
+
+                        if (addedCount > 0) {
+                            // Update employee document
+                            await db.collection('employees').doc(doc.id).update({
+                                permissions: newPermissions,
+                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                            });
+                            
+                            addLog(`✅ ${employeeName}: تمت إضافة ${addedCount} صلاحية`, 'success');
+                            successCount++;
+                        } else {
+                            addLog(`ℹ️ ${employeeName}: يمتلك جميع الصلاحيات بالفعل`, 'info');
+                            successCount++;
+                        }
+                    } catch (error) {
+                        addLog(`❌ ${employeeName}: ${error.message}`, 'error');
+                        errorCount++;
+                    }
+
+                    updateProgress(current, totalEmployees);
+                }
+
+                // Show final result
+                if (errorCount === 0) {
+                    showResult(
+                        `🎉 تم بنجاح! تمت إضافة صلاحيات المحادثات لـ ${successCount} موظف`,
+                        'success'
+                    );
+                } else {
+                    showResult(
+                        `⚠️ اكتمل مع أخطاء: نجح ${successCount}، فشل ${errorCount}`,
+                        'info'
+                    );
+                }
+
+                btn.textContent = '✅ تمت الإضافة';
+                
+            } catch (error) {
+                console.error('Error:', error);
+                addLog(`❌ خطأ: ${error.message}`, 'error');
+                showResult('❌ حدث خطأ: ' + error.message, 'error');
+                btn.disabled = false;
+                btn.textContent = '🔄 إعادة المحاولة';
+            }
+        }
+    </script>
+</body>
+</html>

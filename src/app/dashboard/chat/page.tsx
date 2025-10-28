@@ -18,287 +18,313 @@ import {
   Check,
   Bell,
   Trash2,
+  Loader2,
+  Edit2,
+  FileText,
+  Image as ImageIcon,
+  Circle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/auth-context';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { PermissionGuard } from '@/components/PermissionGuard';
+import {
+  Chat,
+  ChatMessage,
+  OnlineStatus,
+  getOrCreateChat,
+  sendMessage as sendFirebaseMessage,
+  markMessagesAsRead,
+  setTypingStatus,
+  updateOnlineStatus,
+  subscribeToChats,
+  subscribeToMessages,
+  subscribeToOnlineStatus,
+  subscribeToTyping,
+  editMessage,
+  deleteMessage,
+} from '@/lib/chat';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Timestamp } from 'firebase/firestore';
 
-interface Message {
+interface Employee {
   id: string;
-  sender: {
-    id: string;
-    name: string;
-    avatar?: string;
-  };
-  content: string;
-  timestamp: string;
-  read: boolean;
-  type: 'text' | 'file' | 'image';
-}
-
-interface Conversation {
-  id: string;
-  participants: Array<{ id: string; name: string; avatar?: string }>;
-  lastMessage: string;
-  lastMessageTime: string;
-  unreadCount: number;
-  name?: string;
-}
-
-interface Notification {
-  id: string;
-  conversationId: string;
-  fromUserId: string;
-  fromUserName: string;
-  message: string;
-  timestamp: string;
-  read: boolean;
+  name: string;
+  email: string;
+  position?: string;
+  department?: string;
+  avatar?: string;
 }
 
 export default function ChatPage() {
   const { user } = useAuth();
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
+  
+  // State
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [messageInput, setMessageInput] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [employees, setEmployees] = useState<any[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [showNewChat, setShowNewChat] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [showNotifications, setShowNotifications] = useState(false);
+  const [onlineStatuses, setOnlineStatuses] = useState<{ [key: string]: OnlineStatus }>({});
+  const [typingUsers, setTypingUsers] = useState<{ [key: string]: boolean }>({});
+  const [loading, setLoading] = useState(false);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editingContent, setEditingContent] = useState('');
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // Load conversations and employees
+  // Load employees from Firebase
   useEffect(() => {
-    loadConversations();
+    const loadEmployees = async () => {
+      try {
+        const employeesRef = collection(db, 'employees');
+        const q = query(employeesRef, orderBy('name', 'asc'));
+        const querySnapshot = await getDocs(q);
+        
+        const employeesList: Employee[] = [];
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          employeesList.push({
+            id: doc.id,
+            name: data.name || '',
+            email: data.email || '',
+            position: data.position,
+            department: data.department,
+            avatar: data.avatar,
+          });
+        });
+        
+        setEmployees(employeesList);
+      } catch (error) {
+        console.error('Error loading employees:', error);
+      }
+    };
+
     loadEmployees();
-    loadNotifications();
-    // تحديث الإشعارات كل 2 ثانية
-    const interval = setInterval(() => {
-      loadNotifications();
-    }, 2000);
-    return () => clearInterval(interval);
   }, []);
+
+  // Subscribe to user's chats
+  useEffect(() => {
+    if (!user?.username) return;
+
+    console.log('🔵 Subscribing to chats for user:', user.username);
+    const unsubscribe = subscribeToChats(user.username, (updatedChats) => {
+      console.log('✅ Received chats update:', updatedChats.length);
+      setChats(updatedChats);
+    });
+
+    return () => {
+      console.log('🔴 Unsubscribing from chats');
+      unsubscribe();
+    };
+  }, [user?.username]);
+
+  // Subscribe to messages in selected chat
+  useEffect(() => {
+    if (!selectedChat) return;
+
+    console.log('🔵 Subscribing to messages for chat:', selectedChat.id);
+    const unsubscribe = subscribeToMessages(selectedChat.id, (updatedMessages) => {
+      console.log('✅ Received messages update:', updatedMessages.length);
+      setMessages(updatedMessages);
+      
+      // Mark messages as read
+      if (user?.username) {
+        markMessagesAsRead(selectedChat.id, user.username);
+      }
+    });
+
+    return () => {
+      console.log('🔴 Unsubscribing from messages');
+      unsubscribe();
+    };
+  }, [selectedChat, user?.username]);
+
+  // Subscribe to typing status
+  useEffect(() => {
+    if (!selectedChat) return;
+
+    const unsubscribe = subscribeToTyping(selectedChat.id, (typing) => {
+      setTypingUsers(typing);
+    });
+
+    return () => unsubscribe();
+  }, [selectedChat]);
+
+  // Subscribe to online statuses
+  useEffect(() => {
+    const unsubscribers: (() => void)[] = [];
+
+    chats.forEach((chat) => {
+      chat.participants.forEach((participantId) => {
+        if (participantId !== user?.username) {
+          const unsubscribe = subscribeToOnlineStatus(participantId, (status) => {
+            setOnlineStatuses((prev) => ({
+              ...prev,
+              [participantId]: status,
+            }));
+          });
+          unsubscribers.push(unsubscribe);
+        }
+      });
+    });
+
+    return () => {
+      unsubscribers.forEach((unsubscribe) => unsubscribe());
+    };
+  }, [chats, user?.username]);
+
+  // Update online status
+  useEffect(() => {
+    if (!user?.username) return;
+
+    // Set online
+    updateOnlineStatus(user.username, true);
+
+    // Set offline on unmount
+    return () => {
+      updateOnlineStatus(user.username, false);
+    };
+  }, [user?.username]);
 
   // Scroll to bottom of messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const loadConversations = () => {
-    try {
-      const saved = localStorage.getItem('chat_conversations');
-      if (saved) {
-        const data = JSON.parse(saved);
-        setConversations(data);
-        if (data.length > 0) {
-          selectConversation(data[0]);
-        }
-      } else {
-        // بدء بدون محادثات - المستخدم يضيف محادثات جديدة
-        setConversations([]);
-      }
-    } catch (error) {
-      console.error('Error loading conversations:', error);
-    }
-  };
+  // Handle typing indicator
+  const handleTyping = () => {
+    if (!selectedChat || !user?.username) return;
 
-  const loadEmployees = () => {
-    try {
-      const saved = localStorage.getItem('hr_employees');
-      if (saved) {
-        const employeesData = JSON.parse(saved);
-        setEmployees(employeesData);
-      } else {
-        // بدء بدون موظفين - المستخدم يضيف موظفين من صفحة الموارد البشرية
-        setEmployees([]);
-      }
-    } catch (error) {
-      console.error('Error loading employees:', error);
-    }
-  };
+    setTypingStatus(selectedChat.id, user.username, true);
 
-  const loadNotifications = () => {
-    try {
-      const saved = localStorage.getItem(`chat_notifications_${user?.username}`);
-      if (saved) {
-        const data = JSON.parse(saved);
-        setNotifications(data);
-      }
-    } catch (error) {
-      console.error('Error loading notifications:', error);
-    }
-  };
-
-  const addNotification = (conversationId: string, fromUserId: string, fromUserName: string, message: string) => {
-    const newNotification: Notification = {
-      id: `notif-${Date.now()}`,
-      conversationId,
-      fromUserId,
-      fromUserName,
-      message,
-      timestamp: new Date().toISOString(),
-      read: false,
-    };
-    const updated = [newNotification, ...notifications];
-    setNotifications(updated);
-    localStorage.setItem(`chat_notifications_${user?.username}`, JSON.stringify(updated));
-    // تشغيل صوت إشعار إن أمكن
-    playNotificationSound();
-  };
-
-  const playNotificationSound = () => {
-    try {
-      const audio = new Audio('data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA==');
-      audio.play().catch(() => {});
-    } catch (e) {
-      // صامت إذا فشل
-    }
-  };
-
-  const markNotificationAsRead = (notificationId: string) => {
-    const updated = notifications.map((n) =>
-      n.id === notificationId ? { ...n, read: true } : n
-    );
-    setNotifications(updated);
-    localStorage.setItem(`chat_notifications_${user?.username}`, JSON.stringify(updated));
-  };
-
-  const deleteNotification = (notificationId: string) => {
-    const updated = notifications.filter((n) => n.id !== notificationId);
-    setNotifications(updated);
-    localStorage.setItem(`chat_notifications_${user?.username}`, JSON.stringify(updated));
-  };
-
-  const selectConversation = (conversation: Conversation) => {
-    setSelectedConversation(conversation);
-    loadMessages(conversation.id);
-    // Mark as read
-    const updated = conversations.map((c) =>
-      c.id === conversation.id ? { ...c, unreadCount: 0 } : c
-    );
-    setConversations(updated);
-    localStorage.setItem('chat_conversations', JSON.stringify(updated));
-
-    // وضع علامة على رسائل المحادثة كمقروءة
-    markMessagesAsRead(conversation.id);
-  };
-
-  const markMessagesAsRead = (conversationId: string) => {
-    try {
-      const saved = localStorage.getItem(`chat_messages_${conversationId}`);
-      if (saved) {
-        const msgs: Message[] = JSON.parse(saved);
-        const updated = msgs.map((m) =>
-          m.sender.id !== user?.username ? { ...m, read: true } : m
-        );
-        localStorage.setItem(`chat_messages_${conversationId}`, JSON.stringify(updated));
-        setMessages(updated);
-      }
-    } catch (error) {
-      console.error('Error marking messages as read:', error);
-    }
-  };
-
-  const loadMessages = (conversationId: string) => {
-    try {
-      const saved = localStorage.getItem(`chat_messages_${conversationId}`);
-      if (saved) {
-        setMessages(JSON.parse(saved));
-      } else {
-        setMessages([]);
-      }
-    } catch (error) {
-      console.error('Error loading messages:', error);
-    }
-  };
-
-  const sendMessage = () => {
-    if (!messageInput.trim() || !selectedConversation || !user) return;
-
-    const newMessage: Message = {
-      id: `msg-${Date.now()}`,
-      sender: {
-        id: user.username,
-        name: user.name,
-      },
-      content: messageInput,
-      timestamp: new Date().toISOString(),
-      read: false,
-      type: 'text',
-    };
-
-    const updatedMessages = [...messages, newMessage];
-    setMessages(updatedMessages);
-    localStorage.setItem(`chat_messages_${selectedConversation.id}`, JSON.stringify(updatedMessages));
-
-    // Update conversation last message
-    const updatedConversations = conversations.map((c) =>
-      c.id === selectedConversation.id
-        ? {
-            ...c,
-            lastMessage: messageInput,
-            lastMessageTime: new Date().toISOString(),
-          }
-        : c
-    );
-    setConversations(updatedConversations);
-    localStorage.setItem('chat_conversations', JSON.stringify(updatedConversations));
-
-    // إرسال إشعار للموظف الآخر
-    const otherParticipant = selectedConversation.participants.find((p) => p.id !== user?.username);
-    if (otherParticipant) {
-      const notificationsKey = `chat_notifications_${otherParticipant.id}`;
-      try {
-        const existingNotifications = JSON.parse(localStorage.getItem(notificationsKey) || '[]');
-        const newNotification: Notification = {
-          id: `notif-${Date.now()}`,
-          conversationId: selectedConversation.id,
-          fromUserId: user.username,
-          fromUserName: user.name,
-          message: messageInput,
-          timestamp: new Date().toISOString(),
-          read: false,
-        };
-        const updatedNotifications = [newNotification, ...existingNotifications];
-        localStorage.setItem(notificationsKey, JSON.stringify(updatedNotifications));
-      } catch (error) {
-        console.error('Error sending notification:', error);
-      }
+    // Clear previous timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
     }
 
-    setMessageInput('');
+    // Set new timeout to stop typing after 2 seconds
+    typingTimeoutRef.current = setTimeout(() => {
+      setTypingStatus(selectedChat.id, user.username, false);
+    }, 2000);
   };
 
-  const startNewChat = (employee: any) => {
-    const conversationId = `conv-${Date.now()}`;
-    const newConversation: Conversation = {
-      id: conversationId,
-      participants: [
-        { id: user?.username || '', name: user?.name || '' },
-        { id: employee.id, name: employee.name, avatar: employee.avatar },
-      ],
-      lastMessage: '',
-      lastMessageTime: new Date().toISOString(),
-      unreadCount: 0,
-    };
-
-    const updated = [newConversation, ...conversations];
-    setConversations(updated);
-    localStorage.setItem('chat_conversations', JSON.stringify(updated));
-    selectConversation(newConversation);
+  const selectChat = (chat: Chat) => {
+    setSelectedChat(chat);
     setShowNewChat(false);
   };
 
-  const filteredConversations = conversations.filter((c) => {
-    const otherParticipant = c.participants.find((p) => p.id !== user?.username);
-    return otherParticipant?.name.toLowerCase().includes(searchTerm.toLowerCase());
+  const sendMessageHandler = async () => {
+    if (!messageInput.trim() || !selectedChat || !user) return;
+
+    try {
+      setLoading(true);
+      await sendFirebaseMessage(
+        selectedChat.id,
+        user.username,
+        user.name,
+        messageInput,
+        'text',
+        undefined,
+        undefined,
+        undefined // avatar - not available in User type
+      );
+      
+      setMessageInput('');
+      
+      // Stop typing indicator
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      setTypingStatus(selectedChat.id, user.username, false);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      alert('فشل إرسال الرسالة. حاول مرة أخرى.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const startNewChat = async (employee: Employee) => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+      const chatId = await getOrCreateChat(
+        user.username,
+        user.name,
+        employee.id,
+        employee.name,
+        undefined, // user avatar
+        employee.avatar
+      );
+
+      // Find the chat in the list or wait for subscription to update
+      const chat = chats.find((c) => c.id === chatId);
+      if (chat) {
+        selectChat(chat);
+      }
+      setShowNewChat(false);
+    } catch (error) {
+      console.error('Error starting new chat:', error);
+      alert('فشل إنشاء المحادثة. حاول مرة أخرى.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditMessage = async (messageId: string) => {
+    if (!editingContent.trim()) return;
+
+    try {
+      await editMessage(messageId, editingContent);
+      setEditingMessageId(null);
+      setEditingContent('');
+    } catch (error) {
+      console.error('Error editing message:', error);
+      alert('فشل تعديل الرسالة. حاول مرة أخرى.');
+    }
+  };
+
+  const handleDeleteMessage = async (messageId: string) => {
+    if (!selectedChat) return;
+    
+    if (!confirm('هل أنت متأكد من حذف هذه الرسالة؟')) return;
+
+    try {
+      await deleteMessage(messageId, selectedChat.id);
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      alert('فشل حذف الرسالة. حاول مرة أخرى.');
+    }
+  };
+
+  const filteredChats = chats.filter((chat) => {
+    const otherParticipantId = chat.participants.find((id) => id !== user?.username);
+    if (!otherParticipantId) return false;
+    
+    const otherParticipantName = chat.participantNames[otherParticipantId] || '';
+    return otherParticipantName.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
+  const formatTime = (timestamp: any) => {
+    if (!timestamp) return '';
+    
+    let date: Date;
+    if (timestamp instanceof Timestamp) {
+      date = timestamp.toDate();
+    } else if (timestamp instanceof Date) {
+      date = timestamp;
+    } else {
+      date = new Date(timestamp);
+    }
+
     const now = new Date();
     const isToday = date.toDateString() === now.toDateString();
 
@@ -308,97 +334,42 @@ export default function ChatPage() {
     return date.toLocaleDateString('ar-SA', { month: 'short', day: 'numeric' });
   };
 
-  const otherParticipant = selectedConversation
-    ? selectedConversation.participants.find((p) => p.id !== user?.username)
-    : null;
+  const getOtherParticipant = (chat: Chat) => {
+    const otherParticipantId = chat.participants.find((id) => id !== user?.username);
+    if (!otherParticipantId) return null;
+
+    return {
+      id: otherParticipantId,
+      name: chat.participantNames[otherParticipantId] || 'Unknown',
+      avatar: chat.participantAvatars?.[otherParticipantId],
+    };
+  };
+
+  const isUserOnline = (userId: string) => {
+    return onlineStatuses[userId]?.online || false;
+  };
+
+  const isOtherUserTyping = () => {
+    if (!selectedChat || !user) return false;
+    
+    const otherParticipant = getOtherParticipant(selectedChat);
+    if (!otherParticipant) return false;
+
+    return typingUsers[otherParticipant.id] || false;
+  };
+
+  const otherParticipant = selectedChat ? getOtherParticipant(selectedChat) : null;
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6" dir="rtl">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="mb-8 flex items-center justify-between relative z-20">
+      <PermissionGuard permission="access_chat" fallback="page">
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6" dir="rtl">
+          <div className="max-w-7xl mx-auto">
+            {/* Header */}
+            <div className="mb-8 flex items-center justify-between relative z-20">
             <div>
-              <h1 className="text-4xl font-bold text-white">محادثات داخلية</h1>
-              <p className="text-purple-200 mt-1">التواصل المباشر مع فريق العمل</p>
-            </div>
-            {/* زر الإشعارات */}
-            <div className="relative z-[200]">
-              <Button
-                onClick={() => setShowNotifications(!showNotifications)}
-                variant="outline"
-                className="relative border-blue-500/30 bg-blue-500/10 text-blue-300 hover:bg-blue-500/20"
-              >
-                <Bell className="w-5 h-5" />
-                {notifications.filter((n) => !n.read).length > 0 && (
-                  <span className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
-                    {notifications.filter((n) => !n.read).length}
-                  </span>
-                )}
-              </Button>
-
-              {/* قائمة الإشعارات */}
-              {showNotifications && (
-                <div className="absolute top-full mt-2 -right-20 w-96 bg-slate-800 border-2 border-blue-500/50 rounded-lg shadow-2xl z-[300] max-h-96 overflow-y-auto backdrop-blur-sm">
-                  <div className="sticky top-0 bg-slate-800/95 border-b border-slate-700 p-3 flex items-center justify-between">
-                    <p className="text-sm font-semibold text-white">الإشعارات</p>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setShowNotifications(false)}
-                      className="h-6 w-6 p-0"
-                    >
-                      ×
-                    </Button>
-                  </div>
-                  {notifications.length === 0 ? (
-                    <div className="p-4 text-center text-slate-400 text-sm">لا توجد إشعارات</div>
-                  ) : (
-                    <div className="divide-y divide-slate-700">
-                      {notifications.map((notif) => (
-                        <div
-                          key={notif.id}
-                          className={`p-3 cursor-pointer transition-colors flex items-start justify-between gap-2 ${
-                            notif.read ? 'hover:bg-slate-700/30 bg-slate-800' : 'bg-blue-500/15 hover:bg-blue-500/25'
-                          }`}
-                        >
-                          <div
-                            onClick={() => {
-                              const conv = conversations.find((c) => c.id === notif.conversationId);
-                              if (conv) {
-                                selectConversation(conv);
-                                markNotificationAsRead(notif.id);
-                                setShowNotifications(false);
-                              }
-                            }}
-                            className="flex-1 min-w-0"
-                          >
-                            <p className="text-sm font-semibold text-white">{notif.fromUserName}</p>
-                            <p className="text-xs text-slate-300 truncate">{notif.message}</p>
-                            <p className="text-xs text-slate-500 mt-1">
-                              {new Date(notif.timestamp).toLocaleTimeString('ar-EG', {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
-                            </p>
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteNotification(notif.id);
-                            }}
-                            className="text-red-400 hover:bg-red-500/20 h-6 w-6 p-0 flex-shrink-0"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+              <h1 className="text-4xl font-bold text-white">محادثات الموظفين</h1>
+              <p className="text-purple-200 mt-1">التواصل المباشر والاحترافي مع فريق العمل</p>
             </div>
           </div>
 
@@ -407,7 +378,14 @@ export default function ChatPage() {
             <Card className="bg-slate-800/50 border-slate-700 flex flex-col">
               <CardHeader className="border-b border-slate-700">
                 <div className="space-y-4">
-                  <CardTitle className="text-white">المحادثات</CardTitle>
+                  <CardTitle className="text-white flex items-center justify-between">
+                    <span>المحادثات</span>
+                    {chats.length > 0 && (
+                      <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded-full">
+                        {chats.length}
+                      </span>
+                    )}
+                  </CardTitle>
                   <div className="relative">
                     <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <Input
@@ -419,9 +397,14 @@ export default function ChatPage() {
                   </div>
                   <Button
                     onClick={() => setShowNewChat(true)}
-                    className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700"
+                    disabled={loading}
+                    className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 disabled:opacity-50"
                   >
-                    <Plus className="w-4 h-4 ml-2" />
+                    {loading ? (
+                      <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                    ) : (
+                      <Plus className="w-4 h-4 ml-2" />
+                    )}
                     محادثة جديدة
                   </Button>
                 </div>
@@ -445,24 +428,38 @@ export default function ChatPage() {
                         <button
                           key={emp.id}
                           onClick={() => startNewChat(emp)}
-                          className="w-full text-right p-3 rounded-lg hover:bg-slate-700 transition-colors"
+                          disabled={loading}
+                          className="w-full text-right p-3 rounded-lg hover:bg-slate-700 transition-colors disabled:opacity-50 flex items-center gap-3"
                         >
-                          <p className="text-white font-semibold text-sm">{emp.name}</p>
-                          <p className="text-gray-400 text-xs">{emp.position || emp.department || ''}</p>
+                          <div className="relative">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold">
+                              {emp.name.charAt(0)}
+                            </div>
+                            {isUserOnline(emp.id) && (
+                              <Circle className="absolute bottom-0 right-0 w-3 h-3 text-green-500 fill-green-500 border-2 border-slate-800" />
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-white font-semibold text-sm">{emp.name}</p>
+                            <p className="text-gray-400 text-xs">{emp.position || emp.department || 'موظف'}</p>
+                          </div>
                         </button>
                       ))}
                   </div>
                 )}
 
                 <div className="divide-y divide-slate-700">
-                  {filteredConversations.map((conv) => {
-                    const other = conv.participants.find((p) => p.id !== user?.username);
-                    const isSelected = selectedConversation?.id === conv.id;
+                  {filteredChats.map((chat) => {
+                    const other = getOtherParticipant(chat);
+                    if (!other) return null;
+
+                    const isSelected = selectedChat?.id === chat.id;
+                    const unreadCount = chat.unreadCount?.[user?.username || ''] || 0;
 
                     return (
                       <button
-                        key={conv.id}
-                        onClick={() => selectConversation(conv)}
+                        key={chat.id}
+                        onClick={() => selectChat(chat)}
                         className={`w-full text-right p-4 transition-colors ${
                           isSelected
                             ? 'bg-blue-500/20 border-l-4 border-blue-500'
@@ -470,15 +467,32 @@ export default function ChatPage() {
                         }`}
                       >
                         <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1">
-                            <p className="text-white font-semibold text-sm">{other?.name}</p>
-                            <p className="text-gray-400 text-xs truncate">{conv.lastMessage || 'لا توجد رسائل بعد'}</p>
+                          <div className="flex items-start gap-3 flex-1">
+                            <div className="relative">
+                              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold">
+                                {other.name.charAt(0)}
+                              </div>
+                              {isUserOnline(other.id) && (
+                                <Circle className="absolute bottom-0 right-0 w-3 h-3 text-green-500 fill-green-500 border-2 border-slate-800" />
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <p className="text-white font-semibold text-sm">{other.name}</p>
+                                {isUserOnline(other.id) && (
+                                  <span className="text-xs text-green-400">نشط الآن</span>
+                                )}
+                              </div>
+                              <p className="text-gray-400 text-xs truncate">
+                                {chat.lastMessage || 'لا توجد رسائل بعد'}
+                              </p>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <p className="text-gray-400 text-xs">{formatTime(conv.lastMessageTime)}</p>
-                            {conv.unreadCount > 0 && (
-                              <span className="inline-block bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center mt-1">
-                                {conv.unreadCount}
+                          <div className="text-left flex flex-col items-end gap-1">
+                            <p className="text-gray-400 text-xs">{formatTime(chat.lastMessageTime)}</p>
+                            {unreadCount > 0 && (
+                              <span className="inline-block bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                                {unreadCount}
                               </span>
                             )}
                           </div>
@@ -488,28 +502,48 @@ export default function ChatPage() {
                   })}
                 </div>
 
-                {filteredConversations.length === 0 && !showNewChat && (
+                {filteredChats.length === 0 && !showNewChat && (
                   <div className="p-8 text-center">
                     <Users className="w-12 h-12 text-gray-500 mx-auto mb-3 opacity-50" />
                     <p className="text-gray-400 text-sm">لا توجد محادثات</p>
+                    <p className="text-gray-500 text-xs mt-1">ابدأ محادثة جديدة مع أحد الموظفين</p>
                   </div>
                 )}
               </CardContent>
             </Card>
 
             {/* Chat Area */}
-            {selectedConversation && otherParticipant ? (
+            {selectedChat && otherParticipant ? (
               <Card className="lg:col-span-2 bg-slate-800/50 border-slate-700 flex flex-col">
                 {/* Chat Header */}
                 <CardHeader className="border-b border-slate-700 pb-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold">
-                        {otherParticipant.name.charAt(0)}
+                      <div className="relative">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold">
+                          {otherParticipant.name.charAt(0)}
+                        </div>
+                        {isUserOnline(otherParticipant.id) && (
+                          <Circle className="absolute bottom-0 right-0 w-3 h-3 text-green-500 fill-green-500 border-2 border-slate-800" />
+                        )}
                       </div>
                       <div>
                         <h3 className="text-white font-semibold">{otherParticipant.name}</h3>
-                        <p className="text-gray-400 text-xs">نشط الآن</p>
+                        <p className="text-gray-400 text-xs">
+                          {isUserOnline(otherParticipant.id) ? (
+                            <span className="text-green-400 flex items-center gap-1">
+                              <Circle className="w-2 h-2 fill-green-400" />
+                              نشط الآن
+                            </span>
+                          ) : (
+                            onlineStatuses[otherParticipant.id]?.lastSeen && (
+                              <span>
+                                آخر ظهور:{' '}
+                                {formatTime(onlineStatuses[otherParticipant.id].lastSeen)}
+                              </span>
+                            )
+                          )}
+                        </p>
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -539,28 +573,113 @@ export default function ChatPage() {
                   ) : (
                     <>
                       {messages.map((msg) => {
-                        const isOwn = msg.sender.id === user?.username;
+                        const isOwn = msg.senderId === user?.username;
+                        const isRead = msg.readBy.length > 1; // More than just sender
+                        const isEditing = editingMessageId === msg.id;
+
                         return (
                           <div key={msg.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
-                            <div
-                              className={`max-w-xs px-4 py-2 rounded-lg ${
-                                isOwn
-                                  ? 'bg-blue-500/80 text-white rounded-bl-lg'
-                                  : 'bg-slate-700/50 text-gray-200 rounded-br-lg'
-                              }`}
-                            >
-                              <p className="text-sm break-words">{msg.content}</p>
-                              <div className={`flex items-center gap-1 mt-1 text-xs ${isOwn ? 'justify-end' : 'justify-start'} ${isOwn ? 'text-blue-100' : 'text-gray-400'}`}>
-                                <span>{formatTime(msg.timestamp)}</span>
-                                {isOwn && msg.read && <CheckCheck className="w-3 h-3" />}
-                                {isOwn && !msg.read && <Check className="w-3 h-3" />}
-                              </div>
+                            <div className={`max-w-xs ${isOwn ? 'text-left' : 'text-right'}`}>
+                              {isEditing ? (
+                                <div className="space-y-2">
+                                  <Input
+                                    value={editingContent}
+                                    onChange={(e) => setEditingContent(e.target.value)}
+                                    className="bg-slate-700 border-slate-600 text-white"
+                                    onKeyPress={(e) => {
+                                      if (e.key === 'Enter') {
+                                        handleEditMessage(msg.id);
+                                      }
+                                    }}
+                                  />
+                                  <div className="flex gap-2">
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handleEditMessage(msg.id)}
+                                      className="flex-1 bg-blue-500 hover:bg-blue-600"
+                                    >
+                                      حفظ
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => {
+                                        setEditingMessageId(null);
+                                        setEditingContent('');
+                                      }}
+                                      className="flex-1"
+                                    >
+                                      إلغاء
+                                    </Button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <>
+                                  <div
+                                    className={`group px-4 py-2 rounded-lg ${
+                                      isOwn
+                                        ? 'bg-blue-500/80 text-white rounded-bl-lg'
+                                        : 'bg-slate-700/50 text-gray-200 rounded-br-lg'
+                                    }`}
+                                  >
+                                    <p className="text-sm break-words">{msg.content}</p>
+                                    <div
+                                      className={`flex items-center gap-1 mt-1 text-xs ${
+                                        isOwn ? 'justify-end' : 'justify-start'
+                                      } ${isOwn ? 'text-blue-100' : 'text-gray-400'}`}
+                                    >
+                                      <span>{formatTime(msg.timestamp)}</span>
+                                      {msg.edited && <span className="mx-1">• تم التعديل</span>}
+                                      {isOwn && isRead && <CheckCheck className="w-3 h-3" />}
+                                      {isOwn && !isRead && <Check className="w-3 h-3" />}
+                                    </div>
+                                    {isOwn && (
+                                      <div className="hidden group-hover:flex gap-1 mt-2">
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          onClick={() => {
+                                            setEditingMessageId(msg.id);
+                                            setEditingContent(msg.content);
+                                          }}
+                                          className="h-6 px-2 text-xs text-blue-100 hover:bg-blue-600"
+                                        >
+                                          <Edit2 className="w-3 h-3 ml-1" />
+                                          تعديل
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          onClick={() => handleDeleteMessage(msg.id)}
+                                          className="h-6 px-2 text-xs text-red-300 hover:bg-red-500/20"
+                                        >
+                                          <Trash2 className="w-3 h-3 ml-1" />
+                                          حذف
+                                        </Button>
+                                      </div>
+                                    )}
+                                  </div>
+                                </>
+                              )}
                             </div>
                           </div>
                         );
                       })}
                       <div ref={messagesEndRef} />
                     </>
+                  )}
+                  
+                  {/* Typing Indicator */}
+                  {isOtherUserTyping() && (
+                    <div className="flex justify-start">
+                      <div className="bg-slate-700/50 text-gray-300 px-4 py-2 rounded-lg rounded-br-lg">
+                        <div className="flex gap-1">
+                          <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                          <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                          <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </CardContent>
 
@@ -570,16 +689,24 @@ export default function ChatPage() {
                     <Input
                       placeholder="اكتب رسالة..."
                       value={messageInput}
-                      onChange={(e) => setMessageInput(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                      onChange={(e) => {
+                        setMessageInput(e.target.value);
+                        handleTyping();
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && !loading) {
+                          sendMessageHandler();
+                        }
+                      }}
+                      disabled={loading}
                       className="flex-1 bg-slate-700 border-slate-600 text-white placeholder-gray-400"
                     />
                     <Button
-                      onClick={sendMessage}
-                      disabled={!messageInput.trim()}
+                      onClick={sendMessageHandler}
+                      disabled={!messageInput.trim() || loading}
                       className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 disabled:opacity-50"
                     >
-                      <Send className="w-4 h-4" />
+                      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                     </Button>
                   </div>
                   <div className="flex gap-2">
@@ -597,12 +724,14 @@ export default function ChatPage() {
                 <div className="text-center">
                   <Users className="w-16 h-16 text-gray-500 mx-auto mb-4 opacity-30" />
                   <p className="text-gray-400 text-lg">اختر محادثة أو ابدأ محادثة جديدة</p>
+                  <p className="text-gray-500 text-sm mt-1">تواصل مع فريق العمل بشكل احترافي</p>
                 </div>
               </Card>
             )}
           </div>
+          </div>
         </div>
-      </div>
+      </PermissionGuard>
     </ProtectedRoute>
   );
 }

@@ -200,6 +200,24 @@ export const ALL_PERMISSIONS: PermissionCategory[] = [
       { id: 'view_requests_link', label: 'رابط الطلبات', labelEn: 'Requests Link', category: 'navigation', description: 'عرض رابط الطلبات' },
       { id: 'view_reports_link', label: 'رابط التقارير', labelEn: 'Reports Link', category: 'navigation', description: 'عرض رابط التقارير' },
       { id: 'view_settings_link', label: 'رابط الإعدادات', labelEn: 'Settings Link', category: 'navigation', description: 'عرض رابط الإعدادات' },
+      { id: 'view_chat_link', label: 'رابط المحادثات', labelEn: 'Chat Link', category: 'navigation', description: 'عرض رابط المحادثات' },
+    ]
+  },
+  {
+    id: 'chat',
+    label: 'المحادثات',
+    labelEn: 'Chat',
+    icon: '💬',
+    permissions: [
+      { id: 'access_chat', label: 'الوصول للمحادثات', labelEn: 'Access Chat', category: 'chat', description: 'الوصول إلى صفحة المحادثات' },
+      { id: 'send_message', label: 'إرسال رسائل', labelEn: 'Send Messages', category: 'chat', description: 'إرسال رسائل للموظفين' },
+      { id: 'start_new_chat', label: 'بدء محادثة جديدة', labelEn: 'Start New Chat', category: 'chat', description: 'بدء محادثة مع موظف آخر' },
+      { id: 'edit_own_message', label: 'تعديل رسائله', labelEn: 'Edit Own Messages', category: 'chat', description: 'تعديل الرسائل المرسلة' },
+      { id: 'delete_own_message', label: 'حذف رسائله', labelEn: 'Delete Own Messages', category: 'chat', description: 'حذف الرسائل المرسلة' },
+      { id: 'view_online_status', label: 'رؤية حالة الاتصال', labelEn: 'View Online Status', category: 'chat', description: 'رؤية من هو متصل الآن' },
+      { id: 'upload_files', label: 'رفع الملفات', labelEn: 'Upload Files', category: 'chat', description: 'إرسال ملفات ومرفقات' },
+      { id: 'view_all_chats', label: 'عرض كل المحادثات', labelEn: 'View All Chats', category: 'chat', description: 'رؤية جميع محادثات الموظفين (إداري)' },
+      { id: 'delete_any_message', label: 'حذف أي رسالة', labelEn: 'Delete Any Message', category: 'chat', description: 'حذف رسائل الآخرين (إداري)' },
     ]
   },
 ];
