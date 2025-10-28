@@ -525,73 +525,12 @@ export default function LaundryPage() {
           </div>
         </motion.div>
 
-        {/* Premium Services Categories */}
-        <motion.div 
-          className="mb-12"
-          variants={itemVariants}
-        >
-          <h2 className="text-4xl font-bold text-center mb-8 bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
-            فئات الخدمات المميزة
-          </h2>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            {[
-              { 
-                name: 'غسيل عادي', 
-                icon: Shirt, 
-                count: 12,
-                color: 'from-blue-500 to-cyan-500',
-                category: 'regular'
-              },
-              { 
-                name: 'غسيل فاخر', 
-                icon: Crown, 
-                count: 8,
-                color: 'from-purple-500 to-pink-500',
-                category: 'premium'
-              },
-              { 
-                name: 'كي احترافي', 
-                icon: Wind, 
-                count: 6,
-                color: 'from-emerald-500 to-teal-500',
-                category: 'ironing'
-              },
-              { 
-                name: 'خدمات خاصة', 
-                icon: Sparkles, 
-                count: 4,
-                color: 'from-yellow-500 to-orange-500',
-                category: 'special'
-              }
-            ].map((categoryItem, index) => (
-              <motion.div
-                key={index}
-                className={`relative bg-gradient-to-br ${categoryItem.color} p-6 rounded-2xl cursor-pointer group`}
-                whileHover={{ 
-                  scale: 1.05,
-                  rotateY: 5,
-                  z: 50
-                }}
-                variants={cardVariants}
-              >
-                <div className="text-center">
-                  <categoryItem.icon className="h-10 w-10 text-white mx-auto mb-3" />
-                  <h3 className="text-white font-bold mb-1">{categoryItem.name}</h3>
-                  <p className="text-white/80 text-sm">{categoryItem.count} خدمة</p>
-                </div>
-                
-                {/* Premium Hover Effect */}
-                <div className="absolute inset-0 bg-white/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-300" />
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
+
 
         {/* Professional Services Grid */}
         <AnimatePresence>
           <motion.div 
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8"
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-8"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
@@ -601,75 +540,64 @@ export default function LaundryPage() {
                 key={service.id}
                 variants={cardVariants}
                 whileHover={{ 
-                  y: -10,
-                  rotateX: 5,
-                  scale: 1.02
+                  y: -5,
+                  scale: 1.03
                 }}
                 className="group relative"
                 layout
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
+                transition={{ delay: index * 0.05 }}
               >
-                {/* Premium Service Card */}
-                <div className="bg-black/30 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl h-full group-hover:shadow-cyan-500/25 transition-all duration-500">
-                  {/* Service Icon with Animation */}
-                  <div className="relative mb-6">
-                    <div className={`w-20 h-20 bg-gradient-to-br ${getCategoryColor(service.category)} rounded-2xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300`}>
-                      {getCategoryIcon(service.category)}
-                    </div>
+                {/* Compact Service Card */}
+                <div className="bg-black/30 backdrop-blur-xl rounded-2xl p-4 border border-white/10 shadow-xl h-full group-hover:shadow-cyan-500/20 transition-all duration-300">
+                  {/* Service Image */}
+                  <div className="relative mb-3 overflow-hidden rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 aspect-square">
+                    <img 
+                      src={`https://images.unsplash.com/photo-${
+                        service.category === 'washing' ? '1582735689369-4ba29b0f5b1e' :
+                        service.category === 'ironing' ? '1521017432531-2e37eb0c4e58' :
+                        service.category === 'dry-cleaning' ? '1594633312681-425c7b97ccd1' :
+                        '1610832958506-aa56368176cf'
+                      }?w=300&h=300&fit=crop&q=80`}
+                      alt={service.nameAr}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
                     
-                    {/* Premium Badge */}
-                    {service.category === 'premium' && (
-                      <div className="absolute -top-2 -right-2">
-                        <Crown className="h-6 w-6 text-yellow-400 animate-pulse" />
-                      </div>
-                    )}
-                    
-                    {/* Special Effects */}
-                    <div className="absolute -bottom-1 -left-1">
-                      <Sparkles className="h-5 w-5 text-cyan-400 opacity-60" />
+                    {/* Price Badge */}
+                    <div className="absolute top-2 left-2">
+                      <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold text-sm px-2 py-1">
+                        {service.price} ر.س
+                      </Badge>
                     </div>
                   </div>
                   
                   {/* Service Info */}
-                  <div className="text-center mb-6">
-                    <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-cyan-300 transition-colors">
+                  <div className="text-center mb-3">
+                    <h3 className="text-base font-bold text-white mb-1 line-clamp-1">
                       {service.nameAr}
                     </h3>
-                    <p className="text-white/60 text-sm mb-4">{service.name}</p>
+                    <p className="text-white/60 text-xs mb-2 line-clamp-1">{service.name}</p>
                     
                     {/* Duration Badge */}
-                    <div className="flex items-center justify-center gap-2 mb-4">
-                      <div className="bg-cyan-500/20 backdrop-blur-sm rounded-full px-4 py-2 flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-cyan-400" />
-                        <span className="text-cyan-300 text-sm font-medium">{service.duration}</span>
-                      </div>
-                    </div>
-                    
-                    {/* Price */}
-                    <div className="text-4xl font-bold bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent mb-6">
-                      {service.price} ر.س
+                    <div className="flex items-center justify-center gap-1 mb-2">
+                      <Clock className="w-3 h-3 text-cyan-400" />
+                      <span className="text-cyan-300 text-xs">{service.duration}</span>
                     </div>
                   </div>
                   
-                  {/* Premium Add Button */}
+                  {/* Compact Add Button */}
                   <motion.button
                     onClick={() => addToCart(service)}
                     disabled={customerType === 'guest' && !selectedRoom}
-                    className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white font-bold py-4 px-6 rounded-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group-hover:shadow-lg group-hover:shadow-cyan-500/25"
+                    className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white font-medium py-2 px-3 rounded-xl text-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <div className="flex items-center justify-center gap-2">
-                      <Plus className="h-5 w-5" />
-                      <span>إضافة للسلة</span>
-                    </div>
+                    <Plus className="h-4 w-4 inline ml-1" />
+                    <span>إضافة</span>
                   </motion.button>
                 </div>
-                
-                {/* Premium Glow Effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10" />
               </motion.div>
             ))}
           </motion.div>
