@@ -56,7 +56,7 @@ export default function WhatsAppConnectPage() {
       if (data.connected) {
         setStep('connected');
         setTimeout(() => {
-          router.push('/crm/whatsapp/chat');
+          router.push('/dashboard/crm-whatsapp/chat');
         }, 1500);
       }
     } catch (err) {
@@ -88,7 +88,7 @@ export default function WhatsAppConnectPage() {
         // Already connected
         setStep('connected');
         setTimeout(() => {
-          router.push('/crm/whatsapp/chat');
+          router.push('/dashboard/crm-whatsapp/chat');
         }, 1500);
       } else if (data.qr) {
         // QR code available
