@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { PermissionGuard, HasPermission, usePermissions } from '@/components/PermissionGuard';
+import { RefreshPermissionsButton } from '@/components/RefreshPermissionsButton';
 import { 
   BedDouble, 
   Users, 
@@ -992,6 +993,9 @@ export default function RoomsPage() {
         }}
         onSave={handleBookingComplete}
       />
+
+      {/* زر تحديث الصلاحيات */}
+      <RefreshPermissionsButton />
 
       {/* حافظة بيانات النزيل العائمة */}
       <GuestDataClipboard position="bottom-left" />

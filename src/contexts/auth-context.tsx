@@ -19,6 +19,8 @@ interface AuthContextType {
   isLoading: boolean;
   login: (user: User) => void;
   logout: () => void;
+  updateUser: (userData: Partial<User>) => void;
+  refreshUser: () => Promise<void>;
   isAuthenticated: boolean;
   goBack: () => void;
 }
@@ -84,6 +86,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const updateUser = (userData: Partial<User>) => {
+    if (user) {
+      const updatedUser = { ...user, ...userData };
+      setUser(updatedUser);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('hotel_user', JSON.stringify(updatedUser));
+      }
+    }
+  };
+
+  const refreshUser = async () => {
+    if (user && user.employeeId) {
+      try {
+        const { getEmployees } = await import('@/lib/firebase-data');
+        const employees = await getEmployees();
+        const currentEmployee = employees.find(emp => emp.id === user.employeeId);
+        
+        if (currentEmployee) {
+          const updatedUser = {
+            ...user,
+            permissions: currentEmployee.permissions || [],
+            role: currentEmployee.role,
+            department: currentEmployee.department,
+          };
+          setUser(updatedUser);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('hotel_user', JSON.stringify(updatedUser));
+          }
+          console.log('✅ تم تحديث الصلاحيات:', currentEmployee.permissions?.length);
+        }
+      } catch (error) {
+        console.error('Error refreshing user:', error);
+      }
+    }
+  };
+
   const logout = () => {
     setUser(null);
     if (typeof window !== 'undefined') {
@@ -104,6 +142,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isLoading,
     login,
     logout,
+    updateUser,
+    refreshUser,
     isAuthenticated: !!user,
     goBack
   };

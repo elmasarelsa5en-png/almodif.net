@@ -205,11 +205,29 @@ export default function HRSettingsPage() {
         
         // تسجيل التعديل في Audit Log
         const changes = [];
-        if (oldData.name !== formData.name) changes.push({ field: 'الاسم', oldValue: oldData.name, newValue: formData.name });
-        if (oldData.role !== formData.role) changes.push({ field: 'الدور', oldValue: oldData.role, newValue: formData.role });
-        if (oldData.department !== formData.department) changes.push({ field: 'القسم', oldValue: oldData.department, newValue: formData.department });
+        if (oldData.name !== formData.name) changes.push({ field: 'name', fieldLabel: 'الاسم', oldValue: oldData.name, newValue: formData.name });
+        if (oldData.role !== formData.role) changes.push({ field: 'role', fieldLabel: 'الدور', oldValue: oldData.role, newValue: formData.role });
+        if (oldData.department !== formData.department) changes.push({ field: 'department', fieldLabel: 'القسم', oldValue: oldData.department, newValue: formData.department });
         
         logAction.updateEmployee(formData.name, editingEmployee.id, changes);
+
+        // تحديث صلاحيات المستخدم الحالي إذا كان هو نفسه
+        const { useAuth } = await import('@/contexts/auth-context');
+        const currentUser = localStorage.getItem('hotel_user');
+        if (currentUser) {
+          const userData = JSON.parse(currentUser);
+          if (userData.employeeId === editingEmployee.id) {
+            // تحديث الصلاحيات في localStorage
+            userData.permissions = formData.permissions;
+            userData.role = formData.role;
+            userData.department = formData.department;
+            localStorage.setItem('hotel_user', JSON.stringify(userData));
+            
+            // إعادة تحميل الصفحة لتحديث الصلاحيات
+            alert('✅ تم تحديث بياناتك بنجاح! سيتم تحديث الصفحة...');
+            window.location.reload();
+          }
+        }
       } else {
         // Add new employee to Firebase
         const newEmployee: Omit<Employee, 'id'> = {
