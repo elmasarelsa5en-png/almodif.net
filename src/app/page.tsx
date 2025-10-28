@@ -27,7 +27,8 @@ import {
   DollarSign,
   Settings,
   Globe,
-  UserCircle
+  UserCircle,
+  Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -127,6 +128,14 @@ export default function HomePage() {
               </Button>
               <Button 
                 variant="outline"
+                className="border-green-400/30 text-green-300 bg-green-900/30 hover:bg-green-800/50 backdrop-blur-sm"
+                onClick={() => window.location.href = '/guest-login'}
+              >
+                <Menu className="w-4 h-4 ml-2" />
+                المنيو الإلكتروني
+              </Button>
+              <Button 
+                variant="outline"
                 className="border-purple-400/30 text-purple-300 bg-purple-900/30 hover:bg-purple-800/50 backdrop-blur-sm"
                 onClick={() => window.location.href = '/employee-login'}
               >
@@ -164,6 +173,16 @@ export default function HomePage() {
                 >
                   <Globe className="w-4 h-4 ml-2" />
                   {language === 'ar' ? '🇺🇸 English' : '🇸🇦 العربية'}
+                </Button>
+                <Button 
+                  variant="outline"
+                  className="border-green-400/30 text-green-300 bg-green-900/30 w-full justify-start"
+                  onClick={() => {
+                    window.location.href = '/guest-login';
+                  }}
+                >
+                  <Menu className="w-4 h-4 ml-2" />
+                  المنيو الإلكتروني للنزلاء
                 </Button>
                 <Button 
                   variant="outline"
@@ -214,6 +233,14 @@ export default function HomePage() {
                 >
                   <Play className="w-5 h-5 ml-2" />
                   {t('homepageStartNow')}
+                </Button>
+                <Button 
+                  size="lg"
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-2xl text-lg px-8 py-4"
+                  onClick={() => window.location.href = '/guest-login'}
+                >
+                  <Menu className="w-5 h-5 ml-2" />
+                  المنيو الإلكتروني للنزلاء
                 </Button>
                 <Button 
                   size="lg"
@@ -366,6 +393,75 @@ export default function HomePage() {
                 <CheckCircle className="w-6 h-6 ml-2" />
                 ابدأ مجاناً
               </Button>
+            </div>
+          </div>
+        </section>
+
+        {/* Guest Menu Banner - NEW */}
+        <section className="py-12 lg:py-20 bg-gradient-to-r from-green-600/20 to-emerald-600/20 backdrop-blur-sm border-y border-white/10">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="bg-white/5 backdrop-blur-md rounded-3xl p-8 lg:p-12 border border-white/10 shadow-2xl">
+              <div className="grid lg:grid-cols-2 gap-8 items-center">
+                <div>
+                  <div className="inline-flex items-center gap-2 bg-green-500/20 text-green-300 px-4 py-2 rounded-full text-sm font-semibold mb-6">
+                    <Sparkles className="w-4 h-4" />
+                    للنزلاء الأعزاء
+                  </div>
+                  <h2 className="text-3xl lg:text-4xl font-bold text-white mb-6">
+                    اطلب ما تشاء من غرفتك! 🛎️
+                  </h2>
+                  <p className="text-xl text-blue-100/80 mb-8 leading-relaxed">
+                    استخدم المنيو الإلكتروني لطلب:
+                  </p>
+                  <div className="grid grid-cols-2 gap-4 mb-8">
+                    <div className="flex items-center gap-3 text-white">
+                      <div className="w-10 h-10 bg-amber-500/20 rounded-lg flex items-center justify-center">
+                        <Coffee className="w-5 h-5 text-amber-400" />
+                      </div>
+                      <span className="font-medium">قهوة ومشروبات</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-white">
+                      <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                        <Utensils className="w-5 h-5 text-green-400" />
+                      </div>
+                      <span className="font-medium">طعام ووجبات</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-white">
+                      <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                        <Shirt className="w-5 h-5 text-purple-400" />
+                      </div>
+                      <span className="font-medium">خدمة مغسلة</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-white">
+                      <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                        <Bed className="w-5 h-5 text-blue-400" />
+                      </div>
+                      <span className="font-medium">خدمة الغرف</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-gradient-to-br from-green-600 to-emerald-700 rounded-2xl p-8 text-center shadow-2xl">
+                  <div className="text-6xl mb-6">📱</div>
+                  <h3 className="text-2xl font-bold text-white mb-4">
+                    ادخل للمنيو الآن
+                  </h3>
+                  <p className="text-green-100 mb-6 text-lg">
+                    فقط أدخل اسمك ورقم الغرفة وابدأ الطلب
+                  </p>
+                  <Button 
+                    size="lg"
+                    className="w-full bg-white text-green-700 hover:bg-gray-100 shadow-xl text-xl px-8 py-6 font-bold"
+                    onClick={() => window.location.href = '/guest-login'}
+                  >
+                    <Menu className="w-6 h-6 ml-2" />
+                    افتح المنيو الإلكتروني
+                  </Button>
+                  <p className="text-green-200 text-sm mt-4">
+                    ✨ سريع، سهل، ومباشر لغرفتك
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </section>
