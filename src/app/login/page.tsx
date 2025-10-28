@@ -34,59 +34,48 @@ export default function LoginPage() {
     setIsLoading(true);
     setError('');
 
-    // محاكاة تأخير الخادم
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // جلب المستخدمين من localStorage
-    let users = [];
     try {
-      const storedUsers = localStorage.getItem('users');
-      if (storedUsers) {
-        users = JSON.parse(storedUsers);
+      // استيراد دالة الموظفين من Firebase
+      const { getEmployees } = await import('@/lib/firebase-data');
+      
+      // جلب الموظفين من Firebase
+      const employees = await getEmployees();
+      
+      // البحث عن الموظف
+      const foundEmployee = employees.find((emp: any) => 
+        (emp.username === username || emp.email === username) && emp.password === password
+      );
+
+      if (foundEmployee) {
+        // استخدام AuthContext لتسجيل الدخول
+        const userData = {
+          username: foundEmployee.username,
+          role: foundEmployee.role || 'admin',
+          name: foundEmployee.name,
+          loginTime: new Date().toISOString()
+        };
+        
+        login(userData);
+        
+        // تسجيل في Audit Log
+        try {
+          const { logAction } = await import('@/lib/audit-log');
+          await logAction('login', `${foundEmployee.name} قام بتسجيل الدخول`, foundEmployee.username);
+        } catch (error) {
+          console.error('Error logging action:', error);
+        }
+        
+        // تأخير قصير للتأكد من تحديث الـ state
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // توجيه إلى لوحة التحكم
+        router.push('/dashboard');
+      } else {
+        setError('اسم المستخدم أو كلمة المرور غير صحيحة');
       }
     } catch (error) {
-      console.error('Error loading users:', error);
-    }
-    
-    // إضافة المستخدم الافتراضي إذا لم يكن موجوداً
-    const defaultUser = {
-      uid: 'user_akram',
-      email: 'akram@almodif.com',
-      name: 'akram',
-      password: 'Aa123456',
-      role: 'admin',
-      createdAt: new Date().toISOString()
-    };
-    
-    // إذا لم يكن هناك مستخدمين، أضف المستخدم الافتراضي
-    if (users.length === 0) {
-      users = [defaultUser];
-      localStorage.setItem('users', JSON.stringify(users));
-    }
-
-    // البحث عن المستخدم
-    const foundUser = users.find((u: any) => 
-      (u.name === username || u.email === username) && u.password === password
-    );
-
-    if (foundUser) {
-      // استخدام AuthContext لتسجيل الدخول
-      const userData = {
-        username: foundUser.name,
-        role: foundUser.role || 'admin',
-        name: foundUser.name,
-        loginTime: new Date().toISOString()
-      };
-      
-      login(userData);
-      
-      // تأخير قصير للتأكد من تحديث الـ state
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // توجيه إلى لوحة التحكم
-      router.push('/dashboard');
-    } else {
-      setError('اسم المستخدم أو كلمة المرور غير صحيحة');
+      console.error('Error during login:', error);
+      setError('حدث خطأ أثناء تسجيل الدخول. يرجى المحاولة مرة أخرى.');
     }
 
     setIsLoading(false);

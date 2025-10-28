@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إضافة الموظفين الافتراضيين</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .employee {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-right: 4px solid #667eea;
+        }
+        .employee.success {
+            border-right-color: #28a745;
+            background: #d4edda;
+        }
+        .employee.warning {
+            border-right-color: #ffc107;
+            background: #fff3cd;
+        }
+        .employee.error {
+            border-right-color: #dc3545;
+            background: #f8d7da;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .log {
+            background: #212529;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+            display: none;
+        }
+        .log.show {
+            display: block;
+        }
+        .summary {
+            background: #e7f3ff;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 20px;
+            border-right: 4px solid #0066cc;
+            display: none;
+        }
+        .summary.show {
+            display: block;
+        }
+        .summary h3 {
+            margin-top: 0;
+            color: #0066cc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 إضافة الموظفين الافتراضيين</h1>
+        
+        <div id="employeesList"></div>
+        
+        <button id="addBtn" onclick="addEmployees()">
+            إضافة جميع الموظفين إلى Firebase
+        </button>
+        
+        <div id="log" class="log"></div>
+        <div id="summary" class="summary"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, addDoc, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // تكوين Firebase (استخدم نفس التكوين من firebase.ts)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDESwkch3o24i21sVc-FrLpwraNfm9wW4M",
+            authDomain: "al-modif-crm.firebaseapp.com",
+            projectId: "al-modif-crm",
+            storageBucket: "al-modif-crm.firebasestorage.app",
+            messagingSenderId: "48820726712",
+            appId: "1:48820726712:web:d18be6ee0d91e34697ce68",
+            measurementId: "G-WHVYJH2FVY"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // قائمة الموظفين
+        const employees = [
+            {
+                username: 'akram',
+                password: 'Aa123456',
+                name: 'أكرم',
+                role: 'admin',
+                department: 'إدارة',
+                email: 'akram@almodif.com',
+                phone: '',
+                status: 'available',
+                permissions: ['view_dashboard', 'manage_rooms', 'view_rooms', 'manage_bookings', 'view_bookings', 'manage_guests', 'view_guests', 'manage_requests', 'approve_requests', 'view_requests', 'manage_coffee', 'manage_restaurant', 'manage_laundry', 'manage_maintenance', 'manage_employees', 'view_reports', 'manage_settings']
+            },
+            {
+                username: 'shaker',
+                password: 'Aa123456',
+                name: 'شاكر',
+                role: 'manager',
+                department: 'استقبال',
+                email: 'shaker@almodif.com',
+                phone: '',
+                status: 'available',
+                permissions: ['view_dashboard', 'manage_rooms', 'view_rooms', 'manage_bookings', 'view_bookings', 'manage_guests', 'view_guests', 'manage_requests', 'approve_requests', 'view_requests', 'view_reports']
+            },
+            {
+                username: 'mohammed',
+                password: 'Aa123456',
+                name: 'محمد',
+                role: 'reception',
+                department: 'استقبال',
+                email: 'mohammed@almodif.com',
+                phone: '',
+                status: 'available',
+                permissions: ['view_dashboard', 'view_rooms', 'manage_bookings', 'view_bookings', 'manage_guests', 'view_guests', 'view_requests']
+            },
+            {
+                username: 'ahmed',
+                password: 'Aa123456',
+                name: 'أحمد',
+                role: 'housekeeping',
+                department: 'خدمات الغرف',
+                email: 'ahmed@almodif.com',
+                phone: '',
+                status: 'available',
+                permissions: ['view_dashboard', 'view_rooms', 'view_requests', 'manage_requests']
+            },
+            {
+                username: 'ali',
+                password: 'Aa123456',
+                name: 'علي',
+                role: 'maintenance',
+                department: 'صيانة',
+                email: 'ali@almodif.com',
+                phone: '',
+                status: 'available',
+                permissions: ['view_dashboard', 'view_requests', 'manage_requests', 'manage_maintenance']
+            },
+            {
+                username: 'omar',
+                password: 'Aa123456',
+                name: 'عمر',
+                role: 'coffee_staff',
+                department: 'كوفي شوب',
+                email: 'omar@almodif.com',
+                phone: '',
+                status: 'available',
+                permissions: ['view_dashboard', 'view_requests', 'manage_coffee']
+            },
+            {
+                username: 'youssef',
+                password: 'Aa123456',
+                name: 'يوسف',
+                role: 'restaurant_staff',
+                department: 'مطعم',
+                email: 'youssef@almodif.com',
+                phone: '',
+                status: 'available',
+                permissions: ['view_dashboard', 'view_requests', 'manage_restaurant']
+            },
+            {
+                username: 'hassan',
+                password: 'Aa123456',
+                name: 'حسن',
+                role: 'laundry_staff',
+                department: 'مغسلة',
+                email: 'hassan@almodif.com',
+                phone: '',
+                status: 'available',
+                permissions: ['view_dashboard', 'view_requests', 'manage_laundry']
+            },
+            {
+                username: 'khalid',
+                password: 'Aa123456',
+                name: 'خالد',
+                role: 'reception',
+                department: 'استقبال',
+                email: 'khalid@almodif.com',
+                phone: '',
+                status: 'available',
+                permissions: ['view_dashboard', 'view_rooms', 'manage_bookings', 'view_bookings', 'manage_guests', 'view_guests', 'view_requests']
+            },
+            {
+                username: 'ibrahim',
+                password: 'Aa123456',
+                name: 'إبراهيم',
+                role: 'housekeeping',
+                department: 'خدمات الغرف',
+                email: 'ibrahim@almodif.com',
+                phone: '',
+                status: 'available',
+                permissions: ['view_dashboard', 'view_rooms', 'view_requests', 'manage_requests']
+            }
+        ];
+
+        // عرض قائمة الموظفين
+        function displayEmployees() {
+            const list = document.getElementById('employeesList');
+            list.innerHTML = employees.map(emp => `
+                <div class="employee" id="emp-${emp.username}">
+                    <strong>${emp.name}</strong> (${emp.username}) - ${emp.role} - ${emp.department}
+                </div>
+            `).join('');
+        }
+
+        displayEmployees();
+
+        // إضافة الموظفين
+        window.addEmployees = async function() {
+            const btn = document.getElementById('addBtn');
+            const log = document.getElementById('log');
+            const summary = document.getElementById('summary');
+            
+            btn.disabled = true;
+            btn.textContent = 'جاري الإضافة...';
+            log.classList.add('show');
+            log.innerHTML = '';
+
+            let added = 0;
+            let existing = 0;
+            let errors = 0;
+
+            function addLog(msg, type = 'info') {
+                log.innerHTML += `<div style="color: ${type === 'success' ? '#00ff00' : type === 'warning' ? '#ffff00' : type === 'error' ? '#ff0000' : '#00ff00'}">${msg}</div>`;
+                log.scrollTop = log.scrollHeight;
+            }
+
+            addLog('🚀 بدء عملية إضافة الموظفين...\n');
+
+            for (const employee of employees) {
+                try {
+                    addLog(`🔍 التحقق من: ${employee.name} (${employee.username})`);
+
+                    // التحقق من وجود الموظف
+                    const q = query(collection(db, 'employees'), where('username', '==', employee.username));
+                    const querySnapshot = await getDocs(q);
+
+                    if (!querySnapshot.empty) {
+                        addLog(`⚠️  موجود بالفعل: ${employee.name}`, 'warning');
+                        document.getElementById(`emp-${employee.username}`).classList.add('warning');
+                        existing++;
+                        continue;
+                    }
+
+                    // إضافة الموظف
+                    await addDoc(collection(db, 'employees'), {
+                        ...employee,
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    });
+
+                    addLog(`✅ تم الإضافة: ${employee.name}`, 'success');
+                    document.getElementById(`emp-${employee.username}`).classList.add('success');
+                    added++;
+
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                } catch (error) {
+                    addLog(`❌ خطأ في ${employee.name}: ${error.message}`, 'error');
+                    document.getElementById(`emp-${employee.username}`).classList.add('error');
+                    errors++;
+                }
+            }
+
+            addLog('\n✅ اكتمال العملية!', 'success');
+            
+            summary.innerHTML = `
+                <h3>📊 ملخص العملية</h3>
+                <p><strong>✅ تم الإضافة:</strong> ${added} موظف</p>
+                <p><strong>⚠️ موجود بالفعل:</strong> ${existing} موظف</p>
+                <p><strong>❌ أخطاء:</strong> ${errors}</p>
+                <p><strong>📋 الإجمالي:</strong> ${employees.length} موظف</p>
+            `;
+            summary.classList.add('show');
+
+            btn.textContent = 'تم الإضافة ✅';
+        };
+    </script>
+</body>
+</html>
