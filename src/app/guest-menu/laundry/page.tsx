@@ -246,6 +246,11 @@ export default function GuestLaundryPage() {
       alert('تم إرسال طلبك بنجاح! سيتم معالجته قريباً.');
       setCart([]);
       setIsCheckoutOpen(false);
+      
+      // إعادة التوجيه لصفحة القائمة الرئيسية
+      setTimeout(() => {
+        router.push('/guest-menu');
+      }, 1500);
     } catch (error) {
       console.error('Error submitting order:', error);
       alert('حدث خطأ أثناء إرسال الطلب. يرجى المحاولة مرة أخرى.');
