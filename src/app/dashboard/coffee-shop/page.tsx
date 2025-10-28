@@ -194,6 +194,45 @@ export default function CoffeeShopPage() {
     }
   };
 
+  const handleCheckout = async () => {
+    if (cart.length === 0) {
+      alert('السلة فارغة');
+      return;
+    }
+
+    const roomNumber = prompt('أدخل رقم الغرفة:');
+    if (!roomNumber) return;
+
+    const guestName = prompt('أدخل اسم النزيل (اختياري):') || 'عميل مباشر';
+
+    try {
+      const { addRequest } = await import('@/lib/firebase-data');
+      
+      const itemsDescription = cart.map(item => 
+        `${item.nameAr} (${item.quantity}x) - ${item.price * item.quantity} ر.س`
+      ).join('\n');
+
+      await addRequest({
+        room: roomNumber,
+        guest: guestName,
+        phone: '',
+        type: 'طلب من الكافتيريا',
+        description: `الطلب:\n${itemsDescription}\n\nالإجمالي: ${cartTotal} ر.س`,
+        priority: 'medium',
+        status: 'awaiting_employee_approval',
+        notes: `طلب من الكافتيريا - تم إدخاله بواسطة الموظف`,
+        createdAt: new Date().toISOString()
+      });
+
+      alert('✅ تم إرسال الطلب بنجاح!');
+      setCart([]);
+      setIsCartOpen(false);
+    } catch (error) {
+      console.error('Error submitting order:', error);
+      alert('حدث خطأ أثناء إرسال الطلب');
+    }
+  };
+
   const getCategoryIcon = (category: string) => {
     switch (category) {
       case 'hot-coffee': return <Flame className="h-5 w-5" />;
@@ -556,7 +595,10 @@ export default function CoffeeShopPage() {
                       <span className="text-xl font-bold text-amber-200">الإجمالي:</span>
                       <span className="text-2xl font-bold text-green-400">{cartTotal} ريال</span>
                     </div>
-                    <Button className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white py-3">
+                    <Button 
+                      onClick={handleCheckout}
+                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white py-3"
+                    >
                       <CreditCard className="h-5 w-5 mr-2" />
                       إتمام الطلب
                     </Button>
