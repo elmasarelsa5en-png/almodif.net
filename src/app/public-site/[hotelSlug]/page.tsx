@@ -32,7 +32,7 @@ import {
   TrendingUp
 } from 'lucide-react';
 
-export default function PublicHomePage({ params }: { params: { hotelSlug: string } }) {
+export default function PublicHomePage({ params }: { params: Promise<{ hotelSlug: string }> }) {
   const [settings, setSettings] = useState<WebsiteSettings | null>(null);
   const [rooms, setRooms] = useState<any[]>([]);
   const [checkIn, setCheckIn] = useState('');
@@ -40,9 +40,14 @@ export default function PublicHomePage({ params }: { params: { hotelSlug: string
   const [guests, setGuests] = useState('2');
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [loading, setLoading] = useState(true);
-  const hotelSlug = params.hotelSlug;
+  const [hotelSlug, setHotelSlug] = useState<string>('');
 
   useEffect(() => {
+    // Unwrap params
+    params.then((p) => {
+      setHotelSlug(p.hotelSlug);
+    });
+
     // Load settings
     const loaded = loadWebsiteSettings();
     setSettings(loaded);
