@@ -1,1 +1,82 @@
 {"users": [
+  {
+    "id": "1",
+    "email": "robin@almodif.net",
+    "password": "Aa123456",
+    "name": "روبين",
+    "role": "employee",
+    "department": "housekeeping",
+    "position": "موظف خدمة غرف",
+    "permissions": ["view:rooms", "update:room_status"]
+  },
+  {
+    "id": "2",
+    "email": "gopal@almodif.net",
+    "password": "Aa123456",
+    "name": "جوبال",
+    "role": "employee",
+    "department": "housekeeping",
+    "position": "موظف خدمة غرف",
+    "permissions": ["view:rooms", "update:room_status"]
+  },
+  {
+    "id": "3",
+    "email": "mustafa@almodif.net",
+    "password": "Aa123456",
+    "name": "مصطفى",
+    "role": "employee",
+    "department": "housekeeping",
+    "position": "موظف خدمة غرف",
+    "permissions": ["view:rooms", "update:room_status"]
+  },
+  {
+    "id": "4",
+    "email": "dipendra@almodif.net",
+    "password": "Aa123456",
+    "name": "ديبندرا",
+    "role": "employee",
+    "department": "housekeeping",
+    "position": "موظف خدمة غرف",
+    "permissions": ["view:rooms", "update:room_status"]
+  },
+  {
+    "id": "5",
+    "email": "janak@almodif.net",
+    "password": "Aa123456",
+    "name": "جاناك",
+    "role": "employee",
+    "department": "laundry",
+    "position": "موظف المغسلة",
+    "permissions": ["view:laundry", "manage:laundry"]
+  },
+  {
+    "id": "6",
+    "email": "roshan@almodif.net",
+    "password": "Aa123456",
+    "name": "روشان",
+    "role": "employee",
+    "department": "coffee_shop",
+    "position": "موظف الكوفي",
+    "permissions": ["view:coffee_shop", "manage:orders"]
+  },
+  {
+    "id": "7",
+    "email": "fahad@almodif.net",
+    "password": "Aa123456",
+    "name": "فهد",
+    "role": "receptionist",
+    "department": "reception",
+    "position": "موظف الاستقبال",
+    "permissions": ["view:bookings", "manage:bookings", "view:guests", "manage:guests", "view:rooms"]
+  },
+  {
+    "id": "8",
+    "email": "sharaf@almodif.net",
+    "password": "Aa123456",
+    "name": "شرف",
+    "role": "receptionist",
+    "department": "reception",
+    "position": "موظف الاستقبال",
+    "permissions": ["view:bookings", "manage:bookings", "view:guests", "manage:guests", "view:rooms"]
+  }
+]}
