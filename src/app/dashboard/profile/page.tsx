@@ -365,6 +365,11 @@ export default function ProfilePage() {
           
           setProfile(prev => prev ? { ...prev, avatar: base64String } : null);
           setMessage({ type: 'success', text: 'تم تحديث الصورة الشخصية!' });
+          
+          // إطلاق event لتحديث الصورة في الهيدر
+          window.dispatchEvent(new CustomEvent('profile-updated'));
+          console.log('📢 Profile update event dispatched');
+          
           setTimeout(() => setMessage(null), 3000);
         } catch (error) {
           console.error('❌ Error uploading avatar:', error);

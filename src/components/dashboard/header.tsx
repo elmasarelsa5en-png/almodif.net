@@ -108,10 +108,18 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
   // تحميل صورة المستخدم من Firebase
   useEffect(() => {
     const loadUserAvatar = async () => {
-      if (!user) return;
+      if (!user) {
+        console.log('❌ No user found for avatar loading');
+        return;
+      }
       
       const employeeId = user.username || user.email;
-      if (!employeeId) return;
+      console.log('👤 Loading avatar for user:', employeeId, user);
+      
+      if (!employeeId) {
+        console.log('❌ No employee ID found');
+        return;
+      }
 
       try {
         const { db } = await import('@/lib/firebase');
@@ -120,18 +128,36 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
         const employeeRef = doc(db, 'employees', employeeId);
         const employeeSnap = await getDoc(employeeRef);
 
+        console.log('📦 Employee snapshot exists:', employeeSnap.exists());
+
         if (employeeSnap.exists()) {
           const data = employeeSnap.data();
+          console.log('📄 Employee data:', data);
+          
           if (data.avatar) {
+            console.log('✅ Avatar found, setting it:', data.avatar.substring(0, 50) + '...');
             setUserAvatar(data.avatar);
+          } else {
+            console.log('⚠️ No avatar field in employee data');
           }
+        } else {
+          console.log('❌ Employee document does not exist');
         }
       } catch (error) {
-        console.error('Error loading user avatar:', error);
+        console.error('❌ Error loading user avatar:', error);
       }
     };
 
     loadUserAvatar();
+    
+    // إعادة تحميل الصورة عند تحديث الملف الشخصي
+    const handleProfileUpdate = () => {
+      console.log('🔄 Profile updated, reloading avatar...');
+      loadUserAvatar();
+    };
+    
+    window.addEventListener('profile-updated', handleProfileUpdate);
+    return () => window.removeEventListener('profile-updated', handleProfileUpdate);
   }, [user]);
 
   // التحقق من صلاحية الموافقة (مدير أو استقبال)
