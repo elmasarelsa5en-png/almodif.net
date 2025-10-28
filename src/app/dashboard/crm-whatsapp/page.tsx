@@ -77,21 +77,21 @@ export default function SocialMediaPlatformsPage() {
 
   const handlePlatformClick = (platformId: Platform) => {
     if (platformId === 'whatsapp') {
-      router.push('/crm/whatsapp/connect');
+      router.push('/dashboard/crm-whatsapp/connect');
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 p-6" dir="rtl">
+    <div className="min-h-screen bg-gray-900 p-6" dir="rtl">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <div className="inline-block mb-4">
-            <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-blue-600 rounded-3xl flex items-center justify-center mx-auto shadow-2xl">
+            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 via-cyan-500 to-blue-600 rounded-3xl flex items-center justify-center mx-auto shadow-2xl">
               <MessageSquare className="w-10 h-10 text-white" />
             </div>
           </div>
-          <h1 className="text-4xl font-bold text-gray-800 mb-3">منصات التواصل الاجتماعي</h1>
-          <p className="text-gray-600 text-lg">
+          <h1 className="text-4xl font-bold text-white mb-3">منصات التواصل الاجتماعي</h1>
+          <p className="text-gray-400 text-lg">
             إدارة جميع محادثاتك من مكان واحد
           </p>
         </div>
@@ -102,7 +102,7 @@ export default function SocialMediaPlatformsPage() {
             return (
               <Card
                 key={platform.id}
-                className="bg-white border-2 hover:shadow-2xl transition-all duration-300 cursor-pointer group"
+                className="bg-gray-800 border-2 border-gray-700 hover:shadow-2xl hover:border-cyan-500 transition-all duration-300 cursor-pointer group"
                 onClick={() => handlePlatformClick(platform.id)}
               >
                 <CardContent className="p-6">
@@ -112,22 +112,22 @@ export default function SocialMediaPlatformsPage() {
                     </div>
                     
                     {platform.status === 'متاح' ? (
-                      <span className="px-3 py-1 bg-green-100 text-green-600 text-xs font-semibold rounded-full">
+                      <span className="px-3 py-1 bg-green-500/20 text-green-400 text-xs font-semibold rounded-full border border-green-500/30">
                         {platform.status}
                       </span>
                     ) : (
-                      <span className="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-semibold rounded-full">
+                      <span className="px-3 py-1 bg-gray-700 text-gray-400 text-xs font-semibold rounded-full border border-gray-600">
                         {platform.status}
                       </span>
                     )}
                   </div>
 
-                  <h3 className="text-2xl font-bold text-gray-800 mb-2">{platform.nameAr}</h3>
-                  <p className="text-gray-600 text-sm mb-1">{platform.name}</p>
+                  <h3 className="text-2xl font-bold text-white mb-2">{platform.nameAr}</h3>
+                  <p className="text-gray-400 text-sm mb-1">{platform.name}</p>
                   <p className="text-gray-500 text-sm mb-4">{platform.description}</p>
 
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                    <span className="text-gray-400 text-sm">غير متصل</span>
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-700">
+                    <span className="text-gray-500 text-sm">غير متصل</span>
                     
                     <Button
                       size="sm"

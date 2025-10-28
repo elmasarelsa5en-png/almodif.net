@@ -147,14 +147,14 @@ export default function WhatsAppConnectPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-purple-50 p-4 md:p-8" dir="rtl">
+    <div className="min-h-screen bg-gray-900 p-4 md:p-8" dir="rtl">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <Button
             variant="ghost"
-            onClick={() => router.push('/crm/whatsapp')}
-            className="mb-4 text-gray-600 hover:text-gray-900"
+            onClick={() => router.push('/dashboard/crm-whatsapp')}
+            className="mb-4 text-gray-400 hover:text-white hover:bg-gray-800"
           >
             <ArrowLeft className="w-4 h-4 ml-2" />
             العودة للمنصات
@@ -165,17 +165,17 @@ export default function WhatsAppConnectPage() {
               <MessageSquare className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 via-cyan-600 to-purple-600 bg-clip-text text-transparent">
+              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
                 ربط حساب واتساب
               </h1>
-              <p className="text-gray-600 text-lg">اتصل بحسابك للبدء في إدارة المحادثات</p>
+              <p className="text-gray-400 text-lg">اتصل بحسابك للبدء في إدارة المحادثات</p>
             </div>
           </div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-8">
           {/* QR Code Section */}
-          <Card className="bg-white border-2 border-gray-100 shadow-2xl">
+          <Card className="bg-gray-800 border-2 border-gray-700 shadow-2xl">
             <CardContent className="p-8">
               <div className="text-center">
                 {/* Status Badge */}

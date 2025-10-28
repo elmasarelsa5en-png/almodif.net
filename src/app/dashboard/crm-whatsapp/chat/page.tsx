@@ -321,9 +321,9 @@ export default function WhatsAppChatPage() {
   );
 
   return (
-    <div className="h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex" dir="rtl">
+    <div className="h-screen bg-gray-900 flex" dir="rtl">
       {/* Sidebar - Chats List */}
-      <div className="w-full md:w-96 bg-white border-l border-gray-200 flex flex-col">
+      <div className="w-full md:w-96 bg-gray-800 border-l border-gray-700 flex flex-col">
         {/* Header */}
         <div className="p-4 bg-gradient-to-r from-blue-500 via-cyan-500 to-blue-600 text-white">
           <div className="flex items-center justify-between mb-4">
@@ -331,7 +331,7 @@ export default function WhatsAppChatPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => router.push('/crm/whatsapp')}
+                onClick={() => router.push('/dashboard/crm-whatsapp')}
                 className="text-white hover:bg-white/20"
               >
                 <ArrowLeft className="w-5 h-5" />
