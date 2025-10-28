@@ -56,6 +56,43 @@ export default function RequestsPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [previousRequestCount, setPreviousRequestCount] = useState(0);
+
+  // Function to play notification sound
+  const playNotificationSound = () => {
+    try {
+      // Create multiple beep sounds for attention
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      
+      const playBeep = (frequency: number, duration: number, delay: number) => {
+        setTimeout(() => {
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+          
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+          
+          oscillator.frequency.value = frequency;
+          oscillator.type = 'sine';
+          
+          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+          
+          oscillator.start(audioContext.currentTime);
+          oscillator.stop(audioContext.currentTime + duration);
+        }, delay);
+      };
+
+      // Play a series of attention-grabbing beeps
+      playBeep(800, 0.15, 0);      // First beep
+      playBeep(1000, 0.15, 200);   // Second beep (higher)
+      playBeep(800, 0.15, 400);    // Third beep
+      playBeep(1200, 0.3, 600);    // Final longer beep (highest)
+      
+    } catch (error) {
+      console.error('Error playing notification sound:', error);
+    }
+  };
 
   // Load requests from Firebase with real-time updates
   useEffect(() => {
@@ -63,14 +100,38 @@ export default function RequestsPage() {
     
     // Subscribe to real-time updates
     const unsubscribe = subscribeToRequests((requestsData) => {
+      // Check if there are new requests
+      if (previousRequestCount > 0 && requestsData.length > previousRequestCount) {
+        // New request detected - play sound
+        playNotificationSound();
+        
+        // Show browser notification if permitted
+        if ('Notification' in window && Notification.permission === 'granted') {
+          const newRequest = requestsData[0]; // Most recent request
+          new Notification('طلب جديد من نزيل', {
+            body: `غرفة ${newRequest.room} - ${newRequest.type}\n${newRequest.guest}`,
+            icon: '/images/logo.png',
+            badge: '/images/logo.png',
+            tag: 'new-guest-request',
+            requireInteraction: true
+          });
+        }
+      }
+      
+      setPreviousRequestCount(requestsData.length);
       setRequests(requestsData);
       setFilteredRequests(requestsData);
       setIsLoading(false);
     });
 
+    // Request notification permission
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
     // Cleanup subscription on unmount
     return () => unsubscribe();
-  }, []);
+  }, [previousRequestCount]);
 
   // Filter requests
   useEffect(() => {
