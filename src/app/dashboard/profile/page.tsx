@@ -211,11 +211,7 @@ export default function ProfilePage() {
       return;
     }
 
-    // Check file size (max 2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      setMessage({ type: 'error', text: 'حجم الصورة كبير جداً (الحد الأقصى 2 ميجا)' });
-      return;
-    }
+    console.log('📸 Original file size:', (file.size / 1024).toFixed(2), 'KB');
 
     // Check file type
     if (!file.type.startsWith('image/')) {
@@ -227,10 +223,47 @@ export default function ProfilePage() {
       setIsUploadingAvatar(true);
       console.log('📤 Uploading avatar for:', employeeId);
 
-      // Convert to base64
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64String = reader.result as string;
+      // Compress and convert image
+      const img = new Image();
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      img.onload = async () => {
+        // Calculate new dimensions (max 400x400)
+        let width = img.width;
+        let height = img.height;
+        const maxSize = 400;
+
+        if (width > height) {
+          if (width > maxSize) {
+            height = (height * maxSize) / width;
+            width = maxSize;
+          }
+        } else {
+          if (height > maxSize) {
+            width = (width * maxSize) / height;
+            height = maxSize;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        // Draw and compress
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        // Convert to base64 with compression (0.7 quality)
+        const base64String = canvas.toDataURL('image/jpeg', 0.7);
+        
+        console.log('📦 Compressed size:', (base64String.length / 1024).toFixed(2), 'KB');
+        console.log('📏 New dimensions:', width, 'x', height);
+
+        // Check compressed size (max 500KB for base64)
+        if (base64String.length > 500 * 1024) {
+          setMessage({ type: 'error', text: 'الصورة كبيرة جداً حتى بعد الضغط. جرب صورة أصغر.' });
+          setIsUploadingAvatar(false);
+          return;
+        }
 
         try {
           const employeeRef = doc(db, 'employees', employeeId);
@@ -251,10 +284,22 @@ export default function ProfilePage() {
         }
       };
 
+      img.onerror = () => {
+        console.error('❌ Error loading image');
+        setMessage({ type: 'error', text: 'فشل قراءة الصورة' });
+        setIsUploadingAvatar(false);
+      };
+
+      // Read file as data URL
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        img.src = e.target?.result as string;
+      };
       reader.readAsDataURL(file);
+
     } catch (error) {
-      console.error('❌ Error reading file:', error);
-      setMessage({ type: 'error', text: 'فشل قراءة الملف' });
+      console.error('❌ Error processing image:', error);
+      setMessage({ type: 'error', text: 'فشل معالجة الصورة' });
       setIsUploadingAvatar(false);
     }
   };
