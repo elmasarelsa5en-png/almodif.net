@@ -20,7 +20,9 @@ import {
   UtensilsCrossed,
   Coffee,
   Shirt,
-  Bell
+  Bell,
+  Menu as MenuIcon,
+  QrCode
 } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -53,6 +55,15 @@ export default function SettingsPage() {
       color: 'from-green-500 via-emerald-500 to-teal-500',
       href: '/dashboard/settings/menu-items',
       badge: '🔥 جديد'
+    },
+    {
+      id: 'guest-menu-settings',
+      title: 'إعدادات المنيو الإلكتروني',
+      description: 'تخصيص شعار الفندق ورسالة الترحيب في المنيو للنزلاء',
+      icon: QrCode,
+      color: 'from-pink-500 via-rose-500 to-red-500',
+      href: '/dashboard/settings/guest-menu-settings',
+      badge: '⭐ جديد'
     },
     {
       id: 'website',

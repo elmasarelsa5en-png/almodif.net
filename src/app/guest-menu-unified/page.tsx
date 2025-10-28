@@ -46,6 +46,14 @@ export default function GuestMenuUnifiedPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
   const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [menuSettings, setMenuSettings] = useState<any>(null);
+  
+  // قوائم الخدمات من localStorage
+  const [roomServiceItems, setRoomServiceItems] = useState<any[]>([]);
+  const [coffeeShopItems, setCoffeeShopItems] = useState<any[]>([]);
+  const [restaurantItems, setRestaurantItems] = useState<any[]>([]);
+  const [laundryItems, setLaundryItems] = useState<any[]>([]);
+  const [receptionServices, setReceptionServices] = useState<any[]>([]);
 
   useEffect(() => {
     // التحقق من تسجيل دخول النزيل
@@ -55,65 +63,87 @@ export default function GuestMenuUnifiedPage() {
       return;
     }
     setGuestSession(JSON.parse(sessionData));
+
+    // تحميل إعدادات المنيو
+    const settings = localStorage.getItem('guest_menu_settings');
+    if (settings) {
+      setMenuSettings(JSON.parse(settings));
+    }
+
+    // تحميل الأصناف من localStorage
+    loadMenuItems();
   }, [router]);
 
-  // قوائم الخدمات
-  const roomServiceItems = [
-    { id: 'rs1', name: 'مخدة إضافية', price: 0, category: 'أساسيات' },
-    { id: 'rs2', name: 'مناشف إضافية', price: 0, category: 'أساسيات' },
-    { id: 'rs3', name: 'بطانية', price: 0, category: 'أساسيات' },
-    { id: 'rs4', name: 'مكواة ملابس', price: 0, category: 'أدوات' },
-    { id: 'rs5', name: 'مجفف شعر', price: 0, category: 'أدوات' },
-    { id: 'rs6', name: 'أدوات تنظيف', price: 0, category: 'نظافة' },
-    { id: 'rs7', name: 'سلة مهملات إضافية', price: 0, category: 'نظافة' },
-  ];
+  const loadMenuItems = () => {
+    // خدمة الغرف
+    const roomService = JSON.parse(localStorage.getItem('room_service_items') || '[]');
+    if (roomService.length === 0) {
+      // بيانات افتراضية إذا لم توجد
+      setRoomServiceItems([
+        { id: 'rs1', name: 'مخدة إضافية', price: 0, category: 'أساسيات' },
+        { id: 'rs2', name: 'مناشف إضافية', price: 0, category: 'أساسيات' },
+        { id: 'rs3', name: 'بطانية', price: 0, category: 'أساسيات' },
+        { id: 'rs4', name: 'مكواة ملابس', price: 0, category: 'أدوات' },
+        { id: 'rs5', name: 'مجفف شعر', price: 0, category: 'أدوات' },
+        { id: 'rs6', name: 'أدوات تنظيف', price: 0, category: 'نظافة' },
+      ]);
+    } else {
+      setRoomServiceItems(roomService);
+    }
 
-  const coffeeShopItems = [
-    { id: 'cf1', name: 'قهوة عربية', price: 8, category: 'مشروبات ساخنة' },
-    { id: 'cf2', name: 'قهوة تركية', price: 10, category: 'مشروبات ساخنة' },
-    { id: 'cf3', name: 'كابتشينو', price: 15, category: 'مشروبات ساخنة' },
-    { id: 'cf4', name: 'لاتيه', price: 15, category: 'مشروبات ساخنة' },
-    { id: 'cf5', name: 'شاي بالحليب', price: 8, category: 'مشروبات ساخنة' },
-    { id: 'cf6', name: 'شاي أخضر', price: 7, category: 'مشروبات ساخنة' },
-    { id: 'cf7', name: 'عصير برتقال طازج', price: 12, category: 'مشروبات باردة' },
-    { id: 'cf8', name: 'عصير مانجو', price: 14, category: 'مشروبات باردة' },
-    { id: 'cf9', name: 'ليموناضة', price: 10, category: 'مشروبات باردة' },
-    { id: 'cf10', name: 'موهيتو', price: 16, category: 'مشروبات باردة' },
-    { id: 'cf11', name: 'كرواسون', price: 12, category: 'معجنات' },
-    { id: 'cf12', name: 'دونات', price: 8, category: 'حلويات' },
-    { id: 'cf13', name: 'براوني', price: 14, category: 'حلويات' },
-  ];
+    // الكوفي شوب
+    const coffee = JSON.parse(localStorage.getItem('coffee_menu') || '[]');
+    if (coffee.length === 0) {
+      setCoffeeShopItems([
+        { id: 'cf1', name: 'قهوة عربية', price: 8, category: 'مشروبات ساخنة' },
+        { id: 'cf2', name: 'قهوة تركية', price: 10, category: 'مشروبات ساخنة' },
+        { id: 'cf3', name: 'كابتشينو', price: 15, category: 'مشروبات ساخنة' },
+        { id: 'cf4', name: 'لاتيه', price: 15, category: 'مشروبات ساخنة' },
+        { id: 'cf7', name: 'عصير برتقال طازج', price: 12, category: 'مشروبات باردة' },
+        { id: 'cf8', name: 'عصير مانجو', price: 14, category: 'مشروبات باردة' },
+      ]);
+    } else {
+      setCoffeeShopItems(coffee);
+    }
 
-  const restaurantItems = [
-    { id: 'r1', name: 'حمص بالطحينة', price: 15, category: 'مقبلات' },
-    { id: 'r2', name: 'متبل باذنجان', price: 18, category: 'مقبلات' },
-    { id: 'r3', name: 'فتوش', price: 20, category: 'مقبلات' },
-    { id: 'r4', name: 'تبولة', price: 16, category: 'مقبلات' },
-    { id: 'r5', name: 'كباب مشوي', price: 45, category: 'أطباق رئيسية' },
-    { id: 'r6', name: 'فراخ مشوية', price: 40, category: 'أطباق رئيسية' },
-    { id: 'r7', name: 'سمك مقلي', price: 50, category: 'أطباق رئيسية' },
-    { id: 'r8', name: 'مندي لحم', price: 55, category: 'أطباق رئيسية' },
-    { id: 'r9', name: 'كبسة دجاج', price: 35, category: 'أطباق رئيسية' },
-    { id: 'r10', name: 'كنافة', price: 22, category: 'حلويات' },
-    { id: 'r11', name: 'بقلاوة', price: 18, category: 'حلويات' },
-  ];
+    // المطعم
+    const restaurant = JSON.parse(localStorage.getItem('restaurant_menu') || '[]');
+    if (restaurant.length === 0) {
+      setRestaurantItems([
+        { id: 'r1', name: 'حمص بالطحينة', price: 15, category: 'مقبلات' },
+        { id: 'r2', name: 'متبل باذنجان', price: 18, category: 'مقبلات' },
+        { id: 'r5', name: 'كباب مشوي', price: 45, category: 'أطباق رئيسية' },
+        { id: 'r6', name: 'فراخ مشوية', price: 40, category: 'أطباق رئيسية' },
+      ]);
+    } else {
+      setRestaurantItems(restaurant);
+    }
 
-  const laundryItems = [
-    { id: 'l1', name: 'قميص', price: 8, category: 'غسيل وكي' },
-    { id: 'l2', name: 'بنطلون', price: 10, category: 'غسيل وكي' },
-    { id: 'l3', name: 'ثوب', price: 12, category: 'غسيل وكي' },
-    { id: 'l4', name: 'فستان', price: 15, category: 'غسيل وكي' },
-    { id: 'l5', name: 'بدلة كاملة', price: 25, category: 'غسيل وكي' },
-    { id: 'l6', name: 'ملاءة سرير', price: 15, category: 'غسيل وكي' },
-    { id: 'l7', name: 'كنزة صوف', price: 12, category: 'غسيل وكي' },
-  ];
+    // المغسلة
+    const laundry = JSON.parse(localStorage.getItem('laundry_services') || '[]');
+    if (laundry.length === 0) {
+      setLaundryItems([
+        { id: 'l1', name: 'قميص', price: 8, category: 'غسيل وكي' },
+        { id: 'l2', name: 'بنطلون', price: 10, category: 'غسيل وكي' },
+        { id: 'l3', name: 'ثوب', price: 12, category: 'غسيل وكي' },
+      ]);
+    } else {
+      setLaundryItems(laundry);
+    }
 
-  const receptionServices = [
-    { id: 'rec1', name: 'تمديد الإقامة', price: 0, category: 'خدمات' },
-    { id: 'rec2', name: 'تشيك أوت مبكر', price: 0, category: 'خدمات' },
-    { id: 'rec3', name: 'تقديم شكوى', price: 0, category: 'استفسارات' },
-    { id: 'rec4', name: 'طلب صيانة', price: 0, category: 'صيانة' },
-  ];
+    // خدمات الاستقبال
+    const reception = JSON.parse(localStorage.getItem('reception_services') || '[]');
+    if (reception.length === 0) {
+      setReceptionServices([
+        { id: 'rec1', name: 'تمديد الإقامة', price: 0, category: 'خدمات' },
+        { id: 'rec2', name: 'تشيك أوت مبكر', price: 0, category: 'خدمات' },
+        { id: 'rec3', name: 'تقديم شكوى', price: 0, category: 'استفسارات' },
+        { id: 'rec4', name: 'طلب صيانة', price: 0, category: 'صيانة' },
+      ]);
+    } else {
+      setReceptionServices(reception);
+    }
+  };
 
   // إضافة للسلة
   const addToCart = (item: any, section: string) => {
@@ -199,6 +229,33 @@ export default function GuestMenuUnifiedPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-pink-900 p-4">
       {/* الهيدر */}
       <div className="max-w-6xl mx-auto mb-6">
+        {/* رسالة الترحيب والشعار */}
+        {menuSettings && (menuSettings.showLogo || menuSettings.showWelcomeMessage) && (
+          <Card className="bg-gray-900/80 backdrop-blur-xl border-gray-700/50 mb-4">
+            <CardContent className="p-6 text-center">
+              {menuSettings.showLogo && menuSettings.logo && (
+                <div className="mb-4">
+                  <img 
+                    src={menuSettings.logo} 
+                    alt={menuSettings.hotelName}
+                    className="h-20 w-auto mx-auto object-contain"
+                  />
+                </div>
+              )}
+              {menuSettings.showWelcomeMessage && menuSettings.welcomeMessage && (
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-2">
+                    {menuSettings.hotelName}
+                  </h2>
+                  <p className="text-gray-300">
+                    {menuSettings.welcomeMessage}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         <Card className="bg-gray-900/80 backdrop-blur-xl border-gray-700/50">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
