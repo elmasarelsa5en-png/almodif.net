@@ -292,7 +292,7 @@ export default function GuestMenuUnifiedPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50" dir="rtl">
       {/* Header الجديد - احترافي */}
-      <div className="sticky top-0 z-50 bg-white/90 backdrop-blur-lg shadow-lg border-b border-gray-200">
+      <div className="sticky top-0 z-50 bg-white/95 backdrop-blur-lg shadow-lg border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             {/* معلومات النزيل */}
@@ -344,16 +344,44 @@ export default function GuestMenuUnifiedPage() {
               </button>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* رسالة الترحيب */}
-          {menuSettings?.showWelcomeMessage && menuSettings?.welcomeMessage && (
-            <div className="mt-4 p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100">
-              <p className="text-sm text-gray-700 text-center flex items-center justify-center gap-2">
-                <Sparkles className="w-4 h-4 text-purple-500" />
-                {menuSettings.welcomeMessage}
-              </p>
+      {/* ترحيب خاص بالنزيل - جديد وجميل */}
+      <div className="max-w-6xl mx-auto px-4 py-6">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 p-8 shadow-2xl">
+          {/* نقاط ديكور */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2"></div>
+          
+          <div className="relative z-10 text-center">
+            <div className="inline-block mb-4">
+              <Sparkles className="w-12 h-12 text-yellow-300 animate-pulse" />
             </div>
-          )}
+            
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
+              أهلاً وسهلاً {guestSession.name} 👋
+            </h2>
+            
+            <p className="text-white/90 text-lg mb-6">
+              {menuSettings?.welcomeMessage || 'نتمنى لك إقامة سعيدة في غرفتك رقم ' + guestSession.roomNumber}
+            </p>
+            
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-5 py-2.5">
+                <HomeIcon className="w-5 h-5 text-white" />
+                <span className="text-white font-bold">غرفة {guestSession.roomNumber}</span>
+              </div>
+              <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-5 py-2.5">
+                <ShoppingCart className="w-5 h-5 text-white" />
+                <span className="text-white font-bold">اطلب ما تشاء</span>
+              </div>
+              <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-5 py-2.5">
+                <CheckCircle2 className="w-5 h-5 text-white" />
+                <span className="text-white font-bold">توصيل سريع</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -387,25 +415,59 @@ export default function GuestMenuUnifiedPage() {
                   {section.items.map((item) => (
                     <div 
                       key={item.id} 
-                      className="group relative bg-gradient-to-br from-white to-gray-50 rounded-2xl p-5 border-2 border-gray-100 hover:border-blue-300 hover:shadow-lg transition-all duration-300"
+                      className="group relative bg-gradient-to-br from-white to-gray-50 rounded-2xl overflow-hidden border-2 border-gray-100 hover:border-blue-300 hover:shadow-2xl transition-all duration-300"
                     >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <h4 className="text-gray-800 font-bold text-lg mb-1">{item.name}</h4>
-                          <p className="text-gray-500 text-sm">{item.category}</p>
+                      {/* صورة الصنف */}
+                      {item.image ? (
+                        <div className="relative h-48 w-full overflow-hidden">
+                          <img 
+                            src={item.image} 
+                            alt={item.name}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+                          {item.price > 0 && (
+                            <div className={`absolute top-3 right-3 bg-gradient-to-r ${section.gradient} text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg`}>
+                              {item.price} ر.س
+                            </div>
+                          )}
+                          {item.price === 0 && (
+                            <div className="absolute top-3 right-3 bg-green-500 text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg">
+                              مجاني
+                            </div>
+                          )}
                         </div>
-                      </div>
+                      ) : (
+                        <div className={`relative h-48 w-full bg-gradient-to-br ${section.gradient} flex items-center justify-center`}>
+                          <section.icon className="w-20 h-20 text-white/40" />
+                          {item.price > 0 && (
+                            <div className="absolute top-3 right-3 bg-white/30 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg">
+                              {item.price} ر.س
+                            </div>
+                          )}
+                          {item.price === 0 && (
+                            <div className="absolute top-3 right-3 bg-white/30 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg">
+                              مجاني
+                            </div>
+                          )}
+                        </div>
+                      )}
                       
-                      <div className="flex items-center justify-between">
-                        <div className={`text-2xl font-bold bg-gradient-to-r ${section.gradient} bg-clip-text text-transparent`}>
-                          {item.price > 0 ? `${item.price} ر.س` : 'مجاني'}
-                        </div>
+                      {/* تفاصيل الصنف */}
+                      <div className="p-5">
+                        <h4 className="text-gray-800 font-bold text-lg mb-1 line-clamp-2">{item.name}</h4>
+                        <p className="text-gray-500 text-sm mb-4">{item.category}</p>
+                        
+                        {item.description && (
+                          <p className="text-gray-600 text-xs mb-4 line-clamp-2">{item.description}</p>
+                        )}
                         
                         <button
                           onClick={() => addToCart(item, section.title)}
-                          className={`p-2.5 bg-gradient-to-r ${section.gradient} text-white rounded-xl hover:shadow-lg transform hover:scale-110 transition-all duration-300`}
+                          className={`w-full py-3 bg-gradient-to-r ${section.gradient} text-white rounded-xl font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2`}
                         >
                           <Plus className="w-5 h-5" />
+                          إضافة للسلة
                         </button>
                       </div>
                     </div>
