@@ -43,6 +43,8 @@ export default function RoomsManagementPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleteAllDialogOpen, setIsDeleteAllDialogOpen] = useState(false);
+  const [deleteAllConfirmation, setDeleteAllConfirmation] = useState('');
   const [isAddFromImageOpen, setIsAddFromImageOpen] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [formData, setFormData] = useState({
@@ -127,6 +129,19 @@ export default function RoomsManagementPage() {
     saveRoomsToStorage(updatedRooms);
     setIsDeleteDialogOpen(false);
     setSelectedRoom(null);
+  };
+
+  const handleDeleteAll = () => {
+    if (deleteAllConfirmation !== 'حذف كل الغرف') {
+      alert('يرجى كتابة "حذف كل الغرف" للتأكيد');
+      return;
+    }
+    
+    setRooms([]);
+    saveRoomsToStorage([]);
+    setIsDeleteAllDialogOpen(false);
+    setDeleteAllConfirmation('');
+    alert('تم حذف جميع الغرف بنجاح');
   };
 
   const handleAddRoom = () => {
@@ -349,6 +364,17 @@ export default function RoomsManagementPage() {
                   <Image className="h-4 w-4 ml-2" />
                   إضافة من صورة
                 </Button>
+
+                {rooms.length > 0 && (
+                  <Button 
+                    onClick={() => setIsDeleteAllDialogOpen(true)}
+                    variant="destructive"
+                    className="flex-1 lg:flex-initial bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white shadow-lg"
+                  >
+                    <Trash2 className="h-4 w-4 ml-2" />
+                    حذف الكل
+                  </Button>
+                )}
               </div>
             </div>
           </CardContent>
@@ -664,6 +690,87 @@ export default function RoomsManagementPage() {
           onClose={() => setIsAddFromImageOpen(false)}
           onSubmit={handleAddRoomsFromImage}
         />
+
+        {/* نافذة حذف كل الغرف */}
+        <Dialog open={isDeleteAllDialogOpen} onOpenChange={setIsDeleteAllDialogOpen}>
+          <DialogContent className="bg-gradient-to-br from-slate-900 via-red-950 to-slate-900 backdrop-blur-md border-red-500/20">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold text-white flex items-center gap-2">
+                <AlertCircle className="w-6 h-6 text-red-400" />
+                ⚠️ حذف جميع الغرف
+              </DialogTitle>
+              <DialogDescription className="text-red-200/80">
+                <div className="space-y-3 mt-2">
+                  <p className="font-bold text-red-300 text-lg">
+                    تحذير شديد الخطورة! ⚠️
+                  </p>
+                  <p>
+                    أنت على وشك حذف <span className="font-bold text-red-300">{rooms.length} غرفة</span> من النظام بشكل نهائي.
+                  </p>
+                  <p className="font-semibold text-red-300">
+                    هذا الإجراء لا يمكن التراجع عنه بأي حال من الأحوال!
+                  </p>
+                  <p className="text-yellow-300">
+                    سيتم حذف جميع البيانات المرتبطة بالغرف:
+                  </p>
+                  <ul className="list-disc list-inside text-sm text-red-200/90 space-y-1 mr-4">
+                    <li>معلومات النزلاء</li>
+                    <li>الفواتير والمدفوعات</li>
+                    <li>سجل الأحداث</li>
+                    <li>جميع البيانات الأخرى</li>
+                  </ul>
+                </div>
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 space-y-3">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />
+                <div className="space-y-2 flex-1">
+                  <p className="text-red-200 font-semibold text-sm">
+                    للمتابعة، يرجى كتابة النص التالي بالضبط:
+                  </p>
+                  <p className="text-white font-bold text-center bg-red-900/50 rounded px-3 py-2 text-lg border border-red-500/30">
+                    حذف كل الغرف
+                  </p>
+                  <Input 
+                    value={deleteAllConfirmation}
+                    onChange={(e) => setDeleteAllConfirmation(e.target.value)}
+                    placeholder="اكتب: حذف كل الغرف"
+                    className="bg-white/10 border-red-400/50 text-white placeholder:text-red-300/50 text-center font-bold"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
+              <p className="text-yellow-300 text-sm text-center">
+                💡 نصيحة: يُفضل عمل نسخة احتياطية من البيانات قبل الحذف
+              </p>
+            </div>
+
+            <DialogFooter className="gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setIsDeleteAllDialogOpen(false);
+                  setDeleteAllConfirmation('');
+                }} 
+                className="border-blue-400/30 text-blue-200 hover:bg-blue-500/10"
+              >
+                إلغاء (موصى به)
+              </Button>
+              <Button 
+                className="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white disabled:opacity-50 disabled:cursor-not-allowed" 
+                onClick={handleDeleteAll}
+                disabled={deleteAllConfirmation !== 'حذف كل الغرف'}
+              >
+                <Trash2 className="w-4 h-4 ml-2" />
+                حذف {rooms.length} غرفة نهائياً
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
