@@ -52,6 +52,40 @@ service cloud.firestore {
     match /guestRequests/{requestId} {
       allow read, write: if true;
     }
+    
+    // اسم بديل للمجموعة (guest-requests)
+    match /guest-requests/{requestId} {
+      allow read, write: if true;
+    }
+    
+    // مجموعات إضافية للخدمات
+    match /employees/{employeeId} {
+      allow read, write: if true;
+    }
+    
+    match /coffee-orders/{orderId} {
+      allow read, write: if true;
+    }
+    
+    match /laundry-requests/{requestId} {
+      allow read, write: if true;
+    }
+    
+    match /restaurant-orders/{orderId} {
+      allow read, write: if true;
+    }
+    
+    match /audit-log/{logId} {
+      allow read, write: if true;
+    }
+    
+    match /sound-settings/{settingId} {
+      allow read, write: if true;
+    }
+    
+    match /request-types/{typeId} {
+      allow read, write: if true;
+    }
 
     // قاعدة عامة للمستندات غير المحددة - محظورة
     match /{document=**} {
