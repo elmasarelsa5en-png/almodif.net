@@ -25,7 +25,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { db } from '@/lib/firebase';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 
 interface EmployeeProfile {
   id: string;
@@ -116,25 +116,60 @@ export default function ProfilePage() {
             bio: profileData.bio || '',
           });
         } else {
-          console.log('❌ Employee document does not exist for ID:', employeeId);
-          // Create a basic profile from user data if document doesn't exist
+          console.log('⚠️ Employee document does not exist for ID:', employeeId);
+          console.log('🔧 Creating employee document automatically...');
+          
+          // Create employee document automatically
           const basicProfile: EmployeeProfile = {
             id: employeeId,
             name: user.name || user.username || '',
             email: user.email || '',
+            dateJoined: new Date().toISOString(),
           };
-          console.log('📝 Creating basic profile:', basicProfile);
-          setProfile(basicProfile);
-          setFormData({
-            name: basicProfile.name,
-            email: basicProfile.email,
-            phone: '',
-            position: '',
-            department: '',
-            address: '',
-            bio: '',
-          });
-          setMessage({ type: 'error', text: 'لم يتم العثور على بيانات الموظف في قاعدة البيانات' });
+          
+          try {
+            // Create the document in Firebase
+            await setDoc(doc(db, 'employees', employeeId), {
+              username: user.username || employeeId,
+              name: basicProfile.name,
+              email: basicProfile.email,
+              role: user.role || 'employee',
+              dateJoined: basicProfile.dateJoined,
+              permissions: user.permissions || [],
+              department: user.department || '',
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            });
+            
+            console.log('✅ Employee document created successfully');
+            
+            setProfile(basicProfile);
+            setFormData({
+              name: basicProfile.name,
+              email: basicProfile.email,
+              phone: '',
+              position: '',
+              department: user.department || '',
+              address: '',
+              bio: '',
+            });
+            
+            setMessage({ type: 'success', text: 'تم إنشاء ملفك الشخصي بنجاح! يمكنك الآن تعديل بياناتك.' });
+            setTimeout(() => setMessage(null), 5000);
+          } catch (createError) {
+            console.error('❌ Error creating employee document:', createError);
+            setProfile(basicProfile);
+            setFormData({
+              name: basicProfile.name,
+              email: basicProfile.email,
+              phone: '',
+              position: '',
+              department: '',
+              address: '',
+              bio: '',
+            });
+            setMessage({ type: 'error', text: 'تم إنشاء ملف مؤقت. قد تحتاج لإعادة تسجيل الدخول.' });
+          }
         }
       } catch (error) {
         console.error('❌ Error loading profile:', error);
@@ -165,14 +200,39 @@ export default function ProfilePage() {
       
       const employeeRef = doc(db, 'employees', employeeId);
       
-      await updateDoc(employeeRef, {
-        name: formData.name,
-        phone: formData.phone,
-        position: formData.position,
-        department: formData.department,
-        address: formData.address,
-        bio: formData.bio,
-      });
+      // Check if document exists
+      const docSnap = await getDoc(employeeRef);
+      
+      if (docSnap.exists()) {
+        // Update existing document
+        await updateDoc(employeeRef, {
+          name: formData.name,
+          phone: formData.phone,
+          position: formData.position,
+          department: formData.department,
+          address: formData.address,
+          bio: formData.bio,
+          updatedAt: new Date().toISOString(),
+        });
+      } else {
+        // Create new document
+        console.log('📝 Document does not exist, creating new one...');
+        await setDoc(employeeRef, {
+          username: user.username || employeeId,
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          position: formData.position,
+          department: formData.department,
+          address: formData.address,
+          bio: formData.bio,
+          role: user.role || 'employee',
+          permissions: user.permissions || [],
+          dateJoined: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
+      }
 
       console.log('✅ Profile saved successfully');
 
@@ -267,9 +327,32 @@ export default function ProfilePage() {
 
         try {
           const employeeRef = doc(db, 'employees', employeeId);
-          await updateDoc(employeeRef, {
-            avatar: base64String,
-          });
+          
+          // Check if document exists
+          const docSnap = await getDoc(employeeRef);
+          
+          if (docSnap.exists()) {
+            // Update existing document
+            await updateDoc(employeeRef, {
+              avatar: base64String,
+              updatedAt: new Date().toISOString(),
+            });
+          } else {
+            // Create new document with avatar
+            console.log('📝 Document does not exist, creating with avatar...');
+            await setDoc(employeeRef, {
+              username: user.username || employeeId,
+              name: user.name || '',
+              email: user.email || '',
+              avatar: base64String,
+              role: user.role || 'employee',
+              permissions: user.permissions || [],
+              department: user.department || '',
+              dateJoined: new Date().toISOString(),
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            });
+          }
 
           console.log('✅ Avatar uploaded successfully');
           
