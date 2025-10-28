@@ -21,7 +21,9 @@ import {
   X,
   Send,
   User,
-  Home as HomeIcon
+  Home as HomeIcon,
+  Sparkles,
+  CheckCircle2
 } from 'lucide-react';
 
 interface CartItem {
@@ -78,14 +80,10 @@ export default function GuestMenuUnifiedPage() {
     // خدمة الغرف
     const roomService = JSON.parse(localStorage.getItem('room_service_items') || '[]');
     if (roomService.length === 0) {
-      // بيانات افتراضية إذا لم توجد
       setRoomServiceItems([
         { id: 'rs1', name: 'مخدة إضافية', price: 0, category: 'أساسيات' },
         { id: 'rs2', name: 'مناشف إضافية', price: 0, category: 'أساسيات' },
         { id: 'rs3', name: 'بطانية', price: 0, category: 'أساسيات' },
-        { id: 'rs4', name: 'مكواة ملابس', price: 0, category: 'أدوات' },
-        { id: 'rs5', name: 'مجفف شعر', price: 0, category: 'أدوات' },
-        { id: 'rs6', name: 'أدوات تنظيف', price: 0, category: 'نظافة' },
       ]);
     } else {
       setRoomServiceItems(roomService);
@@ -97,10 +95,6 @@ export default function GuestMenuUnifiedPage() {
       setCoffeeShopItems([
         { id: 'cf1', name: 'قهوة عربية', price: 8, category: 'مشروبات ساخنة' },
         { id: 'cf2', name: 'قهوة تركية', price: 10, category: 'مشروبات ساخنة' },
-        { id: 'cf3', name: 'كابتشينو', price: 15, category: 'مشروبات ساخنة' },
-        { id: 'cf4', name: 'لاتيه', price: 15, category: 'مشروبات ساخنة' },
-        { id: 'cf7', name: 'عصير برتقال طازج', price: 12, category: 'مشروبات باردة' },
-        { id: 'cf8', name: 'عصير مانجو', price: 14, category: 'مشروبات باردة' },
       ]);
     } else {
       setCoffeeShopItems(coffee);
@@ -110,10 +104,8 @@ export default function GuestMenuUnifiedPage() {
     const restaurant = JSON.parse(localStorage.getItem('restaurant_menu') || '[]');
     if (restaurant.length === 0) {
       setRestaurantItems([
-        { id: 'r1', name: 'حمص بالطحينة', price: 15, category: 'مقبلات' },
-        { id: 'r2', name: 'متبل باذنجان', price: 18, category: 'مقبلات' },
-        { id: 'r5', name: 'كباب مشوي', price: 45, category: 'أطباق رئيسية' },
-        { id: 'r6', name: 'فراخ مشوية', price: 40, category: 'أطباق رئيسية' },
+        { id: 'rest1', name: 'فطور أمريكي', price: 35, category: 'إفطار' },
+        { id: 'rest2', name: 'فطور عربي', price: 30, category: 'إفطار' },
       ]);
     } else {
       setRestaurantItems(restaurant);
@@ -123,22 +115,19 @@ export default function GuestMenuUnifiedPage() {
     const laundry = JSON.parse(localStorage.getItem('laundry_services') || '[]');
     if (laundry.length === 0) {
       setLaundryItems([
-        { id: 'l1', name: 'قميص', price: 8, category: 'غسيل وكي' },
-        { id: 'l2', name: 'بنطلون', price: 10, category: 'غسيل وكي' },
-        { id: 'l3', name: 'ثوب', price: 12, category: 'غسيل وكي' },
+        { id: 'lau1', name: 'غسيل وكي قميص', price: 15, category: 'ملابس رجالية' },
+        { id: 'lau2', name: 'غسيل وكي بنطلون', price: 20, category: 'ملابس رجالية' },
       ]);
     } else {
       setLaundryItems(laundry);
     }
 
-    // خدمات الاستقبال
+    // الاستقبال
     const reception = JSON.parse(localStorage.getItem('reception_services') || '[]');
     if (reception.length === 0) {
       setReceptionServices([
-        { id: 'rec1', name: 'تمديد الإقامة', price: 0, category: 'خدمات' },
-        { id: 'rec2', name: 'تشيك أوت مبكر', price: 0, category: 'خدمات' },
-        { id: 'rec3', name: 'تقديم شكوى', price: 0, category: 'استفسارات' },
-        { id: 'rec4', name: 'طلب صيانة', price: 0, category: 'صيانة' },
+        { id: 'rec1', name: 'طلب تاكسي', price: 0, category: 'خدمات' },
+        { id: 'rec2', name: 'إيقاظ صباحي', price: 0, category: 'خدمات' },
       ]);
     } else {
       setReceptionServices(reception);
@@ -147,461 +136,383 @@ export default function GuestMenuUnifiedPage() {
 
   // إضافة للسلة
   const addToCart = (item: any, section: string) => {
-    const existingItem = cart.find(i => i.id === item.id);
+    const existingItem = cart.find(cartItem => cartItem.id === item.id);
     if (existingItem) {
-      setCart(cart.map(i => 
-        i.id === item.id 
-          ? { ...i, quantity: i.quantity + 1 }
-          : i
+      setCart(cart.map(cartItem =>
+        cartItem.id === item.id
+          ? { ...cartItem, quantity: cartItem.quantity + 1 }
+          : cartItem
       ));
     } else {
-      setCart([...cart, { 
-        ...item, 
-        quantity: 1, 
-        section 
-      }]);
+      setCart([...cart, { ...item, quantity: 1, section }]);
     }
   };
 
-  // تقليل الكمية
-  const decreaseQuantity = (id: string) => {
-    const item = cart.find(i => i.id === id);
-    if (item && item.quantity > 1) {
-      setCart(cart.map(i => 
-        i.id === id 
-          ? { ...i, quantity: i.quantity - 1 }
-          : i
-      ));
-    } else {
-      removeFromCart(id);
-    }
+  // تحديث الكمية
+  const updateQuantity = (id: string, change: number) => {
+    setCart(cart.map(item => {
+      if (item.id === id) {
+        const newQuantity = item.quantity + change;
+        return { ...item, quantity: Math.max(0, newQuantity) };
+      }
+      return item;
+    }).filter(item => item.quantity > 0));
   };
 
   // حذف من السلة
   const removeFromCart = (id: string) => {
-    setCart(cart.filter(i => i.id !== id));
+    setCart(cart.filter(item => item.id !== id));
   };
 
-  // حساب الإجمالي
+  // الإجمالي
   const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
   // إرسال الطلب
-  const submitOrder = () => {
+  const submitOrder = async () => {
     if (cart.length === 0) {
       alert('السلة فارغة! يرجى إضافة عناصر أولاً');
       return;
     }
 
     const order = {
+      id: `order_${Date.now()}`,
       guestName: guestSession?.name,
       roomNumber: guestSession?.roomNumber,
       items: cart,
       total: totalAmount,
       timestamp: new Date().toISOString(),
-      status: 'pending'
+      status: 'pending',
+      type: 'طلب من المنيو الإلكتروني'
     };
 
-    // حفظ الطلب في localStorage
-    const existingOrders = JSON.parse(localStorage.getItem('guest_orders') || '[]');
-    existingOrders.push(order);
-    localStorage.setItem('guest_orders', JSON.stringify(existingOrders));
+    // حفظ الطلب في guest_orders (localStorage)
+    const guestOrders = JSON.parse(localStorage.getItem('guest_orders') || '[]');
+    guestOrders.push(order);
+    localStorage.setItem('guest_orders', JSON.stringify(guestOrders));
 
-    alert(`تم إرسال طلبك بنجاح!\nالإجمالي: ${totalAmount} ر.س`);
-    setCart([]);
-    setShowCart(false);
+    // إرسال الطلب لـ Firebase (لوحة طلبات النزلاء)
+    try {
+      const { addRequest } = await import('@/lib/firebase-data');
+      
+      const itemsList = cart.map(item => `${item.name} (الكمية: ${item.quantity})`).join('\n');
+      
+      await addRequest({
+        room: guestSession?.roomNumber || '',
+        guest: guestSession?.name || '',
+        type: 'طلب من المنيو الإلكتروني',
+        description: `طلب يحتوي على ${cart.length} صنف:\n${itemsList}\n\nالإجمالي: ${totalAmount} ر.س`,
+        status: 'pending',
+        createdAt: new Date().toISOString()
+      });
+
+      // تشغيل صوت النجاح
+      playSuccessSound();
+
+      alert(`✅ تم إرسال طلبك بنجاح!\n\nالإجمالي: ${totalAmount} ر.س\nسيصل إلى غرفتك قريباً 🎉`);
+      setCart([]);
+      setShowCart(false);
+    } catch (error) {
+      console.error('Error submitting order:', error);
+      alert(`⚠️ حدث خطأ في الإرسال!\n\nتم حفظ طلبك محلياً. يرجى التواصل مع الاستقبال.`);
+    }
+  };
+
+  // تشغيل صوت النجاح
+  const playSuccessSound = () => {
+    try {
+      const audio = new Audio('/sounds/notification.mp3');
+      audio.play().catch(e => console.log('Could not play sound:', e));
+    } catch (error) {
+      console.log('Sound not available:', error);
+    }
   };
 
   // تسجيل الخروج
   const handleLogout = () => {
-    localStorage.removeItem('guest_session');
-    router.push('/guest-login');
+    if (confirm('هل تريد تسجيل الخروج؟')) {
+      localStorage.removeItem('guest_session');
+      router.push('/guest-login');
+    }
   };
 
   if (!guestSession) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-pink-900 flex items-center justify-center">
-        <div className="text-white text-xl">جاري التحميل...</div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 text-lg">جاري التحميل...</p>
+        </div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-pink-900 p-4">
-      {/* الهيدر */}
-      <div className="max-w-6xl mx-auto mb-6">
-        {/* رسالة الترحيب والشعار */}
-        {menuSettings && (menuSettings.showLogo || menuSettings.showWelcomeMessage) && (
-          <Card className="bg-gray-900/80 backdrop-blur-xl border-gray-700/50 mb-4">
-            <CardContent className="p-6 text-center">
-              {menuSettings.showLogo && menuSettings.logo && (
-                <div className="mb-4">
-                  <img 
-                    src={menuSettings.logo} 
-                    alt={menuSettings.hotelName}
-                    className="h-20 w-auto mx-auto object-contain"
-                  />
-                </div>
-              )}
-              {menuSettings.showWelcomeMessage && menuSettings.welcomeMessage && (
-                <div>
-                  <h2 className="text-2xl font-bold text-white mb-2">
-                    {menuSettings.hotelName}
-                  </h2>
-                  <p className="text-gray-300">
-                    {menuSettings.welcomeMessage}
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
+  const sections = [
+    {
+      id: 'room',
+      title: 'خدمة الغرف',
+      icon: Hotel,
+      items: roomServiceItems,
+      gradient: 'from-blue-500 to-indigo-600',
+      bgGradient: 'from-blue-50 to-indigo-50'
+    },
+    {
+      id: 'coffee',
+      title: 'الكوفي شوب',
+      icon: Coffee,
+      items: coffeeShopItems,
+      gradient: 'from-amber-500 to-orange-600',
+      bgGradient: 'from-amber-50 to-orange-50'
+    },
+    {
+      id: 'restaurant',
+      title: 'المطعم',
+      icon: UtensilsCrossed,
+      items: restaurantItems,
+      gradient: 'from-green-500 to-emerald-600',
+      bgGradient: 'from-green-50 to-emerald-50'
+    },
+    {
+      id: 'laundry',
+      title: 'المغسلة',
+      icon: Shirt,
+      items: laundryItems,
+      gradient: 'from-purple-500 to-pink-600',
+      bgGradient: 'from-purple-50 to-pink-50'
+    },
+    {
+      id: 'reception',
+      title: 'الاستقبال',
+      icon: Phone,
+      items: receptionServices,
+      gradient: 'from-red-500 to-rose-600',
+      bgGradient: 'from-red-50 to-rose-50'
+    }
+  ];
 
-        <Card className="bg-gray-900/80 backdrop-blur-xl border-gray-700/50">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                  <User className="w-6 h-6 text-white" />
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50" dir="rtl">
+      {/* Header الجديد - احترافي */}
+      <div className="sticky top-0 z-50 bg-white/90 backdrop-blur-lg shadow-lg border-b border-gray-200">
+        <div className="max-w-6xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            {/* معلومات النزيل */}
+            <div className="flex items-center gap-3">
+              {menuSettings?.showLogo && menuSettings?.logoUrl && (
+                <img 
+                  src={menuSettings.logoUrl} 
+                  alt="Logo" 
+                  className="h-14 w-14 object-contain rounded-xl shadow-md"
+                />
+              )}
+              <div>
+                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  {menuSettings?.hotelNameAr || 'المنيو الإلكتروني'}
+                </h1>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <User className="w-3.5 h-3.5" />
+                  <span className="font-medium">{guestSession.name}</span>
+                  <span className="text-gray-400">•</span>
+                  <HomeIcon className="w-3.5 h-3.5" />
+                  <span>غرفة {guestSession.roomNumber}</span>
                 </div>
-                <div>
-                  <h2 className="text-white font-bold">{guestSession.name}</h2>
-                  <p className="text-gray-300 text-sm flex items-center gap-1">
-                    <HomeIcon className="w-4 h-4" />
-                    غرفة {guestSession.roomNumber}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                {/* زر السلة */}
-                <Button
-                  onClick={() => setShowCart(!showCart)}
-                  className="relative bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-                >
-                  <ShoppingCart className="w-5 h-5" />
-                  {cart.length > 0 && (
-                    <Badge className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2">
-                      {cart.length}
-                    </Badge>
-                  )}
-                </Button>
-                {/* زر الخروج */}
-                <Button
-                  onClick={handleLogout}
-                  variant="outline"
-                  className="border-gray-600 text-gray-300 hover:bg-gray-700/50"
-                >
-                  <LogOut className="w-5 h-5" />
-                </Button>
               </div>
             </div>
-          </CardContent>
-        </Card>
+
+            {/* الأزرار */}
+            <div className="flex items-center gap-2">
+              {/* زر السلة - احترافي */}
+              <button
+                onClick={() => setShowCart(true)}
+                className="relative group"
+              >
+                <div className="p-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+                  <ShoppingCart className="w-6 h-6 text-white" />
+                </div>
+                {cart.length > 0 && (
+                  <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center shadow-lg animate-bounce">
+                    {cart.length}
+                  </div>
+                )}
+              </button>
+
+              {/* زر الخروج */}
+              <button
+                onClick={handleLogout}
+                className="p-3 bg-gray-100 hover:bg-gray-200 rounded-2xl transition-all duration-300"
+              >
+                <LogOut className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+          </div>
+
+          {/* رسالة الترحيب */}
+          {menuSettings?.showWelcomeMessage && menuSettings?.welcomeMessage && (
+            <div className="mt-4 p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100">
+              <p className="text-sm text-gray-700 text-center flex items-center justify-center gap-2">
+                <Sparkles className="w-4 h-4 text-purple-500" />
+                {menuSettings.welcomeMessage}
+              </p>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* قسم خدمة الغرف */}
-        <Card className="bg-gray-900/80 backdrop-blur-xl border-gray-700/50">
-          <CardHeader 
-            className="cursor-pointer hover:bg-gray-800/50 transition-colors"
-            onClick={() => setActiveSection(activeSection === 'room' ? null : 'room')}
+      {/* الأقسام */}
+      <div className="max-w-6xl mx-auto px-4 py-6 space-y-4">
+        {sections.map((section) => (
+          <Card 
+            key={section.id}
+            className="overflow-hidden border-2 border-gray-100 hover:border-gray-200 transition-all duration-300 hover:shadow-xl"
           >
-            <CardTitle className="flex items-center justify-between text-white">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                  <Hotel className="w-5 h-5 text-white" />
-                </div>
-                <span>خدمة الغرف</span>
-              </div>
-              <Badge variant="secondary">{roomServiceItems.length} صنف</Badge>
-            </CardTitle>
-          </CardHeader>
-          {activeSection === 'room' && (
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {roomServiceItems.map((item) => (
-                  <div key={item.id} className="bg-gray-800/50 rounded-lg p-3 flex items-center justify-between">
-                    <div>
-                      <h4 className="text-white font-medium">{item.name}</h4>
-                      <p className="text-gray-400 text-sm">{item.category}</p>
-                      <p className="text-green-400 font-bold">{item.price > 0 ? `${item.price} ر.س` : 'مجاني'}</p>
-                    </div>
-                    <Button
-                      size="sm"
-                      onClick={() => addToCart(item, 'خدمة الغرف')}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </Button>
+            <CardHeader 
+              className={`cursor-pointer bg-gradient-to-r ${section.bgGradient} hover:opacity-90 transition-all`}
+              onClick={() => setActiveSection(activeSection === section.id ? null : section.id)}
+            >
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`w-12 h-12 bg-gradient-to-r ${section.gradient} rounded-xl flex items-center justify-center shadow-lg`}>
+                    <section.icon className="w-6 h-6 text-white" />
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          )}
-        </Card>
-
-        {/* قسم الكوفي شوب */}
-        <Card className="bg-gray-900/80 backdrop-blur-xl border-gray-700/50">
-          <CardHeader 
-            className="cursor-pointer hover:bg-gray-800/50 transition-colors"
-            onClick={() => setActiveSection(activeSection === 'coffee' ? null : 'coffee')}
-          >
-            <CardTitle className="flex items-center justify-between text-white">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
-                  <Coffee className="w-5 h-5 text-white" />
+                  <span className="text-gray-800 text-xl font-bold">{section.title}</span>
                 </div>
-                <span>الكوفي شوب</span>
-              </div>
-              <Badge variant="secondary">{coffeeShopItems.length} صنف</Badge>
-            </CardTitle>
-          </CardHeader>
-          {activeSection === 'coffee' && (
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {coffeeShopItems.map((item) => (
-                  <div key={item.id} className="bg-gray-800/50 rounded-lg p-3 flex items-center justify-between">
-                    <div>
-                      <h4 className="text-white font-medium">{item.name}</h4>
-                      <p className="text-gray-400 text-sm">{item.category}</p>
-                      <p className="text-green-400 font-bold">{item.price} ر.س</p>
-                    </div>
-                    <Button
-                      size="sm"
-                      onClick={() => addToCart(item, 'الكوفي شوب')}
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          )}
-        </Card>
-
-        {/* قسم المطعم */}
-        <Card className="bg-gray-900/80 backdrop-blur-xl border-gray-700/50">
-          <CardHeader 
-            className="cursor-pointer hover:bg-gray-800/50 transition-colors"
-            onClick={() => setActiveSection(activeSection === 'restaurant' ? null : 'restaurant')}
-          >
-            <CardTitle className="flex items-center justify-between text-white">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
-                  <UtensilsCrossed className="w-5 h-5 text-white" />
-                </div>
-                <span>المطعم</span>
-              </div>
-              <Badge variant="secondary">{restaurantItems.length} صنف</Badge>
-            </CardTitle>
-          </CardHeader>
-          {activeSection === 'restaurant' && (
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {restaurantItems.map((item) => (
-                  <div key={item.id} className="bg-gray-800/50 rounded-lg p-3 flex items-center justify-between">
-                    <div>
-                      <h4 className="text-white font-medium">{item.name}</h4>
-                      <p className="text-gray-400 text-sm">{item.category}</p>
-                      <p className="text-green-400 font-bold">{item.price} ر.س</p>
-                    </div>
-                    <Button
-                      size="sm"
-                      onClick={() => addToCart(item, 'المطعم')}
-                      className="bg-orange-600 hover:bg-orange-700"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          )}
-        </Card>
-
-        {/* قسم المغسلة */}
-        <Card className="bg-gray-900/80 backdrop-blur-xl border-gray-700/50">
-          <CardHeader 
-            className="cursor-pointer hover:bg-gray-800/50 transition-colors"
-            onClick={() => setActiveSection(activeSection === 'laundry' ? null : 'laundry')}
-          >
-            <CardTitle className="flex items-center justify-between text-white">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
-                  <Shirt className="w-5 h-5 text-white" />
-                </div>
-                <span>المغسلة</span>
-              </div>
-              <Badge variant="secondary">{laundryItems.length} صنف</Badge>
-            </CardTitle>
-          </CardHeader>
-          {activeSection === 'laundry' && (
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {laundryItems.map((item) => (
-                  <div key={item.id} className="bg-gray-800/50 rounded-lg p-3 flex items-center justify-between">
-                    <div>
-                      <h4 className="text-white font-medium">{item.name}</h4>
-                      <p className="text-gray-400 text-sm">{item.category}</p>
-                      <p className="text-green-400 font-bold">{item.price} ر.س</p>
-                    </div>
-                    <Button
-                      size="sm"
-                      onClick={() => addToCart(item, 'المغسلة')}
-                      className="bg-purple-600 hover:bg-purple-700"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          )}
-        </Card>
-
-        {/* قسم الاستقبال */}
-        <Card className="bg-gray-900/80 backdrop-blur-xl border-gray-700/50">
-          <CardHeader 
-            className="cursor-pointer hover:bg-gray-800/50 transition-colors"
-            onClick={() => setActiveSection(activeSection === 'reception' ? null : 'reception')}
-          >
-            <CardTitle className="flex items-center justify-between text-white">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-lg flex items-center justify-center">
-                  <Phone className="w-5 h-5 text-white" />
-                </div>
-                <span>الاستقبال</span>
-              </div>
-              <Badge variant="secondary">{receptionServices.length} خدمة</Badge>
-            </CardTitle>
-          </CardHeader>
-          {activeSection === 'reception' && (
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {receptionServices.map((item) => {
-                  let Icon = Phone;
-                  if (item.id === 'rec1') Icon = Clock;
-                  if (item.id === 'rec2') Icon = LogOut;
-                  if (item.id === 'rec3') Icon = AlertCircle;
-                  if (item.id === 'rec4') Icon = Wrench;
-
-                  return (
-                    <div key={item.id} className="bg-gray-800/50 rounded-lg p-4 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-yellow-500/20 rounded-lg flex items-center justify-center">
-                          <Icon className="w-5 h-5 text-yellow-400" />
-                        </div>
-                        <div>
-                          <h4 className="text-white font-medium">{item.name}</h4>
-                          <p className="text-gray-400 text-sm">{item.category}</p>
-                        </div>
-                      </div>
-                      <Button
-                        size="sm"
-                        onClick={() => addToCart(item, 'الاستقبال')}
-                        className="bg-yellow-600 hover:bg-yellow-700"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          )}
-        </Card>
-      </div>
-
-      {/* نافذة السلة المنزلقة */}
-      {showCart && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end md:items-center justify-center p-4">
-          <Card className="w-full max-w-2xl bg-gray-900 border-gray-700 max-h-[90vh] overflow-auto">
-            <CardHeader className="border-b border-gray-700">
-              <CardTitle className="flex items-center justify-between text-white">
-                <div className="flex items-center gap-2">
-                  <ShoppingCart className="w-6 h-6" />
-                  <span>سلة الطلبات</span>
-                </div>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setShowCart(false)}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <X className="w-5 h-5" />
-                </Button>
+                <Badge className="bg-white text-gray-700 text-sm px-3 py-1 shadow-sm">
+                  {section.items.length} صنف
+                </Badge>
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-4">
+            
+            {activeSection === section.id && (
+              <CardContent className="p-6 bg-white">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {section.items.map((item) => (
+                    <div 
+                      key={item.id} 
+                      className="group relative bg-gradient-to-br from-white to-gray-50 rounded-2xl p-5 border-2 border-gray-100 hover:border-blue-300 hover:shadow-lg transition-all duration-300"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <h4 className="text-gray-800 font-bold text-lg mb-1">{item.name}</h4>
+                          <p className="text-gray-500 text-sm">{item.category}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <div className={`text-2xl font-bold bg-gradient-to-r ${section.gradient} bg-clip-text text-transparent`}>
+                          {item.price > 0 ? `${item.price} ر.س` : 'مجاني'}
+                        </div>
+                        
+                        <button
+                          onClick={() => addToCart(item, section.title)}
+                          className={`p-2.5 bg-gradient-to-r ${section.gradient} text-white rounded-xl hover:shadow-lg transform hover:scale-110 transition-all duration-300`}
+                        >
+                          <Plus className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            )}
+          </Card>
+        ))}
+      </div>
+
+      {/* السلة المنبثقة - احترافية */}
+      {showCart && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end md:items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-2xl transform transition-all">
+            {/* هيدر السلة */}
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-lg">
+                    <ShoppingCart className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold">سلة الطلبات</h3>
+                    <p className="text-blue-100 text-sm">{cart.length} صنف</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowCart(false)}
+                  className="p-2 hover:bg-white/20 rounded-xl transition-all"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            {/* محتوى السلة */}
+            <div className="p-6 overflow-y-auto max-h-96">
               {cart.length === 0 ? (
                 <div className="text-center py-12">
-                  <ShoppingCart className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                  <p className="text-gray-400">السلة فارغة</p>
-                  <p className="text-gray-500 text-sm">ابدأ بإضافة عناصر من الأقسام أعلاه</p>
+                  <ShoppingCart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 text-lg">السلة فارغة</p>
+                  <p className="text-gray-400 text-sm">أضف بعض الأصناف للبدء</p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {cart.map((item) => (
-                    <div key={item.id} className="bg-gray-800/50 rounded-lg p-3">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <h4 className="text-white font-medium">{item.name}</h4>
-                          <p className="text-gray-400 text-sm">{item.section}</p>
-                        </div>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => removeFromCart(item.id)}
-                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                    <div 
+                      key={item.id} 
+                      className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-all"
+                    >
+                      <div className="flex-1">
+                        <h4 className="font-bold text-gray-800">{item.name}</h4>
+                        <p className="text-sm text-gray-500">{item.section}</p>
+                        <p className="text-lg font-bold text-blue-600 mt-1">
+                          {item.price > 0 ? `${item.price * item.quantity} ر.س` : 'مجاني'}
+                        </p>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => updateQuantity(item.id, -1)}
+                          className="p-2 bg-red-100 text-red-600 rounded-xl hover:bg-red-200 transition-all"
                         >
-                          <X className="w-4 h-4" />
-                        </Button>
+                          <Minus className="w-4 h-4" />
+                        </button>
+                        <span className="w-8 text-center font-bold text-gray-800">{item.quantity}</span>
+                        <button
+                          onClick={() => updateQuantity(item.id, 1)}
+                          className="p-2 bg-green-100 text-green-600 rounded-xl hover:bg-green-200 transition-all"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 bg-gray-700/50 rounded-lg p-1">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => decreaseQuantity(item.id)}
-                            className="h-7 w-7 p-0 hover:bg-gray-600"
-                          >
-                            <Minus className="w-4 h-4 text-white" />
-                          </Button>
-                          <span className="text-white font-medium px-3">{item.quantity}</span>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => addToCart(item, item.section)}
-                            className="h-7 w-7 p-0 hover:bg-gray-600"
-                          >
-                            <Plus className="w-4 h-4 text-white" />
-                          </Button>
-                        </div>
-                        <span className="text-green-400 font-bold">
-                          {item.price * item.quantity} ر.س
-                        </span>
-                      </div>
+
+                      <button
+                        onClick={() => removeFromCart(item.id)}
+                        className="p-2 bg-red-100 text-red-600 rounded-xl hover:bg-red-200 transition-all"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
                     </div>
                   ))}
-
-                  {/* الإجمالي */}
-                  <div className="border-t border-gray-700 pt-3 mt-3">
-                    <div className="flex items-center justify-between text-xl font-bold mb-4">
-                      <span className="text-white">الإجمالي:</span>
-                      <span className="text-green-400">{totalAmount} ر.س</span>
-                    </div>
-                    <Button
-                      onClick={submitOrder}
-                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white text-lg py-6"
-                    >
-                      <Send className="w-5 h-5 ml-2" />
-                      إرسال الطلب
-                    </Button>
-                  </div>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+
+            {/* تذييل السلة */}
+            {cart.length > 0 && (
+              <div className="border-t-2 border-gray-100 p-6 bg-gradient-to-r from-gray-50 to-white">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-xl font-bold text-gray-800">الإجمالي:</span>
+                  <span className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    {totalAmount} ر.س
+                  </span>
+                </div>
+                
+                <button
+                  onClick={submitOrder}
+                  className="w-full py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white text-lg font-bold rounded-2xl hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
+                >
+                  <Send className="w-5 h-5" />
+                  إرسال الطلب
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

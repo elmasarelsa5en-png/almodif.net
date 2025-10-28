@@ -100,21 +100,35 @@ export default function RequestsPage() {
     
     // Subscribe to real-time updates
     const unsubscribe = subscribeToRequests((requestsData) => {
+      console.log('📨 Received requests update:', requestsData.length, 'requests');
+      console.log('Previous count:', previousRequestCount);
+      
       // Check if there are new requests
       if (previousRequestCount > 0 && requestsData.length > previousRequestCount) {
+        console.log('🔔 NEW REQUEST DETECTED! Playing sound...');
+        
         // New request detected - play sound
         playNotificationSound();
         
         // Show browser notification if permitted
         if ('Notification' in window && Notification.permission === 'granted') {
           const newRequest = requestsData[0]; // Most recent request
-          new Notification('طلب جديد من نزيل', {
+          new Notification('🔔 طلب جديد من نزيل', {
             body: `غرفة ${newRequest.room} - ${newRequest.type}\n${newRequest.guest}`,
             icon: '/images/logo.png',
             badge: '/images/logo.png',
             tag: 'new-guest-request',
             requireInteraction: true
           });
+        }
+        
+        // Visual alert in the page
+        if (typeof window !== 'undefined') {
+          const alertDiv = document.createElement('div');
+          alertDiv.className = 'fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-4 rounded-lg shadow-2xl animate-bounce';
+          alertDiv.innerHTML = '🔔 طلب جديد وصل!';
+          document.body.appendChild(alertDiv);
+          setTimeout(() => alertDiv.remove(), 5000);
         }
       }
       
@@ -124,9 +138,11 @@ export default function RequestsPage() {
       setIsLoading(false);
     });
 
-    // Request notification permission
+    // Request notification permission immediately
     if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
+      Notification.requestPermission().then(permission => {
+        console.log('Notification permission:', permission);
+      });
     }
 
     // Cleanup subscription on unmount
