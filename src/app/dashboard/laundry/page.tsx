@@ -358,37 +358,11 @@ export default function LaundryPage() {
           </div>
           
           <h1 className="text-6xl font-bold bg-gradient-to-r from-cyan-200 via-blue-200 to-teal-200 bg-clip-text text-transparent mb-4">
-            مغسلة بريستيج الفاخرة
+            خدمات المغسلة
           </h1>
           <p className="text-2xl text-cyan-300 font-medium mb-6">
-            خدمات غسيل وكي احترافية عالية الجودة
+            خدمات الغسيل والكي
           </p>
-          
-          {/* Premium Features */}
-          <div className="flex justify-center gap-8 mt-8">
-            {[
-              { icon: Clock, label: 'سرعة في التسليم', color: 'text-cyan-400' },
-              { icon: Award, label: 'جودة عالية', color: 'text-blue-400' },
-              { icon: Star, label: 'خدمة 5 نجوم', color: 'text-yellow-400' }
-            ].map((feature, i) => (
-              <motion.div
-                key={i}
-                className="text-center"
-                animate={{ 
-                  y: [0, -5, 0],
-                  scale: [1, 1.05, 1]
-                }}
-                transition={{ 
-                  duration: 2,
-                  repeat: Infinity,
-                  delay: i * 0.3
-                }}
-              >
-                <feature.icon className={`h-8 w-8 ${feature.color} mx-auto mb-2`} />
-                <p className="text-white/90 text-sm font-medium">{feature.label}</p>
-              </motion.div>
-            ))}
-          </div>
         </motion.div>
 
         {/* Professional Control Panel */}
