@@ -20,7 +20,8 @@ import {
   Shield,
   Search,
   Filter,
-  Loader2
+  Loader2,
+  Copy
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -85,6 +86,9 @@ export default function HRSettingsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isCopyPermissionsDialogOpen, setIsCopyPermissionsDialogOpen] = useState(false);
+  const [targetEmployeeForCopy, setTargetEmployeeForCopy] = useState<Employee | null>(null);
+  const [sourceEmployeeId, setSourceEmployeeId] = useState<string>('');
   
   const [formData, setFormData] = useState({
     username: '',
@@ -248,6 +252,55 @@ export default function HRSettingsPage() {
     } catch (error) {
       console.error('Error updating status:', error);
       alert('حدث خطأ أثناء تحديث الحالة');
+    }
+  };
+
+  const handleOpenCopyPermissionsDialog = (employee: Employee) => {
+    setTargetEmployeeForCopy(employee);
+    setSourceEmployeeId('');
+    setIsCopyPermissionsDialogOpen(true);
+  };
+
+  const handleCopyPermissions = async () => {
+    if (!sourceEmployeeId || !targetEmployeeForCopy) {
+      alert('الرجاء اختيار الموظف المصدر');
+      return;
+    }
+
+    const sourceEmployee = employees.find(emp => emp.id === sourceEmployeeId);
+    if (!sourceEmployee) {
+      alert('الموظف المصدر غير موجود');
+      return;
+    }
+
+    if (sourceEmployee.id === targetEmployeeForCopy.id) {
+      alert('لا يمكن نسخ الصلاحيات من نفس الموظف');
+      return;
+    }
+
+    try {
+      const copiedPermissions = sourceEmployee.permissions || [];
+      await updateEmployee(targetEmployeeForCopy.id, { 
+        permissions: copiedPermissions 
+      });
+
+      // تسجيل في Audit Log
+      logAction.updateEmployee(
+        targetEmployeeForCopy.name,
+        targetEmployeeForCopy.id,
+        [{ 
+          field: 'permissions',
+          fieldLabel: 'الصلاحيات', 
+          oldValue: `${targetEmployeeForCopy.permissions?.length || 0} صلاحية`, 
+          newValue: `${copiedPermissions.length} صلاحية (منسوخة من ${sourceEmployee.name})` 
+        }]
+      );
+
+      alert(`✅ تم نسخ ${copiedPermissions.length} صلاحية من ${sourceEmployee.name} إلى ${targetEmployeeForCopy.name}`);
+      setIsCopyPermissionsDialogOpen(false);
+    } catch (error) {
+      console.error('Error copying permissions:', error);
+      alert('حدث خطأ أثناء نسخ الصلاحيات');
     }
   };
 
@@ -468,14 +521,25 @@ export default function HRSettingsPage() {
                             variant="ghost"
                             onClick={() => handleOpenDialog(employee)}
                             className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+                            title="تعديل الموظف"
                           >
                             <Edit2 className="h-4 w-4" />
                           </Button>
                           <Button
                             size="sm"
                             variant="ghost"
+                            onClick={() => handleOpenCopyPermissionsDialog(employee)}
+                            className="text-green-400 hover:text-green-300 hover:bg-green-500/10"
+                            title="نسخ الصلاحيات من موظف آخر"
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
                             onClick={() => handleDelete(employee.id)}
                             className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                            title="حذف الموظف"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -646,6 +710,104 @@ export default function HRSettingsPage() {
               className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
             >
               {editingEmployee ? 'حفظ التعديلات' : 'إضافة'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Copy Permissions Dialog */}
+      <Dialog open={isCopyPermissionsDialogOpen} onOpenChange={setIsCopyPermissionsDialogOpen}>
+        <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl flex items-center gap-2">
+              <Copy className="h-6 w-6 text-green-400" />
+              نسخ الصلاحيات
+            </DialogTitle>
+            <DialogDescription className="text-purple-200">
+              {targetEmployeeForCopy && (
+                <>نسخ الصلاحيات من موظف آخر إلى <span className="font-bold text-white">{targetEmployeeForCopy.name}</span></>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {targetEmployeeForCopy && (
+              <>
+                <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-4">
+                  <div className="text-sm text-purple-200 mb-1">الموظف المستهدف:</div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold">
+                      {targetEmployeeForCopy.name.charAt(0)}
+                    </div>
+                    <div>
+                      <div className="font-bold">{targetEmployeeForCopy.name}</div>
+                      <div className="text-sm text-gray-400">@{targetEmployeeForCopy.username}</div>
+                    </div>
+                  </div>
+                  <div className="mt-2 text-xs text-purple-300">
+                    الصلاحيات الحالية: {targetEmployeeForCopy.permissions?.length || 0}
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-purple-200 text-sm mb-2 block">اختر الموظف المصدر (لنسخ صلاحياته):</Label>
+                  <Select value={sourceEmployeeId} onValueChange={setSourceEmployeeId}>
+                    <SelectTrigger className="bg-slate-800 border-slate-600 text-white">
+                      <SelectValue placeholder="اختر موظف..." />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-800 border-slate-600">
+                      {employees
+                        .filter(emp => emp.id !== targetEmployeeForCopy.id)
+                        .map(emp => (
+                          <SelectItem 
+                            key={emp.id} 
+                            value={emp.id}
+                            className="text-white hover:bg-slate-700"
+                          >
+                            <div className="flex items-center justify-between w-full">
+                              <span>{emp.name} (@{emp.username})</span>
+                              <Badge 
+                                variant="secondary" 
+                                className="mr-2 text-xs"
+                              >
+                                {emp.permissions?.length || 0} صلاحية
+                              </Badge>
+                            </div>
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {sourceEmployeeId && (() => {
+                  const sourceEmp = employees.find(e => e.id === sourceEmployeeId);
+                  return sourceEmp ? (
+                    <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
+                      <div className="text-sm text-green-300">
+                        ✅ سيتم نسخ <span className="font-bold">{sourceEmp.permissions?.length || 0} صلاحية</span> من {sourceEmp.name}
+                      </div>
+                    </div>
+                  ) : null;
+                })()}
+              </>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setIsCopyPermissionsDialogOpen(false)}
+              className="text-gray-400 hover:text-white hover:bg-slate-800"
+            >
+              إلغاء
+            </Button>
+            <Button
+              onClick={handleCopyPermissions}
+              disabled={!sourceEmployeeId}
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+            >
+              <Copy className="h-4 w-4 ml-2" />
+              نسخ الصلاحيات
             </Button>
           </DialogFooter>
         </DialogContent>
