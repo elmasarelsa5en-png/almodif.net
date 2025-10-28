@@ -36,7 +36,9 @@ import {
 } from '@/lib/rooms-data';
 import { 
   getRoomsFromFirebase, 
-  saveRoomsToFirebase, 
+  saveRoomsToFirebase,
+  saveRoomToFirebase,
+  deleteRoomFromFirebase,
   subscribeToRooms,
   syncLocalDataToFirebase 
 } from '@/lib/firebase-sync';
@@ -143,38 +145,41 @@ export default function RoomsManagementPage() {
   const handleSave = async () => {
     if (!selectedRoom) return;
     
+    const updatedRoom = { 
+      ...selectedRoom, 
+      number: formData.number, 
+      floor: formData.floor, 
+      type: formData.type,
+      status: formData.status,
+      lastUpdated: new Date().toISOString(),
+      events: [
+        ...selectedRoom.events,
+        {
+          id: Date.now().toString(),
+          type: 'status_change' as const,
+          description: 'تم تعديل معلومات الغرفة',
+          timestamp: new Date().toISOString(),
+          user: user?.name || user?.username || 'System',
+          oldValue: `${selectedRoom.number} - ${selectedRoom.type}`,
+          newValue: `${formData.number} - ${formData.type}`
+        }
+      ]
+    };
+    
     const updatedRooms = rooms.map(room =>
-      room.id === selectedRoom.id
-        ? { 
-            ...room, 
-            number: formData.number, 
-            floor: formData.floor, 
-            type: formData.type,
-            status: formData.status,
-            lastUpdated: new Date().toISOString(),
-            events: [
-              ...room.events,
-              {
-                id: Date.now().toString(),
-                type: 'status_change' as const,
-                description: 'تم تعديل معلومات الغرفة',
-                timestamp: new Date().toISOString(),
-                user: user?.name || user?.username || 'System',
-                oldValue: `${room.number} - ${room.type}`,
-                newValue: `${formData.number} - ${formData.type}`
-              }
-            ]
-          }
-        : room
+      room.id === selectedRoom.id ? updatedRoom : room
     );
     
     setRooms(updatedRooms);
     saveRoomsToStorage(updatedRooms);
     
     try {
-      await saveRoomsToFirebase(updatedRooms);
+      // حفظ الغرفة المحدثة فقط في Firebase
+      await saveRoomToFirebase(updatedRoom);
+      console.log('✅ تم تحديث الغرفة في Firebase');
     } catch (error) {
       console.error('خطأ في حفظ التعديلات في Firebase:', error);
+      alert('حدث خطأ في حفظ التعديلات. تم الحفظ محلياً فقط.');
     }
     
     setIsEditDialogOpen(false);
@@ -189,9 +194,14 @@ export default function RoomsManagementPage() {
     saveRoomsToStorage(updatedRooms);
     
     try {
-      await saveRoomsToFirebase(updatedRooms);
+      // حذف الغرفة من Firebase مباشرة
+      await deleteRoomFromFirebase(selectedRoom.id);
+      console.log('✅ تم حذف الغرفة من Firebase');
     } catch (error) {
       console.error('خطأ في حذف الغرفة من Firebase:', error);
+      // إعادة الغرفة إذا فشل الحذف من Firebase
+      setRooms(rooms);
+      alert('حدث خطأ في حذف الغرفة. يرجى المحاولة مرة أخرى.');
     }
     
     setIsDeleteDialogOpen(false);
@@ -263,9 +273,12 @@ export default function RoomsManagementPage() {
     saveRoomsToStorage(updatedRooms);
     
     try {
-      await saveRoomsToFirebase(updatedRooms);
+      // حفظ الغرفة الجديدة فقط في Firebase
+      await saveRoomToFirebase(newRoom);
+      console.log('✅ تم إضافة الغرفة إلى Firebase');
     } catch (error) {
       console.error('خطأ في حفظ الغرفة الجديدة في Firebase:', error);
+      alert('حدث خطأ في حفظ الغرفة على السحابة. تم الحفظ محلياً فقط.');
     }
     
     setIsAddDialogOpen(false);

@@ -18,26 +18,16 @@ const ROOMS_COLLECTION = 'hotel_rooms';
 const SETTINGS_DOC = 'hotel_settings';
 
 /**
- * حفظ الغرف في Firebase
+ * حفظ الغرف في Firebase (مع الحفاظ على البيانات الموجودة)
  */
 export const saveRoomsToFirebase = async (rooms: Room[]): Promise<void> => {
   try {
-    const batch: Promise<void>[] = [];
-    
-    // حذف جميع الغرف القديمة أولاً
-    const roomsSnapshot = await getDocs(collection(db, ROOMS_COLLECTION));
-    roomsSnapshot.forEach((doc) => {
-      batch.push(deleteDoc(doc.ref));
-    });
-    
-    await Promise.all(batch);
-    
-    // إضافة الغرف الجديدة
+    // إضافة أو تحديث الغرف (بدون حذف القديمة)
     const addPromises = rooms.map(room => 
       setDoc(doc(db, ROOMS_COLLECTION, room.id), {
         ...room,
         lastUpdated: Timestamp.now()
-      })
+      }, { merge: true }) // merge: true للحفاظ على البيانات الموجودة
     );
     
     await Promise.all(addPromises);
@@ -45,7 +35,7 @@ export const saveRoomsToFirebase = async (rooms: Room[]): Promise<void> => {
     // حفظ نسخة احتياطية في localStorage أيضاً
     localStorage.setItem('hotel_rooms_data', JSON.stringify(rooms));
     
-    console.log(`✅ تم حفظ ${rooms.length} غرفة في Firebase`);
+    console.log(`✅ تم حفظ/تحديث ${rooms.length} غرفة في Firebase`);
   } catch (error) {
     console.error('❌ خطأ في حفظ الغرف في Firebase:', error);
     throw error;
