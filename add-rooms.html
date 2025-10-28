@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إضافة الغرف</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .stats {
+            background: #f0f4ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .stats h2 {
+            color: #667eea;
+            margin: 0 0 10px 0;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: scale(1.05);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .room-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+        }
+        .room-item {
+            padding: 10px;
+            background: #f9f9f9;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+            text-align: center;
+            padding: 15px;
+            background: #d4edda;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+            text-align: center;
+            padding: 15px;
+            background: #f8d7da;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏨 إضافة غرف الفندق</h1>
+        
+        <div class="stats">
+            <h2>📊 الإحصائيات</h2>
+            <p><strong>عدد الغرف الكلي:</strong> <span id="totalRooms">38</span> غرفة</p>
+            <p><strong>الأدوار:</strong> 5 أدوار (من الدور 1 إلى 5)</p>
+        </div>
+
+        <button onclick="addAllRooms()" id="addButton">
+            ✨ إضافة كل الغرف (38 غرفة)
+        </button>
+
+        <button onclick="showRoomsList()" style="background: #28a745;">
+            📋 عرض قائمة الغرف
+        </button>
+
+        <div id="result"></div>
+        <div id="roomsList" class="room-list" style="display: none;"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import { getFirestore, collection, doc, setDoc } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBIg1FBRg83Hf6yzNRHTyVA44u6fNfmvbs",
+            authDomain: "almodif-net.firebaseapp.com",
+            projectId: "almodif-net",
+            storageBucket: "almodif-net.firebasestorage.app",
+            messagingSenderId: "914843677334",
+            appId: "1:914843677334:web:c6a9acd64ce35f8a39c31e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const rooms = [
+            // الدور الأول
+            { number: '101', type: 'تبقى غرف', floor: 1 },
+            { number: '102', type: 'غرفة', floor: 1 },
+            { number: '103', type: 'غرفتين بدون صالة', floor: 1 },
+            
+            // الدور الثاني
+            { number: '201', type: 'غرفة وصالة', floor: 2 },
+            { number: '202', type: 'VIP', floor: 2 },
+            { number: '203', type: 'VIP', floor: 2 },
+            { number: '204', type: 'غرفة وصالة', floor: 2 },
+            { number: '205', type: 'غرفتين وصالة', floor: 2 },
+            { number: '206', type: 'غرفتين كبيرة 3 أسرة', floor: 2 },
+            { number: '207', type: 'غرفة وصالة كبيرة 3 أسرة', floor: 2 },
+            { number: '208', type: 'غرفة', floor: 2 },
+            
+            // الدور الثالث
+            { number: '301', type: 'غرفة وصالة', floor: 3 },
+            { number: '302', type: 'VIP', floor: 3 },
+            { number: '303', type: 'VIP', floor: 3 },
+            { number: '304', type: 'غرفة وصالة', floor: 3 },
+            { number: '305', type: 'غرفة وصالة 2 أسرة', floor: 3 },
+            { number: '306', type: 'غرفتين كبيرة 3 أسرة', floor: 3 },
+            { number: '307', type: 'غرفة وصالة كبيرة 2 أسرة', floor: 3 },
+            { number: '308', type: 'غرفة', floor: 3 },
+            
+            // الدور الرابع
+            { number: '401', type: 'غرفة وصالة', floor: 4 },
+            { number: '402', type: 'VIP', floor: 4 },
+            { number: '403', type: 'VIP', floor: 4 },
+            { number: '404', type: 'غرفة وصالة', floor: 4 },
+            { number: '405', type: 'غرفة وصالة 2 أسرة', floor: 4 },
+            { number: '406', type: 'غرفتين كبيرة 3 أسرة', floor: 4 },
+            { number: '407', type: 'غرفة وصالة كبيرة 2 أسرة', floor: 4 },
+            { number: '408', type: 'غرفة', floor: 4 },
+            
+            // الدور الخامس
+            { number: '501', type: 'غرفة وصالة', floor: 5 },
+            { number: '502', type: 'VIP', floor: 5 },
+            { number: '503', type: 'VIP', floor: 5 },
+            { number: '504', type: 'غرفة وصالة', floor: 5 },
+            { number: '505', type: 'غرفة وصالة 2 أسرة', floor: 5 },
+            { number: '506', type: 'غرفتين كبيرة 3 أسرة', floor: 5 },
+            { number: '507', type: 'غرفة وصالة كبيرة 2 أسرة', floor: 5 },
+            { number: '508', type: 'غرفة', floor: 5 }
+        ];
+
+        window.addAllRooms = async function() {
+            const button = document.getElementById('addButton');
+            const resultDiv = document.getElementById('result');
+            
+            button.disabled = true;
+            resultDiv.innerHTML = '<div class="loading">⏳ جاري إضافة الغرف...</div>';
+
+            try {
+                let successCount = 0;
+                const timestamp = new Date().toISOString();
+
+                for (let i = 0; i < rooms.length; i++) {
+                    const room = rooms[i];
+                    const roomData = {
+                        id: `room_${room.number}`,
+                        number: room.number,
+                        type: room.type,
+                        floor: room.floor,
+                        status: 'Available',
+                        balance: 0,
+                        events: [{
+                            id: Date.now().toString(),
+                            type: 'status_change',
+                            description: 'تم إنشاء الغرفة',
+                            timestamp: timestamp,
+                            user: 'System',
+                            newValue: 'Available'
+                        }],
+                        lastUpdated: timestamp
+                    };
+
+                    await setDoc(doc(db, 'hotel_rooms', roomData.id), roomData);
+                    successCount++;
+                    
+                    resultDiv.innerHTML = `<div class="loading">⏳ تم إضافة ${successCount} من ${rooms.length} غرفة...</div>`;
+                }
+
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        ✅ تم إضافة ${successCount} غرفة بنجاح!<br>
+                        🎉 جميع الغرف موجودة الآن في Firebase!<br>
+                        <br>
+                        <strong>يمكنك الآن:</strong><br>
+                        • الذهاب إلى Dashboard → إدارة الغرف<br>
+                        • ستجد كل الغرف محفوظة<br>
+                        • يمكنك تعديلها أو إضافة نزلاء
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ حدث خطأ: ${error.message}<br>
+                        يرجى التأكد من اتصال الإنترنت والمحاولة مرة أخرى
+                    </div>
+                `;
+                button.disabled = false;
+            }
+        };
+
+        window.showRoomsList = function() {
+            const roomsList = document.getElementById('roomsList');
+            
+            if (roomsList.style.display === 'none') {
+                let html = '<h3>📋 قائمة الغرف الكاملة:</h3>';
+                
+                for (let floor = 1; floor <= 5; floor++) {
+                    html += `<h4>🏢 الدور ${floor}:</h4>`;
+                    const floorRooms = rooms.filter(r => r.floor === floor);
+                    floorRooms.forEach(room => {
+                        html += `
+                            <div class="room-item">
+                                <strong>غرفة ${room.number}</strong>
+                                <span>${room.type}</span>
+                            </div>
+                        `;
+                    });
+                }
+                
+                roomsList.innerHTML = html;
+                roomsList.style.display = 'block';
+            } else {
+                roomsList.style.display = 'none';
+            }
+        };
+    </script>
+</body>
+</html>

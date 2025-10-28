@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Shirt, ShoppingCart, X, Plus, Minus, Trash2, CreditCard, Wallet, 
@@ -9,7 +9,9 @@ import {
   Package, Truck, Phone, Calendar, RefreshCw, Filter, Home, Badge as BadgeIcon,
   Eye, Edit, Calculator
 } from 'lucide-react';
-import { getRoomsFromStorage } from '@/lib/rooms-data';
+// استخدام Firebase فقط
+import { getRoomsFromFirebase, subscribeToRooms } from '@/lib/firebase-sync';
+import type { Room } from '@/lib/rooms-data';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -83,8 +85,33 @@ export default function LaundryPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [rooms, setRooms] = useState<Room[]>([]);
 
-  const rooms = getRoomsFromStorage();
+  // تحميل الغرف من Firebase
+  useEffect(() => {
+    loadRooms();
+    
+    // الاستماع للتحديثات الفورية
+    const unsubscribe = subscribeToRooms(
+      (updatedRooms) => {
+        setRooms(updatedRooms);
+      },
+      (error) => {
+        console.error('خطأ في الاتصال بFirebase:', error);
+      }
+    );
+    
+    return () => unsubscribe();
+  }, []);
+  
+  const loadRooms = async () => {
+    try {
+      const roomsData = await getRoomsFromFirebase();
+      setRooms(roomsData);
+    } catch (error) {
+      console.error('خطأ في تحميل الغرف:', error);
+    }
+  };
 
   const laundryServices: ServiceItem[] = [
     {

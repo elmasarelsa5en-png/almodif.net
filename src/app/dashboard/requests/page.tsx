@@ -187,33 +187,34 @@ export default function RequestsPage() {
 
         const orderAmount = matchingOrder?.total || 0;
 
-        // تحديث بيانات الغرفة
-        const rooms = JSON.parse(localStorage.getItem('hotel_rooms_data') || '[]');
-        const roomIndex = rooms.findIndex((r: any) => r.number === request.room);
+        // تحديث بيانات الغرفة في Firebase
+        const { getRoomsFromFirebase, saveRoomToFirebase } = await import('@/lib/firebase-sync');
+        const rooms = await getRoomsFromFirebase();
+        const room = rooms.find((r: any) => r.number === request.room);
         
-        if (roomIndex !== -1) {
+        if (room) {
           // إضافة المبلغ للرصيد
-          rooms[roomIndex].balance = (rooms[roomIndex].balance || 0) + orderAmount;
+          room.balance = (room.balance || 0) + orderAmount;
           
           // إضافة حدث في السجل
           const newEvent = {
             id: Date.now().toString(),
-            type: 'order_completed',
+            type: 'service_request' as const,
             description: `طلب مكتمل: ${request.type}${orderAmount > 0 ? ` - المبلغ: ${orderAmount} ر.س` : ''}`,
             timestamp: new Date().toISOString(),
             user: 'النظام',
-            newValue: `رصيد جديد: ${rooms[roomIndex].balance} ر.س`,
-            oldValue: `رصيد سابق: ${(rooms[roomIndex].balance || 0) - orderAmount} ر.س`
+            newValue: `رصيد جديد: ${room.balance} ر.س`,
+            oldValue: `رصيد سابق: ${(room.balance || 0) - orderAmount} ر.س`
           };
           
-          if (!rooms[roomIndex].events) {
-            rooms[roomIndex].events = [];
+          if (!room.events) {
+            room.events = [];
           }
-          rooms[roomIndex].events.push(newEvent);
-          rooms[roomIndex].lastUpdated = new Date().toISOString();
+          room.events.push(newEvent);
+          room.lastUpdated = new Date().toISOString();
           
-          // حفظ التحديثات
-          localStorage.setItem('hotel_rooms_data', JSON.stringify(rooms));
+          // حفظ التحديثات في Firebase
+          await saveRoomToFirebase(room);
         }
 
         // حذف الطلب من Firebase

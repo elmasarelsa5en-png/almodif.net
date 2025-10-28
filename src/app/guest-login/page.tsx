@@ -48,8 +48,9 @@ export default function GuestLoginPage() {
     setError('');
 
     try {
-      // البحث عن الحجز في الغرف المشغولة
-      const rooms = JSON.parse(localStorage.getItem('hotel_rooms_data') || '[]');
+      // البحث عن الحجز في الغرف المشغولة من Firebase
+      const { getRoomsFromFirebase } = await import('@/lib/firebase-sync');
+      const rooms = await getRoomsFromFirebase();
       
       console.log('Searching for:', { name: formData.name, room: formData.roomNumber });
       console.log('Available rooms:', rooms.map((r: any) => ({ 

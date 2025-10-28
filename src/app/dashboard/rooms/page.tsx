@@ -42,12 +42,16 @@ import {
   PaymentMethod,
   ROOM_STATUS_CONFIG,
   ROOM_TYPE_CONFIG,
-  getRoomsFromStorage,
-  saveRoomsToStorage,
   updateRoomStatus,
   processPayment, 
   getRoomTypesFromStorage
 } from '@/lib/rooms-data';
+// استخدام Firebase فقط - المصدر الاحترافي للبيانات
+import { 
+  getRoomsFromFirebase, 
+  saveRoomToFirebase,
+  subscribeToRooms
+} from '@/lib/firebase-sync';
 import AddGuestDialog from '@/components/AddGuestDialog';
 import AddRoomsFromImageDialog from '@/components/AddRoomsFromImageDialog';
 import GuestDataClipboard from '@/components/GuestDataClipboard';
@@ -83,17 +87,37 @@ export default function RoomsPage() {
 
   // تحميل البيانات عند بدء التشغيل
   useEffect(() => {
-    // جلب البيانات من localStorage فقط بدون إعادة تعيين
-    const roomsData = getRoomsFromStorage();
-    setRooms(roomsData);
-    setFilteredRooms(roomsData);
+    loadRoomsData();
+    
+    // الاستماع للتحديثات الفورية من Firebase
+    const unsubscribe = subscribeToRooms(
+      (updatedRooms) => {
+        setRooms(updatedRooms);
+        setFilteredRooms(updatedRooms);
+      },
+      (error) => {
+        console.error('خطأ في الاتصال بFirebase:', error);
+      }
+    );
 
     const roomTypesData = getRoomTypesFromStorage();
     setRoomTypes(roomTypesData);
     
     // جلب أسعار الغرف من API
     fetchRoomPrices();
+    
+    return () => unsubscribe();
   }, []);
+  
+  const loadRoomsData = async () => {
+    try {
+      const roomsData = await getRoomsFromFirebase();
+      setRooms(roomsData);
+      setFilteredRooms(roomsData);
+    } catch (error) {
+      console.error('خطأ في تحميل الغرف:', error);
+    }
+  };
 
   // جلب أسعار الغرف من API (معطل مؤقتاً - يمكن تفعيله عند توفر API)
   const fetchRoomPrices = async () => {
@@ -185,7 +209,7 @@ export default function RoomsPage() {
   };
 
   // معالج تغيير حالة الشقة
-  const handleStatusChange = () => {
+  const handleStatusChange = async () => {
     if (!selectedRoom || !user) return;
     
     const updatedRooms = updateRoomStatus(
@@ -196,14 +220,25 @@ export default function RoomsPage() {
       guestName
     );
     
-    setRooms(updatedRooms);
-    saveRoomsToStorage(updatedRooms);
+    try {
+      // حفظ الغرفة المحدثة في Firebase
+      const updatedRoom = updatedRooms.find(r => r.id === selectedRoom.id);
+      if (updatedRoom) {
+        await saveRoomToFirebase(updatedRoom);
+        setRooms(updatedRooms);
+      }
+    } catch (error) {
+      console.error('خطأ في حفظ التغييرات:', error);
+      alert('حدث خطأ في حفظ التغييرات');
+      return;
+    }
+    
     setIsDetailsOpen(false);
     setGuestName('');
   };
 
   // معالج الدفع
-  const handlePayment = () => {
+  const handlePayment = async () => {
     if (!selectedRoom || !user || paymentAmount <= 0) return;
     
     const updatedRooms = processPayment(
@@ -214,17 +249,23 @@ export default function RoomsPage() {
       user.name || user.username
     );
     
-    setRooms(updatedRooms);
-    saveRoomsToStorage(updatedRooms);
+    try {
+      // حفظ الغرفة المحدثة في Firebase
+      const updatedRoom = updatedRooms.find(r => r.id === selectedRoom.id);
+      if (updatedRoom) {
+        await saveRoomToFirebase(updatedRoom);
+        setRooms(updatedRooms);
+        setSelectedRoom(updatedRoom);
+      }
+    } catch (error) {
+      console.error('خطأ في حفظ الدفعة:', error);
+      alert('حدث خطأ في حفظ الدفعة');
+      return;
+    }
+    
     setIsPaymentOpen(false);
     setPaymentAmount(0);
     setPaymentMethod({ type: 'cash' });
-    
-    // تحديث الشقة المحددة
-    const updatedRoom = updatedRooms.find(r => r.id === selectedRoom.id);
-    if (updatedRoom) {
-      setSelectedRoom(updatedRoom);
-    }
   };
 
   // فتح تفاصيل الشقة
@@ -237,7 +278,7 @@ export default function RoomsPage() {
   };
 
   // معالج إضافة نزيل جديد
-  const handleAddGuest = (guestData: {
+  const handleAddGuest = async (guestData: {
     fullName: string;
     nationality: string;
     idType: string;
@@ -285,10 +326,11 @@ export default function RoomsPage() {
             ...r.events,
             {
               id: Date.now().toString(),
-              type: 'check-in',
-              date: new Date().toISOString(),
-              details: `تسجيل دخول: ${guestData.fullName}`,
-              performedBy: user.name || user.username
+              type: 'check_in' as const,
+              description: `تسجيل دخول: ${guestData.fullName}`,
+              timestamp: new Date().toISOString(),
+              user: user.name || user.username,
+              newValue: 'Occupied'
             }
           ]
         };
@@ -296,8 +338,19 @@ export default function RoomsPage() {
       return r;
     });
     
-    setRooms(updatedRooms);
-    saveRoomsToStorage(updatedRooms);
+    try {
+      // حفظ الغرفة المحدثة في Firebase
+      const updatedRoom = updatedRooms.find(r => r.id === room.id);
+      if (updatedRoom) {
+        await saveRoomToFirebase(updatedRoom);
+        setRooms(updatedRooms);
+      }
+    } catch (error) {
+      console.error('خطأ في حفظ بيانات النزيل:', error);
+      alert('حدث خطأ في حفظ بيانات النزيل');
+      return;
+    }
+    
     setIsAddGuestOpen(false);
     
     // إنشاء جلسة للنزيل
@@ -311,7 +364,7 @@ export default function RoomsPage() {
   };
 
   // معالج إضافة غرف من صورة
-  const handleAddRoomsFromImage = (newRooms: Partial<Room>[]) => {
+  const handleAddRoomsFromImage = async (newRooms: Partial<Room>[]) => {
     if (!user) return;
     
     // التحقق من عدم وجود غرف مكررة
@@ -344,12 +397,22 @@ export default function RoomsPage() {
       lastUpdated: new Date().toISOString()
     }));
     
-    const updatedRooms = [...rooms, ...roomsToAdd];
-    setRooms(updatedRooms);
-    saveRoomsToStorage(updatedRooms);
-    setIsAddRoomsFromImageOpen(false);
+    try {
+      // حفظ كل غرفة جديدة في Firebase
+      for (const room of roomsToAdd) {
+        await saveRoomToFirebase(room);
+      }
+      
+      const updatedRooms = [...rooms, ...roomsToAdd];
+      setRooms(updatedRooms);
+      alert(`تم إضافة ${roomsToAdd.length} غرفة بنجاح`);
+    } catch (error) {
+      console.error('خطأ في حفظ الغرف:', error);
+      alert('حدث خطأ في حفظ الغرف');
+      return;
+    }
     
-    alert(`تم إضافة ${roomsToAdd.length} غرفة بنجاح`);
+    setIsAddRoomsFromImageOpen(false);
   };
 
   // التحقق من الصلاحيات

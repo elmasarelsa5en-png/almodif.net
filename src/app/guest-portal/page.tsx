@@ -52,6 +52,10 @@ export default function GuestPortalPage() {
   const [hotelLogo, setHotelLogo] = useState('');
 
   useEffect(() => {
+    loadGuestData();
+  }, [router]);
+  
+  const loadGuestData = async () => {
     // التحقق من تسجيل دخول النزيل
     const sessionData = localStorage.getItem('guest_session');
     if (!sessionData) {
@@ -62,10 +66,15 @@ export default function GuestPortalPage() {
     const session: GuestSession = JSON.parse(sessionData);
     setGuestSession(session);
 
-    // جلب بيانات الغرفة
-    const rooms = JSON.parse(localStorage.getItem('hotel_rooms_data') || '[]');
-    const room = rooms.find((r: any) => r.number === session.roomNumber);
-    setRoomData(room);
+    try {
+      // جلب بيانات الغرفة من Firebase
+      const { getRoomsFromFirebase } = await import('@/lib/firebase-sync');
+      const rooms = await getRoomsFromFirebase();
+      const room = rooms.find((r: any) => r.number === session.roomNumber);
+      setRoomData(room);
+    } catch (error) {
+      console.error('خطأ في تحميل بيانات الغرفة:', error);
+    }
 
     // جلب طلبات النزيل
     const allRequests = JSON.parse(localStorage.getItem('guest_requests') || '[]');
@@ -81,7 +90,7 @@ export default function GuestPortalPage() {
       if (settings.logoUrl) setHotelLogo(settings.logoUrl);
       if (settings.hotelName) setHotelName(settings.hotelName);
     }
-  }, [router]);
+  };
 
   const handleLogout = () => {
     if (confirm('هل تريد تسجيل الخروج من البورتال؟')) {

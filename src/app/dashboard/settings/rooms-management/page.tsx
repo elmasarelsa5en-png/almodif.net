@@ -29,11 +29,10 @@ import {
 import { 
   Room, 
   RoomStatus,
-  getRoomsFromStorage, 
-  saveRoomsToStorage,
   ROOM_STATUS_CONFIG,
   ROOM_TYPE_CONFIG
 } from '@/lib/rooms-data';
+// استخدام Firebase فقط - المصدر الوحيد والاحترافي للبيانات
 import { 
   getRoomsFromFirebase, 
   saveRoomsToFirebase,
@@ -94,22 +93,9 @@ export default function RoomsManagementPage() {
       if (firebaseRooms.length > 0) {
         setRooms(firebaseRooms);
         setIsFirebaseConnected(true);
-      } else {
-        // إذا لم توجد بيانات في Firebase، استخدم localStorage
-        const localRooms = getRoomsFromStorage();
-        setRooms(localRooms);
-        
-        // رفع البيانات المحلية إلى Firebase
-        if (localRooms.length > 0) {
-          await saveRoomsToFirebase(localRooms);
-          setIsFirebaseConnected(true);
-        }
       }
     } catch (error) {
       console.error('خطأ في تحميل البيانات:', error);
-      // في حالة الخطأ، استخدم localStorage
-      const localRooms = getRoomsFromStorage();
-      setRooms(localRooms);
       setIsFirebaseConnected(false);
     } finally {
       setIsSyncing(false);
@@ -170,16 +156,15 @@ export default function RoomsManagementPage() {
       room.id === selectedRoom.id ? updatedRoom : room
     );
     
-    setRooms(updatedRooms);
-    saveRoomsToStorage(updatedRooms);
-    
     try {
       // حفظ الغرفة المحدثة فقط في Firebase
       await saveRoomToFirebase(updatedRoom);
+      setRooms(updatedRooms); // تحديث الحالة بعد النجاح
       console.log('✅ تم تحديث الغرفة في Firebase');
     } catch (error) {
       console.error('خطأ في حفظ التعديلات في Firebase:', error);
-      alert('حدث خطأ في حفظ التعديلات. تم الحفظ محلياً فقط.');
+      alert('حدث خطأ في حفظ التعديلات. يرجى المحاولة مرة أخرى.');
+      return; // لا نحدث الحالة إذا فشل الحفظ
     }
     
     setIsEditDialogOpen(false);
@@ -189,19 +174,18 @@ export default function RoomsManagementPage() {
   const handleDelete = async () => {
     if (!selectedRoom) return;
     
-    const updatedRooms = rooms.filter(room => room.id !== selectedRoom.id);
-    setRooms(updatedRooms);
-    saveRoomsToStorage(updatedRooms);
-    
     try {
       // حذف الغرفة من Firebase مباشرة
       await deleteRoomFromFirebase(selectedRoom.id);
+      
+      // تحديث الحالة بعد النجاح
+      const updatedRooms = rooms.filter(room => room.id !== selectedRoom.id);
+      setRooms(updatedRooms);
       console.log('✅ تم حذف الغرفة من Firebase');
     } catch (error) {
       console.error('خطأ في حذف الغرفة من Firebase:', error);
-      // إعادة الغرفة إذا فشل الحذف من Firebase
-      setRooms(rooms);
       alert('حدث خطأ في حذف الغرفة. يرجى المحاولة مرة أخرى.');
+      return;
     }
     
     setIsDeleteDialogOpen(false);
@@ -214,13 +198,14 @@ export default function RoomsManagementPage() {
       return;
     }
     
-    setRooms([]);
-    saveRoomsToStorage([]);
-    
     try {
       await saveRoomsToFirebase([]);
+      setRooms([]);
+      alert('تم حذف جميع الغرف بنجاح');
     } catch (error) {
       console.error('خطأ في حذف جميع الغرف من Firebase:', error);
+      alert('حدث خطأ في حذف الغرف. يرجى المحاولة مرة أخرى.');
+      return;
     }
     
     setIsDeleteAllDialogOpen(false);
@@ -269,16 +254,16 @@ export default function RoomsManagementPage() {
     };
     
     const updatedRooms = [...rooms, newRoom];
-    setRooms(updatedRooms);
-    saveRoomsToStorage(updatedRooms);
     
     try {
       // حفظ الغرفة الجديدة فقط في Firebase
       await saveRoomToFirebase(newRoom);
+      setRooms(updatedRooms); // تحديث الحالة بعد النجاح
       console.log('✅ تم إضافة الغرفة إلى Firebase');
     } catch (error) {
       console.error('خطأ في حفظ الغرفة الجديدة في Firebase:', error);
-      alert('حدث خطأ في حفظ الغرفة على السحابة. تم الحفظ محلياً فقط.');
+      alert('حدث خطأ في حفظ الغرفة. يرجى المحاولة مرة أخرى.');
+      return;
     }
     
     setIsAddDialogOpen(false);
@@ -314,19 +299,20 @@ export default function RoomsManagementPage() {
       lastUpdated: new Date().toISOString()
     }));
     
-    const updatedRooms = [...rooms, ...roomsToAdd];
-    setRooms(updatedRooms);
-    saveRoomsToStorage(updatedRooms);
-    
     try {
-      await saveRoomsToFirebase(updatedRooms);
+      // حفظ جميع الغرف الجديدة في Firebase
+      for (const room of roomsToAdd) {
+        await saveRoomToFirebase(room);
+      }
+      
+      const updatedRooms = [...rooms, ...roomsToAdd];
+      setRooms(updatedRooms);
+      
+      alert(`تم إضافة ${roomsToAdd.length} غرفة بنجاح`);
     } catch (error) {
       console.error('خطأ في حفظ الغرف من الصورة في Firebase:', error);
+      alert('حدث خطأ في حفظ الغرف. يرجى المحاولة مرة أخرى.');
     }
-    
-    setIsAddFromImageOpen(false);
-    
-    alert(`تم إضافة ${roomsToAdd.length} غرفة بنجاح`);
   };
 
   const stats = {
