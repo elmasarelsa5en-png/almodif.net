@@ -1,748 +1,585 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { Coffee, Edit2, Minus, Plus, Trash2, CheckCircle, Send, Users, Clock, Phone, Home } from 'lucide-react';
-import useGuestOrders, { GuestOrder } from '@/hooks/useGuestOrders';
-import { getRoomsFromStorage } from '@/lib/rooms-data';
-import { Badge } from '@/components/ui/badge';
+import React, { useState, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Coffee, ArrowLeft, Sparkles, Star, Plus, ShoppingCart, 
+  CreditCard, Clock, Heart, Award, Zap, Crown, Timer,
+  Flame, Snowflake, Cookie, Croissant, ChefHat
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { playNotificationSound } from '@/lib/notification-sounds';
+import { Badge } from '@/components/ui/badge';
+import { useRouter } from 'next/navigation';
 
-type OrderStatus = 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
-
-type MenuItem = {
+// Professional TypeScript interfaces
+interface CoffeeItem {
   id: string;
   name: string;
   nameAr: string;
-  category: 'coffee' | 'tea' | 'pastry' | 'dessert';
+  category: 'hot-coffee' | 'cold-coffee' | 'tea' | 'dessert' | 'pastry';
   price: number;
-  available: boolean;
+  image: string;
+  description: string;
+  rating: number;
   preparationTime: number;
-};
+  available: boolean;
+  featured?: boolean;
+  calories?: number;
+  ingredients: string[];
+}
 
-type OrderItem = {
-  menuItemId: string;
-  menuItemName: string;
+interface CartItem extends CoffeeItem {
   quantity: number;
-  price: number;
-};
-
-type CoffeeOrder = {
-  id: string;
-  roomNumber: string;
-  guestName: string;
-  items: OrderItem[];
-  totalAmount: number;
-  status: OrderStatus;
-  orderDate: string;
-  paymentMethod: 'room_charge' | 'cash' | 'card';
-  sentToReception?: boolean;
-  receptionRequestId?: string;
-};
-
-interface OrderFormState {
-  customerType: 'internal' | 'external';
-  roomNumber: string;
-  guestName: string;
-  items: Record<string, number>;
-  paymentMethod: 'room_charge' | 'cash' | 'card';
 }
 
-interface MenuFormState {
-  id: string;
-  name: string;
-  nameAr: string;
-  category: MenuItem['category'];
-  price: number;
-  preparationTime: number;
-  available: boolean;
-}
-
-const STORAGE_MENU_KEY = 'coffee_menu';
-const STORAGE_ORDERS_KEY = 'coffee_orders';
-
-const initialOrderForm: OrderFormState = {
-  customerType: 'internal',
-  roomNumber: '',
-  guestName: '',
-  items: {},
-  paymentMethod: 'room_charge'
-};
-
-const initialMenuForm: MenuFormState = {
-  id: '',
-  name: '',
-  nameAr: '',
-  category: 'coffee',
-  price: 14,
-  preparationTime: 4,
-  available: true
-};
-
-const DEFAULT_MENU: MenuItem[] = [
-  { id: 'espresso', name: 'Espresso', nameAr: 'إسبريسو', category: 'coffee', price: 9, available: true, preparationTime: 2 },
-  { id: 'flat-white', name: 'Flat White', nameAr: 'فلات وايت', category: 'coffee', price: 15, available: true, preparationTime: 4 },
-  { id: 'spanish-latte', name: 'Spanish Latte', nameAr: 'سبانش لاتيه', category: 'coffee', price: 17, available: true, preparationTime: 5 },
-  { id: 'matcha-latte', name: 'Matcha Latte', nameAr: 'ماتشا لاتيه', category: 'tea', price: 16, available: true, preparationTime: 4 },
-  { id: 'butter-croissant', name: 'Butter Croissant', nameAr: 'كرواسان زبدة', category: 'pastry', price: 8, available: true, preparationTime: 1 },
-  { id: 'cheesecake', name: 'Cheesecake', nameAr: 'تشيز كيك', category: 'dessert', price: 19, available: true, preparationTime: 2 }
-];
-
-const ORDER_STATUSES: Array<{ value: OrderStatus; label: string }> = [
-  { value: 'pending', label: 'معلق' },
-  { value: 'preparing', label: 'قيد التحضير' },
-  { value: 'ready', label: 'جاهز' },
-  { value: 'delivered', label: 'تم التسليم' },
-  { value: 'cancelled', label: 'ملغي' }
-];
-
-const statusConfig: Record<OrderStatus, { label: string; color: string }> = {
-  pending: { label: 'معلق', color: 'bg-amber-500/20 text-amber-300' },
-  preparing: { label: 'قيد التحضير', color: 'bg-blue-500/20 text-blue-200' },
-  ready: { label: 'جاهز', color: 'bg-emerald-500/20 text-emerald-200' },
-  delivered: { label: 'تم التسليم', color: 'bg-slate-500/20 text-slate-200' },
-  cancelled: { label: 'ملغي', color: 'bg-rose-500/20 text-rose-200' }
-};
-
-const categoryDictionary: Record<MenuItem['category'], string> = {
-  coffee: 'قهوة',
-  tea: 'شاي',
-  pastry: 'مخبوزات',
-  dessert: 'حلويات'
-};
-
-const formatCurrency = (value: number) => `${value} ر.س`;
-const uid = () => `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-
-function useLocalStorage<T>(key: string, initial: T) {
-  const [state, setState] = useState<T>(initial);
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(key);
-      if (stored) setState(JSON.parse(stored));
-    } catch (e) {
-      console.error(`Storage error: ${key}`, e);
+// Animation variants for professional micro-interactions
+const containerVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { 
+      duration: 0.6,
+      staggerChildren: 0.1
     }
-  }, [key]);
+  }
+};
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(key, JSON.stringify(state));
-    } catch (e) {
-      console.error(`Storage error: ${key}`, e);
-    }
-  }, [key, state]);
+const itemVariants = {
+  hidden: { opacity: 0, y: 30, scale: 0.9 },
+  visible: { 
+    opacity: 1, 
+    y: 0, 
+    scale: 1,
+    transition: { duration: 0.5, ease: "easeOut" }
+  }
+};
 
-  return [state, setState] as const;
-}
+// Premium coffee menu data
+const COFFEE_MENU: CoffeeItem[] = [
+  {
+    id: '1',
+    name: 'Signature Espresso',
+    nameAr: 'إسبريسو مميز',
+    category: 'hot-coffee',
+    price: 18,
+    image: '☕',
+    description: 'قهوة إسبريسو إيطالية أصيلة محضرة من أجود حبوب القهوة',
+    rating: 4.8,
+    preparationTime: 3,
+    available: true,
+    featured: true,
+    calories: 10,
+    ingredients: ['حبوب قهوة عربية', 'ماء منقى']
+  },
+  {
+    id: '2',
+    name: 'Caramel Macchiato',
+    nameAr: 'كاراميل ماكياتو',
+    category: 'hot-coffee',
+    price: 28,
+    image: '🍮',
+    description: 'مزيج ساحر من الإسبريسو والحليب المبخر مع صوص الكاراميل',
+    rating: 4.9,
+    preparationTime: 5,
+    available: true,
+    featured: true,
+    calories: 240,
+    ingredients: ['إسبريسو', 'حليب', 'صوص كاراميل', 'فانيليا']
+  },
+  {
+    id: '3',
+    name: 'Iced Vanilla Latte',
+    nameAr: 'لاتيه فانيليا مثلج',
+    category: 'cold-coffee',
+    price: 25,
+    image: '🧊',
+    description: 'لاتيه منعش مع نكهة الفانيليا الطبيعية وكثير من الثلج',
+    rating: 4.7,
+    preparationTime: 4,
+    available: true,
+    calories: 190,
+    ingredients: ['إسبريسو', 'حليب بارد', 'فانيليا', 'ثلج', 'شراب فانيليا']
+  },
+  {
+    id: '4',
+    name: 'Earl Grey Tea',
+    nameAr: 'شاي إيرل جراي',
+    category: 'tea',
+    price: 15,
+    image: '🫖',
+    description: 'شاي أسود فاخر بنكهة البرغموت الطبيعية',
+    rating: 4.5,
+    preparationTime: 4,
+    available: true,
+    calories: 5,
+    ingredients: ['شاي أسود', 'برغموت', 'ماء ساخن']
+  },
+  {
+    id: '5',
+    name: 'Chocolate Croissant',
+    nameAr: 'كرواسان شوكولاتة',
+    category: 'pastry',
+    price: 22,
+    image: '🥐',
+    description: 'كرواسان فرنسي طازج محشو بالشوكولاتة الداكنة الفاخرة',
+    rating: 4.6,
+    preparationTime: 2,
+    available: true,
+    calories: 340,
+    ingredients: ['دقيق فرنسي', 'زبدة', 'شوكولاتة داكنة', 'بيض']
+  },
+  {
+    id: '6',
+    name: 'Tiramisu Slice',
+    nameAr: 'قطعة تيراميسو',
+    category: 'dessert',
+    price: 32,
+    image: '🍰',
+    description: 'تيراميسو إيطالي أصيل بطعم القهوة والمسكربون',
+    rating: 4.9,
+    preparationTime: 1,
+    available: true,
+    featured: true,
+    calories: 450,
+    ingredients: ['مسكاربون', 'قهوة', 'كاكاو', 'بسكويت سافوياردي', 'مارسالا']
+  }
+];
 
 export default function CoffeeShopPage() {
-  const [menu, setMenu] = useLocalStorage<MenuItem[]>(STORAGE_MENU_KEY, DEFAULT_MENU);
-  const [orders, setOrders] = useLocalStorage<CoffeeOrder[]>(STORAGE_ORDERS_KEY, []);
-  const [occupiedRooms, setOccupiedRooms] = useState<Array<{ number: string; guestName?: string }>>([]);
-  const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
-  const [editingMenuId, setEditingMenuId] = useState<string | null>(null);
-  const [orderDialogOpen, setOrderDialogOpen] = useState(false);
-  const [menuDialogOpen, setMenuDialogOpen] = useState(false);
-  const [orderForm, setOrderForm] = useState<OrderFormState>(initialOrderForm);
-  const [menuForm, setMenuForm] = useState<MenuFormState>(initialMenuForm);
-  const [orderFilter, setOrderFilter] = useState<'all' | OrderStatus>('all');
-  const [search, setSearch] = useState('');
-  
-  // طلبات النزلاء
-  const { 
-    orders: guestOrders, 
-    updateOrderStatus: updateGuestOrderStatus,
-    getOrdersByService,
-    refreshOrders
-  } = useGuestOrders();
+  const router = useRouter();
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
-  useEffect(() => {
-    setOccupiedRooms(getRoomsFromStorage());
-  }, []);
+  // Professional memoized computations
+  const filteredMenu = useMemo(() => {
+    if (selectedCategory === 'all') return COFFEE_MENU;
+    return COFFEE_MENU.filter(item => item.category === selectedCategory);
+  }, [selectedCategory]);
 
-  const activeOrders = useMemo(() => {
-    return orders.filter(order => order.status !== 'delivered' && order.status !== 'cancelled');
-  }, [orders]);
+  const cartTotal = useMemo(() => {
+    return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  }, [cart]);
 
-  const filteredOrders = useMemo(() => {
-    let filtered = orders;
-    if (orderFilter !== 'all') {
-      filtered = filtered.filter(order => order.status === orderFilter);
-    }
-    if (search.trim()) {
-      const term = search.toLowerCase();
-      filtered = filtered.filter(order => 
-        order.guestName.toLowerCase().includes(term) ||
-        order.roomNumber.includes(term) ||
-        order.id.toLowerCase().includes(term)
+  const cartItemsCount = useMemo(() => {
+    return cart.reduce((sum, item) => sum + item.quantity, 0);
+  }, [cart]);
+
+  // Professional cart management functions
+  const addToCart = (item: CoffeeItem) => {
+    setCart(prevCart => {
+      const existingItem = prevCart.find(cartItem => cartItem.id === item.id);
+      if (existingItem) {
+        return prevCart.map(cartItem =>
+          cartItem.id === item.id
+            ? { ...cartItem, quantity: cartItem.quantity + 1 }
+            : cartItem
+        );
+      }
+      return [...prevCart, { ...item, quantity: 1 }];
+    });
+  };
+
+  const updateQuantity = (itemId: string, newQuantity: number) => {
+    if (newQuantity === 0) {
+      setCart(prevCart => prevCart.filter(item => item.id !== itemId));
+    } else {
+      setCart(prevCart =>
+        prevCart.map(item =>
+          item.id === itemId ? { ...item, quantity: newQuantity } : item
+        )
       );
     }
-    return filtered.sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime());
-  }, [orders, orderFilter, search]);
-
-  const handleStatusChange = (orderId: string, newStatus: OrderStatus) => {
-    setOrders(prev => prev.map(order => {
-      if (order.id === orderId) {
-        const updated = { ...order, status: newStatus };
-        if (newStatus === 'ready') {
-          playNotificationSound('order-ready');
-        }
-        return updated;
-      }
-      return order;
-    }));
   };
 
-  const sendToReception = (order: CoffeeOrder) => {
-    // Create reception request
-    const receptionData = {
-      id: uid(),
-      type: 'coffee_order',
-      details: {
-        orderId: order.id,
-        roomNumber: order.roomNumber,
-        guestName: order.guestName,
-        items: order.items,
-        totalAmount: order.totalAmount,
-        requestedBy: 'coffee_shop'
-      },
-      timestamp: new Date().toISOString(),
-      status: 'pending'
-    };
-
-    // Save to reception requests
-    try {
-      const existing = JSON.parse(localStorage.getItem('reception_requests') || '[]');
-      existing.push(receptionData);
-      localStorage.setItem('reception_requests', JSON.stringify(existing));
-      
-      // Mark order as sent to reception
-      setOrders(prev => prev.map(o => 
-        o.id === order.id ? { ...o, sentToReception: true, receptionRequestId: receptionData.id } : o
-      ));
-
-      playNotificationSound('notification');
-    } catch (error) {
-      console.error('Error sending to reception:', error);
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'hot-coffee': return <Flame className="h-5 w-5" />;
+      case 'cold-coffee': return <Snowflake className="h-5 w-5" />;
+      case 'tea': return <Coffee className="h-5 w-5" />;
+      case 'dessert': return <Cookie className="h-5 w-5" />;
+      case 'pastry': return <Croissant className="h-5 w-5" />;
+      default: return <Coffee className="h-5 w-5" />;
     }
-  };
-
-  const openOrderModal = (order?: CoffeeOrder) => {
-    if (order) {
-      setEditingOrderId(order.id);
-      const items: Record<string, number> = {};
-      order.items.forEach(item => {
-        items[item.menuItemId] = item.quantity;
-      });
-      setOrderForm({
-        customerType: order.roomNumber ? 'internal' : 'external',
-        roomNumber: order.roomNumber || '',
-        guestName: order.guestName,
-        items,
-        paymentMethod: order.paymentMethod
-      });
-    } else {
-      setEditingOrderId(null);
-      setOrderForm(initialOrderForm);
-    }
-    setOrderDialogOpen(true);
-  };
-
-  const openMenuModal = (item?: MenuItem) => {
-    if (item) {
-      setEditingMenuId(item.id);
-      setMenuForm({ ...item });
-    } else {
-      setEditingMenuId(null);
-      setMenuForm(initialMenuForm);
-    }
-    setMenuDialogOpen(true);
-  };
-
-  const handleSaveOrder = () => {
-    const selectedItems = Object.entries(orderForm.items)
-      .filter(([, quantity]) => quantity > 0)
-      .map(([itemId, quantity]) => {
-        const menuItem = menu.find(m => m.id === itemId);
-        if (!menuItem) throw new Error(`Menu item not found: ${itemId}`);
-        return {
-          menuItemId: itemId,
-          menuItemName: menuItem.nameAr,
-          quantity,
-          price: menuItem.price
-        };
-      });
-
-    if (selectedItems.length === 0) {
-      alert('يرجى اختيار عنصر واحد على الأقل');
-      return;
-    }
-
-    const totalAmount = selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-    const orderData: CoffeeOrder = {
-      id: editingOrderId || uid(),
-      roomNumber: orderForm.customerType === 'internal' ? orderForm.roomNumber : '',
-      guestName: orderForm.guestName,
-      items: selectedItems,
-      totalAmount,
-      status: 'pending',
-      orderDate: new Date().toISOString(),
-      paymentMethod: orderForm.paymentMethod
-    };
-
-    if (editingOrderId) {
-      setOrders(prev => prev.map(o => o.id === editingOrderId ? orderData : o));
-    } else {
-      setOrders(prev => [orderData, ...prev]);
-      playNotificationSound('new-order');
-    }
-
-    setOrderDialogOpen(false);
-    setOrderForm(initialOrderForm);
-    setEditingOrderId(null);
-  };
-
-  const handleSaveMenuItem = () => {
-    if (!menuForm.nameAr.trim() || !menuForm.name.trim()) {
-      alert('يرجى إدخال اسم العنصر');
-      return;
-    }
-
-    const itemData: MenuItem = {
-      ...menuForm,
-      id: editingMenuId || uid()
-    };
-
-    if (editingMenuId) {
-      setMenu(prev => prev.map(item => item.id === editingMenuId ? itemData : item));
-    } else {
-      setMenu(prev => [itemData, ...prev]);
-    }
-
-    setMenuDialogOpen(false);
-    setMenuForm(initialMenuForm);
-    setEditingMenuId(null);
-  };
-
-  const handleDeleteOrder = (orderId: string) => {
-    if (confirm('هل أنت متأكد من حذف هذا الطلب؟')) {
-      setOrders(prev => prev.filter(o => o.id !== orderId));
-    }
-  };
-
-  const handleDeleteMenuItem = (itemId: string) => {
-    if (confirm('هل أنت متأكد من حذف هذا العنصر؟')) {
-      setMenu(prev => prev.filter(item => item.id !== itemId));
-    }
-  };
-
-  const toggleItemAvailability = (itemId: string) => {
-    setMenu(prev => prev.map(item => 
-      item.id === itemId ? { ...item, available: !item.available } : item
-    ));
-  };
-
-  const updateItemQuantity = (itemId: string, delta: number) => {
-    const currentQty = orderForm.items[itemId] || 0;
-    const newQty = Math.max(0, currentQty + delta);
-    
-    setOrderForm(prev => ({
-      ...prev,
-      items: { ...prev.items, [itemId]: newQty }
-    }));
-  };
-
-  const getTotalOrderValue = () => {
-    return Object.entries(orderForm.items).reduce((sum, [itemId, quantity]) => {
-      const item = menu.find(m => m.id === itemId);
-      return sum + (item ? item.price * quantity : 0);
-    }, 0);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
-      <div className="container mx-auto p-4 lg:p-6">
-        <div className="flex flex-col lg:flex-row gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            {/* Menu Section */}
-            <Card className="border-slate-800 bg-slate-900/40">
-              <CardHeader>
-                <CardTitle className="text-white">القائمة</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4 max-h-96 overflow-y-auto">
-                {menu.length === 0 ? (
-                  <p className="text-slate-400 text-center py-4">لا توجد عناصر</p>
-                ) : (
-                  <div className="space-y-3">
-                    {menu.map((item) => (
-                      <div key={item.id} className="flex items-center justify-between p-3 rounded-lg border border-slate-800 hover:border-slate-700 bg-slate-950/50">
-                        <div className="flex-1">
-                          <p className="font-semibold text-white text-sm sm:text-base">{item.nameAr}</p>
-                          <div className="flex gap-2 mt-1 text-xs text-slate-400">
-                            <span>{formatCurrency(item.price)}</span>
-                            <span>{item.preparationTime} دقيقة</span>
-                          </div>
-                        </div>
-                        <div className="flex gap-1">
-                          <Switch 
-                            checked={item.available} 
-                            onCheckedChange={() => toggleItemAvailability(item.id)}
-                            size="sm"
-                          />
-                          <Button size="sm" variant="ghost" onClick={() => openMenuModal(item)}>
-                            <Edit2 className="h-4 w-4" />
-                          </Button>
-                          <Button size="sm" variant="ghost" onClick={() => handleDeleteMenuItem(item.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Premium background with animated gradients */}
+      <div className="absolute inset-0 bg-gradient-to-br from-amber-900 via-orange-900 to-yellow-900" />
+      <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/20 via-transparent to-orange-500/20" />
+      
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute opacity-10"
+            animate={{
+              y: [0, -30, 0],
+              rotate: [0, 180, 360],
+              scale: [1, 1.2, 1]
+            }}
+            transition={{
+              duration: 15 + Math.random() * 10,
+              repeat: Infinity,
+              delay: Math.random() * 10
+            }}
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+            }}
+          >
+            <Coffee className="w-6 h-6 text-amber-300" />
+          </motion.div>
+        ))}
+      </div>
 
-            {/* طلبات النزلاء فقط */}
-            <Card className="border-slate-800 bg-slate-900/40">
+      {/* Professional Header */}
+      <motion.header 
+        className="relative z-50 bg-black/20 backdrop-blur-2xl border-b border-amber-500/20"
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+      >
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Button
+                variant="ghost"
+                onClick={() => router.push('/guest-menu')}
+                className="text-white border-amber-400/50 hover:bg-amber-500/20 hover:border-amber-400"
+              >
+                <ArrowLeft className="h-5 w-5 mr-2" />
+                العودة للقائمة الرئيسية
+              </Button>
+            </motion.div>
+            
+            <motion.div 
+              className="text-center"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
+            >
+              <div className="flex items-center gap-4 justify-center">
+                <div className="relative">
+                  <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-600 rounded-xl flex items-center justify-center shadow-xl">
+                    <Coffee className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="absolute -top-1 -right-1">
+                    <Crown className="h-5 w-5 text-yellow-400" />
+                  </div>
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-200 to-yellow-200 bg-clip-text text-transparent">
+                    كوفي شوب بريميوم
+                  </h1>
+                  <p className="text-amber-300 text-sm font-medium">Premium Coffee Experience</p>
+                </div>
+              </div>
+            </motion.div>
+            
+            {/* Cart button */}
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Button
+                onClick={() => setIsCartOpen(!isCartOpen)}
+                className="relative bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white"
+              >
+                <ShoppingCart className="h-5 w-5 mr-2" />
+                السلة
+                {cartItemsCount > 0 && (
+                  <Badge className="absolute -top-2 -right-2 bg-red-500 text-white h-6 w-6 rounded-full p-0 flex items-center justify-center text-xs">
+                    {cartItemsCount}
+                  </Badge>
+                )}
+              </Button>
+            </motion.div>
+          </div>
+        </div>
+      </motion.header>
+
+      {/* Main Content */}
+      <div className="relative z-10 container mx-auto px-6 py-8">
+        <div className="grid lg:grid-cols-4 gap-8">
+          {/* Categories Sidebar */}
+          <motion.div
+            className="lg:col-span-1"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <Card className="bg-white/10 backdrop-blur-xl border-amber-400/20 shadow-2xl sticky top-24">
               <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  طلبات النزلاء ({getOrdersByService('coffee').length})
+                <CardTitle className="text-amber-200 flex items-center gap-2">
+                  <ChefHat className="h-5 w-5" />
+                  الفئات
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3 max-h-96 overflow-y-auto">
-                {getOrdersByService('coffee').length === 0 ? (
-                  <p className="text-slate-400 text-center py-4">لا توجد طلبات من النزلاء</p>
-                ) : (
-                  getOrdersByService('coffee')
-                    .filter(order => order.status !== 'delivered')
-                    .map((order: GuestOrder) => (
-                      <div key={order.id} className="p-4 rounded-lg border border-slate-800 bg-slate-950/50 hover:border-slate-700 transition-colors">
-                        <div className="flex items-start justify-between gap-2 mb-3">
-                          <div>
-                            <p className="font-semibold text-white text-sm">{order.guestData.name}</p>
-                            <div className="flex items-center gap-3 text-xs text-slate-400 mt-1">
-                              <span className="flex items-center gap-1">
-                                <Home className="h-3 w-3" />
-                                غرفة {order.guestData.roomNumber}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Phone className="h-3 w-3" />
-                                {order.guestData.phone}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                {new Date(order.createdAt).toLocaleTimeString('ar-SA', { 
-                                  hour: '2-digit', 
-                                  minute: '2-digit' 
-                                })}
-                              </span>
-                            </div>
-                          </div>
-                          <Badge className={
-                            order.status === 'pending' ? 'bg-yellow-600 text-white' :
-                            order.status === 'preparing' ? 'bg-blue-600 text-white' :
-                            order.status === 'ready' ? 'bg-green-600 text-white' :
-                            order.status === 'cancelled' ? 'bg-red-600 text-white' :
-                            'bg-gray-600 text-white'
-                          }>
-                            {order.status === 'pending' ? 'معلق' :
-                             order.status === 'preparing' ? 'قيد التحضير' :
-                             order.status === 'ready' ? 'جاهز' :
-                             order.status === 'cancelled' ? 'ملغي' : 'تم التسليم'}
+              <CardContent className="space-y-3">
+                {[
+                  { id: 'all', label: 'جميع المنتجات', icon: <Star className="h-4 w-4" /> },
+                  { id: 'hot-coffee', label: 'قهوة ساخنة', icon: <Flame className="h-4 w-4" /> },
+                  { id: 'cold-coffee', label: 'قهوة مثلجة', icon: <Snowflake className="h-4 w-4" /> },
+                  { id: 'tea', label: 'شاي وأعشاب', icon: <Coffee className="h-4 w-4" /> },
+                  { id: 'dessert', label: 'حلويات', icon: <Cookie className="h-4 w-4" /> },
+                  { id: 'pastry', label: 'معجنات', icon: <Croissant className="h-4 w-4" /> }
+                ].map((category) => (
+                  <motion.div key={category.id} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Button
+                      variant={selectedCategory === category.id ? "default" : "ghost"}
+                      onClick={() => setSelectedCategory(category.id)}
+                      className={`w-full justify-start text-right ${
+                        selectedCategory === category.id
+                          ? 'bg-amber-500 text-white shadow-lg'
+                          : 'text-amber-200 hover:bg-amber-500/20'
+                      }`}
+                    >
+                      {category.icon}
+                      <span className="mr-2">{category.label}</span>
+                    </Button>
+                  </motion.div>
+                ))}
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Menu Grid */}
+          <div className="lg:col-span-3">
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="grid md:grid-cols-2 xl:grid-cols-3 gap-6"
+            >
+              <AnimatePresence>
+                {filteredMenu.map((item) => (
+                  <motion.div
+                    key={item.id}
+                    variants={itemVariants}
+                    layout
+                    className="group"
+                  >
+                    <Card className="bg-white/5 backdrop-blur-xl border-amber-400/20 hover:border-amber-400/40 transition-all duration-500 overflow-hidden shadow-2xl hover:shadow-amber-500/25 h-full">
+                      {/* Item image and badges */}
+                      <div className="relative h-48 bg-gradient-to-br from-amber-100 via-orange-50 to-yellow-100 overflow-hidden">
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <motion.div 
+                            className="text-6xl group-hover:scale-110 transition-transform duration-300"
+                            whileHover={{ rotate: [0, -10, 10, 0] }}
+                          >
+                            {item.image}
+                          </motion.div>
+                        </div>
+                        
+                        {/* Price badge */}
+                        <div className="absolute top-4 left-4">
+                          <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold text-lg px-3 py-2 shadow-lg">
+                            {item.price} ريال
                           </Badge>
                         </div>
-                        
-                        <div className="mb-3">
-                          <p className="text-sm font-medium text-white mb-1">الطلبات:</p>
-                          <div className="space-y-1">
-                            {order.items.map((item, index) => (
-                              <div key={index} className="text-xs text-slate-300 flex justify-between">
-                                <span>{item.name} x{item.quantity}</span>
-                                <span>{item.price} جنيه</span>
-                              </div>
-                            ))}
+
+                        {/* Featured badge */}
+                        {item.featured && (
+                          <div className="absolute top-4 right-4">
+                            <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                              <Crown className="h-3 w-3 mr-1" />
+                              مميز
+                            </Badge>
                           </div>
-                        </div>
-                        
-                        <div className="flex items-center justify-between mb-3">
-                          <p className="text-sm font-semibold text-green-400">
-                            المجموع: {order.items.reduce((total, item) => total + (item.price * item.quantity), 0)} جنيه
-                          </p>
-                          {order.notes && (
-                            <p className="text-xs text-slate-400">ملاحظات: {order.notes}</p>
-                          )}
-                        </div>
-                        
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => updateGuestOrderStatus(order.id, 
-                              order.status === 'pending' ? 'preparing' :
-                              order.status === 'preparing' ? 'ready' :
-                              order.status === 'ready' ? 'delivered' : order.status
-                            )}
-                            className="text-xs bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
-                          >
-                            تحديث
-                          </Button>
+                        )}
+
+                        {/* Category badge */}
+                        <div className="absolute bottom-4 left-4">
+                          <Badge variant="outline" className="bg-white/90 text-amber-800 border-amber-400">
+                            {getCategoryIcon(item.category)}
+                            <span className="mr-1 text-xs">
+                              {item.category === 'hot-coffee' ? 'قهوة ساخنة' :
+                               item.category === 'cold-coffee' ? 'قهوة مثلجة' :
+                               item.category === 'tea' ? 'شاي' :
+                               item.category === 'dessert' ? 'حلويات' : 'معجنات'}
+                            </span>
+                          </Badge>
                         </div>
                       </div>
-                    ))
-                )}
-              </CardContent>
-            </Card>
-          </div>
 
-          {/* Sidebar - Orders List */}
-          <div className="space-y-6">
-            <Card className="border-slate-800 bg-slate-900/40 sticky top-6">
-              <CardHeader>
-                <CardTitle className="text-white text-lg">الإجراءات</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button 
-                  onClick={() => openOrderModal()} 
-                  className="w-full bg-amber-600 hover:bg-amber-700 text-white"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  طلب جديد
-                </Button>
-                <Button 
-                  onClick={() => openMenuModal()} 
-                  variant="outline" 
-                  className="w-full border-slate-600 text-white hover:bg-slate-700"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  إضافة منتج للقائمة
-                </Button>
-              </CardContent>
-            </Card>
+                      {/* Item details */}
+                      <CardContent className="p-6 text-white">
+                        <div className="space-y-4">
+                          {/* Title and rating */}
+                          <div>
+                            <h3 className="text-xl font-bold text-amber-200 mb-1">
+                              {item.nameAr}
+                            </h3>
+                            <p className="text-amber-300/80 text-sm mb-2">
+                              {item.name}
+                            </p>
+                            <div className="flex items-center gap-2">
+                              <div className="flex items-center">
+                                {[...Array(5)].map((_, i) => (
+                                  <Star
+                                    key={i}
+                                    className={`h-4 w-4 ${
+                                      i < Math.floor(item.rating)
+                                        ? 'text-yellow-400 fill-current'
+                                        : 'text-gray-400'
+                                    }`}
+                                  />
+                                ))}
+                                <span className="text-yellow-400 text-sm mr-1">
+                                  {item.rating}
+                                </span>
+                              </div>
+                              <Badge variant="outline" className="text-xs text-amber-300 border-amber-400">
+                                <Timer className="h-3 w-3 mr-1" />
+                                {item.preparationTime} دقيقة
+                              </Badge>
+                            </div>
+                          </div>
+
+                          {/* Description */}
+                          <p className="text-amber-100/90 text-sm leading-relaxed">
+                            {item.description}
+                          </p>
+
+                          {/* Calories and ingredients */}
+                          <div className="flex items-center gap-4 text-xs">
+                            {item.calories && (
+                              <Badge variant="outline" className="text-amber-300 border-amber-400">
+                                <Zap className="h-3 w-3 mr-1" />
+                                {item.calories} سعرة
+                              </Badge>
+                            )}
+                            <Badge variant="outline" className="text-amber-300 border-amber-400">
+                              {item.ingredients.length} مكونات
+                            </Badge>
+                          </div>
+
+                          {/* Add to cart button */}
+                          <motion.div
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            <Button
+                              onClick={() => addToCart(item)}
+                              disabled={!item.available}
+                              className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold py-3 shadow-lg hover:shadow-xl transition-all duration-300"
+                            >
+                              <Plus className="h-5 w-5 mr-2" />
+                              {item.available ? 'إضافة للسلة' : 'غير متوفر'}
+                            </Button>
+                          </motion.div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
           </div>
         </div>
       </div>
 
-      {/* Order Dialog */}
-      <Dialog open={orderDialogOpen} onOpenChange={setOrderDialogOpen}>
-        <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{editingOrderId ? 'تعديل الطلب' : 'طلب جديد'}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium">نوع العميل</label>
-                <Select 
-                  value={orderForm.customerType} 
-                  onValueChange={(v) => setOrderForm(prev => ({ ...prev, customerType: v as 'internal' | 'external' }))}
+      {/* Professional Cart Sidebar */}
+      <AnimatePresence>
+        {isCartOpen && (
+          <motion.div
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="fixed right-0 top-0 h-full w-96 bg-black/90 backdrop-blur-2xl border-l border-amber-400/20 z-50 overflow-y-auto"
+          >
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-amber-200">السلة</h2>
+                <Button
+                  variant="ghost"
+                  onClick={() => setIsCartOpen(false)}
+                  className="text-amber-200 hover:bg-amber-500/20"
                 >
-                  <SelectTrigger className="border-slate-700 bg-slate-950">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-900 border-slate-700">
-                    <SelectItem value="internal">نزيل داخلي</SelectItem>
-                    <SelectItem value="external">عميل خارجي</SelectItem>
-                  </SelectContent>
-                </Select>
+                  ×
+                </Button>
               </div>
-              {orderForm.customerType === 'internal' && (
-                <div>
-                  <label className="text-sm font-medium">رقم الغرفة</label>
-                  <Select 
-                    value={orderForm.roomNumber} 
-                    onValueChange={(v) => {
-                      const room = occupiedRooms.find(r => r.number === v);
-                      setOrderForm(prev => ({ 
-                        ...prev, 
-                        roomNumber: v,
-                        guestName: room?.guestName || ''
-                      }));
-                    }}
-                  >
-                    <SelectTrigger className="border-slate-700 bg-slate-950">
-                      <SelectValue placeholder="اختر الغرفة" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-slate-900 border-slate-700">
-                      {occupiedRooms.map((room) => (
-                        <SelectItem key={room.number} value={room.number}>
-                          غرفة {room.number} - {room.guestName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+
+              {cart.length === 0 ? (
+                <div className="text-center py-16">
+                  <ShoppingCart className="h-16 w-16 text-amber-400/50 mx-auto mb-4" />
+                  <p className="text-amber-300">السلة فارغة</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {cart.map((item) => (
+                    <motion.div
+                      key={item.id}
+                      layout
+                      className="bg-white/5 rounded-xl p-4 border border-amber-400/20"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="text-2xl">{item.image}</div>
+                        <div className="flex-1">
+                          <h4 className="text-amber-200 font-semibold">{item.nameAr}</h4>
+                          <p className="text-amber-300/80 text-sm">{item.price} ريال</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            className="h-8 w-8 p-0 text-amber-300 border-amber-400"
+                          >
+                            -
+                          </Button>
+                          <span className="text-white w-8 text-center">{item.quantity}</span>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            className="h-8 w-8 p-0 text-amber-300 border-amber-400"
+                          >
+                            +
+                          </Button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+
+                  <div className="mt-6 pt-4 border-t border-amber-400/20">
+                    <div className="flex justify-between items-center mb-4">
+                      <span className="text-xl font-bold text-amber-200">الإجمالي:</span>
+                      <span className="text-2xl font-bold text-green-400">{cartTotal} ريال</span>
+                    </div>
+                    <Button className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white py-3">
+                      <CreditCard className="h-5 w-5 mr-2" />
+                      إتمام الطلب
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
-            
-            <div>
-              <label className="text-sm font-medium">اسم العميل</label>
-              <Input
-                value={orderForm.guestName}
-                onChange={(e) => setOrderForm(prev => ({ ...prev, guestName: e.target.value }))}
-                className="border-slate-700 bg-slate-950"
-                placeholder="اسم العميل"
-              />
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium">طريقة الدفع</label>
-              <Select 
-                value={orderForm.paymentMethod} 
-                onValueChange={(v) => setOrderForm(prev => ({ ...prev, paymentMethod: v as typeof orderForm.paymentMethod }))}
-              >
-                <SelectTrigger className="border-slate-700 bg-slate-950">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-slate-700">
-                  <SelectItem value="room_charge">إضافة للفاتورة</SelectItem>
-                  <SelectItem value="cash">نقداً</SelectItem>
-                  <SelectItem value="card">بطاقة</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium mb-2 block">العناصر</label>
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {menu.filter(item => item.available).map((item) => (
-                  <div key={item.id} className="flex items-center justify-between p-2 rounded border border-slate-700">
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">{item.nameAr}</p>
-                      <p className="text-xs text-slate-400">{formatCurrency(item.price)}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        onClick={() => updateItemQuantity(item.id, -1)}
-                        disabled={!orderForm.items[item.id]}
-                      >
-                        <Minus className="h-3 w-3" />
-                      </Button>
-                      <span className="w-8 text-center text-sm">{orderForm.items[item.id] || 0}</span>
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        onClick={() => updateItemQuantity(item.id, 1)}
-                      >
-                        <Plus className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            <div className="text-right">
-              <p className="text-lg font-semibold text-green-400">
-                المجموع: {formatCurrency(getTotalOrderValue())}
-              </p>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setOrderDialogOpen(false)}>
-              إلغاء
-            </Button>
-            <Button onClick={handleSaveOrder} className="bg-amber-600 hover:bg-amber-700">
-              {editingOrderId ? 'تحديث' : 'إضافة'} الطلب
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Menu Dialog */}
-      <Dialog open={menuDialogOpen} onOpenChange={setMenuDialogOpen}>
-        <DialogContent className="bg-slate-900 border-slate-800 text-white">
-          <DialogHeader>
-            <DialogTitle>{editingMenuId ? 'تعديل المنتج' : 'منتج جديد'}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium">الاسم بالعربية</label>
-                <Input
-                  value={menuForm.nameAr}
-                  onChange={(e) => setMenuForm(prev => ({ ...prev, nameAr: e.target.value }))}
-                  className="border-slate-700 bg-slate-950"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">الاسم بالإنجليزية</label>
-                <Input
-                  value={menuForm.name}
-                  onChange={(e) => setMenuForm(prev => ({ ...prev, name: e.target.value }))}
-                  className="border-slate-700 bg-slate-950"
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium">الفئة</label>
-              <Select 
-                value={menuForm.category} 
-                onValueChange={(v) => setMenuForm(prev => ({ ...prev, category: v as MenuItem['category'] }))}
-              >
-                <SelectTrigger className="border-slate-700 bg-slate-950">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-slate-700">
-                  <SelectItem value="coffee">قهوة</SelectItem>
-                  <SelectItem value="tea">شاي</SelectItem>
-                  <SelectItem value="pastry">مخبوزات</SelectItem>
-                  <SelectItem value="dessert">حلويات</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium">السعر (ر.س)</label>
-                <Input
-                  type="number"
-                  value={menuForm.price}
-                  onChange={(e) => setMenuForm(prev => ({ ...prev, price: parseInt(e.target.value) || 0 }))}
-                  className="border-slate-700 bg-slate-950"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">وقت التحضير (دقيقة)</label>
-                <Input
-                  type="number"
-                  value={menuForm.preparationTime}
-                  onChange={(e) => setMenuForm(prev => ({ ...prev, preparationTime: parseInt(e.target.value) || 0 }))}
-                  className="border-slate-700 bg-slate-950"
-                />
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Switch 
-                checked={menuForm.available} 
-                onCheckedChange={(checked) => setMenuForm(prev => ({ ...prev, available: checked }))}
-              />
-              <label className="text-sm">متاح</label>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setMenuDialogOpen(false)}>
-              إلغاء
-            </Button>
-            <Button onClick={handleSaveMenuItem} className="bg-amber-600 hover:bg-amber-700">
-              {editingMenuId ? 'تحديث' : 'إضافة'} المنتج
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Backdrop for cart */}
+      <AnimatePresence>
+        {isCartOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-40"
+            onClick={() => setIsCartOpen(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

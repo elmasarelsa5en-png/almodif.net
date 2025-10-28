@@ -3,11 +3,18 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Coffee, Utensils, QrCode, Link, Copy, ExternalLink } from 'lucide-react';
+import { Coffee, Utensils, QrCode, Link, Copy, ExternalLink, Hotel, UtensilsCrossed, Shirt } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function GuestMenuIndexPage() {
-  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-  const guestLoginUrl = `${baseUrl}/guest-login`;
+  const [guestLoginUrl, setGuestLoginUrl] = React.useState('/guest-login');
+  const router = useRouter();
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setGuestLoginUrl(`${window.location.origin}/guest-login`);
+    }
+  }, []);
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(guestLoginUrl);
@@ -40,7 +47,66 @@ export default function GuestMenuIndexPage() {
         </Card>
 
         {/* الخدمات المتاحة */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4">
+          {/* خدمة الغرف */}
+          <Card 
+            className="bg-gray-900/80 backdrop-blur-xl border-gray-700/50 hover:border-blue-500/50 transition-all duration-300 cursor-pointer group"
+            onClick={() => router.push('/dashboard/coffee-shop')}
+          >
+            <CardContent className="p-6 text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform">
+                <Hotel className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">خدمة الغرف</h3>
+              <p className="text-gray-300 text-sm">طلب الطعام والمشروبات للغرفة</p>
+            </CardContent>
+          </Card>
+
+          {/* الكافتيريا */}
+          <Card 
+            className="bg-gray-900/80 backdrop-blur-xl border-gray-700/50 hover:border-green-500/50 transition-all duration-300 cursor-pointer group"
+            onClick={() => router.push('/dashboard/coffee-shop')}
+          >
+            <CardContent className="p-6 text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform">
+                <Coffee className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">الكافتيريا</h3>
+              <p className="text-gray-300 text-sm">قهوة ومشروبات ساخنة وباردة</p>
+            </CardContent>
+          </Card>
+
+          {/* المطعم */}
+          <Card 
+            className="bg-gray-900/80 backdrop-blur-xl border-gray-700/50 hover:border-orange-500/50 transition-all duration-300 cursor-pointer group"
+            onClick={() => router.push('/dashboard/coffee-shop')}
+          >
+            <CardContent className="p-6 text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform">
+                <UtensilsCrossed className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">المطعم</h3>
+              <p className="text-gray-300 text-sm">وجبات رئيسية ومأكولات متنوعة</p>
+            </CardContent>
+          </Card>
+
+          {/* خدمة الغسيل */}
+          <Card 
+            className="bg-gray-900/80 backdrop-blur-xl border-gray-700/50 hover:border-purple-500/50 transition-all duration-300 cursor-pointer group"
+            onClick={() => router.push('/dashboard/coffee-shop')}
+          >
+            <CardContent className="p-6 text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform">
+                <Shirt className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">خدمة الغسيل</h3>
+              <p className="text-gray-300 text-sm">غسيل وكي الملابس</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* باقي المحتوى */}
+        <div className="hidden">
           <Card className="bg-gray-900/80 backdrop-blur-xl border-gray-700/50 hover:border-blue-500/50 transition-colors">
             <CardContent className="p-6 text-center">
               <Coffee className="h-12 w-12 text-blue-400 mx-auto mb-4" />

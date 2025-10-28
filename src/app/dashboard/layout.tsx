@@ -81,10 +81,12 @@ export default function DashboardLayout({
         {/* Header */}
         <Header onMenuClick={() => setSidebarCollapsed(!sidebarCollapsed)} />
         
-        {/* News Ticker Section - يظهر في كل الصفحات */}
-        <div className="px-2 sm:px-3 md:px-6 pt-2 sm:pt-3">
-          <NewsTicker items={tickerItems} />
-        </div>
+        {/* News Ticker Section - يظهر فقط في الصفحة الرئيسية للداشبورد */}
+        {pathname === '/dashboard' && (
+          <div className="px-2 sm:px-3 md:px-6 pt-2 sm:pt-3">
+            <NewsTicker items={tickerItems} />
+          </div>
+        )}
         
         {/* Page Content - مع Padding مناسب للموبايل */}
         <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
