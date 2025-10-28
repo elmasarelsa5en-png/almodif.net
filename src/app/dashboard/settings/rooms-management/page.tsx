@@ -22,7 +22,9 @@ import {
   Image,
   CheckCircle2,
   AlertCircle,
-  Settings
+  Settings,
+  Cloud,
+  CloudOff
 } from 'lucide-react';
 import { 
   Room, 
@@ -32,6 +34,12 @@ import {
   ROOM_STATUS_CONFIG,
   ROOM_TYPE_CONFIG
 } from '@/lib/rooms-data';
+import { 
+  getRoomsFromFirebase, 
+  saveRoomsToFirebase, 
+  subscribeToRooms,
+  syncLocalDataToFirebase 
+} from '@/lib/firebase-sync';
 import AddRoomsFromImageDialog from '@/components/AddRoomsFromImageDialog';
 
 export default function RoomsManagementPage() {
@@ -47,6 +55,8 @@ export default function RoomsManagementPage() {
   const [deleteAllConfirmation, setDeleteAllConfirmation] = useState('');
   const [isAddFromImageOpen, setIsAddFromImageOpen] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [isFirebaseConnected, setIsFirebaseConnected] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [formData, setFormData] = useState({
     number: '',
     floor: 1,
@@ -56,11 +66,52 @@ export default function RoomsManagementPage() {
 
   useEffect(() => {
     loadData();
+    
+    // الاستماع للتحديثات الفورية من Firebase
+    const unsubscribe = subscribeToRooms(
+      (updatedRooms) => {
+        setRooms(updatedRooms);
+        setIsFirebaseConnected(true);
+      },
+      (error) => {
+        console.error('خطأ في الاتصال بFirebase:', error);
+        setIsFirebaseConnected(false);
+      }
+    );
+    
+    return () => unsubscribe();
   }, []);
 
-  const loadData = () => {
-    const loadedRooms = getRoomsFromStorage();
-    setRooms(loadedRooms);
+  const loadData = async () => {
+    try {
+      setIsSyncing(true);
+      
+      // محاولة جلب من Firebase أولاً
+      const firebaseRooms = await getRoomsFromFirebase();
+      
+      if (firebaseRooms.length > 0) {
+        setRooms(firebaseRooms);
+        setIsFirebaseConnected(true);
+      } else {
+        // إذا لم توجد بيانات في Firebase، استخدم localStorage
+        const localRooms = getRoomsFromStorage();
+        setRooms(localRooms);
+        
+        // رفع البيانات المحلية إلى Firebase
+        if (localRooms.length > 0) {
+          await saveRoomsToFirebase(localRooms);
+          setIsFirebaseConnected(true);
+        }
+      }
+    } catch (error) {
+      console.error('خطأ في تحميل البيانات:', error);
+      // في حالة الخطأ، استخدم localStorage
+      const localRooms = getRoomsFromStorage();
+      setRooms(localRooms);
+      setIsFirebaseConnected(false);
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const filteredRooms = rooms.filter(room => {
@@ -89,7 +140,7 @@ export default function RoomsManagementPage() {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!selectedRoom) return;
     
     const updatedRooms = rooms.map(room =>
@@ -105,7 +156,7 @@ export default function RoomsManagementPage() {
               ...room.events,
               {
                 id: Date.now().toString(),
-                type: 'status_change',
+                type: 'status_change' as const,
                 description: 'تم تعديل معلومات الغرفة',
                 timestamp: new Date().toISOString(),
                 user: user?.name || user?.username || 'System',
@@ -116,22 +167,38 @@ export default function RoomsManagementPage() {
           }
         : room
     );
+    
     setRooms(updatedRooms);
     saveRoomsToStorage(updatedRooms);
+    
+    try {
+      await saveRoomsToFirebase(updatedRooms);
+    } catch (error) {
+      console.error('خطأ في حفظ التعديلات في Firebase:', error);
+    }
+    
     setIsEditDialogOpen(false);
     setSelectedRoom(null);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!selectedRoom) return;
+    
     const updatedRooms = rooms.filter(room => room.id !== selectedRoom.id);
     setRooms(updatedRooms);
     saveRoomsToStorage(updatedRooms);
+    
+    try {
+      await saveRoomsToFirebase(updatedRooms);
+    } catch (error) {
+      console.error('خطأ في حذف الغرفة من Firebase:', error);
+    }
+    
     setIsDeleteDialogOpen(false);
     setSelectedRoom(null);
   };
 
-  const handleDeleteAll = () => {
+  const handleDeleteAll = async () => {
     if (deleteAllConfirmation !== 'حذف كل الغرف') {
       alert('يرجى كتابة "حذف كل الغرف" للتأكيد');
       return;
@@ -139,6 +206,13 @@ export default function RoomsManagementPage() {
     
     setRooms([]);
     saveRoomsToStorage([]);
+    
+    try {
+      await saveRoomsToFirebase([]);
+    } catch (error) {
+      console.error('خطأ في حذف جميع الغرف من Firebase:', error);
+    }
+    
     setIsDeleteAllDialogOpen(false);
     setDeleteAllConfirmation('');
     alert('تم حذف جميع الغرف بنجاح');
@@ -154,7 +228,7 @@ export default function RoomsManagementPage() {
     setIsAddDialogOpen(true);
   };
 
-  const handleCreateRoom = () => {
+  const handleCreateRoom = async () => {
     if (!formData.number.trim()) {
       alert('يرجى إدخال رقم الغرفة');
       return;
@@ -175,7 +249,7 @@ export default function RoomsManagementPage() {
       balance: 0,
       events: [{
         id: Date.now().toString(),
-        type: 'status_change',
+        type: 'status_change' as const,
         description: 'تم إنشاء الغرفة',
         timestamp: new Date().toISOString(),
         user: user?.name || user?.username || 'System',
@@ -187,10 +261,17 @@ export default function RoomsManagementPage() {
     const updatedRooms = [...rooms, newRoom];
     setRooms(updatedRooms);
     saveRoomsToStorage(updatedRooms);
+    
+    try {
+      await saveRoomsToFirebase(updatedRooms);
+    } catch (error) {
+      console.error('خطأ في حفظ الغرفة الجديدة في Firebase:', error);
+    }
+    
     setIsAddDialogOpen(false);
   };
 
-  const handleAddRoomsFromImage = (newRooms: Partial<Room>[]) => {
+  const handleAddRoomsFromImage = async (newRooms: Partial<Room>[]) => {
     // التحقق من عدم وجود غرف مكررة
     const existingNumbers = rooms.map(r => r.number);
     const uniqueRooms = newRooms.filter(room => 
@@ -211,7 +292,7 @@ export default function RoomsManagementPage() {
       balance: 0,
       events: [{
         id: Date.now().toString(),
-        type: 'status_change',
+        type: 'status_change' as const,
         description: 'تم إنشاء الغرفة من الصورة',
         timestamp: new Date().toISOString(),
         user: user?.name || user?.username || 'System',
@@ -223,6 +304,13 @@ export default function RoomsManagementPage() {
     const updatedRooms = [...rooms, ...roomsToAdd];
     setRooms(updatedRooms);
     saveRoomsToStorage(updatedRooms);
+    
+    try {
+      await saveRoomsToFirebase(updatedRooms);
+    } catch (error) {
+      console.error('خطأ في حفظ الغرف من الصورة في Firebase:', error);
+    }
+    
     setIsAddFromImageOpen(false);
     
     alert(`تم إضافة ${roomsToAdd.length} غرفة بنجاح`);
@@ -256,10 +344,22 @@ export default function RoomsManagementPage() {
                 <Settings className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
-                  إدارة الغرف والشقق
-                </h1>
-                <p className="text-blue-200/70 text-sm">إضافة، تعديل، وحذف الغرف من النظام</p>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
+                    إدارة الغرف والشقق
+                  </h1>
+                  {isSyncing ? (
+                    <Cloud className="w-5 h-5 text-yellow-400 animate-pulse" />
+                  ) : isFirebaseConnected ? (
+                    <Cloud className="w-5 h-5 text-green-400" />
+                  ) : (
+                    <CloudOff className="w-5 h-5 text-red-400" />
+                  )}
+                </div>
+                <p className="text-blue-200/70 text-sm">
+                  إضافة، تعديل، وحذف الغرف من النظام • 
+                  {isSyncing ? ' جاري المزامنة...' : isFirebaseConnected ? ' متصل بالسحابة ☁️' : ' وضع محلي فقط'}
+                </p>
               </div>
             </div>
           </div>
@@ -368,8 +468,8 @@ export default function RoomsManagementPage() {
                 {rooms.length > 0 && (
                   <Button 
                     onClick={() => setIsDeleteAllDialogOpen(true)}
-                    variant="destructive"
-                    className="flex-1 lg:flex-initial bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white shadow-lg"
+                    variant="outline"
+                    className="flex-1 lg:flex-initial bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white shadow-lg border-red-500/30"
                   >
                     <Trash2 className="h-4 w-4 ml-2" />
                     حذف الكل

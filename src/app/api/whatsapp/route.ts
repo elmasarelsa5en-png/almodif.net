@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// تصدير استاتيكي للموبايل
+export const dynamic = 'force-static';
+export const revalidate = false;
+
 // This will be replaced with actual WhatsApp Web integration
 // For now, we'll create the structure
 

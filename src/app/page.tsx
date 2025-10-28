@@ -40,6 +40,18 @@ export default function HomePage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeFeature, setActiveFeature] = useState(0);
 
+  // للموبايل: تحويل مباشر لصفحة تسجيل الدخول
+  useEffect(() => {
+    // التحقق إذا كان التطبيق يعمل في Capacitor (موبايل)
+    const isCapacitor = typeof window !== 'undefined' && 
+      (window as any).Capacitor !== undefined;
+    
+    if (isCapacitor) {
+      // تحويل مباشر لصفحة تسجيل دخول النزيل
+      router.push('/guest-login');
+    }
+  }, [router]);
+
   const features = [
     {
       icon: <Bed className="w-8 h-8 text-blue-400" />,
@@ -129,7 +141,7 @@ export default function HomePage() {
               <Button 
                 variant="outline"
                 className="border-green-400/30 text-green-300 bg-green-900/30 hover:bg-green-800/50 backdrop-blur-sm"
-                onClick={() => window.location.href = '/guest-login'}
+                onClick={() => router.push('/guest-login')}
               >
                 <Menu className="w-4 h-4 ml-2" />
                 المنيو الإلكتروني
@@ -137,14 +149,14 @@ export default function HomePage() {
               <Button 
                 variant="outline"
                 className="border-purple-400/30 text-purple-300 bg-purple-900/30 hover:bg-purple-800/50 backdrop-blur-sm"
-                onClick={() => window.location.href = '/employee-login'}
+                onClick={() => router.push('/employee-login')}
               >
                 <UserCircle className="w-4 h-4 ml-2" />
                 دخول الموظفين
               </Button>
               <Button 
                 className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-xl"
-                onClick={() => window.location.href = '/login'}
+                onClick={() => router.push('/login')}
               >
                 <LogIn className="w-4 h-4 ml-2" />
                 {t('loginButton')}
@@ -177,9 +189,7 @@ export default function HomePage() {
                 <Button 
                   variant="outline"
                   className="border-green-400/30 text-green-300 bg-green-900/30 w-full justify-start"
-                  onClick={() => {
-                    window.location.href = '/guest-login';
-                  }}
+                  onClick={() => router.push('/guest-login')}
                 >
                   <Menu className="w-4 h-4 ml-2" />
                   المنيو الإلكتروني للنزلاء
@@ -187,18 +197,14 @@ export default function HomePage() {
                 <Button 
                   variant="outline"
                   className="border-purple-400/30 text-purple-300 bg-purple-900/30 w-full justify-start"
-                  onClick={() => {
-                    window.location.href = '/employee-login';
-                  }}
+                  onClick={() => router.push('/employee-login')}
                 >
                   <UserCircle className="w-4 h-4 ml-2" />
                   دخول الموظفين
                 </Button>
                 <Button 
                   className="bg-gradient-to-r from-blue-500 to-indigo-600 w-full justify-start"
-                  onClick={() => {
-                    window.location.href = '/login';
-                  }}
+                  onClick={() => router.push('/login')}
                 >
                   <LogIn className="w-4 h-4 ml-2" />
                   {t('loginButton')}
@@ -237,7 +243,7 @@ export default function HomePage() {
                 <Button 
                   size="lg"
                   className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-2xl text-lg px-8 py-4"
-                  onClick={() => window.location.href = '/guest-login'}
+                  onClick={() => router.push('/guest-login')}
                 >
                   <Menu className="w-5 h-5 ml-2" />
                   المنيو الإلكتروني للنزلاء
@@ -246,7 +252,7 @@ export default function HomePage() {
                   size="lg"
                   variant="outline"
                   className="border-white/30 text-white bg-white/10 hover:bg-white/20 backdrop-blur-sm text-lg px-8 py-4"
-                  onClick={() => window.location.href = '/dashboard'}
+                  onClick={() => router.push('/dashboard')}
                 >
                   <ArrowRight className="w-5 h-5 ml-2" />
                   {t('homepageExploreSystem')}
@@ -452,7 +458,7 @@ export default function HomePage() {
                   <Button 
                     size="lg"
                     className="w-full bg-white text-green-700 hover:bg-gray-100 shadow-xl text-xl px-8 py-6 font-bold"
-                    onClick={() => window.location.href = '/guest-login'}
+                    onClick={() => router.push('/guest-login')}
                   >
                     <Menu className="w-6 h-6 ml-2" />
                     افتح المنيو الإلكتروني

@@ -342,6 +342,15 @@ export default function GuestMenuUnifiedPage() {
 
               {/* الأزرار */}
               <div className="flex items-center gap-2">
+                {/* زر البورتال */}
+                <button
+                  onClick={() => router.push('/guest-portal')}
+                  className="p-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                  title="بورتال النزيل"
+                >
+                  <User className="w-6 h-6 text-white" />
+                </button>
+
                 {/* زر السلة - احترافي */}
                 <button
                   onClick={() => setShowCart(true)}
@@ -382,11 +391,11 @@ export default function GuestMenuUnifiedPage() {
             </div>
             
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
-              أهلاً وسهلاً {guestSession.name} 👋
+              أهلاً وسهلاً عزيزي النزيل 👋
             </h2>
             
             <p className="text-blue-100 text-lg mb-6">
-              {menuSettings?.welcomeMessage || 'نتمنى لك إقامة سعيدة في غرفتك رقم ' + guestSession.roomNumber}
+              مرحباً بك في فندقنا. نتمنى لك إقامة سعيدة
             </p>
             
             <div className="flex flex-wrap items-center justify-center gap-4">
@@ -415,7 +424,7 @@ export default function GuestMenuUnifiedPage() {
             className="overflow-hidden border-2 border-white/10 bg-white/5 backdrop-blur-md hover:bg-white/10 transition-all duration-300 hover:shadow-2xl"
           >
             <CardHeader 
-              className={`cursor-pointer bg-gradient-to-r ${section.bgGradient} bg-opacity-20 hover:opacity-90 transition-all backdrop-blur-sm`}
+              className={`cursor-pointer bg-gradient-to-r ${section.gradient} bg-opacity-30 hover:opacity-90 transition-all backdrop-blur-sm`}
               onClick={() => setActiveSection(activeSection === section.id ? null : section.id)}
             >
               <CardTitle className="flex items-center justify-between">
@@ -423,7 +432,7 @@ export default function GuestMenuUnifiedPage() {
                   <div className={`w-12 h-12 bg-gradient-to-r ${section.gradient} rounded-xl flex items-center justify-center shadow-lg`}>
                     <section.icon className="w-6 h-6 text-white" />
                   </div>
-                  <span className="text-white text-xl font-bold">{section.title}</span>
+                  <span className="text-white text-2xl font-bold drop-shadow-lg">{section.title}</span>
                 </div>
                 <Badge className="bg-white/20 text-white text-sm px-3 py-1 shadow-sm border border-white/30">
                   {section.items.length} صنف

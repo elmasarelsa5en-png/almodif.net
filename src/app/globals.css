@@ -270,3 +270,28 @@ body {
     font-size: 18px;
   }
 }
+
+/* Õ—ﬂ«  «Õ —«›Ì… ·’›Õ…  ”ÃÌ· «·œŒÊ· */
+@keyframes logoRotateScale {
+  0% {
+    transform: scale(0.5) rotate(-180deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.1) rotate(10deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.5), 0 0 40px rgba(147, 51, 234, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.8), 0 0 60px rgba(147, 51, 234, 0.6);
+  }
+}
+

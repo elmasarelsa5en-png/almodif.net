@@ -1,13 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // output: 'export', // معطل - الصفحة public-site ديناميكية
+  // output: 'export', // معطل للموبايل - سنستخدم development server
   reactStrictMode: true,
   eslint: {
     ignoreDuringBuilds: true,
   },
   typescript: {
-    ignoreBuildErrors: true, // للنشر السريع
+    ignoreBuildErrors: true,
   },
   turbopack: {
     rules: {
@@ -18,11 +18,12 @@ const nextConfig: NextConfig = {
     }
   },
   images: {
+    unoptimized: true, // للموبايل
     domains: ["localhost"],
   },
+  trailingSlash: true,
   onDemandEntries: {
-    // حفظ الصفحات في الذاكرة لفترة أطول لتجنب إعادة التحميل
-    maxInactiveAge: 25 * 1000 * 60, // 25 دقيقة
+    maxInactiveAge: 25 * 1000 * 60,
     pagesBufferLength: 5,
   },
   webpack: (config: any, { isServer }: { isServer: boolean }) => {

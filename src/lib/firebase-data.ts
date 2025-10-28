@@ -137,11 +137,15 @@ export interface GuestRequest {
   room: string;
   guest: string;
   type: string;
+  description?: string; // إضافة الوصف
   notes?: string;
   items?: string[];
+  phone?: string; // إضافة رقم الهاتف
+  priority?: 'low' | 'medium' | 'high'; // إضافة الأولوية
   linkedSection?: 'coffee' | 'laundry' | 'restaurant';
   linkedOrderId?: string;
-  status: 'pending' | 'approved' | 'rejected' | 'completed';
+  status: 'pending' | 'in-progress' | 'approved' | 'rejected' | 'completed' | 'awaiting_employee_approval'; // إضافة الحالات المفقودة
+  employeeApprovalStatus?: 'pending' | 'approved' | 'rejected'; // إضافة حالة موافقة الموظف
   assignedEmployee?: string;
   createdAt: string;
   updatedAt?: string;

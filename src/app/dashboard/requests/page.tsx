@@ -37,10 +37,11 @@ import {
 const STATUS_CONFIG = {
   pending: { label: 'قيد الانتظار', color: 'bg-yellow-500/20 text-yellow-300', icon: '⏳' },
   'in-progress': { label: 'قيد التنفيذ', color: 'bg-blue-500/20 text-blue-300', icon: '⚙️' },
+  approved: { label: 'موافق عليه', color: 'bg-green-500/20 text-green-300', icon: '✅' },
   completed: { label: 'مكتمل', color: 'bg-green-500/20 text-green-300', icon: '✅' },
   rejected: { label: 'مرفوض', color: 'bg-red-500/20 text-red-300', icon: '❌' },
   'awaiting_employee_approval': { label: 'بانتظار موافقة الموظف', color: 'bg-purple-500/20 text-purple-300', icon: '⏱️' },
-};
+} as const;
 
 const PRIORITY_CONFIG = {
   low: { label: 'منخفضة', color: 'text-blue-400' },
@@ -162,7 +163,7 @@ export default function RequestsPage() {
         (r) =>
           r.room.includes(searchTerm) ||
           r.guest.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          r.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (r.description && r.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
           r.type.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
@@ -266,7 +267,15 @@ export default function RequestsPage() {
     const csv = [
       ['الغرفة', 'النزيل', 'نوع الطلب', 'الوصف', 'الحالة', 'الأولوية', 'التاريخ'].join(','),
       ...filteredRequests.map((r) =>
-        [r.room, r.guest, r.type, r.description, STATUS_CONFIG[r.status].label, PRIORITY_CONFIG[r.priority].label, r.createdAt].join(',')
+        [
+          r.room, 
+          r.guest, 
+          r.type, 
+          r.description || '', 
+          STATUS_CONFIG[r.status]?.label || r.status, 
+          PRIORITY_CONFIG[r.priority || 'medium']?.label || 'متوسطة', 
+          r.createdAt
+        ].join(',')
       ),
     ].join('\n');
 
@@ -463,9 +472,11 @@ export default function RequestsPage() {
                           <div>
                             <div className="flex items-center gap-2 mb-1">
                               <span className="text-2xl font-bold text-white">غرفة {request.room}</span>
-                              <Badge className={`${PRIORITY_CONFIG[request.priority].color} bg-transparent border`}>
-                                {PRIORITY_CONFIG[request.priority].label}
-                              </Badge>
+                              {request.priority && (
+                                <Badge className={`${PRIORITY_CONFIG[request.priority || 'medium'].color} bg-transparent border`}>
+                                  {PRIORITY_CONFIG[request.priority || 'medium'].label}
+                                </Badge>
+                              )}
                             </div>
                             <p className="text-white/70 text-sm">{request.type}</p>
                           </div>
@@ -473,8 +484,8 @@ export default function RequestsPage() {
                       </div>
 
                       <div className="flex items-center gap-3 flex-wrap">
-                        <Badge className={`${STATUS_CONFIG[request.status].color} border-0 px-3 py-1`}>
-                          {STATUS_CONFIG[request.status].icon} {STATUS_CONFIG[request.status].label}
+                        <Badge className={`${STATUS_CONFIG[request.status as keyof typeof STATUS_CONFIG]?.color || 'bg-gray-500/20 text-gray-300'} border-0 px-3 py-1`}>
+                          {STATUS_CONFIG[request.status as keyof typeof STATUS_CONFIG]?.icon || '📋'} {STATUS_CONFIG[request.status as keyof typeof STATUS_CONFIG]?.label || request.status}
                         </Badge>
                         <ChevronDown
                           className={`w-5 h-5 text-white/50 transition-transform ${
@@ -587,15 +598,17 @@ export default function RequestsPage() {
                         </div>
 
                         {/* Description */}
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-white/70 text-sm">
-                            <FileText className="w-4 h-4" />
-                            <span>الوصف:</span>
+                        {request.description && (
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-white/70 text-sm">
+                              <FileText className="w-4 h-4" />
+                              <span>الوصف:</span>
+                            </div>
+                            <p className="text-white/80 ml-6 bg-white/5 p-3 rounded-lg border border-white/10">
+                              {request.description}
+                            </p>
                           </div>
-                          <p className="text-white/80 ml-6 bg-white/5 p-3 rounded-lg border border-white/10">
-                            {request.description}
-                          </p>
-                        </div>
+                        )}
 
                         {/* Notes */}
                         {request.notes && (
