@@ -26,72 +26,125 @@ export default function AddRoomsFromImageDialog({ open, onClose, onSubmit }: Add
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const normalizeRoomType = (text: string): string => {
-    const normalized = text.trim().toLowerCase();
+    if (!text) return 'غرفة';
     
-    // خريطة الأنواع
+    const normalized = text.trim().toLowerCase()
+      .replace(/\s+/g, ' ') // توحيد المسافات
+      .replace(/[^\w\s\u0600-\u06FF]/g, ''); // إزالة الرموز الخاصة
+    
+    console.log(`  🔤 Normalizing type: "${text}" -> "${normalized}"`);
+    
+    // خريطة الأنواع المحسّنة
     const typeMap: Record<string, string> = {
+      // شقق
       'شقة': 'شقة',
+      'شقه': 'شقة',
+      'اكسبو': 'شقة',
+      'اكسبره': 'شقة',
+      
+      // غرفة وصالة
       'غرفة وصالة': 'غرفة وصالة',
       'غرفه وصاله': 'غرفة وصالة',
-      'غرفة': 'غرفة',
-      'غرفه': 'غرفة',
+      'غرفة وصاله': 'غرفة وصالة',
+      'غرفه وصالة': 'غرفة وصالة',
+      'وصالة': 'غرفة وصالة',
+      'وصاله': 'غرفة وصالة',
+      
+      // غرفتين
       'غرفتين': 'غرفتين',
       'غرفتين وصالة': 'غرفتين وصالة',
-      'جناح': 'جناح',
-      'جنا': 'جناح',
+      'غرفتين وصاله': 'غرفتين وصالة',
+      'غرفتين بدون صالة': 'غرفتين',
+      'غرفتين بدون صاله': 'غرفتين',
+      'بدون صالة': 'غرفتين',
+      'بدون صاله': 'غرفتين',
+      'كبيرة': 'غرفتين',
+      'كبيره': 'غرفتين',
+      
+      // غرفة عادية
+      'غرفة': 'غرفة',
+      'غرفه': 'غرفة',
+      
+      // VIP
       'vip': 'VIP',
       'ڤی پی': 'VIP',
       'فيب': 'VIP',
+      'في اي بي': 'VIP',
+      
+      // جناح
+      'جناح': 'جناح',
+      'جنا': 'جناح',
+      
+      // استوديو
       'استوديو': 'استوديو',
-      'أسرة': 'غرفة'
+      'اسديو': 'استوديو',
+      
+      // أسرة
+      'أسرة': 'غرفة أسرة',
+      'اسرة': 'غرفة أسرة',
+      'اسره': 'غرفة أسرة'
     };
 
-    // البحث عن تطابق
+    // البحث عن تطابق في الخريطة
     for (const [key, value] of Object.entries(typeMap)) {
       if (normalized.includes(key)) {
+        console.log(`    ✅ Matched: "${key}" -> "${value}"`);
         return value;
       }
     }
 
-    // إذا لم يوجد تطابق، إرجاع النص الأصلي
-    return text;
+    // إذا كان النص قصير ومعقول، استخدمه كما هو
+    if (text.length > 0 && text.length < 30) {
+      return text.trim();
+    }
+
+    // افتراضياً
+    return 'غرفة';
   };
 
   const extractRoomsFromText = (text: string): ExtractedRoom[] => {
     const lines = text.split('\n').map(line => line.trim()).filter(line => line);
     const rooms: ExtractedRoom[] = [];
+    const processedNumbers = new Set<string>(); // لتجنب التكرار
     
-    console.log('All lines:', lines);
+    console.log('📄 All lines:', lines);
+    console.log('📝 Full text:', text);
 
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      
-      // البحث عن رقم الغرفة - يبحث عن أرقام مع احتمالية وجود كلمات مثل "vip" أو أنواع
-      const roomNumberMatch = line.match(/(\d{3,4})/);
-      
-      if (roomNumberMatch) {
-        const roomNumber = roomNumberMatch[1];
-        
-        // البحث عن النوع في نفس السطر أو السطر التالي
-        let roomType = 'غرفة'; // افتراضي
-        
-        // تحقق من وجود نوع في نفس السطر
-        const sameLineType = line.replace(roomNumber, '').trim();
-        if (sameLineType.length > 0) {
-          roomType = normalizeRoomType(sameLineType);
-        }
-        // إذا كان السطر التالي يحتوي على نوع
-        else if (i + 1 < lines.length) {
-          const nextLine = lines[i + 1];
-          // تحقق من أن السطر التالي لا يحتوي على رقم غرفة
-          if (!nextLine.match(/\d{3,4}/)) {
-            roomType = normalizeRoomType(nextLine);
-          }
-        }
+    // نمط محسّن لاستخراج الغرف - يبحث عن أي رقم من 3 أرقام فأكثر
+    const roomPatterns = [
+      // نمط 1: رقم + نوع في نفس السطر (مثل: "205 غرفتين وصالة")
+      /(\d{3,4})\s*([^\d\n]+)/g,
+      // نمط 2: رقم + vip (مثل: "203vip" أو "203 vip")
+      /(\d{3,4})\s*vip/gi,
+      // نمط 3: رقم لوحده (مثل: "102")
+      /(\d{3,4})/g
+    ];
 
-        // التحقق من أن رقم الغرفة معقول
+    // استخراج كل الأرقام من النص بطرق مختلفة
+    for (const line of lines) {
+      console.log('🔍 Processing line:', line);
+      
+      // محاولة استخراج رقم الغرفة
+      const numberMatch = line.match(/(\d{3,4})/);
+      
+      if (numberMatch) {
+        const roomNumber = numberMatch[1];
         const roomNum = parseInt(roomNumber);
-        if (roomNum >= 101 && roomNum <= 999) {
+        
+        // التحقق من أن رقم الغرفة معقول ولم تتم معالجته
+        if (roomNum >= 101 && roomNum <= 999 && !processedNumbers.has(roomNumber)) {
+          processedNumbers.add(roomNumber);
+          
+          // استخراج النوع من نفس السطر
+          let roomType = 'غرفة'; // افتراضي
+          const restOfLine = line.replace(roomNumber, '').trim();
+          
+          console.log(`  📌 Found room: ${roomNumber}, rest: "${restOfLine}"`);
+          
+          if (restOfLine.length > 0) {
+            roomType = normalizeRoomType(restOfLine);
+          }
+
           rooms.push({
             number: roomNumber,
             type: roomType,
@@ -102,12 +155,47 @@ export default function AddRoomsFromImageDialog({ open, onClose, onSubmit }: Add
       }
     }
 
-    // إزالة التكرارات
-    const uniqueRooms = rooms.filter((room, index, self) =>
-      index === self.findIndex((r) => r.number === room.number)
-    );
+    // طريقة بديلة: البحث عن كل الأرقام في النص كله
+    if (rooms.length === 0) {
+      console.log('⚠️ No rooms found in lines, trying full text search...');
+      
+      const allNumbers = text.match(/\d{3,4}/g) || [];
+      console.log('🔢 All numbers found:', allNumbers);
+      
+      for (const roomNumber of allNumbers) {
+        const roomNum = parseInt(roomNumber);
+        
+        if (roomNum >= 101 && roomNum <= 999 && !processedNumbers.has(roomNumber)) {
+          processedNumbers.add(roomNumber);
+          
+          // محاولة إيجاد النوع حول الرقم
+          const regex = new RegExp(`${roomNumber}\\s*([^\\d\\n]{0,50})`, 'i');
+          const match = text.match(regex);
+          let roomType = 'غرفة';
+          
+          if (match && match[1]) {
+            const extracted = match[1].trim();
+            if (extracted.length > 0 && extracted.length < 50) {
+              roomType = normalizeRoomType(extracted);
+            }
+          }
+          
+          rooms.push({
+            number: roomNumber,
+            type: roomType,
+            status: 'success',
+            message: `تم استخراج: غرفة ${roomNumber} - ${roomType}`
+          });
+        }
+      }
+    }
 
-    return uniqueRooms;
+    console.log(`✅ Total rooms extracted: ${rooms.length}`, rooms);
+    
+    // ترتيب الغرف حسب الرقم
+    rooms.sort((a, b) => parseInt(a.number) - parseInt(b.number));
+
+    return rooms;
   };
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
