@@ -154,7 +154,6 @@ export default function CoffeeShopPage() {
   const [menuForm, setMenuForm] = useState<MenuFormState>(initialMenuForm);
   const [orderFilter, setOrderFilter] = useState<'all' | OrderStatus>('all');
   const [search, setSearch] = useState('');
-  const [activeTab, setActiveTab] = useState<'staff-orders' | 'guest-orders'>('staff-orders');
   
   // طلبات النزلاء
   const { 
@@ -165,59 +164,93 @@ export default function CoffeeShopPage() {
   } = useGuestOrders();
 
   useEffect(() => {
-    const rooms = getRoomsFromStorage();
-    const occupied = rooms
-      .filter((room) => room.status === 'Occupied' && room.guestName)
-      .map((room) => ({ number: room.number, guestName: room.guestName }));
-    setOccupiedRooms(occupied);
+    setOccupiedRooms(getRoomsFromStorage());
   }, []);
 
-  const stats = useMemo(() => {
-    const pending = orders.filter((o) => o.status === 'pending').length;
-    const preparing = orders.filter((o) => o.status === 'preparing').length;
-    const ready = orders.filter((o) => o.status === 'ready').length;
-    const delivered = orders.filter((o) => o.status === 'delivered').length;
-    const totalRevenue = orders.filter((o) => o.status === 'delivered').reduce((sum, o) => sum + o.totalAmount, 0);
-    return { pending, preparing, ready, delivered, totalRevenue, total: orders.length };
+  const activeOrders = useMemo(() => {
+    return orders.filter(order => order.status !== 'delivered' && order.status !== 'cancelled');
   }, [orders]);
 
-  const filteredOrders = useMemo(
-    () =>
-      orders.filter((o) => {
-        const matchesStatus = orderFilter === 'all' || o.status === orderFilter;
-        const matchesSearch = !search || o.guestName.toLowerCase().includes(search.toLowerCase()) || o.roomNumber.includes(search);
-        return matchesStatus && matchesSearch;
-      }),
-    [orders, orderFilter, search]
-  );
+  const filteredOrders = useMemo(() => {
+    let filtered = orders;
+    if (orderFilter !== 'all') {
+      filtered = filtered.filter(order => order.status === orderFilter);
+    }
+    if (search.trim()) {
+      const term = search.toLowerCase();
+      filtered = filtered.filter(order => 
+        order.guestName.toLowerCase().includes(term) ||
+        order.roomNumber.includes(term) ||
+        order.id.toLowerCase().includes(term)
+      );
+    }
+    return filtered.sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime());
+  }, [orders, orderFilter, search]);
 
-  const activeOrders = useMemo(() => orders.filter((o) => ['pending', 'preparing', 'ready'].includes(o.status)), [orders]);
-
-  const resetOrderForm = () => {
-    setOrderForm(initialOrderForm);
-    setEditingOrderId(null);
+  const handleStatusChange = (orderId: string, newStatus: OrderStatus) => {
+    setOrders(prev => prev.map(order => {
+      if (order.id === orderId) {
+        const updated = { ...order, status: newStatus };
+        if (newStatus === 'ready') {
+          playNotificationSound('order-ready');
+        }
+        return updated;
+      }
+      return order;
+    }));
   };
 
-  const resetMenuForm = () => {
-    setMenuForm(initialMenuForm);
-    setEditingMenuId(null);
+  const sendToReception = (order: CoffeeOrder) => {
+    // Create reception request
+    const receptionData = {
+      id: uid(),
+      type: 'coffee_order',
+      details: {
+        orderId: order.id,
+        roomNumber: order.roomNumber,
+        guestName: order.guestName,
+        items: order.items,
+        totalAmount: order.totalAmount,
+        requestedBy: 'coffee_shop'
+      },
+      timestamp: new Date().toISOString(),
+      status: 'pending'
+    };
+
+    // Save to reception requests
+    try {
+      const existing = JSON.parse(localStorage.getItem('reception_requests') || '[]');
+      existing.push(receptionData);
+      localStorage.setItem('reception_requests', JSON.stringify(existing));
+      
+      // Mark order as sent to reception
+      setOrders(prev => prev.map(o => 
+        o.id === order.id ? { ...o, sentToReception: true, receptionRequestId: receptionData.id } : o
+      ));
+
+      playNotificationSound('notification');
+    } catch (error) {
+      console.error('Error sending to reception:', error);
+    }
   };
 
   const openOrderModal = (order?: CoffeeOrder) => {
     if (order) {
       setEditingOrderId(order.id);
+      const items: Record<string, number> = {};
+      order.items.forEach(item => {
+        items[item.menuItemId] = item.quantity;
+      });
       setOrderForm({
         customerType: order.roomNumber ? 'internal' : 'external',
-        roomNumber: order.roomNumber,
+        roomNumber: order.roomNumber || '',
         guestName: order.guestName,
-        items: order.items.reduce<Record<string, number>>((acc, item) => {
-          acc[item.menuItemId] = item.quantity;
-          return acc;
-        }, {}),
+        items,
         paymentMethod: order.paymentMethod
       });
     } else {
-      resetOrderForm();
+      setEditingOrderId(null);
+      setOrderForm(initialOrderForm);
     }
     setOrderDialogOpen(true);
   };
@@ -225,233 +258,119 @@ export default function CoffeeShopPage() {
   const openMenuModal = (item?: MenuItem) => {
     if (item) {
       setEditingMenuId(item.id);
-      setMenuForm({
-        id: item.id,
-        name: item.name,
-        nameAr: item.nameAr,
-        category: item.category,
-        price: item.price,
-        preparationTime: item.preparationTime,
-        available: item.available
-      });
+      setMenuForm({ ...item });
     } else {
-      resetMenuForm();
+      setEditingMenuId(null);
+      setMenuForm(initialMenuForm);
     }
     setMenuDialogOpen(true);
-  };
-
-  const adjustItemQuantity = (itemId: string, delta: number) => {
-    setOrderForm((prev) => {
-      const current = prev.items[itemId] ?? 0;
-      const next = Math.max(0, current + delta);
-      const updated = { ...prev.items };
-      if (next === 0) {
-        delete updated[itemId];
-      } else {
-        updated[itemId] = next;
-      }
-      return { ...prev, items: updated };
-    });
   };
 
   const handleSaveOrder = () => {
     const selectedItems = Object.entries(orderForm.items)
       .filter(([, quantity]) => quantity > 0)
-      .map(([menuItemId, quantity]) => {
-        const menuItem = menu.find((item) => item.id === menuItemId);
-        if (!menuItem) return null;
+      .map(([itemId, quantity]) => {
+        const menuItem = menu.find(m => m.id === itemId);
+        if (!menuItem) throw new Error(`Menu item not found: ${itemId}`);
         return {
-          menuItemId,
+          menuItemId: itemId,
           menuItemName: menuItem.nameAr,
           quantity,
           price: menuItem.price
         };
-      })
-      .filter(Boolean) as OrderItem[];
+      });
 
-    if (!orderForm.guestName.trim() || !selectedItems.length) return;
-    if (orderForm.customerType === 'internal' && !orderForm.roomNumber) return;
+    if (selectedItems.length === 0) {
+      alert('يرجى اختيار عنصر واحد على الأقل');
+      return;
+    }
 
-    const totalAmount = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const payload: CoffeeOrder = {
-      id: editingOrderId ?? uid(),
+    const totalAmount = selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+    const orderData: CoffeeOrder = {
+      id: editingOrderId || uid(),
       roomNumber: orderForm.customerType === 'internal' ? orderForm.roomNumber : '',
       guestName: orderForm.guestName,
       items: selectedItems,
       totalAmount,
-      status: editingOrderId ? (orders.find((o) => o.id === editingOrderId)?.status ?? 'pending') : 'pending',
-      orderDate: editingOrderId ? (orders.find((o) => o.id === editingOrderId)?.orderDate ?? new Date().toISOString()) : new Date().toISOString(),
-      paymentMethod: orderForm.customerType === 'internal' ? orderForm.paymentMethod : 'cash'
+      status: 'pending',
+      orderDate: new Date().toISOString(),
+      paymentMethod: orderForm.paymentMethod
     };
 
-    setOrders((prev) => (editingOrderId ? prev.map((o) => (o.id === editingOrderId ? payload : o)) : [payload, ...prev]));
+    if (editingOrderId) {
+      setOrders(prev => prev.map(o => o.id === editingOrderId ? orderData : o));
+    } else {
+      setOrders(prev => [orderData, ...prev]);
+      playNotificationSound('new-order');
+    }
+
     setOrderDialogOpen(false);
-    resetOrderForm();
+    setOrderForm(initialOrderForm);
+    setEditingOrderId(null);
   };
 
-  const handleSaveMenu = () => {
-    if (!menuForm.name.trim() || !menuForm.nameAr.trim()) return;
+  const handleSaveMenuItem = () => {
+    if (!menuForm.nameAr.trim() || !menuForm.name.trim()) {
+      alert('يرجى إدخال اسم العنصر');
+      return;
+    }
 
-    const payload: MenuItem = {
-      id: editingMenuId ?? uid(),
-      name: menuForm.name,
-      nameAr: menuForm.nameAr,
-      category: menuForm.category,
-      price: Number(menuForm.price) || 0,
-      preparationTime: Number(menuForm.preparationTime) || 1,
-      available: menuForm.available
+    const itemData: MenuItem = {
+      ...menuForm,
+      id: editingMenuId || uid()
     };
 
-    setMenu((prev) => (editingMenuId ? prev.map((item) => (item.id === editingMenuId ? payload : item)) : [...prev, payload]));
-    setMenuDialogOpen(false);
-    resetMenuForm();
-  };
+    if (editingMenuId) {
+      setMenu(prev => prev.map(item => item.id === editingMenuId ? itemData : item));
+    } else {
+      setMenu(prev => [itemData, ...prev]);
+    }
 
-  const handleStatusChange = (orderId: string, status: OrderStatus) => {
-    setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status } : o)));
+    setMenuDialogOpen(false);
+    setMenuForm(initialMenuForm);
+    setEditingMenuId(null);
   };
 
   const handleDeleteOrder = (orderId: string) => {
-    setOrders((prev) => prev.filter((o) => o.id !== orderId));
-  };
-
-  const sendToReception = (order: CoffeeOrder) => {
-    // Get current user as the assigned employee (or create a default reception user)
-    const currentUser = typeof window !== 'undefined' ? localStorage.getItem('hotel_user') : null;
-    let assignedEmployee = 'reception_staff';
-    
-    if (currentUser) {
-      try {
-        const userData = JSON.parse(currentUser);
-        // If current user is not reception, assign to a default reception account
-        assignedEmployee = userData.role === 'reception' ? userData.username : 'reception_staff';
-      } catch (e) {
-        console.error('Error parsing user data', e);
-      }
+    if (confirm('هل أنت متأكد من حذف هذا الطلب؟')) {
+      setOrders(prev => prev.filter(o => o.id !== orderId));
     }
-
-    // Create guest request from coffee order
-    const guestRequest = {
-      id: uid(),
-      room: order.roomNumber,
-      guest: order.guestName,
-      phone: '',
-      type: 'طلب كوفي شوب',
-      notes: `${order.items.map(item => `${item.menuItemName} × ${item.quantity}`).join(', ')}\nالمبلغ: ${order.totalAmount.toFixed(2)} ر.س`,
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-      priority: 'medium' as const,
-      assignedEmployee: assignedEmployee,
-      employeeApprovalStatus: 'pending' as const,
-      linkedSection: 'coffee',
-      originalOrderId: order.id
-    };
-
-    // Save to guest requests
-    const requestsData = localStorage.getItem('guest-requests');
-    const requests = requestsData ? JSON.parse(requestsData) : [];
-    requests.unshift(guestRequest);
-    localStorage.setItem('guest-requests', JSON.stringify(requests));
-
-    // Update order status to indicate it's sent to reception
-    setOrders((prev) => prev.map((o) => 
-      o.id === order.id ? { ...o, sentToReception: true, receptionRequestId: guestRequest.id } : o
-    ));
-
-    // Trigger storage event for other tabs/components
-    window.dispatchEvent(new Event('storage'));
-
-    // Play notification sound
-    playNotificationSound('new-request');
-
-    alert('تم إرسال الطلب للاستقبال بنجاح ✓');
   };
 
-  const handleToggleAvailability = (itemId: string) => {
-    setMenu((prev) => prev.map((item) => (item.id === itemId ? { ...item, available: !item.available } : item)));
+  const handleDeleteMenuItem = (itemId: string) => {
+    if (confirm('هل أنت متأكد من حذف هذا العنصر؟')) {
+      setMenu(prev => prev.filter(item => item.id !== itemId));
+    }
+  };
+
+  const toggleItemAvailability = (itemId: string) => {
+    setMenu(prev => prev.map(item => 
+      item.id === itemId ? { ...item, available: !item.available } : item
+    ));
+  };
+
+  const updateItemQuantity = (itemId: string, delta: number) => {
+    const currentQty = orderForm.items[itemId] || 0;
+    const newQty = Math.max(0, currentQty + delta);
+    
+    setOrderForm(prev => ({
+      ...prev,
+      items: { ...prev.items, [itemId]: newQty }
+    }));
+  };
+
+  const getTotalOrderValue = () => {
+    return Object.entries(orderForm.items).reduce((sum, [itemId, quantity]) => {
+      const item = menu.find(m => m.id === itemId);
+      return sum + (item ? item.price * quantity : 0);
+    }, 0);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-purple-900 to-slate-900 p-4 sm:p-6" dir="rtl">
-      <div className="mx-auto max-w-6xl space-y-6">
-        {/* Header */}
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="space-y-2">
-            <h1 className="flex items-center gap-2 text-3xl sm:text-4xl font-bold text-white">
-              <Coffee className="h-8 w-8 text-amber-500" />
-              الكوفي شوب
-            </h1>
-            <p className="text-sm sm:text-base text-slate-300">إدارة المشروبات والطلبات</p>
-          </div>
-          <div className="flex gap-2">
-            <Button onClick={() => openOrderModal()} className="bg-amber-600 hover:bg-amber-700 text-white text-sm sm:text-base">
-              <Plus className="h-4 w-4 mr-2" /> طلب جديد
-            </Button>
-            <Button onClick={() => openMenuModal()} variant="outline" className="border-slate-700 text-slate-300 text-sm sm:text-base">
-              <Plus className="h-4 w-4 mr-2" /> عنصر
-            </Button>
-          </div>
-        </header>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-4">
-          <Card className="border-slate-800 bg-slate-900/50">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs sm:text-sm text-slate-300">الطلبات النشطة</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl sm:text-3xl font-bold text-white">{activeOrders.length}</p>
-            </CardContent>
-          </Card>
-          <Card className="border-slate-800 bg-slate-900/50">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs sm:text-sm text-slate-300">تم التسليم</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl sm:text-3xl font-bold text-emerald-400">{stats.delivered}</p>
-            </CardContent>
-          </Card>
-          <Card className="border-slate-800 bg-slate-900/50">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs sm:text-sm text-slate-300">الإيرادات</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xl sm:text-2xl font-bold text-amber-400">{formatCurrency(stats.totalRevenue)}</p>
-            </CardContent>
-          </Card>
-          <Card className="border-slate-800 bg-slate-900/50">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs sm:text-sm text-slate-300">عناصر القائمة</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl sm:text-3xl font-bold text-blue-400">{menu.length}</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex gap-2 bg-gray-800/50 rounded-lg p-1">
-          <Button
-            onClick={() => setActiveTab('staff-orders')}
-            variant={activeTab === 'staff-orders' ? 'default' : 'ghost'}
-            className={`flex-1 ${activeTab === 'staff-orders' ? 'bg-amber-600 text-white' : 'text-gray-300 hover:bg-gray-700/50'}`}
-          >
-            <Coffee className="h-4 w-4 mr-2" />
-            طلبات الموظفين
-          </Button>
-          <Button
-            onClick={() => setActiveTab('guest-orders')}
-            variant={activeTab === 'guest-orders' ? 'default' : 'ghost'}
-            className={`flex-1 ${activeTab === 'guest-orders' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-700/50'}`}
-          >
-            <Users className="h-4 w-4 mr-2" />
-            طلبات النزلاء ({getOrdersByService('coffee').length})
-          </Button>
-        </div>
-
-        {/* Main Content - 2 Column Grid */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {/* Menu and Active Orders - 2 columns */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
+      <div className="container mx-auto p-4 lg:p-6">
+        <div className="flex flex-col lg:flex-row gap-6">
           <div className="lg:col-span-2 space-y-6">
             {/* Menu Section */}
             <Card className="border-slate-800 bg-slate-900/40">
@@ -473,16 +392,16 @@ export default function CoffeeShopPage() {
                           </div>
                         </div>
                         <div className="flex gap-1">
-                          <Button size="sm" variant="ghost" onClick={() => openMenuModal(item)} className="h-8 w-8 p-0 text-slate-400 hover:text-white">
+                          <Switch 
+                            checked={item.available} 
+                            onCheckedChange={() => toggleItemAvailability(item.id)}
+                            size="sm"
+                          />
+                          <Button size="sm" variant="ghost" onClick={() => openMenuModal(item)}>
                             <Edit2 className="h-4 w-4" />
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleToggleAvailability(item.id)}
-                            className={`h-8 w-8 p-0 ${item.available ? 'text-emerald-400' : 'text-slate-600'}`}
-                          >
-                            <CheckCircle className="h-4 w-4" />
+                          <Button size="sm" variant="ghost" onClick={() => handleDeleteMenuItem(item.id)}>
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </div>
@@ -492,214 +411,121 @@ export default function CoffeeShopPage() {
               </CardContent>
             </Card>
 
-            {/* Orders Section - Conditional */}
-            {activeTab === 'staff-orders' ? (
-              <Card className="border-slate-800 bg-slate-900/40">
-                <CardHeader>
-                  <CardTitle className="text-white">الطلبات النشطة ({activeOrders.length})</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 max-h-96 overflow-y-auto">
-                {activeOrders.length === 0 ? (
-                  <p className="text-slate-400 text-center py-4">لا توجد طلبات نشطة</p>
+            {/* طلبات النزلاء فقط */}
+            <Card className="border-slate-800 bg-slate-900/40">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  طلبات النزلاء ({getOrdersByService('coffee').length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 max-h-96 overflow-y-auto">
+                {getOrdersByService('coffee').length === 0 ? (
+                  <p className="text-slate-400 text-center py-4">لا توجد طلبات من النزلاء</p>
                 ) : (
-                  activeOrders.map((order) => {
-                    const status = statusConfig[order.status];
-                    return (
-                      <div key={order.id} className="p-3 rounded-lg border border-slate-800 bg-slate-950/50">
-                        <div className="flex items-start justify-between gap-2 mb-2">
+                  getOrdersByService('coffee')
+                    .filter(order => order.status !== 'delivered')
+                    .map((order: GuestOrder) => (
+                      <div key={order.id} className="p-4 rounded-lg border border-slate-800 bg-slate-950/50 hover:border-slate-700 transition-colors">
+                        <div className="flex items-start justify-between gap-2 mb-3">
                           <div>
-                            <p className="font-semibold text-white text-sm sm:text-base">{order.guestName}</p>
-                            <p className="text-xs text-slate-400">{order.roomNumber ? `غرفة ${order.roomNumber}` : 'خارجي'}</p>
+                            <p className="font-semibold text-white text-sm">{order.guestData.name}</p>
+                            <div className="flex items-center gap-3 text-xs text-slate-400 mt-1">
+                              <span className="flex items-center gap-1">
+                                <Home className="h-3 w-3" />
+                                غرفة {order.guestData.roomNumber}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Phone className="h-3 w-3" />
+                                {order.guestData.phone}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                {new Date(order.createdAt).toLocaleTimeString('ar-SA', { 
+                                  hour: '2-digit', 
+                                  minute: '2-digit' 
+                                })}
+                              </span>
+                            </div>
                           </div>
-                          <Badge className={`${status.color} border-none text-xs`}>{status.label}</Badge>
+                          <Badge className={
+                            order.status === 'pending' ? 'bg-yellow-600 text-white' :
+                            order.status === 'preparing' ? 'bg-blue-600 text-white' :
+                            order.status === 'ready' ? 'bg-green-600 text-white' :
+                            order.status === 'cancelled' ? 'bg-red-600 text-white' :
+                            'bg-gray-600 text-white'
+                          }>
+                            {order.status === 'pending' ? 'معلق' :
+                             order.status === 'preparing' ? 'قيد التحضير' :
+                             order.status === 'ready' ? 'جاهز' :
+                             order.status === 'cancelled' ? 'ملغي' : 'تم التسليم'}
+                          </Badge>
                         </div>
-                        <p className="text-xs sm:text-sm text-slate-300 mb-2">{order.items.length} عنصر - {formatCurrency(order.totalAmount)}</p>
-                        <div className="flex flex-wrap gap-2">
-                          <Select value={order.status} onValueChange={(s) => handleStatusChange(order.id, s as OrderStatus)}>
-                            <SelectTrigger className="h-8 text-xs border-slate-700 bg-slate-900">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-slate-900 border-white/20">
-                              {ORDER_STATUSES.map((st) => (
-                                <SelectItem key={st.value} value={st.value} className="text-white focus:bg-gray-700 focus:text-white">
-                                  {st.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <Button size="sm" variant="ghost" onClick={() => openOrderModal(order)} className="h-8 px-2 text-xs">
-                            تعديل
+                        
+                        <div className="mb-3">
+                          <p className="text-sm font-medium text-white mb-1">الطلبات:</p>
+                          <div className="space-y-1">
+                            {order.items.map((item, index) => (
+                              <div key={index} className="text-xs text-slate-300 flex justify-between">
+                                <span>{item.name} x{item.quantity}</span>
+                                <span>{item.price} جنيه</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center justify-between mb-3">
+                          <p className="text-sm font-semibold text-green-400">
+                            المجموع: {order.items.reduce((total, item) => total + (item.price * item.quantity), 0)} جنيه
+                          </p>
+                          {order.notes && (
+                            <p className="text-xs text-slate-400">ملاحظات: {order.notes}</p>
+                          )}
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => updateGuestOrderStatus(order.id, 
+                              order.status === 'pending' ? 'preparing' :
+                              order.status === 'preparing' ? 'ready' :
+                              order.status === 'ready' ? 'delivered' : order.status
+                            )}
+                            className="text-xs bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
+                          >
+                            تحديث
                           </Button>
-                          {!order.sentToReception && (order.status === 'pending' || order.status === 'preparing') && (
-                            <Button 
-                              size="sm" 
-                              onClick={() => sendToReception(order)} 
-                              className="h-8 px-2 text-xs bg-blue-600 hover:bg-blue-700 text-white"
-                            >
-                              <Send className="h-3 w-3 mr-1" />
-                              إرسال للاستقبال
-                            </Button>
-                          )}
-                          {order.sentToReception && (
-                            <Badge className="bg-green-600 text-white text-xs h-8 px-2 flex items-center">
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              تم الإرسال
-                            </Badge>
-                          )}
                         </div>
                       </div>
-                    );
-                  })
+                    ))
                 )}
               </CardContent>
             </Card>
-            ) : (
-              /* طلبات النزلاء */
-              <Card className="border-slate-800 bg-slate-900/40">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    طلبات النزلاء ({getOrdersByService('coffee').length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 max-h-96 overflow-y-auto">
-                  {getOrdersByService('coffee').length === 0 ? (
-                    <p className="text-slate-400 text-center py-4">لا توجد طلبات من النزلاء</p>
-                  ) : (
-                    getOrdersByService('coffee')
-                      .filter(order => order.status !== 'delivered')
-                      .map((order: GuestOrder) => (
-                        <div key={order.id} className="p-4 rounded-lg border border-slate-800 bg-slate-950/50 hover:border-slate-700 transition-colors">
-                          <div className="flex items-start justify-between gap-2 mb-3">
-                            <div>
-                              <p className="font-semibold text-white text-sm">{order.guestData.name}</p>
-                              <div className="flex items-center gap-3 text-xs text-slate-400 mt-1">
-                                <span className="flex items-center gap-1">
-                                  <Home className="h-3 w-3" />
-                                  غرفة {order.guestData.roomNumber}
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <Phone className="h-3 w-3" />
-                                  {order.guestData.phone}
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <Clock className="h-3 w-3" />
-                                  {new Date(order.createdAt).toLocaleTimeString('ar-SA', { 
-                                    hour: '2-digit', 
-                                    minute: '2-digit' 
-                                  })}
-                                </span>
-                              </div>
-                            </div>
-                            <Badge className={
-                              order.status === 'pending' ? 'bg-yellow-600 text-white' :
-                              order.status === 'preparing' ? 'bg-blue-600 text-white' :
-                              order.status === 'ready' ? 'bg-green-600 text-white' :
-                              order.status === 'cancelled' ? 'bg-red-600 text-white' :
-                              'bg-gray-600 text-white'
-                            }>
-                              {order.status === 'pending' ? 'معلق' :
-                               order.status === 'preparing' ? 'قيد التحضير' :
-                               order.status === 'ready' ? 'جاهز' :
-                               order.status === 'cancelled' ? 'ملغي' : 'تم التسليم'}
-                            </Badge>
-                          </div>
-                          
-                          <div className="mb-3">
-                            <p className="text-xs text-slate-400 mb-2">العناصر المطلوبة:</p>
-                            <div className="space-y-1">
-                              {order.items.map((item, index) => (
-                                <div key={index} className="flex justify-between text-xs">
-                                  <span className="text-slate-300">{item.quantity}x {item.nameAr}</span>
-                                  <span className="text-slate-400">{item.price * item.quantity} ر.س</span>
-                                </div>
-                              ))}
-                            </div>
-                            <div className="flex justify-between text-sm font-semibold text-white mt-2 pt-2 border-t border-slate-700">
-                              <span>الإجمالي:</span>
-                              <span>{order.total} ر.س</span>
-                            </div>
-                          </div>
-
-                          <div className="flex gap-2">
-                            <Select 
-                              value={order.status} 
-                              onValueChange={(status) => updateGuestOrderStatus(order.id, status as GuestOrder['status'])}
-                            >
-                              <SelectTrigger className="flex-1 h-8 text-xs border-slate-700 bg-slate-900">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent className="bg-slate-900 border-white/20">
-                                <SelectItem value="pending" className="text-white focus:bg-gray-700">معلق</SelectItem>
-                                <SelectItem value="preparing" className="text-white focus:bg-gray-700">قيد التحضير</SelectItem>
-                                <SelectItem value="ready" className="text-white focus:bg-gray-700">جاهز</SelectItem>
-                                <SelectItem value="delivered" className="text-white focus:bg-gray-700">تم التسليم</SelectItem>
-                                <SelectItem value="cancelled" className="text-white focus:bg-gray-700">ملغي</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <Button 
-                              size="sm" 
-                              onClick={() => refreshOrders()}
-                              variant="outline"
-                              className="h-8 px-3 text-xs border-slate-600 text-slate-300"
-                            >
-                              تحديث
-                            </Button>
-                          </div>
-                        </div>
-                      ))
-                  )}
-                </CardContent>
-              </Card>
-            )}
           </div>
 
           {/* Sidebar - Orders List */}
           <div className="space-y-6">
             <Card className="border-slate-800 bg-slate-900/40 sticky top-6">
               <CardHeader>
-                <CardTitle className="text-white text-lg">جميع الطلبات</CardTitle>
+                <CardTitle className="text-white text-lg">الإجراءات</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Input
-                  placeholder="بحث..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="h-8 text-sm border-slate-700 bg-slate-950"
-                />
-                <Select value={orderFilter} onValueChange={(v) => setOrderFilter(v as 'all' | OrderStatus)}>
-                  <SelectTrigger className="h-8 text-sm border-slate-700 bg-slate-950">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-900 border-white/20">
-                    <SelectItem value="all" className="text-white focus:bg-gray-700 focus:text-white">جميع</SelectItem>
-                    {ORDER_STATUSES.map((st) => (
-                      <SelectItem key={st.value} value={st.value} className="text-white focus:bg-gray-700 focus:text-white">
-                        {st.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <div className="max-h-96 overflow-y-auto space-y-2">
-                  {filteredOrders.length === 0 ? (
-                    <p className="text-slate-400 text-center py-4 text-sm">لا توجد نتائج</p>
-                  ) : (
-                    filteredOrders.map((order) => {
-                      const status = statusConfig[order.status];
-                      return (
-                        <div key={order.id} className="p-2 rounded-lg border border-slate-800 bg-slate-950/50 cursor-pointer hover:border-slate-700" onClick={() => openOrderModal(order)}>
-                          <p className="text-xs font-semibold text-white truncate">{order.guestName}</p>
-                          <p className="text-xs text-slate-400">{formatCurrency(order.totalAmount)}</p>
-                          <Badge className={`${status.color} border-none text-xs mt-1`}>{status.label}</Badge>
-                          <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); handleDeleteOrder(order.id); }} className="h-6 w-6 p-0 mt-1 text-rose-400 hover:bg-rose-500/10">
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
+                <Button 
+                  onClick={() => openOrderModal()} 
+                  className="w-full bg-amber-600 hover:bg-amber-700 text-white"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  طلب جديد
+                </Button>
+                <Button 
+                  onClick={() => openMenuModal()} 
+                  variant="outline" 
+                  className="w-full border-slate-600 text-white hover:bg-slate-700"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  إضافة منتج للقائمة
+                </Button>
               </CardContent>
             </Card>
           </div>
@@ -708,95 +534,127 @@ export default function CoffeeShopPage() {
 
       {/* Order Dialog */}
       <Dialog open={orderDialogOpen} onOpenChange={setOrderDialogOpen}>
-        <DialogContent className="border-slate-800 bg-slate-950 text-white max-w-2xl">
+        <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{editingOrderId ? 'تعديل طلب' : 'طلب جديد'}</DialogTitle>
+            <DialogTitle>{editingOrderId ? 'تعديل الطلب' : 'طلب جديد'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm text-slate-300 block mb-1">نوع العميل</label>
-                <div className="flex gap-2">
-                  {(['internal', 'external'] as const).map((type) => (
-                    <Button
-                      key={type}
-                      variant={orderForm.customerType === type ? 'default' : 'outline'}
-                      className={orderForm.customerType === type ? 'bg-amber-600' : ''}
-                      onClick={() => setOrderForm((p) => ({ ...p, customerType: type, roomNumber: type === 'internal' ? p.roomNumber : '' }))}
-                    >
-                      {type === 'internal' ? 'داخلي' : 'خارجي'}
-                    </Button>
-                  ))}
+                <label className="text-sm font-medium">نوع العميل</label>
+                <Select 
+                  value={orderForm.customerType} 
+                  onValueChange={(v) => setOrderForm(prev => ({ ...prev, customerType: v as 'internal' | 'external' }))}
+                >
+                  <SelectTrigger className="border-slate-700 bg-slate-950">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-900 border-slate-700">
+                    <SelectItem value="internal">نزيل داخلي</SelectItem>
+                    <SelectItem value="external">عميل خارجي</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {orderForm.customerType === 'internal' && (
+                <div>
+                  <label className="text-sm font-medium">رقم الغرفة</label>
+                  <Select 
+                    value={orderForm.roomNumber} 
+                    onValueChange={(v) => {
+                      const room = occupiedRooms.find(r => r.number === v);
+                      setOrderForm(prev => ({ 
+                        ...prev, 
+                        roomNumber: v,
+                        guestName: room?.guestName || ''
+                      }));
+                    }}
+                  >
+                    <SelectTrigger className="border-slate-700 bg-slate-950">
+                      <SelectValue placeholder="اختر الغرفة" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-900 border-slate-700">
+                      {occupiedRooms.map((room) => (
+                        <SelectItem key={room.number} value={room.number}>
+                          غرفة {room.number} - {room.guestName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-              </div>
-              <div>
-                <label className="text-sm text-slate-300 block mb-1">طريقة الدفع</label>
-                <Select value={orderForm.paymentMethod} onValueChange={(v) => setOrderForm((p) => ({ ...p, paymentMethod: v as any }))}>
-                  <SelectTrigger className="border-slate-700 bg-slate-900">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-900 border-white/20">
-                    <SelectItem value="room_charge" className="text-white focus:bg-gray-700 focus:text-white">على الحساب</SelectItem>
-                    <SelectItem value="cash" className="text-white focus:bg-gray-700 focus:text-white">نقدي</SelectItem>
-                    <SelectItem value="card" className="text-white focus:bg-gray-700 focus:text-white">بطاقة</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              )}
             </div>
-
-            {orderForm.customerType === 'internal' && (
-              <div>
-                <label className="text-sm text-slate-300 block mb-1">الغرفة</label>
-                <Select value={orderForm.roomNumber} onValueChange={(v) => setOrderForm((p) => ({ ...p, roomNumber: v }))}>
-                  <SelectTrigger className="border-slate-700 bg-slate-900">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-900 border-white/20">
-                    {occupiedRooms.map((room) => (
-                      <SelectItem key={room.number} value={room.number} className="text-white focus:bg-gray-700 focus:text-white">
-                        {room.number} - {room.guestName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
+            
             <div>
-              <label className="text-sm text-slate-300 block mb-1">اسم العميل</label>
-              <Input value={orderForm.guestName} onChange={(e) => setOrderForm((p) => ({ ...p, guestName: e.target.value }))} className="border-slate-700 bg-slate-900" />
+              <label className="text-sm font-medium">اسم العميل</label>
+              <Input
+                value={orderForm.guestName}
+                onChange={(e) => setOrderForm(prev => ({ ...prev, guestName: e.target.value }))}
+                className="border-slate-700 bg-slate-950"
+                placeholder="اسم العميل"
+              />
             </div>
-
+            
             <div>
-              <label className="text-sm text-slate-300 block mb-2">العناصر</label>
-              <div className="max-h-40 overflow-y-auto space-y-2 border border-slate-800 rounded p-2 bg-slate-950">
-                {menu.map((item) => {
-                  const qty = orderForm.items[item.id] ?? 0;
-                  return (
-                    <div key={item.id} className="flex items-center justify-between text-sm">
-                      <span className="flex-1">{item.nameAr}</span>
-                      <span className="text-slate-400 w-12 text-right">{formatCurrency(item.price)}</span>
-                      <div className="flex items-center gap-1">
-                        <Button size="sm" variant="ghost" onClick={() => adjustItemQuantity(item.id, -1)} className="h-6 w-6 p-0">
-                          <Minus className="h-3 w-3" />
-                        </Button>
-                        <span className="w-6 text-center text-sm">{qty}</span>
-                        <Button size="sm" variant="ghost" onClick={() => adjustItemQuantity(item.id, 1)} className="h-6 w-6 p-0">
-                          <Plus className="h-3 w-3" />
-                        </Button>
-                      </div>
+              <label className="text-sm font-medium">طريقة الدفع</label>
+              <Select 
+                value={orderForm.paymentMethod} 
+                onValueChange={(v) => setOrderForm(prev => ({ ...prev, paymentMethod: v as typeof orderForm.paymentMethod }))}
+              >
+                <SelectTrigger className="border-slate-700 bg-slate-950">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-900 border-slate-700">
+                  <SelectItem value="room_charge">إضافة للفاتورة</SelectItem>
+                  <SelectItem value="cash">نقداً</SelectItem>
+                  <SelectItem value="card">بطاقة</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <label className="text-sm font-medium mb-2 block">العناصر</label>
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {menu.filter(item => item.available).map((item) => (
+                  <div key={item.id} className="flex items-center justify-between p-2 rounded border border-slate-700">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{item.nameAr}</p>
+                      <p className="text-xs text-slate-400">{formatCurrency(item.price)}</p>
                     </div>
-                  );
-                })}
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        onClick={() => updateItemQuantity(item.id, -1)}
+                        disabled={!orderForm.items[item.id]}
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      <span className="w-8 text-center text-sm">{orderForm.items[item.id] || 0}</span>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        onClick={() => updateItemQuantity(item.id, 1)}
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
               </div>
+            </div>
+            
+            <div className="text-right">
+              <p className="text-lg font-semibold text-green-400">
+                المجموع: {formatCurrency(getTotalOrderValue())}
+              </p>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOrderDialogOpen(false)}>
+            <Button variant="ghost" onClick={() => setOrderDialogOpen(false)}>
               إلغاء
             </Button>
-            <Button className="bg-amber-600 hover:bg-amber-700" onClick={handleSaveOrder}>
-              {editingOrderId ? 'تحديث' : 'حفظ'}
+            <Button onClick={handleSaveOrder} className="bg-amber-600 hover:bg-amber-700">
+              {editingOrderId ? 'تحديث' : 'إضافة'} الطلب
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -804,59 +662,83 @@ export default function CoffeeShopPage() {
 
       {/* Menu Dialog */}
       <Dialog open={menuDialogOpen} onOpenChange={setMenuDialogOpen}>
-        <DialogContent className="border-slate-800 bg-slate-950 text-white">
+        <DialogContent className="bg-slate-900 border-slate-800 text-white">
           <DialogHeader>
-            <DialogTitle>{editingMenuId ? 'تعديل عنصر' : 'عنصر جديد'}</DialogTitle>
+            <DialogTitle>{editingMenuId ? 'تعديل المنتج' : 'منتج جديد'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm text-slate-300 block mb-1">الاسم عربي</label>
-                <Input value={menuForm.nameAr} onChange={(e) => setMenuForm((p) => ({ ...p, nameAr: e.target.value }))} className="border-slate-700 bg-slate-900" />
+                <label className="text-sm font-medium">الاسم بالعربية</label>
+                <Input
+                  value={menuForm.nameAr}
+                  onChange={(e) => setMenuForm(prev => ({ ...prev, nameAr: e.target.value }))}
+                  className="border-slate-700 bg-slate-950"
+                />
               </div>
               <div>
-                <label className="text-sm text-slate-300 block mb-1">الاسم إنجليزي</label>
-                <Input value={menuForm.name} onChange={(e) => setMenuForm((p) => ({ ...p, name: e.target.value }))} className="border-slate-700 bg-slate-900" />
+                <label className="text-sm font-medium">الاسم بالإنجليزية</label>
+                <Input
+                  value={menuForm.name}
+                  onChange={(e) => setMenuForm(prev => ({ ...prev, name: e.target.value }))}
+                  className="border-slate-700 bg-slate-950"
+                />
               </div>
             </div>
-
-            <div className="grid grid-cols-3 gap-4">
+            
+            <div>
+              <label className="text-sm font-medium">الفئة</label>
+              <Select 
+                value={menuForm.category} 
+                onValueChange={(v) => setMenuForm(prev => ({ ...prev, category: v as MenuItem['category'] }))}
+              >
+                <SelectTrigger className="border-slate-700 bg-slate-950">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-900 border-slate-700">
+                  <SelectItem value="coffee">قهوة</SelectItem>
+                  <SelectItem value="tea">شاي</SelectItem>
+                  <SelectItem value="pastry">مخبوزات</SelectItem>
+                  <SelectItem value="dessert">حلويات</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm text-slate-300 block mb-1">السعر</label>
-                <Input type="number" value={menuForm.price} onChange={(e) => setMenuForm((p) => ({ ...p, price: Number(e.target.value) }))} className="border-slate-700 bg-slate-900" />
+                <label className="text-sm font-medium">السعر (ر.س)</label>
+                <Input
+                  type="number"
+                  value={menuForm.price}
+                  onChange={(e) => setMenuForm(prev => ({ ...prev, price: parseInt(e.target.value) || 0 }))}
+                  className="border-slate-700 bg-slate-950"
+                />
               </div>
               <div>
-                <label className="text-sm text-slate-300 block mb-1">التحضير (دقيقة)</label>
-                <Input type="number" value={menuForm.preparationTime} onChange={(e) => setMenuForm((p) => ({ ...p, preparationTime: Number(e.target.value) }))} className="border-slate-700 bg-slate-900" />
-              </div>
-              <div>
-                <label className="text-sm text-slate-300 block mb-1">الفئة</label>
-                <Select value={menuForm.category} onValueChange={(v) => setMenuForm((p) => ({ ...p, category: v as any }))}>
-                  <SelectTrigger className="border-slate-700 bg-slate-900">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-900 border-white/20">
-                    {Object.entries(categoryDictionary).map(([v, l]) => (
-                      <SelectItem key={v} value={v} className="text-white focus:bg-gray-700 focus:text-white">
-                        {l}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <label className="text-sm font-medium">وقت التحضير (دقيقة)</label>
+                <Input
+                  type="number"
+                  value={menuForm.preparationTime}
+                  onChange={(e) => setMenuForm(prev => ({ ...prev, preparationTime: parseInt(e.target.value) || 0 }))}
+                  className="border-slate-700 bg-slate-950"
+                />
               </div>
             </div>
-
-            <div className="flex items-center gap-3 p-2 border border-slate-800 rounded">
-              <Switch checked={menuForm.available} onCheckedChange={(c) => setMenuForm((p) => ({ ...p, available: c }))} />
-              <span className="text-sm text-slate-300">متاح للطلب</span>
+            
+            <div className="flex items-center gap-2">
+              <Switch 
+                checked={menuForm.available} 
+                onCheckedChange={(checked) => setMenuForm(prev => ({ ...prev, available: checked }))}
+              />
+              <label className="text-sm">متاح</label>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setMenuDialogOpen(false)}>
+            <Button variant="ghost" onClick={() => setMenuDialogOpen(false)}>
               إلغاء
             </Button>
-            <Button className="bg-amber-600 hover:bg-amber-700" onClick={handleSaveMenu}>
-              {editingMenuId ? 'تحديث' : 'حفظ'}
+            <Button onClick={handleSaveMenuItem} className="bg-amber-600 hover:bg-amber-700">
+              {editingMenuId ? 'تحديث' : 'إضافة'} المنتج
             </Button>
           </DialogFooter>
         </DialogContent>

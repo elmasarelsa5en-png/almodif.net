@@ -123,7 +123,6 @@ interface DashboardStats {
   totalRooms: number;
   availableRooms: number;
   maintenanceRequests: number;
-  staffOnDuty: number;
 }
 
 interface ActivityItem {
@@ -168,8 +167,7 @@ const Dashboard: React.FC = () => {
     customerSatisfaction: 0,
     totalRooms: 0,
     availableRooms: 0,
-    maintenanceRequests: 0,
-    staffOnDuty: 0
+    maintenanceRequests: 0
   });
 
   const [activities, setActivities] = useState<ActivityItem[]>([]);
@@ -216,8 +214,7 @@ const Dashboard: React.FC = () => {
         customerSatisfaction: 4.8,
         totalRooms: 156,
         availableRooms: 23,
-        maintenanceRequests: 8,
-        staffOnDuty: 42
+        maintenanceRequests: 8
       };
 
       const mockActivities: ActivityItem[] = [
@@ -544,6 +541,26 @@ const Dashboard: React.FC = () => {
                 >
                   <Bell className="w-4 h-4 inline mr-2" />
                   اختبار الإشعارات
+                </motion.button>
+
+                <motion.button
+                  className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-3 rounded-full font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-green-500/25"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => window.open('/guest-menu', '_blank')}
+                >
+                  <Coffee className="w-4 h-4 inline mr-2" />
+                  المنيو الإلكتروني
+                </motion.button>
+
+                <motion.button
+                  className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-6 py-3 rounded-full font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-blue-500/25"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => window.open('/guest-login', '_blank')}
+                >
+                  <Users className="w-4 h-4 inline mr-2" />
+                  دخول النزلاء
                 </motion.button>
               </div>
             </div>
@@ -883,10 +900,6 @@ const Dashboard: React.FC = () => {
                         <div className="flex items-center justify-between">
                           <span className="text-gray-300">الغرف المتاحة</span>
                           <span className="text-green-400 font-bold">{stats.availableRooms}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-gray-300">الموظفون المناوبون</span>
-                          <span className="text-blue-400 font-bold">{stats.staffOnDuty}</span>
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-gray-300">متوسط مدة الإقامة</span>
