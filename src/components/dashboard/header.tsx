@@ -163,7 +163,9 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
     window.addEventListener('smart-notification-added', handleSmartNotificationAdded);
     window.addEventListener('smart-notifications-updated', handleNewNotification);
 
-    // فحص الإشعارات من الـ API كل 5 ثواني
+    // TODO: تفعيل فحص الإشعارات من API عند تشغيل السيرفر
+    // فحص الإشعارات من الـ API كل 30 ثانية (معطل حالياً)
+    /* 
     const apiInterval = setInterval(async () => {
       try {
         const lastCheck = parseInt(localStorage.getItem('last_api_check') || '0');
@@ -205,11 +207,12 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
           console.warn('⚠️ API check skipped:', error.message);
         }
       }
-    }, 5000);
+    }, 30000); // كل 30 ثانية بدلاً من 5
+    */
 
     return () => {
       stopSync();
-      clearInterval(apiInterval);
+      // clearInterval(apiInterval); // معطل مؤقتاً
       clearInterval(autoNotificationInterval);
       window.removeEventListener('new-notification', handleNewNotification);
       window.removeEventListener('notifications-updated', handleNewNotification);

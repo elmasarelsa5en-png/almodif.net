@@ -291,19 +291,28 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
   }, [pathname]);
 
   return (
-    <Card className={cn(
-      "flex flex-col h-full border-0 rounded-none shadow-2xl transition-all duration-300",
-      "bg-black/30 backdrop-blur-xl border-r border-white/10",
-      "dark:bg-black/30 dark:border-white/10",
-      // عرض القائمة: أضيق بكثير ليناسب النص فقط
-      isCollapsed ? "w-16" : "w-56",
-      // للجوال: sidebar يكون fixed فوق كل شيء
-      "fixed md:relative h-screen z-30",
-      // على الجوال: يخفى الـ sidebar عند الضغط خارجه
-      "md:translate-x-0",
-      isCollapsed && "-translate-x-full md:translate-x-0",
-      className
-    )}>
+    <>
+      {/* Overlay للموبايل فقط - عند فتح القائمة */}
+      {!isCollapsed && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-20 md:hidden"
+          onClick={() => !isDesktop && setIsCollapsed(true)}
+        />
+      )}
+      
+      <Card className={cn(
+        "flex flex-col h-full border-0 rounded-none shadow-2xl transition-all duration-300",
+        "bg-black/30 backdrop-blur-xl border-r border-white/10",
+        "dark:bg-black/30 dark:border-white/10",
+        // عرض القائمة: أضيق بكثير ليناسب النص فقط
+        isCollapsed ? "w-16" : "w-56",
+        // للجوال: sidebar يكون fixed فوق كل شيء
+        "fixed md:relative h-screen z-30",
+        // على الجوال: يخفى الـ sidebar عند الإغلاق
+        "transition-transform duration-300",
+        isCollapsed ? "-translate-x-full md:translate-x-0" : "translate-x-0",
+        className
+      )}>
       {/* Logo Section */}
       {logo && !isCollapsed && (
         <div className="p-3 pb-3 border-b border-white/10 dark:border-white/10 light:border-purple-200">
@@ -355,7 +364,7 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
             return (
               <div key={item.href}>
                 {/* Main Item - Always clickable */}
-                <Link href={item.href}>
+                <Link href={item.href} onClick={() => !isDesktop && setIsCollapsed(true)}>
                   <div className={cn(
                     "flex items-center gap-2 px-2.5 py-2 rounded-lg transition-all duration-200 group relative",
                     isActive 
@@ -420,7 +429,7 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
                       const isSubActive = pathname === subItem.href || pathname.startsWith(subItem.href);
 
                       return (
-                        <Link key={subItem.href} href={subItem.href}>
+                        <Link key={subItem.href} href={subItem.href} onClick={() => !isDesktop && setIsCollapsed(true)}>
                           <div className={cn(
                             "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group relative text-sm",
                             isSubActive 
@@ -444,5 +453,6 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
       </div>
 
     </Card>
+    </>
   );
 }
