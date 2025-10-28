@@ -87,6 +87,23 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    // قواعد للمحادثات الداخلية
+    match /chats/{chatId} {
+      allow read, write: if true;
+    }
+    
+    match /messages/{messageId} {
+      allow read, write: if true;
+    }
+    
+    match /online-status/{userId} {
+      allow read, write: if true;
+    }
+    
+    match /typing-status/{chatId} {
+      allow read, write: if true;
+    }
+
     // قاعدة عامة للمستندات غير المحددة - محظورة
     match /{document=**} {
       allow read, write: if false;
