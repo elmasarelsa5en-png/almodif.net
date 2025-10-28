@@ -328,21 +328,27 @@ export default function ProfilePage() {
         try {
           const employeeRef = doc(db, 'employees', employeeId);
           
+          console.log('🔍 Checking if employee document exists...');
+          
           // Check if document exists
           const docSnap = await getDoc(employeeRef);
           
+          console.log('📦 Document exists:', docSnap.exists());
+          
           if (docSnap.exists()) {
             // Update existing document
+            console.log('📝 Updating existing document with avatar...');
             await updateDoc(employeeRef, {
               avatar: base64String,
               updatedAt: new Date().toISOString(),
             });
+            console.log('✅ Document updated successfully');
           } else {
             // Create new document with avatar
-            console.log('📝 Document does not exist, creating with avatar...');
+            console.log('🆕 Document does not exist, creating new one with avatar...');
             await setDoc(employeeRef, {
               username: user.username || employeeId,
-              name: user.name || '',
+              name: user.name || user.username || '',
               email: user.email || '',
               avatar: base64String,
               role: user.role || 'employee',
@@ -352,6 +358,7 @@ export default function ProfilePage() {
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
             });
+            console.log('✅ New document created successfully');
           }
 
           console.log('✅ Avatar uploaded successfully');
