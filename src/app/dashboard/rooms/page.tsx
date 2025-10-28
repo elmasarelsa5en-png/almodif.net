@@ -18,7 +18,8 @@ import {
   Search,
   Banknote,
   Smartphone,
-  UserPlus
+  UserPlus,
+  Image
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,7 +36,6 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Input } from '@/components/ui/input';
-import AddGuestDialog from '@/components/AddGuestDialog';
 import { 
   Room,
   RoomStatus,
@@ -47,7 +47,11 @@ import {
   updateRoomStatus,
   processPayment, 
   getRoomTypesFromStorage
-} from '@/lib/rooms-data';const ICON_MAP = {
+} from '@/lib/rooms-data';
+import AddGuestDialog from '@/components/AddGuestDialog';
+import AddRoomsFromImageDialog from '@/components/AddRoomsFromImageDialog';
+
+const ICON_MAP = {
   CheckCircle2,
   BedDouble,
   Hammer,
@@ -74,6 +78,7 @@ export default function RoomsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showTypeFilters, setShowTypeFilters] = useState(false);
   const [isAddGuestOpen, setIsAddGuestOpen] = useState(false);
+  const [isAddRoomsFromImageOpen, setIsAddRoomsFromImageOpen] = useState(false);
 
   // تحميل البيانات عند بدء التشغيل
   useEffect(() => {
@@ -304,6 +309,48 @@ export default function RoomsPage() {
     localStorage.setItem('guest_session', JSON.stringify(guestSession));
   };
 
+  // معالج إضافة غرف من صورة
+  const handleAddRoomsFromImage = (newRooms: Partial<Room>[]) => {
+    if (!user) return;
+    
+    // التحقق من عدم وجود غرف مكررة
+    const existingNumbers = rooms.map(r => r.number);
+    const uniqueRooms = newRooms.filter(room => 
+      room.number && !existingNumbers.includes(room.number)
+    );
+    
+    if (uniqueRooms.length === 0) {
+      alert('جميع الغرف موجودة بالفعل في النظام');
+      return;
+    }
+    
+    // إضافة الغرف الجديدة
+    const roomsToAdd: Room[] = uniqueRooms.map(room => ({
+      id: room.id || `room_${Date.now()}_${Math.random()}`,
+      number: room.number || '',
+      floor: room.floor || Math.floor(parseInt(room.number || '0') / 100),
+      type: room.type || 'غرفة',
+      status: 'Available' as RoomStatus,
+      balance: 0,
+      events: [{
+        id: Date.now().toString(),
+        type: 'status_change',
+        description: 'تم إنشاء الغرفة من الصورة',
+        timestamp: new Date().toISOString(),
+        user: user.name || user.username,
+        newValue: 'Available'
+      }],
+      lastUpdated: new Date().toISOString()
+    }));
+    
+    const updatedRooms = [...rooms, ...roomsToAdd];
+    setRooms(updatedRooms);
+    saveRoomsToStorage(updatedRooms);
+    setIsAddRoomsFromImageOpen(false);
+    
+    alert(`تم إضافة ${roomsToAdd.length} غرفة بنجاح`);
+  };
+
   // التحقق من الصلاحيات
   const canChangeStatus = (fromStatus: RoomStatus, toStatus: RoomStatus): boolean => {
     if (!user) return false;
@@ -415,6 +462,15 @@ export default function RoomsPage() {
             >
               <UserPlus className="w-5 h-5 ml-2" />
               إضافة نزيل
+            </Button>
+
+            {/* زر إضافة غرف من صورة */}
+            <Button
+              onClick={() => setIsAddRoomsFromImageOpen(true)}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 font-medium"
+            >
+              <Image className="w-5 h-5 ml-2" />
+              إضافة غرف من صورة
             </Button>
 
             {/* شريط البحث */}
@@ -773,6 +829,13 @@ export default function RoomsPage() {
         onClose={() => setIsAddGuestOpen(false)}
         onSubmit={handleAddGuest}
         availableRooms={rooms.filter(r => r.status === 'Available' || r.status === 'Reserved').map(r => r.number)}
+      />
+
+      {/* نافذة إضافة غرف من صورة */}
+      <AddRoomsFromImageDialog
+        open={isAddRoomsFromImageOpen}
+        onClose={() => setIsAddRoomsFromImageOpen(false)}
+        onSubmit={handleAddRoomsFromImage}
       />
     </div>
   )

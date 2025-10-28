@@ -114,12 +114,28 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
       privateNotes: ''
     };
 
-    // البحث عن الاسم الكامل
+    // البحث عن الاسم الكامل - جمع الخانات الأربع المجاورة
     const nameIndex = lines.findIndex(line => 
       line.includes('الاسم') || line.includes('Name') || line.includes('الكامل')
     );
-    if (nameIndex !== -1 && nameIndex + 1 < lines.length) {
-      data.fullName = lines[nameIndex + 1] || '';
+    if (nameIndex !== -1) {
+      // جمع الأسطر الأربعة التالية (الخانات الأربع)
+      const nameParts: string[] = [];
+      for (let i = 1; i <= 4; i++) {
+        if (nameIndex + i < lines.length) {
+          const part = lines[nameIndex + i].trim();
+          // تجاهل الأسطر التي تحتوي على كلمات مفتاحية أخرى
+          if (part && 
+              !part.includes('نوع العميل') && 
+              !part.includes('نوع الإثبات') &&
+              !part.includes('رقم الإثبات') &&
+              !part.includes('الجنسية') &&
+              part.length > 1) {
+            nameParts.push(part);
+          }
+        }
+      }
+      data.fullName = nameParts.join(' ').trim();
     }
 
     // البحث عن نوع العميل/الجنسية
