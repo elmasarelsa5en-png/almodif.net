@@ -188,13 +188,6 @@ const navigationItems: NavigationItem[] = [
     permission: 'view:internal_chat',
   },
   {
-    icon: Users,
-    labelKey: 'profile',
-    descKey: 'profileDesc',
-    href: '/dashboard/profile',
-    permission: 'edit_own_profile',
-  },
-  {
     icon: Settings,
     labelKey: 'settings',
     descKey: 'settingsDesc',

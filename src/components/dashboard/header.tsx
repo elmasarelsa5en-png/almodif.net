@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { useLanguage } from '@/contexts/language-context';
 import { cn } from '@/lib/utils';
-import { Bell, Search, Menu, Globe, Hotel, Settings, MessageSquare, Sparkles, Check, X, Power, Zap, LogOut, AlertTriangle, Clock, Users, DollarSign, Bed, Calendar } from 'lucide-react';
+import { Bell, Search, Menu, Globe, Hotel, Settings, MessageSquare, Sparkles, Check, X, Power, Zap, LogOut, AlertTriangle, Clock, Users, DollarSign, Bed, Calendar, User } from 'lucide-react';
 import * as AIAutoReply from '@/lib/ai-auto-reply';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -712,6 +712,13 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
+                onClick={() => router.push('/dashboard/profile')} 
+                className="cursor-pointer hover:bg-gray-50"
+              >
+                <User className="h-4 w-4 ml-2" />
+                <span className="text-gray-900">الملف الشخصي</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
                 onClick={() => router.push('/dashboard/settings/notifications')} 
                 className="cursor-pointer hover:bg-gray-50"
               >
@@ -726,6 +733,7 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
                 }}
                 className="cursor-pointer text-red-600 hover:bg-red-50"
               >
+                <LogOut className="h-4 w-4 ml-2" />
                 <span className="font-medium">تسجيل الخروج</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
