@@ -20,6 +20,15 @@ export interface Room {
   type: string;
   status: RoomStatus;
   guestName?: string;
+  guestPhone?: string;
+  guestNationality?: string;
+  guestIdType?: string;
+  guestIdNumber?: string;
+  guestIdExpiry?: string;
+  guestEmail?: string;
+  guestWorkPhone?: string;
+  guestAddress?: string;
+  guestNotes?: string;
   balance: number;
   events: RoomEvent[];
   lastUpdated: string;

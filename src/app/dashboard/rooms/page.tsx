@@ -17,7 +17,8 @@ import {
   CreditCard,
   Search,
   Banknote,
-  Smartphone
+  Smartphone,
+  UserPlus
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -34,6 +35,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Input } from '@/components/ui/input';
+import AddGuestDialog from '@/components/AddGuestDialog';
 import { 
   Room,
   RoomStatus,
@@ -71,6 +73,7 @@ export default function RoomsPage() {
   const [showStatusFilters, setShowStatusFilters] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [showTypeFilters, setShowTypeFilters] = useState(false);
+  const [isAddGuestOpen, setIsAddGuestOpen] = useState(false);
 
   // تحميل البيانات عند بدء التشغيل
   useEffect(() => {
@@ -227,6 +230,80 @@ export default function RoomsPage() {
     setIsDetailsOpen(true);
   };
 
+  // معالج إضافة نزيل جديد
+  const handleAddGuest = (guestData: {
+    fullName: string;
+    nationality: string;
+    idType: string;
+    idNumber: string;
+    expiryDate: string;
+    mobile: string;
+    workPhone: string;
+    email: string;
+    address: string;
+    notes: string;
+    roomNumber: string;
+  }) => {
+    if (!user) return;
+    
+    // البحث عن الغرفة
+    const room = rooms.find(r => r.number === guestData.roomNumber);
+    if (!room) {
+      alert('رقم الغرفة غير موجود');
+      return;
+    }
+    
+    // التحقق من أن الغرفة متاحة أو محجوزة
+    if (room.status !== 'Available' && room.status !== 'Reserved') {
+      alert('الغرفة غير متاحة للسكن حالياً');
+      return;
+    }
+    
+    // تحديث بيانات الغرفة
+    const updatedRooms = rooms.map(r => {
+      if (r.id === room.id) {
+        return {
+          ...r,
+          status: 'Occupied' as RoomStatus,
+          guestName: guestData.fullName,
+          guestPhone: guestData.mobile,
+          guestNationality: guestData.nationality,
+          guestIdType: guestData.idType,
+          guestIdNumber: guestData.idNumber,
+          guestIdExpiry: guestData.expiryDate,
+          guestEmail: guestData.email,
+          guestWorkPhone: guestData.workPhone,
+          guestAddress: guestData.address,
+          guestNotes: guestData.notes,
+          events: [
+            ...r.events,
+            {
+              id: Date.now().toString(),
+              type: 'check-in',
+              date: new Date().toISOString(),
+              details: `تسجيل دخول: ${guestData.fullName}`,
+              performedBy: user.name || user.username
+            }
+          ]
+        };
+      }
+      return r;
+    });
+    
+    setRooms(updatedRooms);
+    saveRoomsToStorage(updatedRooms);
+    setIsAddGuestOpen(false);
+    
+    // إنشاء جلسة للنزيل
+    const guestSession = {
+      roomNumber: guestData.roomNumber,
+      guestName: guestData.fullName,
+      guestPhone: guestData.mobile,
+      checkInDate: new Date().toISOString()
+    };
+    localStorage.setItem('guest_session', JSON.stringify(guestSession));
+  };
+
   // التحقق من الصلاحيات
   const canChangeStatus = (fromStatus: RoomStatus, toStatus: RoomStatus): boolean => {
     if (!user) return false;
@@ -330,15 +407,26 @@ export default function RoomsPage() {
             </h1>
           </div>
 
-          {/* شريط البحث */}
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-200/60" />
-            <Input
-              placeholder="ابحث برقم الشقة..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full lg:w-72 bg-white/10 border-white/20 text-white placeholder:text-blue-200/50 pl-12"
-            />
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* زر إضافة نزيل */}
+            <Button
+              onClick={() => setIsAddGuestOpen(true)}
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 font-medium"
+            >
+              <UserPlus className="w-5 h-5 ml-2" />
+              إضافة نزيل
+            </Button>
+
+            {/* شريط البحث */}
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-200/60" />
+              <Input
+                placeholder="ابحث برقم الشقة..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full lg:w-72 bg-white/10 border-white/20 text-white placeholder:text-blue-200/50 pl-12"
+              />
+            </div>
           </div>
           
           {/* أزرار التصفية */}
@@ -678,6 +766,14 @@ export default function RoomsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* نافذة إضافة نزيل */}
+      <AddGuestDialog
+        open={isAddGuestOpen}
+        onClose={() => setIsAddGuestOpen(false)}
+        onSubmit={handleAddGuest}
+        availableRooms={rooms.filter(r => r.status === 'Available' || r.status === 'Reserved').map(r => r.number)}
+      />
     </div>
   )
 }
