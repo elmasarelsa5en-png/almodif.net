@@ -203,22 +203,6 @@ export default function HomePage() {
                   {language === 'ar' ? '🇺🇸 English' : '🇸🇦 العربية'}
                 </Button>
                 <Button 
-                  variant="outline"
-                  className="border-green-400/30 text-green-300 bg-green-900/30 w-full justify-start"
-                  onClick={() => router.push('/guest-login')}
-                >
-                  <Menu className="w-4 h-4 ml-2" />
-                  المنيو الإلكتروني للنزلاء
-                </Button>
-                <Button 
-                  variant="outline"
-                  className="border-purple-400/30 text-purple-300 bg-purple-900/30 w-full justify-start"
-                  onClick={() => router.push('/employee-login')}
-                >
-                  <UserCircle className="w-4 h-4 ml-2" />
-                  دخول الموظفين
-                </Button>
-                <Button 
                   className="bg-gradient-to-r from-blue-500 to-indigo-600 w-full justify-start"
                   onClick={() => router.push('/login')}
                 >
@@ -286,29 +270,6 @@ export default function HomePage() {
                   <div className="relative flex items-center">
                     <Play className="w-5 h-5 ml-2" />
                     {t('homepageStartNow')}
-                  </div>
-                </Button>
-                <Button 
-                  size="lg"
-                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-2xl text-lg px-8 py-4 relative overflow-hidden group hover:scale-105 transition-transform duration-300"
-                  onClick={() => router.push('/guest-login')}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-0 group-hover:opacity-100 group-hover:animate-shine"></div>
-                  <div className="relative flex items-center">
-                    <Menu className="w-5 h-5 ml-2" />
-                    المنيو الإلكتروني للنزلاء
-                  </div>
-                </Button>
-                <Button 
-                  size="lg"
-                  variant="outline"
-                  className="border-white/30 text-white bg-white/10 hover:bg-white/20 backdrop-blur-sm text-lg px-8 py-4 relative overflow-hidden group hover:scale-105 transition-transform duration-300"
-                  onClick={() => router.push('/dashboard')}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 group-hover:animate-shine"></div>
-                  <div className="relative flex items-center">
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                    {t('homepageExploreSystem')}
                   </div>
                 </Button>
               </div>
