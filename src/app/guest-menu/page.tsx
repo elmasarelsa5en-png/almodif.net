@@ -65,7 +65,7 @@ export default function GuestMenuIndexPage() {
           {/* الكافتيريا */}
           <Card 
             className="bg-gray-900/80 backdrop-blur-xl border-gray-700/50 hover:border-green-500/50 transition-all duration-300 cursor-pointer group"
-            onClick={() => router.push('/dashboard/coffee-shop')}
+            onClick={() => router.push('/guest-menu/coffee-shop')}
           >
             <CardContent className="p-6 text-center">
               <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform">
@@ -79,7 +79,7 @@ export default function GuestMenuIndexPage() {
           {/* المطعم */}
           <Card 
             className="bg-gray-900/80 backdrop-blur-xl border-gray-700/50 hover:border-orange-500/50 transition-all duration-300 cursor-pointer group"
-            onClick={() => router.push('/dashboard/coffee-shop')}
+            onClick={() => router.push('/guest-menu/restaurant')}
           >
             <CardContent className="p-6 text-center">
               <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform">
@@ -93,7 +93,7 @@ export default function GuestMenuIndexPage() {
           {/* خدمة الغسيل */}
           <Card 
             className="bg-gray-900/80 backdrop-blur-xl border-gray-700/50 hover:border-purple-500/50 transition-all duration-300 cursor-pointer group"
-            onClick={() => router.push('/dashboard/coffee-shop')}
+            onClick={() => router.push('/guest-menu/laundry')}
           >
             <CardContent className="p-6 text-center">
               <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform">

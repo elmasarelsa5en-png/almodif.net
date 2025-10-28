@@ -555,10 +555,19 @@ export default function LaundryPage() {
                   <div className="relative mb-3 overflow-hidden rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 aspect-square">
                     <img 
                       src={`https://images.unsplash.com/photo-${
-                        service.category === 'washing' ? '1582735689369-4ba29b0f5b1e' :
-                        service.category === 'ironing' ? '1521017432531-2e37eb0c4e58' :
-                        service.category === 'dry-cleaning' ? '1594633312681-425c7b97ccd1' :
-                        '1610832958506-aa56368176cf'
+                        service.id === '1' ? '1517677129300-07b130802f46' : // قميص أبيض نظيف
+                        service.id === '2' ? '1624378439575-a9d6c8f8b6c5' : // بنطلون مكوي
+                        service.id === '3' ? '1595777457583-95e059d581b8' : // فستان معلق نظيف
+                        service.id === '4' ? '1556821585-5d82e6d92f5d' : // مكواة بخار
+                        service.id === '5' ? '1489987707025-afc232f7ea0f' : // ملابس مكوية
+                        service.id === '6' ? '1507679799987-3c3b8b9b5a53' : // بدلة رجالي فاخرة
+                        service.id === '7' ? '1519741644101-4b1d7da9d9f0' : // فستان زفاف أبيض
+                        service.id === '8' ? '1616486029423-aaa4789e8c9c' : // ستائر نظيفة
+                        service.id === '9' ? '1631679706896-5d9f5f098f8b' : // ملاءات سرير بيضاء
+                        service.id === '10' ? '1551028719-2bba35af529a' : // جاكيت جلد
+                        service.id === '11' ? '1631679706895-5d9f5f098f8b' : // مناشف بيضاء
+                        service.id === '12' ? '1594633312681-425c7b97ccd1' : // ربطة عنق
+                        '1582735689369-4ba29b0f5b1e' // خدمة سريعة
                       }?w=300&h=300&fit=crop&q=80`}
                       alt={service.nameAr}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
