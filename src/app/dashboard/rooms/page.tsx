@@ -558,8 +558,24 @@ export default function RoomsPage() {
   
   return (
     <PermissionGuard 
-      permission="view_rooms" 
-      redirect="/dashboard"
+      permission="view_rooms"
+      fallback={
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6 flex items-center justify-center">
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border border-white/20 text-center">
+            <div className="text-6xl mb-4">🔒</div>
+            <h2 className="text-2xl font-bold text-white mb-2">غير مصرح لك</h2>
+            <p className="text-gray-300 mb-6">
+              ليس لديك الصلاحية لعرض صفحة الغرف
+            </p>
+            <button
+              onClick={() => window.history.back()}
+              className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-6 py-3 rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all duration-300 font-medium"
+            >
+              العودة للخلف
+            </button>
+          </div>
+        </div>
+      }
     >
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6 relative overflow-hidden">
       {/* خلفية تزيينية */}

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحديث صلاحيات - إضافة view_rooms للجميع</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 32px;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            color: #1976d2;
+        }
+        .step {
+            margin-bottom: 25px;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: 600;
+        }
+        input, button {
+            width: 100%;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-weight: 600;
+            text-align: center;
+        }
+        .status.info {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        .status.success {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+        .status.error {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+        .log {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .log-entry {
+            padding: 8px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+        }
+        .log-entry.success {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+        .log-entry.info {
+            background: #bbdefb;
+            color: #1565c0;
+        }
+        .log-entry.error {
+            background: #ffcdd2;
+            color: #c62828;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔓 إصلاح صلاحيات الغرف</h1>
+        
+        <div class="info">
+            <strong>📋 ماذا يفعل هذا السكريبت؟</strong><br>
+            يضيف صلاحية <code>view_rooms</code> لجميع الموظفين الذين لا يمتلكونها، حتى يتمكنوا من الوصول لصفحة الغرف.
+        </div>
+
+        <div class="step">
+            <label>🔑 API Key من Firebase:</label>
+            <input 
+                type="text" 
+                id="apiKey" 
+                placeholder="أدخل API Key"
+                value="AIzaSyAYJHF6B5oMGSt9cSWJ5L6kh9vmnEX_8nk"
+            />
+        </div>
+
+        <div class="step">
+            <label>🗄️ Project ID:</label>
+            <input 
+                type="text" 
+                id="projectId" 
+                placeholder="أدخل Project ID"
+                value="almodif-7c496"
+            />
+        </div>
+
+        <button onclick="fixPermissions()" id="fixBtn">
+            ⚡ إصلاح الصلاحيات الآن
+        </button>
+
+        <div id="status" class="status hidden"></div>
+        <div id="log" class="log hidden"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, getDocs, doc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        window.fixPermissions = async function() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const projectId = document.getElementById('projectId').value.trim();
+            const statusDiv = document.getElementById('status');
+            const logDiv = document.getElementById('log');
+            const fixBtn = document.getElementById('fixBtn');
+
+            if (!apiKey || !projectId) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '❌ يرجى إدخال API Key و Project ID';
+                statusDiv.classList.remove('hidden');
+                return;
+            }
+
+            fixBtn.disabled = true;
+            statusDiv.className = 'status info';
+            statusDiv.textContent = '⏳ جاري الاتصال بـ Firebase...';
+            statusDiv.classList.remove('hidden');
+            logDiv.classList.remove('hidden');
+            logDiv.innerHTML = '';
+
+            try {
+                // تهيئة Firebase
+                const firebaseConfig = {
+                    apiKey: apiKey,
+                    projectId: projectId,
+                    storageBucket: `${projectId}.appspot.com`,
+                };
+
+                const app = initializeApp(firebaseConfig);
+                const db = getFirestore(app);
+
+                addLog('✅ تم الاتصال بـ Firebase بنجاح', 'success');
+
+                // قراءة جميع الموظفين
+                addLog('📖 جاري قراءة الموظفين...', 'info');
+                const employeesRef = collection(db, 'employees');
+                const snapshot = await getDocs(employeesRef);
+
+                if (snapshot.empty) {
+                    throw new Error('لم يتم العثور على موظفين في النظام');
+                }
+
+                addLog(`✅ تم العثور على ${snapshot.size} موظف`, 'success');
+
+                let updatedCount = 0;
+                let alreadyHadCount = 0;
+
+                // تحديث كل موظف
+                for (const employeeDoc of snapshot.docs) {
+                    const employee = employeeDoc.data();
+                    const currentPermissions = employee.permissions || [];
+                    
+                    // التحقق من وجود الصلاحية
+                    if (!currentPermissions.includes('view_rooms')) {
+                        // إضافة الصلاحية
+                        const newPermissions = [...currentPermissions, 'view_rooms'];
+                        
+                        try {
+                            await updateDoc(doc(db, 'employees', employeeDoc.id), {
+                                permissions: newPermissions
+                            });
+
+                            addLog(`✅ تم إضافة صلاحية view_rooms لـ: ${employee.name}`, 'success');
+                            updatedCount++;
+                        } catch (error) {
+                            addLog(`❌ فشل تحديث: ${employee.name} - ${error.message}`, 'error');
+                        }
+                    } else {
+                        addLog(`ℹ️ ${employee.name} لديه الصلاحية بالفعل`, 'info');
+                        alreadyHadCount++;
+                    }
+                }
+
+                // النتيجة النهائية
+                statusDiv.className = 'status success';
+                statusDiv.innerHTML = `
+                    ✅ تم الإصلاح بنجاح!<br>
+                    📊 تم تحديث: ${updatedCount} موظف<br>
+                    ℹ️ لديهم الصلاحية مسبقاً: ${alreadyHadCount} موظف
+                `;
+
+            } catch (error) {
+                console.error(error);
+                statusDiv.className = 'status error';
+                statusDiv.textContent = `❌ خطأ: ${error.message}`;
+                addLog(`❌ ${error.message}`, 'error');
+            } finally {
+                fixBtn.disabled = false;
+            }
+        };
+
+        function addLog(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `${new Date().toLocaleTimeString('ar-EG')} - ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+    </script>
+</body>
+</html>
