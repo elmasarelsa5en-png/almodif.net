@@ -64,25 +64,10 @@ const DEPARTMENTS = [
   'إدارة'
 ];
 
-const PERMISSIONS = [
-  { id: 'view_dashboard', label: 'عرض لوحة التحكم', category: 'عام' },
-  { id: 'manage_rooms', label: 'إدارة الغرف', category: 'غرف' },
-  { id: 'view_rooms', label: 'عرض الغرف', category: 'غرف' },
-  { id: 'manage_bookings', label: 'إدارة الحجوزات', category: 'حجوزات' },
-  { id: 'view_bookings', label: 'عرض الحجوزات', category: 'حجوزات' },
-  { id: 'manage_guests', label: 'إدارة النزلاء', category: 'نزلاء' },
-  { id: 'view_guests', label: 'عرض النزلاء', category: 'نزلاء' },
-  { id: 'manage_requests', label: 'إدارة طلبات النزلاء', category: 'طلبات' },
-  { id: 'approve_requests', label: 'الموافقة على الطلبات', category: 'طلبات' },
-  { id: 'view_requests', label: 'عرض الطلبات', category: 'طلبات' },
-  { id: 'manage_coffee', label: 'إدارة الكوفي شوب', category: 'خدمات' },
-  { id: 'manage_restaurant', label: 'إدارة المطعم', category: 'خدمات' },
-  { id: 'manage_laundry', label: 'إدارة المغسلة', category: 'خدمات' },
-  { id: 'manage_maintenance', label: 'إدارة الصيانة', category: 'خدمات' },
-  { id: 'manage_employees', label: 'إدارة الموظفين', category: 'موارد بشرية' },
-  { id: 'view_reports', label: 'عرض التقارير', category: 'تقارير' },
-  { id: 'manage_settings', label: 'إدارة الإعدادات', category: 'إعدادات' },
-];
+// استيراد الصلاحيات من الملف المخصص
+import { ALL_PERMISSIONS, getAllPermissions } from '@/lib/permissions';
+
+const PERMISSIONS = getAllPermissions();
 
 const STATUS_CONFIG = {
   available: { label: 'متاح', color: 'bg-green-500' },

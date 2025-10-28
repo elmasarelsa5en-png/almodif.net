@@ -52,7 +52,10 @@ export default function LoginPage() {
           username: foundEmployee.username,
           role: foundEmployee.role || 'admin',
           name: foundEmployee.name,
-          loginTime: new Date().toISOString()
+          loginTime: new Date().toISOString(),
+          permissions: foundEmployee.permissions || [],
+          department: foundEmployee.department,
+          employeeId: foundEmployee.id
         };
         
         login(userData);

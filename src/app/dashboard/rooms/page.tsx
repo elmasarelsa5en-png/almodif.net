@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth-context';
+import { PermissionGuard, HasPermission, usePermissions } from '@/components/PermissionGuard';
 import { 
   BedDouble, 
   Users, 
@@ -556,7 +557,11 @@ export default function RoomsPage() {
   };
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6 relative overflow-hidden">
+    <PermissionGuard 
+      permission="view_rooms" 
+      redirect="/dashboard"
+    >
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6 relative overflow-hidden">
       {/* خلفية تزيينية */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-20 left-20 w-32 h-32 bg-blue-500/20 rounded-full blur-xl"></div>
@@ -575,22 +580,26 @@ export default function RoomsPage() {
 
           <div className="flex flex-col sm:flex-row gap-3">
             {/* زر إضافة نزيل */}
-            <Button
-              onClick={() => setIsAddGuestOpen(true)}
-              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 font-medium"
-            >
-              <UserPlus className="w-5 h-5 ml-2" />
-              إضافة نزيل
-            </Button>
+            <HasPermission permission="add_guest">
+              <Button
+                onClick={() => setIsAddGuestOpen(true)}
+                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 font-medium"
+              >
+                <UserPlus className="w-5 h-5 ml-2" />
+                إضافة نزيل
+              </Button>
+            </HasPermission>
 
             {/* زر إضافة غرف من صورة */}
-            <Button
-              onClick={() => setIsAddRoomsFromImageOpen(true)}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 font-medium"
-            >
-              <Image className="w-5 h-5 ml-2" />
-              إضافة غرف من صورة
-            </Button>
+            <HasPermission permission="add_rooms_from_image">
+              <Button
+                onClick={() => setIsAddRoomsFromImageOpen(true)}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 font-medium"
+              >
+                <Image className="w-5 h-5 ml-2" />
+                إضافة غرف من صورة
+              </Button>
+            </HasPermission>
 
             {/* شريط البحث */}
             <div className="relative">
@@ -971,5 +980,6 @@ export default function RoomsPage() {
       {/* حافظة بيانات النزيل العائمة */}
       <GuestDataClipboard position="bottom-left" />
     </div>
+    </PermissionGuard>
   )
 }
