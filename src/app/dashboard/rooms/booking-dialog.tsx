@@ -455,9 +455,10 @@ export default function BookingDialog({ room, isOpen, onClose, onSave }: Booking
                           className="bg-white/10 border-yellow-500/30 text-white"
                         />
                         <Button
-                          variant="destructive"
+                          variant="outline"
                           size="sm"
                           onClick={() => setDeposits(deposits.filter((_, i) => i !== index))}
+                          className="bg-red-500/20 border-red-500 text-red-300 hover:bg-red-500/30"
                         >
                           حذف
                         </Button>
@@ -493,9 +494,10 @@ export default function BookingDialog({ room, isOpen, onClose, onSave }: Booking
                           className="bg-white/10 border-yellow-500/30 text-white"
                         />
                         <Button
-                          variant="destructive"
+                          variant="outline"
                           size="sm"
                           onClick={() => setAdvancePayments(advancePayments.filter((_, i) => i !== index))}
+                          className="bg-red-500/20 border-red-500 text-red-300 hover:bg-red-500/30"
                         >
                           حذف
                         </Button>
@@ -522,11 +524,8 @@ export default function BookingDialog({ room, isOpen, onClose, onSave }: Booking
                     value={dailyRate}
                     onChange={(e) => setDailyRate(parseFloat(e.target.value) || 0)}
                     className="bg-white/10 border-yellow-500/30 text-white"
-                    disabled={user?.role !== 'admin' && user?.role !== 'manager'}
                   />
-                  {user?.role !== 'admin' && user?.role !== 'manager' && (
-                    <p className="text-xs text-yellow-300/70">تعديل السعر يتطلب صلاحيات المدير</p>
-                  )}
+                  <p className="text-xs text-yellow-300/70">يمكن تعديل السعر حسب الاتفاق</p>
                 </div>
 
                 {/* الملخص المالي */}
@@ -579,9 +578,9 @@ export default function BookingDialog({ room, isOpen, onClose, onSave }: Booking
 
       {/* حوار إضافة نزيل */}
       <AddGuestDialog
-        isOpen={isAddGuestOpen}
+        open={isAddGuestOpen}
         onClose={() => setIsAddGuestOpen(false)}
-        onSave={(guest) => {
+        onSubmit={(guest) => {
           if (!selectedGuest) {
             setSelectedGuest(guest);
           } else {
@@ -589,6 +588,7 @@ export default function BookingDialog({ room, isOpen, onClose, onSave }: Booking
           }
           setIsAddGuestOpen(false);
         }}
+        availableRooms={room ? [room.number] : []}
       />
     </>
   );
