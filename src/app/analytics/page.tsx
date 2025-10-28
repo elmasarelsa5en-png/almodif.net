@@ -185,13 +185,13 @@ export default function AnalyticsPage() {
 
         <div className="relative z-10 space-y-6">
           {/* Header */}
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 lg:p-6 shadow-2xl border border-white/20">
+          <div className="bg-gray-800/50 backdrop-blur-md rounded-2xl p-4 lg:p-6 shadow-2xl border border-white/20">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <Button
                   onClick={() => router.back()}
                   variant="outline"
-                  className="border-white/20 bg-white/10 text-white hover:bg-white/20"
+                  className="border-white/20 bg-gray-800/50 text-white hover:bg-gray-600/50"
                 >
                   <ArrowLeft className="w-4 h-4 ml-2" />
                   العودة
@@ -211,14 +211,14 @@ export default function AnalyticsPage() {
               
               <div className="flex items-center gap-3">
                 <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-                  <SelectTrigger className="w-32 bg-white/10 border-white/20 text-white">
+                  <SelectTrigger className="w-32 bg-gray-800/50 border-white/20 text-white">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-900 border-white/20">
-                    <SelectItem value="week" className="text-white focus:bg-white/10 focus:text-white">هذا الأسبوع</SelectItem>
-                    <SelectItem value="month" className="text-white focus:bg-white/10 focus:text-white">هذا الشهر</SelectItem>
-                    <SelectItem value="quarter" className="text-white focus:bg-white/10 focus:text-white">هذا الربع</SelectItem>
-                    <SelectItem value="year" className="text-white focus:bg-white/10 focus:text-white">هذا العام</SelectItem>
+                    <SelectItem value="week" className="text-white focus:bg-gray-800/50 focus:text-white">هذا الأسبوع</SelectItem>
+                    <SelectItem value="month" className="text-white focus:bg-gray-800/50 focus:text-white">هذا الشهر</SelectItem>
+                    <SelectItem value="quarter" className="text-white focus:bg-gray-800/50 focus:text-white">هذا الربع</SelectItem>
+                    <SelectItem value="year" className="text-white focus:bg-gray-800/50 focus:text-white">هذا العام</SelectItem>
                   </SelectContent>
                 </Select>
                 
@@ -233,7 +233,7 @@ export default function AnalyticsPage() {
                 
                 <Button
                   variant="outline"
-                  className="border-white/20 bg-white/10 text-white hover:bg-white/20"
+                  className="border-white/20 bg-gray-800/50 text-white hover:bg-gray-600/50"
                 >
                   <Download className="w-4 h-4 ml-2" />
                   تصدير
@@ -245,7 +245,7 @@ export default function AnalyticsPage() {
           {/* KPI Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
             {kpiCards.map((kpi, index) => (
-              <Card key={index} className="bg-white/10 backdrop-blur-md border-white/20 shadow-2xl hover:bg-white/15 transition-all duration-300 group hover:scale-105">
+              <Card key={index} className="bg-gray-800/50 backdrop-blur-md border-white/20 shadow-2xl hover:bg-gray-700/50 transition-all duration-300 group hover:scale-105">
                 <CardContent className="p-4 lg:p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className={`w-12 h-12 lg:w-14 lg:h-14 bg-gradient-to-r ${kpi.color} rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
@@ -265,7 +265,7 @@ export default function AnalyticsPage() {
                     <p className="text-white/60 text-xs">{kpi.description}</p>
                     <div className="flex items-center justify-between">
                       <span className="text-white/50 text-xs">الهدف: {kpi.target}</span>
-                      <div className="w-16 h-1 bg-white/20 rounded-full overflow-hidden">
+                      <div className="w-16 h-1 bg-gray-600/50 rounded-full overflow-hidden">
                         <div className={`h-full bg-gradient-to-r ${kpi.color} rounded-full w-4/5`}></div>
                       </div>
                     </div>
@@ -278,7 +278,7 @@ export default function AnalyticsPage() {
           {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Revenue Chart */}
-            <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-2xl">
+            <Card className="bg-gray-800/50 backdrop-blur-md border-white/20 shadow-2xl">
               <CardHeader>
                 <CardTitle className="text-white text-xl flex items-center gap-3">
                   <LineChart className="w-6 h-6 text-green-400" />
@@ -314,7 +314,7 @@ export default function AnalyticsPage() {
             </Card>
 
             {/* Department Performance */}
-            <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-2xl">
+            <Card className="bg-gray-800/50 backdrop-blur-md border-white/20 shadow-2xl">
               <CardHeader>
                 <CardTitle className="text-white text-xl flex items-center gap-3">
                   <PieChart className="w-6 h-6 text-blue-400" />
@@ -341,7 +341,7 @@ export default function AnalyticsPage() {
                         </div>
                       </div>
                       <div className="relative">
-                        <div className="w-full h-2 bg-white/20 rounded-full overflow-hidden">
+                        <div className="w-full h-2 bg-gray-600/50 rounded-full overflow-hidden">
                           <div 
                             className={`h-full ${dept.color} rounded-full transition-all duration-1000`}
                             style={{ width: `${dept.percentage}%` }}
@@ -359,7 +359,7 @@ export default function AnalyticsPage() {
           {/* Bottom Row */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Customer Ratings */}
-            <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-2xl">
+            <Card className="bg-gray-800/50 backdrop-blur-md border-white/20 shadow-2xl">
               <CardHeader>
                 <CardTitle className="text-white text-xl flex items-center gap-3">
                   <Star className="w-6 h-6 text-yellow-400" />
@@ -378,7 +378,7 @@ export default function AnalyticsPage() {
                         <Star className="w-4 h-4 text-yellow-400 fill-current" />
                       </div>
                       <div className="flex-1">
-                        <div className="w-full h-2 bg-white/20 rounded-full overflow-hidden">
+                        <div className="w-full h-2 bg-gray-600/50 rounded-full overflow-hidden">
                           <div 
                             className="h-full bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full transition-all duration-1000"
                             style={{ width: `${rating.percentage}%` }}
@@ -404,7 +404,7 @@ export default function AnalyticsPage() {
             </Card>
 
             {/* Goals & Targets */}
-            <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-2xl lg:col-span-2">
+            <Card className="bg-gray-800/50 backdrop-blur-md border-white/20 shadow-2xl lg:col-span-2">
               <CardHeader>
                 <CardTitle className="text-white text-xl flex items-center gap-3">
                   <Target className="w-6 h-6 text-purple-400" />
@@ -417,7 +417,7 @@ export default function AnalyticsPage() {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {goals.map((goal, index) => (
-                    <div key={index} className="p-4 bg-white/5 rounded-lg border border-white/10">
+                    <div key={index} className="p-4 bg-gray-700/30 rounded-lg border border-white/10">
                       <div className="flex items-center justify-between mb-3">
                         <h4 className="text-white font-medium">{goal.title}</h4>
                         <Badge className={
@@ -438,7 +438,7 @@ export default function AnalyticsPage() {
                       </div>
                       
                       <div className="relative">
-                        <div className="w-full h-2 bg-white/20 rounded-full overflow-hidden">
+                        <div className="w-full h-2 bg-gray-600/50 rounded-full overflow-hidden">
                           <div 
                             className={`h-full rounded-full transition-all duration-1000 ${
                               goal.status === 'achieved' ? 'bg-gradient-to-r from-green-400 to-emerald-500' :
@@ -459,7 +459,7 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Quick Actions */}
-          <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-2xl">
+          <Card className="bg-gray-800/50 backdrop-blur-md border-white/20 shadow-2xl">
             <CardHeader>
               <CardTitle className="text-white text-xl flex items-center gap-3">
                 <Activity className="w-6 h-6 text-green-400" />

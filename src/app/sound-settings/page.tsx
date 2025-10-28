@@ -22,7 +22,7 @@ export default function SoundSettingsPage() {
 
         <div className="relative z-10 max-w-4xl mx-auto space-y-6">
           {/* Header */}
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-white/20">
+          <div className="bg-gray-800/50 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-white/20">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-14 h-14 bg-gradient-to-r from-pink-500 to-purple-500 rounded-xl flex items-center justify-center shadow-lg">
@@ -40,7 +40,7 @@ export default function SoundSettingsPage() {
               <Button
                 onClick={() => router.back()}
                 variant="outline"
-                className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                className="bg-gray-800/50 border-white/20 text-white hover:bg-gray-600/50"
               >
                 <ArrowLeft className="w-4 h-4 ml-2" />
                 رجوع
@@ -49,7 +49,7 @@ export default function SoundSettingsPage() {
           </div>
 
           {/* System Sounds */}
-          <Card className="bg-white/5 backdrop-blur-md border-white/10">
+          <Card className="bg-gray-700/30 backdrop-blur-md border-white/10">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <Bell className="w-5 h-5 text-blue-400" />
@@ -65,7 +65,7 @@ export default function SoundSettingsPage() {
           </Card>
 
           {/* Department Specific Sounds */}
-          <Card className="bg-white/5 backdrop-blur-md border-white/10">
+          <Card className="bg-gray-700/30 backdrop-blur-md border-white/10">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <Volume2 className="w-5 h-5 text-purple-400" />

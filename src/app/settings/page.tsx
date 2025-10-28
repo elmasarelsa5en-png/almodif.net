@@ -1,4 +1,4 @@
-๏ปฟ'use client';
+'use client';
 
 import { type ComponentType, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -156,9 +156,9 @@ const STORAGE_KEY = 'system:settings:v1';
 
 const defaultSettings: StoredSettings = {
   general: {
-    companyName: 'ูุธุงู… ุงูู…ุถูู ุงูุฐูู',
-    companyTagline: 'ุญููู ู…ุชูุงู…ูุฉ ูุฅุฏุงุฑุฉ ุงูุถูุงูุฉ ูุงูุนู…ููุงุช ุงูุชุดุบูููุฉ',
-    industry: 'ุงูุถูุงูุฉ ูุงูููุฏูุฉ',
+    companyName: 'ไูวใ วแใึํÝ วแะ฿ํ',
+    companyTagline: 'อแๆแ ใส฿วใแษ แลฯวัษ วแึํวÝษ ๆวแฺใแํวส วแสิÛํแํษ',
+    industry: 'วแึํวÝษ ๆวแÝไฯÞษ',
     branchCount: 3,
     language: 'ar',
     timezone: 'Asia/Riyadh',
@@ -218,11 +218,11 @@ const defaultSettings: StoredSettings = {
     purgeLogs: false
   },
   website: {
-    siteName: 'ูุธุงู… ุงูู…ุถูู ุงูุฐูู',
+    siteName: 'ไูวใ วแใึํÝ วแะ฿ํ',
     siteUrl: 'https://almodif.com',
-    siteDescription: 'ูุธุงู… ุดุงู…ู ูุฅุฏุงุฑุฉ ุงูุถูุงูุฉ ูุงูุนู…ููุงุช ุงูุชุดุบูููุฉ ุจููุงุกุฉ ุนุงููุฉ',
-    metaTitle: 'ุงูู…ุถูู ุงูุฐูู - ูุธุงู… ุฅุฏุงุฑุฉ ุงูุถูุงูุฉ',
-    metaKeywords: 'ุฅุฏุงุฑุฉ ุงูููุงุฏูุ ุญุฌูุฒุงุชุ ุดูู ู…ูุฑูุดุฉุ ุฅุฏุงุฑุฉ ุงูุถูุงูุฉ',
+    siteDescription: 'ไูวใ ิวใแ แลฯวัษ วแึํวÝษ ๆวแฺใแํวส วแสิÛํแํษ ศ฿Ýวมษ ฺวแํษ',
+    metaTitle: 'วแใึํÝ วแะ฿ํ - ไูวใ ลฯวัษ วแึํวÝษ',
+    metaKeywords: 'ลฯวัษ วแÝไวฯÞก อฬๆาวสก ิÞÞ ใÝัๆิษก ลฯวัษ วแึํวÝษ',
     contactEmail: 'info@almodif.com',
     contactPhone: '+966 50 123 4567',
     socialFacebook: 'https://facebook.com/almodif',
@@ -248,44 +248,44 @@ const mergeSettings = (base: StoredSettings, incoming: Partial<StoredSettings>):
 const NOTIFICATION_TOGGLES: ToggleConfig<BooleanKeys<NotificationSettings>>[] = [
   {
     key: 'enableEmail',
-    label: 'ุชูุจููุงุช ุงูุจุฑูุฏ ุงูุฅููุชุฑููู',
-    description: 'ุฅุฑุณุงู ุฅุดุนุงุฑุงุช ู…ูุตูุฉ ูู…ูุฎุต ููู…ู ุนุจุฑ ุงูุจุฑูุฏ.',
+    label: 'สไศํๅวส วแศัํฯ วแลแ฿สัๆไํ',
+    description: 'ลัำวแ ลิฺวัวส ใÝีแษ ๆใแฮี ํๆใํ ฺศั วแศัํฯ.',
     icon: Bell
   },
   {
     key: 'enableSMS',
-    label: 'ุฑุณุงุฆู SMS ุงูููุฑูุฉ',
-    description: 'ุชูุจููุงุช ุนุงุฌูุฉ ููุญุงูุงุช ุงูุญุฑุฌุฉ ู…ุจุงุดุฑุฉ ุฅูู ุงูุฌูุงู.',
+    label: 'ัำวฦแ SMS วแÝๆัํษ',
+    description: 'สไศํๅวส ฺวฬแษ แแอวแวส วแอัฬษ ใศวิัษ ลแ์ วแฬๆวแ.',
     icon: BellRing
   },
   {
     key: 'enablePush',
-    label: 'ุฅุดุนุงุฑุงุช ุฏุงุฎู ุงููุธุงู…',
-    description: 'ุนุฑุถ ุชูุจููุงุช ูุญุธูุฉ ุนูู ููุญุฉ ุงูุชุญูู… ูุงูุชุทุจููุงุช.',
+    label: 'ลิฺวัวส ฯวฮแ วแไูวใ',
+    description: 'ฺัึ สไศํๅวส แอูํษ ฺแ์ แๆอษ วแสอ฿ใ ๆวแสุศํÞวส.',
     icon: Activity
   },
   {
     key: 'soundEnabled',
-    label: 'ุชุดุบูู ุงูู…ุคุซุฑุงุช ุงูุตูุชูุฉ',
-    description: 'ุฅุถุงูุฉ ู…ุคุซุฑุงุช ุฎุงุตุฉ ููู ุญุฏุซ ู…ูู… ุฏุงุฎู ุงููุธุงู….',
+    label: 'สิÛํแ วแใฤหัวส วแีๆสํษ',
+    description: 'ลึวÝษ ใฤหัวส ฮวีษ แ฿แ อฯห ใๅใ ฯวฮแ วแไูวใ.',
     icon: Sparkles
   },
   {
     key: 'dailyDigest',
-    label: 'ุงูุชูุฑูุฑ ุงูููู…ู ุงูู…ุฌู…ุน',
-    description: 'ูุตูู ุชูุฑูุฑ ุตุจุงุญู ุจุฃูู… ุงูู…ุคุดุฑุงุช ุงูุชุดุบูููุฉ.',
+    label: 'วแสÞัํั วแํๆใํ วแใฬใฺ',
+    description: 'ๆีๆแ สÞัํั ีศวอํ ศรๅใ วแใฤิัวส วแสิÛํแํษ.',
     icon: RefreshCcw
   },
   {
     key: 'attendanceAlerts',
-    label: 'ุชูุจููุงุช ุงูุญุถูุฑ ูุงูุงูุตุฑุงู',
-    description: 'ู…ุฑุงูุจุฉ ุงูุชุฃุฎูุฑุ ุงูุบูุงุจุ ุฃู ุชุณุฌูู ุงูุฎุฑูุฌ ุงูู…ุจูุฑ.',
+    label: 'สไศํๅวส วแอึๆั ๆวแวไีัวÝ',
+    description: 'ใัวÞศษ วแสรฮํัก วแÛํวศก รๆ สำฬํแ วแฮัๆฬ วแใศ฿ั.',
     icon: Users
   },
   {
     key: 'financeAlerts',
-    label: 'ุชูุจููุงุช ุงูุนู…ููุงุช ุงูู…ุงููุฉ',
-    description: 'ู…ุฑุงูุจุฉ ุงูููุงุชูุฑ ูุงูู…ุตุงุฑูู ุบูุฑ ุงูู…ุนุชุงุฏุฉ ููุฑ ุญุฏูุซูุง.',
+    label: 'สไศํๅวส วแฺใแํวส วแใวแํษ',
+    description: 'ใัวÞศษ วแÝๆวสํั ๆวแใีวัํÝ Ûํั วแใฺสวฯษ Ýๆั อฯๆหๅว.',
     icon: Database
   }
 ];
@@ -293,38 +293,38 @@ const NOTIFICATION_TOGGLES: ToggleConfig<BooleanKeys<NotificationSettings>>[] = 
 const SECURITY_TOGGLES: ToggleConfig<BooleanKeys<SecuritySettings>>[] = [
   {
     key: 'twoFactor',
-    label: 'ุชูุนูู ุงูู…ุตุงุฏูุฉ ุงูุซูุงุฆูุฉ',
-    description: 'ุฅุถุงูุฉ ุทุจูุฉ ุญู…ุงูุฉ ุฅุถุงููุฉ ุนูุฏ ุชุณุฌูู ุงูุฏุฎูู.',
+    label: 'สÝฺํแ วแใีวฯÞษ วแหไวฦํษ',
+    description: 'ลึวÝษ ุศÞษ อใวํษ ลึวÝํษ ฺไฯ สำฬํแ วแฯฮๆแ.',
     icon: ShieldCheck
   },
   {
     key: 'allowGuestLogin',
-    label: 'ุฏุฎูู ุงูุถููู ุงูู…ุคูุช',
-    description: 'ู…ูุญ ุตูุงุญูุงุช ู…ุญุฏูุฏุฉ ููู…ูุฑุฏูู ุฃู ุงูุถููู.',
+    label: 'ฯฮๆแ วแึํๆÝ วแใฤÞส',
+    description: 'ใไอ ีแวอํวส ใอฯๆฯษ แแใๆัฯํไ รๆ วแึํๆÝ.',
     icon: Users
   },
   {
     key: 'biometricSupport',
-    label: 'ุงูุชูุซูู ุงูุญููู',
-    description: 'ุชูุนูู ุงูุฏุฎูู ุจุจุตู…ุฉ ุงูุฅุตุจุน ุฃู ุงููุฌู ูู ุงูุชุทุจููุงุช.',
+    label: 'วแสๆหํÞ วแอํๆํ',
+    description: 'สÝฺํแ วแฯฮๆแ ศศีใษ วแลีศฺ รๆ วแๆฬๅ Ýํ วแสุศํÞวส.',
     icon: Sparkles
   },
   {
     key: 'loginAlerts',
-    label: 'ุชูุจููุงุช ุชุณุฌูู ุงูุฏุฎูู ุงูุฌุฏูุฏุฉ',
-    description: 'ุฅุดุนุงุฑ ููุฑู ุนูุฏ ุงูุฏุฎูู ู…ู ุฌูุงุฒ ุฃู ู…ููุน ุฌุฏูุฏ.',
+    label: 'สไศํๅวส สำฬํแ วแฯฮๆแ วแฬฯํฯษ',
+    description: 'ลิฺวั Ýๆัํ ฺไฯ วแฯฮๆแ ใไ ฬๅวา รๆ ใๆÞฺ ฬฯํฯ.',
     icon: Shield
   },
   {
     key: 'ipRestriction',
-    label: 'ุชูููุฏ ุงูุฏุฎูู ุจุญุณุจ IP',
-    description: 'ุงูุณู…ุงุญ ุจุงููุตูู ููุท ู…ู ุงูุดุจูุงุช ุงูู…ุนุชู…ุฏุฉ.',
+    label: 'สÞํํฯ วแฯฮๆแ ศอำศ IP',
+    description: 'วแำใวอ ศวแๆีๆแ ÝÞุ ใไ วแิศ฿วส วแใฺสใฯษ.',
     icon: Lock
   },
   {
     key: 'maintenanceMode',
-    label: 'ูุถุน ุงูุตูุงูุฉ ุงูุนุงู…',
-    description: 'ุนุฑุถ ุฑุณุงูุฉ ุตูุงูุฉ ูุฅููุงู ุงูุนู…ููุงุช ุงูุญุฑุฌุฉ ู…ุคูุชูุง.',
+    label: 'ๆึฺ วแีํวไษ วแฺวใ',
+    description: 'ฺัึ ัำวแษ ีํวไษ ๆลํÞวÝ วแฺใแํวส วแอัฬษ ใฤÞส๐ว.',
     icon: ShieldAlert
   }
 ];
@@ -332,38 +332,38 @@ const SECURITY_TOGGLES: ToggleConfig<BooleanKeys<SecuritySettings>>[] = [
 const INTEGRATION_OPTIONS: ToggleConfig<BooleanKeys<IntegrationSettings>>[] = [
   {
     key: 'whatsapp',
-    label: 'ุชูุงู…ู ูุงุชุณุงุจ ููุฃุนู…ุงู',
-    description: 'ู…ุฒุงู…ูุฉ ุงูู…ุญุงุฏุซุงุช ูุงูุฑุฏูุฏ ู…ุน ูุฑูู ุฎุฏู…ุฉ ุงูุนู…ูุงุก.',
+    label: 'ส฿วใแ ๆวสำวศ แแรฺใวแ',
+    description: 'ใาวใไษ วแใอวฯหวส ๆวแัฯๆฯ ใฺ ÝัํÞ ฮฯใษ วแฺใแวม.',
     icon: BellRing
   },
   {
     key: 'accounting',
-    label: 'ุงูุฃูุธู…ุฉ ุงูู…ุญุงุณุจูุฉ',
-    description: 'ุงุณุชูุฑุงุฏ ุงููููุฏ ูุชุญุฏูุซ ุงูุญุฑูุงุช ุงูู…ุงููุฉ ุชููุงุฆููุง.',
+    label: 'วแรไูใษ วแใอวำศํษ',
+    description: 'วำสํัวฯ วแÞํๆฯ ๆสอฯํห วแอั฿วส วแใวแํษ สแÞวฦํ๐ว.',
     icon: Database
   },
   {
     key: 'inventory',
-    label: 'ุฅุฏุงุฑุฉ ุงูู…ุฎุฒูู',
-    description: 'ุชุจุงุฏู ุจูุงูุงุช ุงูุฃุตูุงู ูุงูู…ุณุชูุฏุนุงุช ูู ุงูููุช ุงููุนูู.',
+    label: 'ลฯวัษ วแใฮาๆไ',
+    description: 'สศวฯแ ศํวไวส วแรีไวÝ ๆวแใำสๆฯฺวส Ýํ วแๆÞส วแÝฺแํ.',
     icon: CloudDownload
   },
   {
     key: 'crm',
-    label: 'ุฅุฏุงุฑุฉ ุนูุงูุงุช ุงูุนู…ูุงุก',
-    description: 'ุฏู…ุฌ ุจูุงูุงุช ุงูุนู…ูุงุก ูุณุฌู ุงูุชูุงุนู ูู ู…ูุงู ูุงุญุฏ.',
+    label: 'ลฯวัษ ฺแวÞวส วแฺใแวม',
+    description: 'ฯใฬ ศํวไวส วแฺใแวม ๆำฬแ วแสÝวฺแ Ýํ ใ฿วไ ๆวอฯ.',
     icon: Users
   },
   {
     key: 'googleCalendar',
-    label: 'ุชูููู… Google',
-    description: 'ู…ุฒุงู…ูุฉ ุงูู…ูุงุนูุฏ ูุงูุงุฌุชู…ุงุนุงุช ู…ุน ูุฑูู ุงูุนู…ู.',
+    label: 'สÞๆํใ Google',
+    description: 'ใาวใไษ วแใๆวฺํฯ ๆวแวฬสใวฺวส ใฺ ÝัํÞ วแฺใแ.',
     icon: RefreshCcw
   },
   {
     key: 'customWebhooks',
-    label: 'ุชูุงู…ูุงุช ู…ุฎุตู‘ุตุฉ (Webhook)',
-    description: 'ุฑุจุท ุงููุธุงู… ู…ุน ุฃู ู…ูุตุฉ ุฎุงุฑุฌูุฉ ุจุงุณุชุฎุฏุงู… Webhook.',
+    label: 'ส฿วใแวส ใฮี๘ีษ (Webhook)',
+    description: 'ัศุ วแไูวใ ใฺ รํ ใไีษ ฮวัฬํษ ศวำสฮฯวใ Webhook.',
     icon: Link2
   }
 ];
@@ -371,20 +371,20 @@ const INTEGRATION_OPTIONS: ToggleConfig<BooleanKeys<IntegrationSettings>>[] = [
 const BACKUP_TOGGLES: ToggleConfig<BooleanKeys<BackupSettings>>[] = [
   {
     key: 'autoBackup',
-    label: 'ุชุดุบูู ุงููุณุฎ ุงูุชููุงุฆู',
-    description: 'ุฅูุดุงุก ูุณุฎุฉ ุงุญุชูุงุทูุฉ ููููุง ููุฌุฏูู ุงูู…ุญุฏุฏ.',
+    label: 'สิÛํแ วแไำฮ วแสแÞวฦํ',
+    description: 'ลไิวม ไำฮษ วอสํวุํษ ๆÝÞ๐ว แแฬฯๆแ วแใอฯฯ.',
     icon: RefreshCcw
   },
   {
     key: 'offsiteReplication',
-    label: 'ูุณุฎ ุฎุงุฑุฌ ุงูู…ููุน',
-    description: 'ุญูุธ ูุณุฎุฉ ู…ุดูุฑุฉ ูู ู…ุฑูุฒ ุจูุงูุงุช ู…ููุตู.',
+    label: 'ไำฮ ฮวัฬ วแใๆÞฺ',
+    description: 'อÝู ไำฮษ ใิÝัษ Ýํ ใั฿า ศํวไวส ใไÝีแ.',
     icon: CloudDownload
   },
   {
     key: 'compressBackups',
-    label: 'ุถุบุท ุงููุณุฎ ุงูุงุญุชูุงุทูุฉ',
-    description: 'ุชูููู ุญุฌู… ุงูู…ููุงุช ู…ุน ุงูุญูุงุธ ุนูู ุงูุฏูุฉ.',
+    label: 'ึÛุ วแไำฮ วแวอสํวุํษ',
+    description: 'สÞแํแ อฬใ วแใแÝวส ใฺ วแอÝวู ฺแ์ วแฯÞษ.',
     icon: Activity
   }
 ];
@@ -392,20 +392,20 @@ const BACKUP_TOGGLES: ToggleConfig<BooleanKeys<BackupSettings>>[] = [
 const APPEARANCE_TOGGLES: ToggleConfig<BooleanKeys<AppearanceSettings>>[] = [
   {
     key: 'bubbleBackground',
-    label: 'ุฎูููุฉ ุงูููุงุนุงุช ุงูุชูุงุนููุฉ',
-    description: 'ุฅุถุงูุฉ ุชุฃุซูุฑ ุจุตุฑู ุฏููุงู…ููู ูู ุงููุงุฌูุฉ.',
+    label: 'ฮแÝํษ วแÝÞวฺวส วแสÝวฺแํษ',
+    description: 'ลึวÝษ สรหํั ศีัํ ฯํไวใํ฿ํ Ýํ วแๆวฬๅษ.',
     icon: Sparkles
   },
   {
     key: 'animatedTransitions',
-    label: 'ุงูุงูุชูุงูุงุช ุงูู…ุชุญุฑูุฉ',
-    description: 'ุชููู ุฏููุงู…ููู ูุณูุณ ุจูู ุงูุตูุญุงุช.',
+    label: 'วแวไสÞวแวส วแใสอั฿ษ',
+    description: 'สไÞแ ฯํไวใํ฿ํ ๆำแำ ศํไ วแีÝอวส.',
     icon: Activity
   },
   {
     key: 'showTips',
-    label: 'ุชูู…ูุญุงุช ุงูุงุณุชุฎุฏุงู… ุงูุฐููุฉ',
-    description: 'ุนุฑุถ ุฅุฑุดุงุฏุงุช ู…ูุฌูุฉ ููู…ุณุชุฎุฏู…ูู ุงูุฌุฏุฏ.',
+    label: 'สแใํอวส วแวำสฮฯวใ วแะ฿ํษ',
+    description: 'ฺัึ ลัิวฯวส ใๆฬๅษ แแใำสฮฯใํไ วแฬฯฯ.',
     icon: BadgeCheck
   }
 ];
@@ -413,49 +413,49 @@ const APPEARANCE_TOGGLES: ToggleConfig<BooleanKeys<AppearanceSettings>>[] = [
 const ADVANCED_TOGGLES: ToggleConfig<BooleanKeys<AdvancedSettings>>[] = [
   {
     key: 'autoUpdates',
-    label: 'ุงูุชุญุฏูุซุงุช ุงูุชููุงุฆูุฉ',
-    description: 'ุชุซุจูุช ุฃุญุฏุซ ุงูุชุญุณููุงุช ููุฑ ุชููุฑูุง.',
+    label: 'วแสอฯํหวส วแสแÞวฦํษ',
+    description: 'สหศํส รอฯห วแสอำํไวส Ýๆั สๆÝัๅว.',
     icon: RefreshCcw
   },
   {
     key: 'betaFeatures',
-    label: 'ุชุฌุฑุจุฉ ุงูู…ูุฒุงุช ุงูุชุฌุฑูุจูุฉ',
-    description: 'ุงุฎุชุจุงุฑ ุงูู…ูุฒุงุช ูุจู ุฅุตุฏุงุฑูุง ุงูุฑุณู…ู.',
+    label: 'สฬัศษ วแใําวส วแสฬัํศํษ',
+    description: 'วฮสศวั วแใําวส Þศแ ลีฯวัๅว วแัำใํ.',
     icon: Sparkles
   },
   {
     key: 'monitorPerformance',
-    label: 'ู…ุฑุงูุจุฉ ุงูุฃุฏุงุก ุงููุญุธู',
-    description: 'ุฌู…ุน ู…ุคุดุฑุงุช ุงูุฃุฏุงุก ูุฅุฑุณุงู ุชูุจููุงุช ููุฑูุฉ.',
+    label: 'ใัวÞศษ วแรฯวม วแแอูํ',
+    description: 'ฬใฺ ใฤิัวส วแรฯวม ๆลัำวแ สไศํๅวส Ýๆัํษ.',
     icon: Activity
   },
   {
     key: 'purgeLogs',
-    label: 'ุชูุธูู ุงูุณุฌูุงุช ุงููุฏูู…ุฉ',
-    description: 'ุญุฐู ุงูุณุฌูุงุช ุจุนุฏ ุงูุชูุงุก ุตูุงุญูุชูุง ุชููุงุฆููุง.',
+    label: 'สไูํÝ วแำฬแวส วแÞฯํใษ',
+    description: 'อะÝ วแำฬแวส ศฺฯ วไสๅวม ีแวอํสๅว สแÞวฦํ๐ว.',
     icon: Zap
   }
 ];
 
 const BACKUP_FREQUENCIES = [
-  { value: 'hourly', label: 'ูู ุณุงุนุฉ' },
-  { value: 'daily', label: 'ููู…ููุง' },
-  { value: 'weekly', label: 'ุฃุณุจูุนููุง' },
-  { value: 'monthly', label: 'ุดูุฑููุง' }
+  { value: 'hourly', label: '฿แ ำวฺษ' },
+  { value: 'daily', label: 'ํๆใํ๐ว' },
+  { value: 'weekly', label: 'รำศๆฺํ๐ว' },
+  { value: 'monthly', label: 'ิๅัํ๐ว' }
 ];
 
 const ACCENT_OPTIONS = [
-  { value: 'indigo', label: 'ุฃุฒุฑู ุจููุณุฌู' },
-  { value: 'emerald', label: 'ุฃุฎุถุฑ ุฒู…ุฑุฏู' },
-  { value: 'amber', label: 'ุฐูุจู ูุงุฎุฑ' },
-  { value: 'rose', label: 'ูุฑุฏู ุฏุงูุฆ' },
-  { value: 'slate', label: 'ุฑู…ุงุฏู ุงุญุชุฑุงูู' }
+  { value: 'indigo', label: 'ราัÞ ศไÝำฬํ' },
+  { value: 'emerald', label: 'รฮึั าใัฯํ' },
+  { value: 'amber', label: 'ะๅศํ Ýวฮั' },
+  { value: 'rose', label: 'ๆัฯํ ฯวÝฦ' },
+  { value: 'slate', label: 'ัใวฯํ วอสัวÝํ' }
 ];
 
 const DENSITY_OPTIONS = [
-  { value: 'compact', label: 'ู…ุถุบูุท' },
-  { value: 'comfortable', label: 'ู…ุฑูุญ' },
-  { value: 'spacious', label: 'ูุงุณุน' }
+  { value: 'compact', label: 'ใึÛๆุ' },
+  { value: 'comfortable', label: 'ใัํอ' },
+  { value: 'spacious', label: 'ๆวำฺ' }
 ];
 
 interface ToggleRowProps {
@@ -544,27 +544,27 @@ export default function SettingsPage() {
     () => [
       {
         icon: Building2,
-        title: 'ุงููุฑูุน ุงููุดุทุฉ',
+        title: 'วแÝัๆฺ วแไิุษ',
         value: settings.general.branchCount,
-        badge: 'ูู…ู +2 ูุฐุง ุงูุดูุฑ'
+        badge: 'ไใๆ +2 ๅะว วแิๅั'
       },
       {
         icon: Bell,
-        title: 'ูููุงุช ุงูุชูุจูู ุงููุนุงูุฉ',
+        title: 'Þไๆวส วแสไศํๅ วแÝฺวแษ',
         value: `${activeNotificationChannels}/4`,
-        badge: settings.notifications.dailyDigest ? 'ุงูุชูุฑูุฑ ุงูููู…ู ู…ูุนู' : 'ุงูุชูุฑูุฑ ุงูููู…ู ู…ุชููู'
+        badge: settings.notifications.dailyDigest ? 'วแสÞัํั วแํๆใํ ใÝฺแ' : 'วแสÞัํั วแํๆใํ ใสๆÞÝ'
       },
       {
         icon: ShieldCheck,
-        title: 'ู…ุณุชูู ุงูุฃู…ุงู',
-        value: settings.security.twoFactor ? 'ู…ุฑุชูุน' : 'ู…ุชูุณุท',
-        badge: settings.security.twoFactor ? 'ุงูู…ุตุงุฏูุฉ ุงูุซูุงุฆูุฉ ู…ูุนู‘ูุฉ' : 'ููุตุญ ุจุชูุนูู 2FA'
+        title: 'ใำสๆ์ วแรใวไ',
+        value: settings.security.twoFactor ? 'ใัสÝฺ' : 'ใสๆำุ',
+        badge: settings.security.twoFactor ? 'วแใีวฯÞษ วแหไวฦํษ ใÝฺ๘แษ' : 'ํไีอ ศสÝฺํแ 2FA'
       },
       {
         icon: Database,
-        title: 'ุญุงูุฉ ุงููุณุฎ ุงูุงุญุชูุงุทู',
-        value: settings.backups.autoBackup ? settings.backups.backupFrequency : 'ูุฏูู',
-        badge: `ุขุฎุฑ ูุณุฎุฉ: ${settings.backups.lastBackup}`
+        title: 'อวแษ วแไำฮ วแวอสํวุํ',
+        value: settings.backups.autoBackup ? settings.backups.backupFrequency : 'ํฯๆํ',
+        badge: `ยฮั ไำฮษ: ${settings.backups.lastBackup}`
       }
     ], [settings, activeNotificationChannels]
   );
@@ -573,38 +573,38 @@ export default function SettingsPage() {
     () => [
       {
         icon: Globe,
-        title: 'ุฅุนุฏุงุฏุงุช ุงูู…ููุน ุงูุฅููุชุฑููู',
-        description: 'ุชุญุฏูุซ ู…ุนููู…ุงุช ุงูู…ููุน ูุงูุชูุงุตู ูู…ุญุฑูุงุช ุงูุจุญุซ.',
+        title: 'ลฺฯวฯวส วแใๆÞฺ วแลแ฿สัๆไํ',
+        description: 'สอฯํห ใฺแๆใวส วแใๆÞฺ ๆวแสๆวีแ ๆใอั฿วส วแศอห.',
         action: 'website'
       },
       {
         icon: Users,
-        title: 'ุฅุฏุงุฑุฉ ุงูุตูุงุญูุงุช',
-        description: 'ุชุนููู ุงูุฃุฏูุงุฑ ูุงููุตูู ููู ูุฑูู ุนู…ู.',
+        title: 'ลฯวัษ วแีแวอํวส',
+        description: 'สฺํํไ วแรฯๆวั ๆวแๆีๆแ แ฿แ ÝัํÞ ฺใแ.',
         href: '/settings/hr'
       },
       {
         icon: BookOpen,
-        title: 'ูุชุงููุฌ ุงูุดูู',
-        description: 'ุฅุฏุงุฑุฉ ุฃููุงุน ุงูุดูู ูุงูุบุฑู ูุฃุณุนุงุฑูุง.',
+        title: '฿สวแๆฬ วแิÞÞ',
+        description: 'ลฯวัษ รไๆวฺ วแิÞÞ ๆวแÛัÝ ๆรำฺวัๅว.',
         href: '/settings/rooms-catalog'
       },
       {
         icon: Building2,
-        title: 'ุฅุฏุงุฑุฉ ุงูู…ูุงุฑุฏ ุงูุจุดุฑูุฉ',
-        description: 'ุฅุถุงูุฉ ูุชุนุฏูู ุงูู…ูุธููู ูุงูุตูุงุญูุงุช.',
+        title: 'ลฯวัษ วแใๆวัฯ วแศิัํษ',
+        description: 'ลึวÝษ ๆสฺฯํแ วแใๆูÝํไ ๆวแีแวอํวส.',
         href: '/settings/hr'
       },
       {
         icon: BellRing,
-        title: 'ุฅุนุฏุงุฏุงุช ุงูุฃุตูุงุช',
-        description: 'ุชุฎุตูุต ูุบู…ุงุช ุงูุชูุจูู ููู ุญุฏุซ ู…ูู….',
+        title: 'ลฺฯวฯวส วแรีๆวส',
+        description: 'สฮีํี ไÛใวส วแสไศํๅ แ฿แ อฯห ใๅใ.',
         href: '/settings/sound-settings'
       },
       {
         icon: ServerCog,
-        title: 'ุฌุฏููุฉ ุงููุณุฎ ุงูุงุญุชูุงุทู',
-        description: 'ู…ุฑุงุฌุนุฉ ุชูููุช ุงููุณุฎ ุงูุงุญุชูุงุทูุฉ ุงููุงุฏู…ุฉ.',
+        title: 'ฬฯๆแษ วแไำฮ วแวอสํวุํ',
+        description: 'ใัวฬฺษ สๆÞํส วแไำฮ วแวอสํวุํษ วแÞวฯใษ.',
         href: '/dashboard/accounting/reports'
       }
     ], []
@@ -615,7 +615,7 @@ export default function SettingsPage() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-purple-950" dir="rtl">
         <div className="flex flex-col items-center gap-3">
           <div className="w-14 h-14 rounded-full border-2 border-dashed border-purple-400 animate-spin" />
-          <p className="text-sm text-slate-300">ุฌุงุฑ ุชุญู…ูู ุฅุนุฏุงุฏุงุช ุงููุธุงู…...</p>
+          <p className="text-sm text-slate-300">ฬวั สอใํแ ลฺฯวฯวส วแไูวใ...</p>
         </div>
       </div>
     );
@@ -632,13 +632,13 @@ export default function SettingsPage() {
             <div className="space-y-2">
               <div className="flex items-center gap-3">
                 <Badge variant="secondary" className="bg-emerald-500/20 text-emerald-200 border-emerald-500/30">
-                  ูุธุงู… ู…ุชูุงู…ู
+                  ไูวใ ใส฿วใแ
                 </Badge>
                 <BadgeCheck className="w-5 h-5 text-emerald-300" />
               </div>
-              <h1 className="text-4xl font-bold text-white">ููุญุฉ ุฅุนุฏุงุฏุงุช ุงููุธุงู…</h1>
+              <h1 className="text-4xl font-bold text-white">แๆอษ ลฺฯวฯวส วแไูวใ</h1>
               <p className="text-slate-300 text-sm leading-6 max-w-2xl">
-                ุชุญูู… ูุงู…ู ูู ุงููููุฉุ ุงูุชูุจููุงุชุ ุงูุฃู…ุงูุ ุงูุชูุงู…ูุงุชุ ุงููุณุฎ ุงูุงุญุชูุงุทูุ ุงูู…ุธูุฑุ ูุงูุฎูุงุฑุงุช ุงูู…ุชูุฏู…ุฉ ู…ู ู…ูุงู ูุงุญุฏ.
+                สอ฿ใ ฿วใแ Ýํ วแๅๆํษก วแสไศํๅวสก วแรใวไก วแส฿วใแวสก วแไำฮ วแวอสํวุํก วแใูๅัก ๆวแฮํวัวส วแใสÞฯใษ ใไ ใ฿วไ ๆวอฯ.
               </p>
             </div>
           </div>
@@ -648,15 +648,15 @@ export default function SettingsPage() {
               variant="outline"
               className="border-red-400/40 text-red-200 bg-red-500/10 hover:bg-red-500/20"
             >
-              ุฅุนุงุฏุฉ ุชุนููู ุงูุฅุนุฏุงุฏุงุช
+              ลฺวฯษ สฺํํไ วแลฺฯวฯวส
             </Button>
             <Button
               onClick={() => router.push('/dashboard')}
               variant="outline"
-              className="border-white/20 bg-white/5 text-white hover:bg-white/10"
+              className="border-white/20 bg-gray-700/30 text-white hover:bg-gray-800/50"
             >
               <ChevronRight className="ml-2 w-5 h-5" />
-              ุงูุนูุฏุฉ ูููุญุฉ ุงูุชุญูู…
+              วแฺๆฯษ แแๆอษ วแสอ฿ใ
             </Button>
           </div>
         </header>
@@ -671,7 +671,7 @@ export default function SettingsPage() {
                     <div className="p-2 rounded-xl bg-slate-900/70 border border-white/10">
                       <Icon className="w-5 h-5 text-white" />
                     </div>
-                    <Badge className="bg-white/10 border-white/20 text-white text-[11px]" variant="outline">
+                    <Badge className="bg-gray-800/50 border-white/20 text-white text-[11px]" variant="outline">
                       {stat.badge}
                     </Badge>
                   </div>
@@ -690,7 +690,7 @@ export default function SettingsPage() {
             const Icon = action.icon;
             const handleClick = () => {
               if ('action' in action && action.action === 'website') {
-                // ุงูุชู…ุฑูุฑ ุฅูู ูุณู… ุงูุชุจููุจุงุช ูุชูุนูู ุชุจููุจ ุงูู…ููุน ุงูุฅููุชุฑููู
+                // วแสใัํั ลแ์ Þำใ วแสศๆํศวส ๆสÝฺํแ สศๆํศ วแใๆÞฺ วแลแ฿สัๆไํ
                 const tabsList = document.querySelector('[role="tablist"]');
                 if (tabsList) {
                   tabsList.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -733,10 +733,10 @@ export default function SettingsPage() {
             <div className="flex flex-col gap-2">
               <CardTitle className="text-white text-2xl flex items-center gap-3">
                 <ServerCog className="w-6 h-6 text-purple-300" />
-                ุฅุฏุงุฑุฉ ุฅุนุฏุงุฏุงุช ุงููุธุงู…
+                ลฯวัษ ลฺฯวฯวส วแไูวใ
               </CardTitle>
               <CardDescription className="text-slate-300">
-                ุงุฎุชุฑ ุงูุชุจููุจ ุงูู…ูุงุณุจ ููู… ุจุชุญุฏูุซ ุงูุฅุนุฏุงุฏุงุชุ ูุณูุชู… ุญูุธ ุชุบููุฑุงุชู ุชููุงุฆููุง.
+                วฮสั วแสศๆํศ วแใไวำศ ๆÞใ ศสอฯํห วแลฺฯวฯวสก ๆำํสใ อÝู สÛํํัวส฿ สแÞวฦํ๐ว.
               </CardDescription>
             </div>
           </CardHeader>
@@ -744,28 +744,28 @@ export default function SettingsPage() {
             <Tabs defaultValue="general" className="space-y-6">
               <TabsList className="flex flex-wrap gap-2 bg-slate-900/80 border border-slate-700/60 p-2 rounded-2xl text-slate-200">
                 <TabsTrigger value="general" className="data-[state=active]:bg-purple-500/20 data-[state=active]:text-white">
-                  ุงูุนุงู…
+                  วแฺวใ
                 </TabsTrigger>
                 <TabsTrigger value="website" className="data-[state=active]:bg-purple-500/20 data-[state=active]:text-white">
-                  ุงูู…ููุน ุงูุฅููุชุฑููู
+                  วแใๆÞฺ วแลแ฿สัๆไํ
                 </TabsTrigger>
                 <TabsTrigger value="notifications" className="data-[state=active]:bg-purple-500/20 data-[state=active]:text-white">
-                  ุงูุชูุจููุงุช
+                  วแสไศํๅวส
                 </TabsTrigger>
                 <TabsTrigger value="security" className="data-[state=active]:bg-purple-500/20 data-[state=active]:text-white">
-                  ุงูุฃู…ุงู
+                  วแรใวไ
                 </TabsTrigger>
                 <TabsTrigger value="integrations" className="data-[state=active]:bg-purple-500/20 data-[state=active]:text-white">
-                  ุงูุชูุงู…ูุงุช
+                  วแส฿วใแวส
                 </TabsTrigger>
                 <TabsTrigger value="backups" className="data-[state=active]:bg-purple-500/20 data-[state=active]:text-white">
-                  ุงููุณุฎ ุงูุงุญุชูุงุทู
+                  วแไำฮ วแวอสํวุํ
                 </TabsTrigger>
                 <TabsTrigger value="appearance" className="data-[state=active]:bg-purple-500/20 data-[state=active]:text-white">
-                  ุงูู…ุธูุฑ
+                  วแใูๅั
                 </TabsTrigger>
                 <TabsTrigger value="advanced" className="data-[state=active]:bg-purple-500/20 data-[state=active]:text-white">
-                  ู…ุชูุฏู…
+                  ใสÞฯใ
                 </TabsTrigger>
               </TabsList>
 
@@ -775,15 +775,15 @@ export default function SettingsPage() {
                     <CardHeader>
                       <CardTitle className="text-white text-lg flex items-center gap-2">
                         <Building2 className="w-5 h-5 text-purple-300" />
-                        ูููุฉ ุงูู…ูุดุฃุฉ
+                        ๅๆํษ วแใไิรษ
                       </CardTitle>
                       <CardDescription className="text-slate-300">
-                        ุชุนุฏูู ุงููููุฉ ุงูู…ุนุฑูุถุฉ ูู ุงูููุงุชูุฑ ูุงูุชูุงุฑูุฑ ุงูุฑุณู…ูุฉ.
+                        สฺฯํแ วแๅๆํษ วแใฺัๆึษ Ýํ วแÝๆวสํั ๆวแสÞวัํั วแัำใํษ.
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-5">
                       <div className="space-y-2">
-                        <label className="text-sm text-slate-200">ุงุณู… ุงูู…ูุดุฃุฉ</label>
+                        <label className="text-sm text-slate-200">วำใ วแใไิรษ</label>
                         <Input
                           value={settings.general.companyName}
                           onChange={(event) => updateSetting('general', 'companyName', event.target.value)}
@@ -792,7 +792,7 @@ export default function SettingsPage() {
                       </div>
                       <div className="space-y-2">
                         <LogoUploader />
-                        <label className="text-sm text-slate-200">ุงูุดุนุงุฑ ุงูู…ุฎุชุตุฑ</label>
+                        <label className="text-sm text-slate-200">วแิฺวั วแใฮสีั</label>
                         <Textarea
                           rows={3}
                           value={settings.general.companyTagline}
@@ -802,7 +802,7 @@ export default function SettingsPage() {
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <label className="text-sm text-slate-200">ุงููุทุงุน</label>
+                          <label className="text-sm text-slate-200">วแÞุวฺ</label>
                           <Input
                             value={settings.general.industry}
                             onChange={(event) => updateSetting('general', 'industry', event.target.value)}
@@ -810,7 +810,7 @@ export default function SettingsPage() {
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-sm text-slate-200">ุนุฏุฏ ุงููุฑูุน</label>
+                          <label className="text-sm text-slate-200">ฺฯฯ วแÝัๆฺ</label>
                           <Input
                             type="number"
                             min={1}
@@ -829,47 +829,47 @@ export default function SettingsPage() {
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <label className="text-sm text-slate-200">ุงููุบุฉ ุงูุฑุฆูุณูุฉ</label>
+                          <label className="text-sm text-slate-200">วแแÛษ วแัฦํำํษ</label>
                           <Select
                             value={settings.general.language}
                             onValueChange={(value) => updateSetting('general', 'language', value)}
                           >
                             <SelectTrigger className="bg-slate-950 border-slate-700 text-white">
-                              <SelectValue placeholder="ุงุฎุชุฑ ุงููุบุฉ" />
+                              <SelectValue placeholder="วฮสั วแแÛษ" />
                             </SelectTrigger>
                             <SelectContent className="bg-slate-950 border-slate-700 text-white">
-                              <SelectItem value="ar">ุงูุนุฑุจูุฉ</SelectItem>
-                              <SelectItem value="en">ุงูุฅูุฌููุฒูุฉ</SelectItem>
-                              <SelectItem value="fr">ุงููุฑูุณูุฉ</SelectItem>
+                              <SelectItem value="ar">วแฺัศํษ</SelectItem>
+                              <SelectItem value="en">วแลไฬแําํษ</SelectItem>
+                              <SelectItem value="fr">วแÝัไำํษ</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         <div className="space-y-2">
-                          <label className="text-sm text-slate-200">ุงูุชูููุช</label>
+                          <label className="text-sm text-slate-200">วแสๆÞํส</label>
                           <Select
                             value={settings.general.timezone}
                             onValueChange={(value) => updateSetting('general', 'timezone', value)}
                           >
                             <SelectTrigger className="bg-slate-950 border-slate-700 text-white">
-                              <SelectValue placeholder="ุงุฎุชุฑ ุงูุชูููุช" />
+                              <SelectValue placeholder="วฮสั วแสๆÞํส" />
                             </SelectTrigger>
                             <SelectContent className="bg-slate-950 border-slate-700 text-white">
-                              <SelectItem value="Asia/Riyadh">GMT+3 | ุงูุฑูุงุถ</SelectItem>
-                              <SelectItem value="Asia/Dubai">GMT+4 | ุฏุจู</SelectItem>
-                              <SelectItem value="Europe/London">GMT | ููุฏู</SelectItem>
+                              <SelectItem value="Asia/Riyadh">GMT+3 | วแัํวึ</SelectItem>
+                              <SelectItem value="Asia/Dubai">GMT+4 | ฯศํ</SelectItem>
+                              <SelectItem value="Europe/London">GMT | แไฯไ</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <label className="text-sm text-slate-200">ุตูุบุฉ ุงูุชุงุฑูุฎ</label>
+                          <label className="text-sm text-slate-200">ีํÛษ วแสวัํฮ</label>
                           <Select
                             value={settings.general.dateFormat}
                             onValueChange={(value) => updateSetting('general', 'dateFormat', value)}
                           >
                             <SelectTrigger className="bg-slate-950 border-slate-700 text-white">
-                              <SelectValue placeholder="ุงุฎุชุฑ ุงูุตูุบุฉ" />
+                              <SelectValue placeholder="วฮสั วแีํÛษ" />
                             </SelectTrigger>
                             <SelectContent className="bg-slate-950 border-slate-700 text-white">
                               <SelectItem value="DD/MM/YYYY">31/12/2025</SelectItem>
@@ -879,36 +879,36 @@ export default function SettingsPage() {
                           </Select>
                         </div>
                         <div className="space-y-2">
-                          <label className="text-sm text-slate-200">ุงูุนู…ูุฉ ุงูุฑุฆูุณูุฉ</label>
+                          <label className="text-sm text-slate-200">วแฺใแษ วแัฦํำํษ</label>
                           <Select
                             value={settings.general.currency}
                             onValueChange={(value) => updateSetting('general', 'currency', value)}
                           >
                             <SelectTrigger className="bg-slate-950 border-slate-700 text-white">
-                              <SelectValue placeholder="ุงุฎุชุฑ ุงูุนู…ูุฉ" />
+                              <SelectValue placeholder="วฮสั วแฺใแษ" />
                             </SelectTrigger>
                             <SelectContent className="bg-slate-950 border-slate-700 text-white">
-                              <SelectItem value="SAR">ุฑูุงู ุณุนูุฏู (SAR)</SelectItem>
-                              <SelectItem value="AED">ุฏุฑูู… ุฅู…ุงุฑุงุชู (AED)</SelectItem>
-                              <SelectItem value="USD">ุฏููุงุฑ ุฃู…ุฑููู (USD)</SelectItem>
-                              <SelectItem value="EUR">ููุฑู (EUR)</SelectItem>
+                              <SelectItem value="SAR">ัํวแ ำฺๆฯํ (SAR)</SelectItem>
+                              <SelectItem value="AED">ฯัๅใ ลใวัวสํ (AED)</SelectItem>
+                              <SelectItem value="USD">ฯๆแวั รใัํ฿ํ (USD)</SelectItem>
+                              <SelectItem value="EUR">ํๆัๆ (EUR)</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm text-slate-200">ูุถุน ุงููุงุฌูุฉ</label>
+                        <label className="text-sm text-slate-200">ๆึฺ วแๆวฬๅษ</label>
                         <Select
                           value={settings.general.systemMode}
                           onValueChange={(value) => updateSetting('general', 'systemMode', value)}
                         >
                           <SelectTrigger className="bg-slate-950 border-slate-700 text-white">
-                            <SelectValue placeholder="ุงุฎุชุฑ ุงููุถุน" />
+                            <SelectValue placeholder="วฮสั วแๆึฺ" />
                           </SelectTrigger>
                           <SelectContent className="bg-slate-950 border-slate-700 text-white">
-                            <SelectItem value="dark">ุงููุถุน ุงูุฏุงูู</SelectItem>
-                            <SelectItem value="light">ุงููุถุน ุงููุงุชุญ</SelectItem>
-                            <SelectItem value="system">ุญุณุจ ุฅุนุฏุงุฏุงุช ุงูุฌูุงุฒ</SelectItem>
+                            <SelectItem value="dark">วแๆึฺ วแฯว฿ไ</SelectItem>
+                            <SelectItem value="light">วแๆึฺ วแÝวสอ</SelectItem>
+                            <SelectItem value="system">อำศ ลฺฯวฯวส วแฬๅวา</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -919,49 +919,49 @@ export default function SettingsPage() {
                     <CardHeader>
                       <CardTitle className="text-white text-lg flex items-center gap-2">
                         <Activity className="w-5 h-5 text-purple-300" />
-                        ู…ูุฌุฒ ุงูุญุงูุฉ ุงูุญุงููุฉ
+                        ใๆฬา วแอวแษ วแอวแํษ
                       </CardTitle>
                       <CardDescription className="text-slate-300">
-                        ูุธุฑุฉ ุณุฑูุนุฉ ุนูู ุฃุฏุงุก ุงูู…ูุธูู…ุฉ ููู ุฅุนุฏุงุฏุงุชู ุงูุญุงููุฉ.
+                        ไูัษ ำัํฺษ ฺแ์ รฯวม วแใไูๆใษ ๆÝÞ ลฺฯวฯวส฿ วแอวแํษ.
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="rounded-2xl border border-slate-700/60 bg-slate-950/40 p-4 space-y-2">
                         <div className="flex items-center gap-2 text-slate-300 text-sm">
                           <Shield className="w-4 h-4 text-purple-300" />
-                          ู…ุณุชูู ุงูุญู…ุงูุฉ
+                          ใำสๆ์ วแอใวํษ
                         </div>
                         <p className="text-white text-xl font-semibold">
-                          {settings.security.twoFactor ? 'ู…ุญู…ู ุจุงููุงู…ู' : 'ุญู…ุงูุฉ ุฃุณุงุณูุฉ'}
+                          {settings.security.twoFactor ? 'ใอใํ ศวแ฿วใแ' : 'อใวํษ รำวำํษ'}
                         </p>
                         <p className="text-xs text-slate-400">
                           {settings.security.loginAlerts
-                            ? 'ุงูู…ุฑุงูุจุฉ ุงููุญุธูุฉ ูุชุณุฌูู ุงูุฏุฎูู ูุนู‘ุงูุฉ.'
-                            : 'ููุตุญ ุจุชูุนูู ุชูุจููุงุช ุงูุฏุฎูู ูุชุญุณูู ุงูุญู…ุงูุฉ.'}
+                            ? 'วแใัวÞศษ วแแอูํษ แสำฬํแ วแฯฮๆแ Ýฺ๘วแษ.'
+                            : 'ไไีอ ศสÝฺํแ สไศํๅวส วแฯฮๆแ แสอำํไ วแอใวํษ.'}
                         </p>
                       </div>
                       <div className="rounded-2xl border border-slate-700/60 bg-slate-950/40 p-4 space-y-2">
                         <div className="flex items-center gap-2 text-slate-300 text-sm">
                           <Link2 className="w-4 h-4 text-purple-300" />
-                          ุงูุชูุงู…ูุงุช ุงูู…ุชุตูุฉ
+                          วแส฿วใแวส วแใสีแษ
                         </div>
-                        <p className="text-white text-xl font-semibold">{activeIntegrations} ุชูุงู…ูุงุช ูุดุทุฉ</p>
+                        <p className="text-white text-xl font-semibold">{activeIntegrations} ส฿วใแวส ไิุษ</p>
                         <p className="text-xs text-slate-400">
-                          ูุดู…ู ูุงุชุณุงุจุ ุงูุฃูุธู…ุฉ ุงูู…ุญุงุณุจูุฉุ ุงูู…ุฎุฒููุ ููููุงุช ุงูุฏุนู….
+                          ํิใแ ๆวสำวศก วแรไูใษ วแใอวำศํษก วแใฮาๆไก ๆÞไๆวส วแฯฺใ.
                         </p>
                       </div>
                       <div className="rounded-2xl border border-slate-700/60 bg-slate-950/40 p-4 space-y-2">
                         <div className="flex items-center gap-2 text-slate-300 text-sm">
                           <RefreshCcw className="w-4 h-4 text-purple-300" />
-                          ุญุงูุฉ ุงููุณุฎ ุงูุงุญุชูุงุทู
+                          อวแษ วแไำฮ วแวอสํวุํ
                         </div>
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                           <p className="text-white text-lg font-semibold">
-                            {settings.backups.autoBackup ? 'ูุณุฎ ุงุญุชูุงุทู ุชููุงุฆู' : 'ุงููุณุฎ ุงูุงุญุชูุงุทู ูุฏูู'}
+                            {settings.backups.autoBackup ? 'ไำฮ วอสํวุํ สแÞวฦํ' : 'วแไำฮ วแวอสํวุํ ํฯๆํ'}
                           </p>
                           <div className="flex items-center gap-2 text-xs text-slate-400">
                             <CheckCircle2 className="w-4 h-4 text-emerald-300" />
-                            ุขุฎุฑ ูุณุฎุฉ ุนูุฏ {settings.backups.lastBackup}
+                            ยฮั ไำฮษ ฺไฯ {settings.backups.lastBackup}
                           </div>
                         </div>
                       </div>
@@ -976,24 +976,24 @@ export default function SettingsPage() {
                     <CardHeader>
                       <CardTitle className="text-white text-lg flex items-center gap-2">
                         <Globe className="w-5 h-5 text-purple-300" />
-                        ู…ุนููู…ุงุช ุงูู…ููุน
+                        ใฺแๆใวส วแใๆÞฺ
                       </CardTitle>
                       <CardDescription className="text-slate-300">
-                        ุชุญุฏูุซ ู…ุนููู…ุงุช ุงูู…ููุน ุงูุฅููุชุฑููู ุงูุฃุณุงุณูุฉ ูุงูุจูุงูุงุช ุงููุตููุฉ.
+                        สอฯํห ใฺแๆใวส วแใๆÞฺ วแลแ฿สัๆไํ วแรำวำํษ ๆวแศํวไวส วแๆีÝํษ.
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-5">
                       <div className="space-y-2">
-                        <label className="text-sm text-slate-200">ุงุณู… ุงูู…ููุน</label>
+                        <label className="text-sm text-slate-200">วำใ วแใๆÞฺ</label>
                         <Input
                           value={settings.website.siteName}
                           onChange={(event) => updateSetting('website', 'siteName', event.target.value)}
-                          placeholder="ุงุณู… ู…ููุนู ุงูุฅููุชุฑููู"
+                          placeholder="วำใ ใๆÞฺ฿ วแลแ฿สัๆไํ"
                           className="bg-slate-950 border-slate-700 text-white"
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm text-slate-200">ุฑุงุจุท ุงูู…ููุน (URL)</label>
+                        <label className="text-sm text-slate-200">ัวศุ วแใๆÞฺ (URL)</label>
                         <Input
                           value={settings.website.siteUrl}
                           onChange={(event) => updateSetting('website', 'siteUrl', event.target.value)}
@@ -1002,34 +1002,34 @@ export default function SettingsPage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm text-slate-200">ูุตู ุงูู…ููุน</label>
+                        <label className="text-sm text-slate-200">ๆีÝ วแใๆÞฺ</label>
                         <Textarea
                           rows={3}
                           value={settings.website.siteDescription}
                           onChange={(event) => updateSetting('website', 'siteDescription', event.target.value)}
-                          placeholder="ูุตู ู…ูุฌุฒ ูู…ููุนู ูุธูุฑ ูู ู…ุญุฑูุงุช ุงูุจุญุซ"
+                          placeholder="ๆีÝ ใๆฬา แใๆÞฺ฿ ํูๅั Ýํ ใอั฿วส วแศอห"
                           className="bg-slate-950 border-slate-700 text-white"
                         />
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm text-slate-200 flex items-center gap-2">
                           <Search className="w-4 h-4" />
-                          ุนููุงู ุงูุชุญุณูู ูู…ุญุฑูุงุช ุงูุจุญุซ (Meta Title)
+                          ฺไๆวไ วแสอำํไ แใอั฿วส วแศอห (Meta Title)
                         </label>
                         <Input
                           value={settings.website.metaTitle}
                           onChange={(event) => updateSetting('website', 'metaTitle', event.target.value)}
-                          placeholder="ุงูุนููุงู ุงูุฐู ูุธูุฑ ูู ูุชุงุฆุฌ ุงูุจุญุซ"
+                          placeholder="วแฺไๆวไ วแะํ ํูๅั Ýํ ไสวฦฬ วแศอห"
                           className="bg-slate-950 border-slate-700 text-white"
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm text-slate-200">ุงูููู…ุงุช ุงูู…ูุชุงุญูุฉ (Meta Keywords)</label>
+                        <label className="text-sm text-slate-200">วแ฿แใวส วแใÝสวอํษ (Meta Keywords)</label>
                         <Textarea
                           rows={2}
                           value={settings.website.metaKeywords}
                           onChange={(event) => updateSetting('website', 'metaKeywords', event.target.value)}
-                          placeholder="ุถุน ุงูููู…ุงุช ุงูู…ูุชุงุญูุฉ ู…ูุตููุฉ ุจูุงุตูุฉ"
+                          placeholder="ึฺ วแ฿แใวส วแใÝสวอํษ ใÝีๆแษ ศÝวีแษ"
                           className="bg-slate-950 border-slate-700 text-white"
                         />
                       </div>
@@ -1040,17 +1040,17 @@ export default function SettingsPage() {
                     <CardHeader>
                       <CardTitle className="text-white text-lg flex items-center gap-2">
                         <Mail className="w-5 h-5 text-purple-300" />
-                        ู…ุนููู…ุงุช ุงูุงุชุตุงู
+                        ใฺแๆใวส วแวสีวแ
                       </CardTitle>
                       <CardDescription className="text-slate-300">
-                        ุจูุงูุงุช ุงูุชูุงุตู ุงูุชู ุชุธูุฑ ููุฒูุงุฑ ูุงูุนู…ูุงุก.
+                        ศํวไวส วแสๆวีแ วแสํ สูๅั แแาๆวั ๆวแฺใแวม.
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-5">
                       <div className="space-y-2">
                         <label className="text-sm text-slate-200 flex items-center gap-2">
                           <Mail className="w-4 h-4" />
-                          ุงูุจุฑูุฏ ุงูุฅููุชุฑููู
+                          วแศัํฯ วแลแ฿สัๆไํ
                         </label>
                         <Input
                           type="email"
@@ -1063,7 +1063,7 @@ export default function SettingsPage() {
                       <div className="space-y-2">
                         <label className="text-sm text-slate-200 flex items-center gap-2">
                           <Phone className="w-4 h-4" />
-                          ุฑูู… ุงููุงุชู
+                          ัÞใ วแๅวสÝ
                         </label>
                         <Input
                           type="tel"
@@ -1076,25 +1076,25 @@ export default function SettingsPage() {
                       <div className="rounded-2xl border border-slate-800/70 bg-slate-950/40 p-4 space-y-3">
                         <p className="text-sm font-semibold text-slate-200 flex items-center gap-2">
                           <Share2 className="w-4 h-4" />
-                          ุฑูุงุจุท ู…ูุงูุน ุงูุชูุงุตู ุงูุงุฌุชู…ุงุนู
+                          ัๆวศุ ใๆวÞฺ วแสๆวีแ วแวฬสใวฺํ
                         </p>
                         <div className="space-y-3">
                           <Input
                             value={settings.website.socialFacebook}
                             onChange={(event) => updateSetting('website', 'socialFacebook', event.target.value)}
-                            placeholder="ุฑุงุจุท Facebook"
+                            placeholder="ัวศุ Facebook"
                             className="bg-slate-950 border-slate-700 text-white text-sm"
                           />
                           <Input
                             value={settings.website.socialInstagram}
                             onChange={(event) => updateSetting('website', 'socialInstagram', event.target.value)}
-                            placeholder="ุฑุงุจุท Instagram"
+                            placeholder="ัวศุ Instagram"
                             className="bg-slate-950 border-slate-700 text-white text-sm"
                           />
                           <Input
                             value={settings.website.socialTwitter}
                             onChange={(event) => updateSetting('website', 'socialTwitter', event.target.value)}
-                            placeholder="ุฑุงุจุท Twitter/X"
+                            placeholder="ัวศุ Twitter/X"
                             className="bg-slate-950 border-slate-700 text-white text-sm"
                           />
                         </div>
@@ -1106,38 +1106,38 @@ export default function SettingsPage() {
                     <CardHeader>
                       <CardTitle className="text-white text-lg flex items-center gap-2">
                         <Settings className="w-5 h-5 text-purple-300" />
-                        ุฎูุงุฑุงุช ุงูู…ููุน ุงูู…ุชูุฏู…ุฉ
+                        ฮํวัวส วแใๆÞฺ วแใสÞฯใษ
                       </CardTitle>
                       <CardDescription className="text-slate-300">
-                        ุชูุนูู ุฃู ุฅููุงู ู…ูุฒุงุช ุงูู…ููุน ุงูุฅููุชุฑููู.
+                        สÝฺํแ รๆ ลํÞวÝ ใําวส วแใๆÞฺ วแลแ฿สัๆไํ.
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <ToggleRow
                           icon={BookOpen}
-                          label="ุชูุนูู ูุธุงู… ุงูุญุฌุฒ ุงูู…ุจุงุดุฑ"
-                          description="ุงูุณู…ุงุญ ููุนู…ูุงุก ุจุงูุญุฌุฒ ู…ุจุงุดุฑุฉ ู…ู ุงูู…ููุน ุงูุฅููุชุฑููู."
+                          label="สÝฺํแ ไูวใ วแอฬา วแใศวิั"
+                          description="วแำใวอ แแฺใแวม ศวแอฬา ใศวิัษ ใไ วแใๆÞฺ วแลแ฿สัๆไํ."
                           checked={settings.website.enableBookingWidget}
                           onCheckedChange={(value) => updateSetting('website', 'enableBookingWidget', value)}
                         />
                         <ToggleRow
                           icon={MessageSquare}
-                          label="ุชูุนูู ุงูุฏุฑุฏุดุฉ ุงูู…ุจุงุดุฑุฉ"
-                          description="ุชูุฏูู… ุฏุนู… ููุฑู ููุฒูุงุฑ ุนุจุฑ ูุงูุฐุฉ ุงูุฏุฑุฏุดุฉ ุงูู…ุจุงุดุฑุฉ."
+                          label="สÝฺํแ วแฯัฯิษ วแใศวิัษ"
+                          description="สÞฯํใ ฯฺใ Ýๆัํ แแาๆวั ฺศั ไวÝะษ วแฯัฯิษ วแใศวิัษ."
                           checked={settings.website.enableLiveChat}
                           onCheckedChange={(value) => updateSetting('website', 'enableLiveChat', value)}
                         />
                       </div>
                       <ToggleRow
                         icon={ShieldAlert}
-                        label="ูุถุน ุงูุตูุงูุฉ ููู…ููุน"
-                        description="ุนุฑุถ ุตูุญุฉ ุตูุงูุฉ ููุฒูุงุฑ ู…ุน ุฅุฎูุงุก ุงูู…ุญุชูู ู…ุคูุชุงู."
+                        label="ๆึฺ วแีํวไษ แแใๆÞฺ"
+                        description="ฺัึ ีÝอษ ีํวไษ แแาๆวั ใฺ ลฮÝวม วแใอสๆ์ ใฤÞสว๐."
                         checked={settings.website.maintenanceMode}
                         onCheckedChange={(value) => updateSetting('website', 'maintenanceMode', value)}
                       />
                       <div className="rounded-2xl border border-slate-800/70 bg-slate-950/40 p-4 text-xs text-slate-400 leading-5">
-                        ๐’ก ูุตูุญุฉ: ุชุฃูุฏ ู…ู ุชุญุฏูุซ ู…ุนููู…ุงุช ุงูู…ููุน ุจุงูุชุธุงู… ูุชุญุณูู ุธููุฑู ูู ู…ุญุฑูุงุช ุงูุจุญุซ ูุฒูุงุฏุฉ ุซูุฉ ุงูุนู…ูุงุก.
+                        ?? ไีํอษ: สร฿ฯ ใไ สอฯํห ใฺแๆใวส วแใๆÞฺ ศวไสูวใ แสอำํไ ูๅๆั฿ Ýํ ใอั฿วส วแศอห ๆาํวฯษ หÞษ วแฺใแวม.
                       </div>
                     </CardContent>
                   </Card>
@@ -1150,10 +1150,10 @@ export default function SettingsPage() {
                     <CardHeader>
                       <CardTitle className="text-white text-lg flex items-center gap-2">
                         <Bell className="w-5 h-5 text-purple-300" />
-                        ูููุงุช ุงูุชูุจูู
+                        Þไๆวส วแสไศํๅ
                       </CardTitle>
                       <CardDescription className="text-slate-300">
-                        ุงุฎุชุฑ ุงููููุงุช ุงูู…ูุงุณุจุฉ ูุชูุจูู ุงููุฑู ุงูุชุดุบูููุฉ ูู ุงูููุช ุงูู…ูุงุณุจ.
+                        วฮสั วแÞไๆวส วแใไวำศษ แสไศํๅ วแÝัÞ วแสิÛํแํษ Ýํ วแๆÞส วแใไวำศ.
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -1174,28 +1174,28 @@ export default function SettingsPage() {
                     <CardHeader>
                       <CardTitle className="text-white text-lg flex items-center gap-2">
                         <Sparkles className="w-5 h-5 text-purple-300" />
-                        ุชุฎุตูุต ุงูุฃุตูุงุช ูุงูุชุณููู…
+                        สฮีํี วแรีๆวส ๆวแสำแํใ
                       </CardTitle>
                       <CardDescription className="text-slate-300">
-                        ุญุฏู‘ุฏ ูุบู…ุฉ ููู ุญุฏุซ ูุฑุงุฌุน ุฃููุงุช ุงูุชุณููู… ุงูู…ุฌุฏููุฉ.
+                        อฯ๘ฯ ไÛใษ แ฿แ อฯห ๆัวฬฺ รๆÞวส วแสำแํใ วแใฬฯๆแษ.
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-5">
                       <SoundSettings />
                       <div className="rounded-2xl border border-slate-800/70 bg-slate-950/40 p-4 space-y-3">
-                        <p className="text-sm font-semibold text-slate-200">ุชูููุช ุงูุชูุฑูุฑ ุงูููู…ู</p>
+                        <p className="text-sm font-semibold text-slate-200">สๆÞํส วแสÞัํั วแํๆใํ</p>
                         <Select
                           value={settings.notifications.dailyDigest ? '08:00' : 'none'}
                           onValueChange={(value) => updateSetting('notifications', 'dailyDigest', value !== 'none')}
                         >
                           <SelectTrigger className="bg-slate-950 border-slate-700 text-white">
-                            <SelectValue placeholder="ุงุฎุชุฑ ุงูููุช" />
+                            <SelectValue placeholder="วฮสั วแๆÞส" />
                           </SelectTrigger>
                           <SelectContent className="bg-slate-950 border-slate-700 text-white">
-                            <SelectItem value="08:00">08:00 ุตุจุงุญูุง</SelectItem>
-                            <SelectItem value="12:00">12:00 ุธูุฑูุง</SelectItem>
-                            <SelectItem value="18:00">06:00 ู…ุณุงุกู</SelectItem>
-                            <SelectItem value="none">ุฅููุงู ุงูุชูุฑูุฑ ุงูููู…ู</SelectItem>
+                            <SelectItem value="08:00">08:00 ีศวอ๐ว</SelectItem>
+                            <SelectItem value="12:00">12:00 ูๅั๐ว</SelectItem>
+                            <SelectItem value="18:00">06:00 ใำวม๐</SelectItem>
+                            <SelectItem value="none">ลํÞวÝ วแสÞัํั วแํๆใํ</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -1210,10 +1210,10 @@ export default function SettingsPage() {
                     <CardHeader>
                       <CardTitle className="text-white text-lg flex items-center gap-2">
                         <ShieldCheck className="w-5 h-5 text-purple-300" />
-                        ุณูุงุณุงุช ุงูุญู…ุงูุฉ
+                        ำํวำวส วแอใวํษ
                       </CardTitle>
                       <CardDescription className="text-slate-300">
-                        ูุนู‘ู ุงูุณูุงุณุงุช ุงูุชู ุชุถู…ู ุญู…ุงูุฉ ุจูุงูุงุช ุงูู…ูุดุฃุฉ ูุงูู…ุณุชุฎุฏู…ูู.
+                        Ýฺ๘แ วแำํวำวส วแสํ สึใไ อใวํษ ศํวไวส วแใไิรษ ๆวแใำสฮฯใํไ.
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -1234,15 +1234,15 @@ export default function SettingsPage() {
                     <CardHeader>
                       <CardTitle className="text-white text-lg flex items-center gap-2">
                         <Lock className="w-5 h-5 text-purple-300" />
-                        ุถูุงุจุท ุงูุฌูุณุงุช
+                        ึๆวศุ วแฬแำวส
                       </CardTitle>
                       <CardDescription className="text-slate-300">
-                        ุฅุฏุงุฑุฉ ู…ุฏุฉ ุงูุฌูุณุฉ ูุณูุงุณุฉ ุชุบููุฑ ููู…ุฉ ุงูู…ุฑูุฑ.
+                        ลฯวัษ ใฯษ วแฬแำษ ๆำํวำษ สÛํํั ฿แใษ วแใัๆั.
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-5">
                       <div className="space-y-2">
-                        <label className="text-sm text-slate-200">ุงูุชูุงุก ุงูุฌูุณุฉ (ุฏูุงุฆู)</label>
+                        <label className="text-sm text-slate-200">วไสๅวม วแฬแำษ (ฯÞวฦÞ)</label>
                         <Input
                           type="number"
                           min={5}
@@ -1259,7 +1259,7 @@ export default function SettingsPage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm text-slate-200">ุชุบููุฑ ููู…ุฉ ุงูู…ุฑูุฑ (ุฃูุงู…)</label>
+                        <label className="text-sm text-slate-200">สÛํํั ฿แใษ วแใัๆั (รํวใ)</label>
                         <Input
                           type="number"
                           min={30}
@@ -1276,7 +1276,7 @@ export default function SettingsPage() {
                         />
                       </div>
                       <div className="rounded-2xl border border-slate-800/70 bg-slate-950/40 p-4 text-xs text-slate-400 leading-5">
-                        ูู… ุจู…ุฑุงุฌุนุฉ ุณุฌูุงุช ุงูุฏุฎูู ุฃุณุจูุนููุงุ ูุชุฃูุฏ ู…ู ุฅููุงู ุญุณุงุจุงุช ุงูู…ูุธููู ุงูุณุงุจููู ููุฑ ู…ุบุงุฏุฑุชูู….
+                        Þใ ศใัวฬฺษ ำฬแวส วแฯฮๆแ รำศๆฺํ๐วก ๆสร฿ฯ ใไ ลํÞวÝ อำวศวส วแใๆูÝํไ วแำวศÞํไ Ýๆั ใÛวฯัสๅใ.
                       </div>
                     </CardContent>
                   </Card>
@@ -1289,10 +1289,10 @@ export default function SettingsPage() {
                     <CardHeader>
                       <CardTitle className="text-white text-lg flex items-center gap-2">
                         <ServerCog className="w-5 h-5 text-purple-300" />
-                        ุงูุชูุงู…ูุงุช ุงูู…ุชุงุญุฉ
+                        วแส฿วใแวส วแใสวอษ
                       </CardTitle>
                       <CardDescription className="text-slate-300">
-                        ูุนู‘ู ุงูุชูุงู…ูุงุช ุงูุชู ุชุฏุนู… ุนู…ููุงุชู ุงูููู…ูุฉ ูุฎุตุต ุตูุงุญูุงุชูุง.
+                        Ýฺ๘แ วแส฿วใแวส วแสํ สฯฺใ ฺใแํวส฿ วแํๆใํษ ๆฮีี ีแวอํวสๅว.
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -1313,22 +1313,22 @@ export default function SettingsPage() {
                     <CardHeader>
                       <CardTitle className="text-white text-lg flex items-center gap-2">
                         <Link2 className="w-5 h-5 text-purple-300" />
-                        ู…ุฑุงูุจุฉ ู…ูุงุชูุญ ุงูุฑุจุท
+                        ใัวÞศษ ใÝวสํอ วแัศุ
                       </CardTitle>
                       <CardDescription className="text-slate-300">
-                        ุฑุงุฌุน ุญุงูุฉ ู…ูุงุชูุญ API ูุชุฃูุฏ ู…ู ุตูุงุญูุชูุง ูุชูุฒูุนูุง ุงูุขู…ู.
+                        ัวฬฺ อวแษ ใÝวสํอ API ๆสร฿ฯ ใไ ีแวอํสๅว ๆสๆาํฺๅว วแยใไ.
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-5">
                       <div className="rounded-2xl border border-slate-800/70 bg-slate-950/40 p-4 text-xs text-slate-400 leading-5">
-                        {activeIntegrations} ุชูุงู…ูุงุช ูุดุทุฉ ุญุงูููุง. ููุตุญ ุจุชุฌุฏูุฏ ุฑู…ูุฒ ุงููุตูู ูู 90 ููู…ูุง ูุชูุซูู ุจูุงูุงุช ุงูุงุนุชู…ุงุฏ ูู ุฎุฒูุฉ ุขู…ูุฉ.
+                        {activeIntegrations} ส฿วใแวส ไิุษ อวแํ๐ว. ไไีอ ศสฬฯํฯ ัใๆา วแๆีๆแ ฿แ 90 ํๆใ๐ว ๆสๆหํÞ ศํวไวส วแวฺสใวฯ Ýํ ฮาไษ ยใไษ.
                       </div>
                       <Button
                         variant="outline"
                         className="w-full border-purple-400/40 text-purple-200 bg-purple-500/10 hover:bg-purple-500/20"
                         onClick={() => router.push('/dashboard/settings/keys')}
                       >
-                        ุฅุฏุงุฑุฉ ู…ูุงุชูุญ API ูุงูุชูุงู…ูุงุช
+                        ลฯวัษ ใÝวสํอ API ๆวแส฿วใแวส
                       </Button>
                     </CardContent>
                   </Card>
@@ -1341,22 +1341,22 @@ export default function SettingsPage() {
                     <CardHeader>
                       <CardTitle className="text-white text-lg flex items-center gap-2">
                         <Database className="w-5 h-5 text-purple-300" />
-                        ุณูุงุณุฉ ุงููุณุฎ ุงูุงุญุชูุงุทู
+                        ำํวำษ วแไำฮ วแวอสํวุํ
                       </CardTitle>
                       <CardDescription className="text-slate-300">
-                        ุญุฏุฏ ุชูุฑุงุฑ ุงููุณุฎุ ู…ุฏุฉ ุงูุงุญุชูุงุธุ ูุฎูุงุฑุงุช ุงูุชุฎุฒูู ุงูู…ุชูุฏู…ุฉ.
+                        อฯฯ ส฿ัวั วแไำฮก ใฯษ วแวอสÝวูก ๆฮํวัวส วแสฮาํไ วแใสÞฯใษ.
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-5">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <label className="text-sm text-slate-200">ุชูุฑุงุฑ ุงููุณุฎ ุงูุงุญุชูุงุทู</label>
+                          <label className="text-sm text-slate-200">ส฿ัวั วแไำฮ วแวอสํวุํ</label>
                           <Select
                             value={settings.backups.backupFrequency}
                             onValueChange={(value) => updateSetting('backups', 'backupFrequency', value)}
                           >
                             <SelectTrigger className="bg-slate-950 border-slate-700 text-white">
-                              <SelectValue placeholder="ุงุฎุชุฑ ุงูุชูุฑุงุฑ" />
+                              <SelectValue placeholder="วฮสั วแส฿ัวั" />
                             </SelectTrigger>
                             <SelectContent className="bg-slate-950 border-slate-700 text-white">
                               {BACKUP_FREQUENCIES.map((option) => (
@@ -1368,7 +1368,7 @@ export default function SettingsPage() {
                           </Select>
                         </div>
                         <div className="space-y-2">
-                          <label className="text-sm text-slate-200">ู…ุฏุฉ ุงูุงุญุชูุงุธ (ุฃูุงู…)</label>
+                          <label className="text-sm text-slate-200">ใฯษ วแวอสÝวู (รํวใ)</label>
                           <Input
                             type="number"
                             min={7}
@@ -1396,7 +1396,7 @@ export default function SettingsPage() {
                         />
                       ))}
                       <div className="rounded-2xl border border-slate-800/70 bg-slate-950/40 p-4 text-xs text-slate-400 leading-5">
-                        ูุชู… ุญูุธ ุงููุณุฎ ุงูุงุญุชูุงุทูุฉ ูู ุณุญุงุจุฉ ู…ุดูุฑุฉ. ูู…ููู ุชูุฒูู ูุณุฎุฉ ูุฏููุฉ ุฃู ุงุณุชุนุงุฏุชูุง ู…ู ุฎูุงู ููุญุฉ ุงูุชูุงุฑูุฑ ุงูู…ุงููุฉ.
+                        ํสใ อÝู วแไำฮ วแวอสํวุํษ Ýํ ำอวศษ ใิÝัษ. ํใ฿ไ฿ สไาํแ ไำฮษ ํฯๆํษ รๆ วำสฺวฯสๅว ใไ ฮแวแ แๆอษ วแสÞวัํั วแใวแํษ.
                       </div>
                     </CardContent>
                   </Card>
@@ -1405,29 +1405,29 @@ export default function SettingsPage() {
                     <CardHeader>
                       <CardTitle className="text-white text-lg flex items-center gap-2">
                         <CloudDownload className="w-5 h-5 text-purple-300" />
-                        ุขุฎุฑ ูุณุฎุฉ ุงุญุชูุงุทูุฉ
+                        ยฮั ไำฮษ วอสํวุํษ
                       </CardTitle>
                       <CardDescription className="text-slate-300">
-                        ุชุญุฏูุซ ููุช ุขุฎุฑ ูุณุฎุฉ ูุงูุชุฃูุฏ ู…ู ุฌุงูุฒูุฉ ุฎุทุฉ ุงูุงุณุชุฌุงุจุฉ ููุทูุงุฑุฆ.
+                        สอฯํห ๆÞส ยฮั ไำฮษ ๆวแสร฿ฯ ใไ ฬวๅาํษ ฮุษ วแวำสฬวศษ แแุๆวัฦ.
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-5">
                       <div className="space-y-2">
-                        <label className="text-sm text-slate-200">ุชุงุฑูุฎ ูููุช ุขุฎุฑ ูุณุฎุฉ</label>
+                        <label className="text-sm text-slate-200">สวัํฮ ๆๆÞส ยฮั ไำฮษ</label>
                         <Input
                           value={settings.backups.lastBackup}
                           onChange={(event) => updateSetting('backups', 'lastBackup', event.target.value)}
                           className="bg-slate-950 border-slate-700 text-white"
                         />
                         <p className="text-xs text-slate-400">
-                          ูุชู… ุงุณุชุฎุฏุงู… ูุฐู ุงูููู…ุฉ ูุฅุฑุณุงู ุชุฐููุฑ ุชููุงุฆู ูุจู ุงูุญุงุฌุฉ ุฅูู ุงููุณุฎุฉ ุงูุชุงููุฉ.
+                          ํสใ วำสฮฯวใ ๅะๅ วแÞํใษ แลัำวแ สะ฿ํั สแÞวฦํ Þศแ วแอวฬษ ลแ์ วแไำฮษ วแสวแํษ.
                         </p>
                       </div>
                       <Button
                         className="w-full bg-purple-600 hover:bg-purple-700 text-white"
                         onClick={() => router.push('/dashboard/accounting/cash-flow')}
                       >
-                        ุชูุฒูู ุณุฌู ุงููุณุฎ ุงูุงุญุชูุงุทูุฉ
+                        สไาํแ ำฬแ วแไำฮ วแวอสํวุํษ
                       </Button>
                     </CardContent>
                   </Card>
@@ -1440,21 +1440,21 @@ export default function SettingsPage() {
                     <CardHeader>
                       <CardTitle className="text-white text-lg flex items-center gap-2">
                         <Palette className="w-5 h-5 text-purple-300" />
-                        ุฅุนุฏุงุฏุงุช ุงูู…ุธูุฑ
+                        ลฺฯวฯวส วแใูๅั
                       </CardTitle>
                       <CardDescription className="text-slate-300">
-                        ุงุถุจุท ุงูุฃููุงู ููุซุงูุฉ ุงููุงุฌูุฉ ุจู…ุง ูุชูุงุณุจ ู…ุน ูููุฉ ู…ูุดุฃุชู.
+                        วึศุ วแรแๆวไ ๆ฿หวÝษ วแๆวฬๅษ ศใว ํสไวำศ ใฺ ๅๆํษ ใไิรส฿.
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-5">
                       <div className="space-y-2">
-                        <label className="text-sm text-slate-200">ููู ุงูุชู…ููุฒ</label>
+                        <label className="text-sm text-slate-200">แๆไ วแสใํํา</label>
                         <Select
                           value={settings.appearance.accentColor}
                           onValueChange={(value) => updateSetting('appearance', 'accentColor', value)}
                         >
                           <SelectTrigger className="bg-slate-950 border-slate-700 text-white">
-                            <SelectValue placeholder="ุงุฎุชุฑ ุงูููู" />
+                            <SelectValue placeholder="วฮสั วแแๆไ" />
                           </SelectTrigger>
                           <SelectContent className="bg-slate-950 border-slate-700 text-white">
                             {ACCENT_OPTIONS.map((option) => (
@@ -1466,13 +1466,13 @@ export default function SettingsPage() {
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm text-slate-200">ูุซุงูุฉ ุงููุงุฌูุฉ</label>
+                        <label className="text-sm text-slate-200">฿หวÝษ วแๆวฬๅษ</label>
                         <Select
                           value={settings.appearance.layoutDensity}
                           onValueChange={(value) => updateSetting('appearance', 'layoutDensity', value)}
                         >
                           <SelectTrigger className="bg-slate-950 border-slate-700 text-white">
-                            <SelectValue placeholder="ุงุฎุชุฑ ุงููุซุงูุฉ" />
+                            <SelectValue placeholder="วฮสั วแ฿หวÝษ" />
                           </SelectTrigger>
                           <SelectContent className="bg-slate-950 border-slate-700 text-white">
                             {DENSITY_OPTIONS.map((option) => (
@@ -1500,50 +1500,50 @@ export default function SettingsPage() {
                     <CardHeader>
                       <CardTitle className="text-white text-lg flex items-center gap-2">
                         <Sparkles className="w-5 h-5 text-purple-300" />
-                        ู…ุนุงููุฉ ุงููุงุฌูุฉ
+                        ใฺวํไษ วแๆวฬๅษ
                       </CardTitle>
                       <CardDescription className="text-slate-300">
-                        ุชุฃูุฏ ู…ู ุชุทุงุจู ุงูู…ุธูุฑ ุงูููุงุฆู ู…ุน ูููุฉ ู…ูุดุฃุชู ูุจู ุงูุงุนุชู…ุงุฏ.
+                        สร฿ฯ ใไ สุวศÞ วแใูๅั วแไๅวฦํ ใฺ ๅๆํษ ใไิรส฿ Þศแ วแวฺสใวฯ.
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="rounded-2xl border border-slate-800/80 bg-gradient-to-br from-slate-950 via-slate-900 to-purple-950 p-6 space-y-4">
                         <div className="flex items-center justify-between">
                           <div className="space-y-1">
-                            <p className="text-xs uppercase tracking-wide text-slate-400">ู…ุนุงููุฉ</p>
+                            <p className="text-xs uppercase tracking-wide text-slate-400">ใฺวํไษ</p>
                             <p className="text-white font-semibold">{settings.general.companyName}</p>
                           </div>
-                          <Badge className="bg-white/10 border-white/20 text-white text-[11px]" variant="outline">
+                          <Badge className="bg-gray-800/50 border-white/20 text-white text-[11px]" variant="outline">
                             {settings.appearance.accentColor.toUpperCase()}
                           </Badge>
                         </div>
                         <div className="rounded-xl border border-slate-800/70 bg-slate-900/70 p-4 space-y-2">
                           <p className="text-sm text-slate-200">{settings.general.companyTagline}</p>
                           <p className="text-xs text-slate-400">
-                            ูุซุงูุฉ ุงููุงุฌูุฉ: {settings.appearance.layoutDensity === 'compact'
-                              ? 'ู…ุถุบูุท'
+                            ฿หวÝษ วแๆวฬๅษ: {settings.appearance.layoutDensity === 'compact'
+                              ? 'ใึÛๆุ'
                               : settings.appearance.layoutDensity === 'comfortable'
-                                ? 'ู…ุฑูุญ'
-                                : 'ูุงุณุน'}
+                                ? 'ใัํอ'
+                                : 'ๆวำฺ'}
                           </p>
                         </div>
                         <div className="flex flex-wrap gap-2 text-xs text-slate-400">
                           <span className="px-3 py-1 rounded-full border border-purple-400/40 bg-purple-500/10 text-purple-200">
-                            ูุถุน ุงููุธุงู…: {settings.general.systemMode === 'dark' ? 'ุฏุงูู' : settings.general.systemMode === 'light' ? 'ูุงุชุญ' : 'ุญุณุจ ุงูุฌูุงุฒ'}
+                            ๆึฺ วแไูวใ: {settings.general.systemMode === 'dark' ? 'ฯว฿ไ' : settings.general.systemMode === 'light' ? 'Ýวสอ' : 'อำศ วแฬๅวา'}
                           </span>
                           {settings.appearance.bubbleBackground ? (
                             <span className="px-3 py-1 rounded-full border border-emerald-400/30 bg-emerald-500/10 text-emerald-200">
-                              ุชุฃุซูุฑ ุงูููุงุนุงุช ู…ูุนู
+                              สรหํั วแÝÞวฺวส ใÝฺแ
                             </span>
                           ) : null}
                           {settings.appearance.animatedTransitions ? (
                             <span className="px-3 py-1 rounded-full border border-purple-400/30 bg-purple-500/10 text-purple-200">
-                              ุงูุชูุงูุงุช ุฏููุงู…ูููุฉ
+                              วไสÞวแวส ฯํไวใํ฿ํษ
                             </span>
                           ) : null}
                           {settings.appearance.showTips ? (
                             <span className="px-3 py-1 rounded-full border border-amber-400/30 bg-amber-500/10 text-amber-200">
-                              ุชูู…ูุญุงุช ู…ูุนูุฉ
+                              สแใํอวส ใÝฺแษ
                             </span>
                           ) : null}
                         </div>
@@ -1559,10 +1559,10 @@ export default function SettingsPage() {
                     <CardHeader>
                       <CardTitle className="text-white text-lg flex items-center gap-2">
                         <Zap className="w-5 h-5 text-purple-300" />
-                        ุฎูุงุฑุงุช ู…ุชูุฏู…ุฉ
+                        ฮํวัวส ใสÞฯใษ
                       </CardTitle>
                       <CardDescription className="text-slate-300">
-                        ุถุจุท ุณููู ุงููุธุงู… ุงูุชููู ูุฃุฏูุงุช ุงูู…ุฑุงูุจุฉ ุงูู…ุชูุฏู…ุฉ.
+                        ึศุ ำแๆ฿ วแไูวใ วแสÞไํ ๆรฯๆวส วแใัวÞศษ วแใสÞฯใษ.
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -1583,15 +1583,15 @@ export default function SettingsPage() {
                     <CardHeader>
                       <CardTitle className="text-white text-lg flex items-center gap-2">
                         <ServerCog className="w-5 h-5 text-purple-300" />
-                        ุฅุฏุงุฑุฉ ุงูุฃุฏุงุก ูุงูุชุฎุฒูู ุงูู…ุคูุช
+                        ลฯวัษ วแรฯวม ๆวแสฮาํไ วแใฤÞส
                       </CardTitle>
                       <CardDescription className="text-slate-300">
-                        ุถุจุท ุญุฌู… ุงููุงุด ูู…ุชุงุจุนุฉ ุนู…ููุงุช ุงูุตูุงูุฉ ุงูู…ุณุชู…ุฑุฉ.
+                        ึศุ อฬใ วแ฿วิ ๆใสวศฺษ ฺใแํวส วแีํวไษ วแใำสใัษ.
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-5">
                       <div className="space-y-2">
-                        <label className="text-sm text-slate-200">ุณุนุฉ ุงูุชุฎุฒูู ุงูู…ุคูุช (ู…ูุฌุงุจุงูุช)</label>
+                        <label className="text-sm text-slate-200">ำฺษ วแสฮาํไ วแใฤÞส (ใํฬวศวํส)</label>
                         <Input
                           type="number"
                           min={128}
@@ -1608,14 +1608,14 @@ export default function SettingsPage() {
                         />
                       </div>
                       <div className="rounded-2xl border border-slate-800/70 bg-slate-950/40 p-4 text-xs text-slate-400 leading-5">
-                        ูุนู‘ู ู…ุฑุงูุจุฉ ุงูุฃุฏุงุก ููุญุตูู ุนูู ุฅุดุนุงุฑุงุช ููุฑูุฉ ุนูุฏ ุงุฑุชูุงุน ุงุณุชููุงู ุงูู…ุนุงูุฌ ุฃู ุงูุฐุงูุฑุฉุ ู…ุน ุชูุงุฑูุฑ ุฃุณุจูุนูุฉ ูุฃุจุฑุฒ ุงูู…ุคุดุฑุงุช.
+                        Ýฺ๘แ ใัวÞศษ วแรฯวม แแอีๆแ ฺแ์ ลิฺวัวส Ýๆัํษ ฺไฯ วัสÝวฺ วำสๅแว฿ วแใฺวแฬ รๆ วแะว฿ัษก ใฺ สÞวัํั รำศๆฺํษ แรศัา วแใฤิัวส.
                       </div>
                       <Button
                         variant="outline"
                         className="w-full border-purple-400/40 text-purple-200 bg-purple-500/10 hover:bg-purple-500/20"
                         onClick={() => router.push('/dashboard/analytics')}
                       >
-                        ุนุฑุถ ููุญุฉ ู…ุฑุงูุจุฉ ุงูุฃุฏุงุก
+                        ฺัึ แๆอษ ใัวÞศษ วแรฯวม
                       </Button>
                     </CardContent>
                   </Card>
@@ -1627,7 +1627,7 @@ export default function SettingsPage() {
 
         <footer className="text-center text-sm text-purple-300/50 py-4">
           <p>
-            ุชู… ุชุทููุฑ ูุฐุง ุงููุธุงู… ุจูุงุณุทุฉ <span className="font-semibold text-purple-300/80">Eng/Akram elmasry</span>
+            สใ สุๆํั ๅะว วแไูวใ ศๆวำุษ <span className="font-semibold text-purple-300/80">Eng/Akram elmasry</span>
           </p>
         </footer>
       </div>

@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Coffee, Edit2, Minus, Plus, Trash2, CheckCircle, Send } from 'lucide-react';
+import { Coffee, Edit2, Minus, Plus, Trash2, CheckCircle, Send, Users, Clock, Phone, Home } from 'lucide-react';
+import useGuestOrders, { GuestOrder } from '@/hooks/useGuestOrders';
 import { getRoomsFromStorage } from '@/lib/rooms-data';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -153,6 +154,15 @@ export default function CoffeeShopPage() {
   const [menuForm, setMenuForm] = useState<MenuFormState>(initialMenuForm);
   const [orderFilter, setOrderFilter] = useState<'all' | OrderStatus>('all');
   const [search, setSearch] = useState('');
+  const [activeTab, setActiveTab] = useState<'staff-orders' | 'guest-orders'>('staff-orders');
+  
+  // طلبات النزلاء
+  const { 
+    orders: guestOrders, 
+    updateOrderStatus: updateGuestOrderStatus,
+    getOrdersByService,
+    refreshOrders
+  } = useGuestOrders();
 
   useEffect(() => {
     const rooms = getRoomsFromStorage();
@@ -419,6 +429,26 @@ export default function CoffeeShopPage() {
           </Card>
         </div>
 
+        {/* Tabs */}
+        <div className="flex gap-2 bg-gray-800/50 rounded-lg p-1">
+          <Button
+            onClick={() => setActiveTab('staff-orders')}
+            variant={activeTab === 'staff-orders' ? 'default' : 'ghost'}
+            className={`flex-1 ${activeTab === 'staff-orders' ? 'bg-amber-600 text-white' : 'text-gray-300 hover:bg-gray-700/50'}`}
+          >
+            <Coffee className="h-4 w-4 mr-2" />
+            طلبات الموظفين
+          </Button>
+          <Button
+            onClick={() => setActiveTab('guest-orders')}
+            variant={activeTab === 'guest-orders' ? 'default' : 'ghost'}
+            className={`flex-1 ${activeTab === 'guest-orders' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-700/50'}`}
+          >
+            <Users className="h-4 w-4 mr-2" />
+            طلبات النزلاء ({getOrdersByService('coffee').length})
+          </Button>
+        </div>
+
         {/* Main Content - 2 Column Grid */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Menu and Active Orders - 2 columns */}
@@ -462,12 +492,13 @@ export default function CoffeeShopPage() {
               </CardContent>
             </Card>
 
-            {/* Active Orders Section */}
-            <Card className="border-slate-800 bg-slate-900/40">
-              <CardHeader>
-                <CardTitle className="text-white">الطلبات النشطة ({activeOrders.length})</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 max-h-96 overflow-y-auto">
+            {/* Orders Section - Conditional */}
+            {activeTab === 'staff-orders' ? (
+              <Card className="border-slate-800 bg-slate-900/40">
+                <CardHeader>
+                  <CardTitle className="text-white">الطلبات النشطة ({activeOrders.length})</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 max-h-96 overflow-y-auto">
                 {activeOrders.length === 0 ? (
                   <p className="text-slate-400 text-center py-4">لا توجد طلبات نشطة</p>
                 ) : (
@@ -490,7 +521,7 @@ export default function CoffeeShopPage() {
                             </SelectTrigger>
                             <SelectContent className="bg-slate-900 border-white/20">
                               {ORDER_STATUSES.map((st) => (
-                                <SelectItem key={st.value} value={st.value} className="text-white focus:bg-white/10 focus:text-white">
+                                <SelectItem key={st.value} value={st.value} className="text-white focus:bg-gray-700 focus:text-white">
                                   {st.label}
                                 </SelectItem>
                               ))}
@@ -522,6 +553,105 @@ export default function CoffeeShopPage() {
                 )}
               </CardContent>
             </Card>
+            ) : (
+              /* طلبات النزلاء */
+              <Card className="border-slate-800 bg-slate-900/40">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    طلبات النزلاء ({getOrdersByService('coffee').length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 max-h-96 overflow-y-auto">
+                  {getOrdersByService('coffee').length === 0 ? (
+                    <p className="text-slate-400 text-center py-4">لا توجد طلبات من النزلاء</p>
+                  ) : (
+                    getOrdersByService('coffee')
+                      .filter(order => order.status !== 'delivered')
+                      .map((order: GuestOrder) => (
+                        <div key={order.id} className="p-4 rounded-lg border border-slate-800 bg-slate-950/50 hover:border-slate-700 transition-colors">
+                          <div className="flex items-start justify-between gap-2 mb-3">
+                            <div>
+                              <p className="font-semibold text-white text-sm">{order.guestData.name}</p>
+                              <div className="flex items-center gap-3 text-xs text-slate-400 mt-1">
+                                <span className="flex items-center gap-1">
+                                  <Home className="h-3 w-3" />
+                                  غرفة {order.guestData.roomNumber}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Phone className="h-3 w-3" />
+                                  {order.guestData.phone}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  {new Date(order.createdAt).toLocaleTimeString('ar-SA', { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit' 
+                                  })}
+                                </span>
+                              </div>
+                            </div>
+                            <Badge className={
+                              order.status === 'pending' ? 'bg-yellow-600 text-white' :
+                              order.status === 'preparing' ? 'bg-blue-600 text-white' :
+                              order.status === 'ready' ? 'bg-green-600 text-white' :
+                              order.status === 'cancelled' ? 'bg-red-600 text-white' :
+                              'bg-gray-600 text-white'
+                            }>
+                              {order.status === 'pending' ? 'معلق' :
+                               order.status === 'preparing' ? 'قيد التحضير' :
+                               order.status === 'ready' ? 'جاهز' :
+                               order.status === 'cancelled' ? 'ملغي' : 'تم التسليم'}
+                            </Badge>
+                          </div>
+                          
+                          <div className="mb-3">
+                            <p className="text-xs text-slate-400 mb-2">العناصر المطلوبة:</p>
+                            <div className="space-y-1">
+                              {order.items.map((item, index) => (
+                                <div key={index} className="flex justify-between text-xs">
+                                  <span className="text-slate-300">{item.quantity}x {item.nameAr}</span>
+                                  <span className="text-slate-400">{item.price * item.quantity} ر.س</span>
+                                </div>
+                              ))}
+                            </div>
+                            <div className="flex justify-between text-sm font-semibold text-white mt-2 pt-2 border-t border-slate-700">
+                              <span>الإجمالي:</span>
+                              <span>{order.total} ر.س</span>
+                            </div>
+                          </div>
+
+                          <div className="flex gap-2">
+                            <Select 
+                              value={order.status} 
+                              onValueChange={(status) => updateGuestOrderStatus(order.id, status as GuestOrder['status'])}
+                            >
+                              <SelectTrigger className="flex-1 h-8 text-xs border-slate-700 bg-slate-900">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-slate-900 border-white/20">
+                                <SelectItem value="pending" className="text-white focus:bg-gray-700">معلق</SelectItem>
+                                <SelectItem value="preparing" className="text-white focus:bg-gray-700">قيد التحضير</SelectItem>
+                                <SelectItem value="ready" className="text-white focus:bg-gray-700">جاهز</SelectItem>
+                                <SelectItem value="delivered" className="text-white focus:bg-gray-700">تم التسليم</SelectItem>
+                                <SelectItem value="cancelled" className="text-white focus:bg-gray-700">ملغي</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Button 
+                              size="sm" 
+                              onClick={() => refreshOrders()}
+                              variant="outline"
+                              className="h-8 px-3 text-xs border-slate-600 text-slate-300"
+                            >
+                              تحديث
+                            </Button>
+                          </div>
+                        </div>
+                      ))
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Sidebar - Orders List */}
@@ -542,9 +672,9 @@ export default function CoffeeShopPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-900 border-white/20">
-                    <SelectItem value="all" className="text-white focus:bg-white/10 focus:text-white">جميع</SelectItem>
+                    <SelectItem value="all" className="text-white focus:bg-gray-700 focus:text-white">جميع</SelectItem>
                     {ORDER_STATUSES.map((st) => (
-                      <SelectItem key={st.value} value={st.value} className="text-white focus:bg-white/10 focus:text-white">
+                      <SelectItem key={st.value} value={st.value} className="text-white focus:bg-gray-700 focus:text-white">
                         {st.label}
                       </SelectItem>
                     ))}
@@ -606,9 +736,9 @@ export default function CoffeeShopPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-900 border-white/20">
-                    <SelectItem value="room_charge" className="text-white focus:bg-white/10 focus:text-white">على الحساب</SelectItem>
-                    <SelectItem value="cash" className="text-white focus:bg-white/10 focus:text-white">نقدي</SelectItem>
-                    <SelectItem value="card" className="text-white focus:bg-white/10 focus:text-white">بطاقة</SelectItem>
+                    <SelectItem value="room_charge" className="text-white focus:bg-gray-700 focus:text-white">على الحساب</SelectItem>
+                    <SelectItem value="cash" className="text-white focus:bg-gray-700 focus:text-white">نقدي</SelectItem>
+                    <SelectItem value="card" className="text-white focus:bg-gray-700 focus:text-white">بطاقة</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -623,7 +753,7 @@ export default function CoffeeShopPage() {
                   </SelectTrigger>
                   <SelectContent className="bg-slate-900 border-white/20">
                     {occupiedRooms.map((room) => (
-                      <SelectItem key={room.number} value={room.number} className="text-white focus:bg-white/10 focus:text-white">
+                      <SelectItem key={room.number} value={room.number} className="text-white focus:bg-gray-700 focus:text-white">
                         {room.number} - {room.guestName}
                       </SelectItem>
                     ))}
@@ -707,7 +837,7 @@ export default function CoffeeShopPage() {
                   </SelectTrigger>
                   <SelectContent className="bg-slate-900 border-white/20">
                     {Object.entries(categoryDictionary).map(([v, l]) => (
-                      <SelectItem key={v} value={v} className="text-white focus:bg-white/10 focus:text-white">
+                      <SelectItem key={v} value={v} className="text-white focus:bg-gray-700 focus:text-white">
                         {l}
                       </SelectItem>
                     ))}

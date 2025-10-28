@@ -545,7 +545,7 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
                 )}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[calc(100vw-2rem)] sm:w-96 max-w-md bg-white shadow-xl z-50">
+            <DropdownMenuContent align="end" className="w-[calc(100vw-2rem)] sm:w-96 max-w-md bg-gray-800 shadow-xl z-50">
               <DropdownMenuLabel className="flex items-center justify-between text-gray-900">
                 <span className="font-semibold">الإشعارات الذكية</span>
                 <div className="flex gap-2">
@@ -705,7 +705,7 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
                 </div>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 bg-white shadow-xl z-50">
+            <DropdownMenuContent align="end" className="w-48 bg-gray-800 shadow-xl z-50">
               <DropdownMenuLabel className="text-gray-900">
                 <div className="font-semibold">{user?.name || user?.username}</div>
                 <div className="text-xs text-gray-500 font-normal">{user?.role}</div>

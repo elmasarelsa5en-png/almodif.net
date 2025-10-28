@@ -44,6 +44,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import BulkImportModal from '@/components/bulk-import-modal';
 
 interface MenuItem {
   id: string;
@@ -77,6 +78,7 @@ export default function MenuItemsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -235,6 +237,24 @@ export default function MenuItemsPage() {
     });
   };
 
+  // معالجة الاستيراد المجمع
+  const handleBulkImport = (importedItems: MenuItem[]) => {
+    importedItems.forEach(item => {
+      const storageKey = {
+        coffee: 'coffee_menu',
+        restaurant: 'restaurant_menu',
+        laundry: 'laundry_services',
+      }[item.category];
+
+      const existingItems = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      existingItems.push(item);
+      localStorage.setItem(storageKey, JSON.stringify(existingItems));
+    });
+
+    loadItems();
+    setIsBulkImportOpen(false);
+  };
+
   const getCategoryIcon = (category: string) => {
     const cat = CATEGORIES.find((c) => c.value === category);
     const Icon = cat?.icon || Coffee;
@@ -269,6 +289,14 @@ export default function MenuItemsPage() {
           </div>
           <div className="flex gap-2">
             <Button
+              onClick={() => setIsBulkImportOpen(true)}
+              variant="outline"
+              className="border-gray-600 text-white hover:bg-gray-700/50"
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              استيراد مجمع
+            </Button>
+            <Button
               onClick={() => {
                 resetForm();
                 setIsDialogOpen(true);
@@ -283,7 +311,7 @@ export default function MenuItemsPage() {
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="bg-white/10 border-white/20">
+          <Card className="bg-gray-800/50 border-gray-600/50">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm text-purple-200">إجمالي الأصناف</CardTitle>
             </CardHeader>
@@ -295,7 +323,7 @@ export default function MenuItemsPage() {
             const Icon = cat.icon;
             const count = items.filter((i) => i.category === cat.value).length;
             return (
-              <Card key={cat.value} className="bg-white/10 border-white/20">
+              <Card key={cat.value} className="bg-gray-800/50 border-gray-600/50">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm text-purple-200 flex items-center gap-2">
                     <Icon className="h-4 w-4" />
@@ -311,7 +339,7 @@ export default function MenuItemsPage() {
         </div>
 
         {/* Filters */}
-        <Card className="bg-white/10 border-white/20">
+        <Card className="bg-gray-800/50 border-gray-600/50">
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
@@ -321,18 +349,18 @@ export default function MenuItemsPage() {
                     placeholder="بحث عن صنف..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pr-10 bg-white/5 border-white/20 text-white"
+                    className="pr-10 bg-gray-700/50 border-gray-600 text-white"
                   />
                 </div>
               </div>
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-full md:w-[200px] bg-white/5 border-white/20 text-white">
+                <SelectTrigger className="w-full md:w-[200px] bg-gray-700/50 border-gray-600 text-white">
                   <SelectValue placeholder="جميع الفئات" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">جميع الفئات</SelectItem>
+                <SelectContent className="bg-gray-800 border border-gray-600">
+                  <SelectItem value="all" className="text-white hover:bg-gray-700">جميع الفئات</SelectItem>
                   {CATEGORIES.map((cat) => (
-                    <SelectItem key={cat.value} value={cat.value}>
+                    <SelectItem key={cat.value} value={cat.value} className="text-white hover:bg-gray-700">
                       {cat.label}
                     </SelectItem>
                   ))}
@@ -345,11 +373,11 @@ export default function MenuItemsPage() {
         {/* Items Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filteredItems.map((item) => (
-            <Card key={item.id} className="bg-white/10 border-white/20 hover:bg-white/15 transition-all">
+            <Card key={item.id} className="bg-gray-800/50 border-gray-600/50 hover:bg-gray-700/50 transition-all">
               <CardContent className="p-4">
                 {/* Image */}
                 {item.image && (
-                  <div className="w-full h-32 bg-white/5 rounded-lg mb-3 overflow-hidden">
+                  <div className="w-full h-32 bg-gray-700/30 rounded-lg mb-3 overflow-hidden">
                     <img
                       src={item.image}
                       alt={item.nameAr}
@@ -358,8 +386,8 @@ export default function MenuItemsPage() {
                   </div>
                 )}
                 {!item.image && (
-                  <div className="w-full h-32 bg-white/5 rounded-lg mb-3 flex items-center justify-center">
-                    <ImageIcon className="h-12 w-12 text-white/20" />
+                  <div className="w-full h-32 bg-gray-700/30 rounded-lg mb-3 flex items-center justify-center">
+                    <ImageIcon className="h-12 w-12 text-gray-400" />
                   </div>
                 )}
 
@@ -395,7 +423,7 @@ export default function MenuItemsPage() {
                     size="sm"
                     variant="outline"
                     onClick={() => handleEdit(item)}
-                    className="flex-1 border-white/20 text-white hover:bg-white/10"
+                    className="flex-1 border-gray-600 text-white hover:bg-gray-700/50"
                   >
                     <Edit2 className="h-3 w-3 mr-1" />
                     تعديل
@@ -415,9 +443,9 @@ export default function MenuItemsPage() {
         </div>
 
         {filteredItems.length === 0 && (
-          <Card className="bg-white/10 border-white/20">
+          <Card className="bg-gray-800/50 border-gray-600/50">
             <CardContent className="py-12 text-center">
-              <ImageIcon className="h-16 w-16 text-white/20 mx-auto mb-4" />
+              <ImageIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
               <p className="text-white/60 text-lg">لا توجد أصناف</p>
               <p className="text-white/40 text-sm mt-2">ابدأ بإضافة أصناف جديدة</p>
             </CardContent>
@@ -447,14 +475,14 @@ export default function MenuItemsPage() {
                   setFormData({ ...formData, category: value, subCategory: '' })
                 }
               >
-                <SelectTrigger className="bg-white/5 border-white/20 text-white">
+                <SelectTrigger className="bg-gray-700/50 border-gray-600 text-white">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-gray-800 border border-gray-600">
                   {CATEGORIES.map((cat) => {
                     const Icon = cat.icon;
                     return (
-                      <SelectItem key={cat.value} value={cat.value}>
+                      <SelectItem key={cat.value} value={cat.value} className="text-white hover:bg-gray-700">
                         <div className="flex items-center gap-2">
                           <Icon className="h-4 w-4" />
                           {cat.label}
@@ -473,12 +501,12 @@ export default function MenuItemsPage() {
                 value={formData.subCategory}
                 onValueChange={(value) => setFormData({ ...formData, subCategory: value })}
               >
-                <SelectTrigger className="bg-white/5 border-white/20 text-white">
+                <SelectTrigger className="bg-gray-700/50 border-gray-600 text-white">
                   <SelectValue placeholder="اختر التصنيف..." />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-gray-800 border border-gray-600">
                   {SUB_CATEGORIES[formData.category].map((sub) => (
-                    <SelectItem key={sub} value={sub}>
+                    <SelectItem key={sub} value={sub} className="text-white hover:bg-gray-700">
                       {sub}
                     </SelectItem>
                   ))}
@@ -493,7 +521,7 @@ export default function MenuItemsPage() {
                 value={formData.nameAr}
                 onChange={(e) => setFormData({ ...formData, nameAr: e.target.value })}
                 placeholder="مثال: شاي، غسيل ثوب، برجر..."
-                className="bg-white/5 border-white/20 text-white"
+                className="bg-gray-700/50 border-gray-600 text-white"
               />
             </div>
 
@@ -504,7 +532,7 @@ export default function MenuItemsPage() {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="Tea, Laundry, Burger..."
-                className="bg-white/5 border-white/20 text-white"
+                className="bg-gray-700/50 border-gray-600 text-white"
               />
             </div>
 
@@ -517,7 +545,7 @@ export default function MenuItemsPage() {
                 value={formData.price}
                 onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                 placeholder="25.00"
-                className="bg-white/5 border-white/20 text-white"
+                className="bg-gray-700/50 border-gray-600 text-white"
               />
             </div>
 
@@ -528,19 +556,54 @@ export default function MenuItemsPage() {
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="وصف مختصر للصنف..."
-                className="bg-white/5 border-white/20 text-white"
+                className="bg-gray-700/50 border-gray-600 text-white"
               />
             </div>
 
-            {/* Image URL */}
+            {/* Image Upload */}
             <div>
-              <Label className="text-white mb-2 block">رابط الصورة (اختياري)</Label>
-              <Input
-                value={formData.image}
-                onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                placeholder="https://example.com/image.jpg"
-                className="bg-white/5 border-white/20 text-white"
-              />
+              <Label className="text-white mb-2 block">صورة الصنف (اختياري)</Label>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <label className="cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = (e) => {
+                            setFormData({ ...formData, image: e.target?.result as string });
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      className="hidden"
+                    />
+                    <div className="flex items-center gap-2 px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-md hover:bg-gray-600/50 transition-colors">
+                      <Camera className="h-4 w-4 text-blue-400" />
+                      <span className="text-white">اختر صورة</span>
+                    </div>
+                  </label>
+                </div>
+                {formData.image && (
+                  <div className="relative">
+                    <img 
+                      src={formData.image} 
+                      alt="معاينة الصورة"
+                      className="w-20 h-20 object-cover rounded-md border border-white/20"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, image: '' })}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Available */}
@@ -562,7 +625,7 @@ export default function MenuItemsPage() {
             <Button
               variant="outline"
               onClick={() => setIsDialogOpen(false)}
-              className="border-white/20 text-white hover:bg-white/10"
+              className="border-gray-600 text-white hover:bg-gray-700/50"
             >
               إلغاء
             </Button>
@@ -586,6 +649,13 @@ export default function MenuItemsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* مودال الاستيراد المجمع */}
+      <BulkImportModal
+        isOpen={isBulkImportOpen}
+        onClose={() => setIsBulkImportOpen(false)}
+        onItemsImported={handleBulkImport}
+      />
     </div>
   );
 }

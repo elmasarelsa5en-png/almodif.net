@@ -1,4 +1,4 @@
-ï»¿'use client';
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { 
@@ -47,7 +47,7 @@ export default function RoomsPage() {
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [rooms, setRooms] = useState([]);
 
-  // ØªØ­Ù…ÙŠÙ„ Ø£Ùˆ Ø¥Ù†Ø´Ø§Ø¡ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„ØºØ±Ù
+  // ÊÍãíá Ãæ ÅäÔÇÁ ÈíÇäÇÊ ÇáÛÑİ
   useEffect(() => {
     const loadRooms = () => {
       const saved = localStorage.getItem('rooms');
@@ -56,7 +56,7 @@ export default function RoomsPage() {
           const data = JSON.parse(saved);
           setRooms(data);
         } catch (error) {
-          console.error('Ø®Ø·Ø£ ÙÙŠ ØªØ­Ù…ÙŠÙ„ Ø§Ù„ØºØ±Ù:', error);
+          console.error('ÎØÃ İí ÊÍãíá ÇáÛÑİ:', error);
           createDefaultRooms();
         }
       } else {
@@ -66,15 +66,15 @@ export default function RoomsPage() {
 
     const createDefaultRooms = () => {
       const defaultRooms = [];
-      const statuses = ['Ù…ØªØ§Ø­Ø©', 'Ù…Ø­Ø¬ÙˆØ²Ø©', 'Ù…ØªØ§Ø­Ø©', 'Ù…ØªØ§Ø­Ø©', 'ØªØ­Øª Ø§Ù„ØµÙŠØ§Ù†Ø©'];
-      const types = ['Ø´Ù‚Ø© Ø¹Ø§Ø¯ÙŠØ©', 'Ø´Ù‚Ø© Ø¯ÙŠÙ„ÙˆÙƒØ³', 'Ø¬Ù†Ø§Ø­'];
+      const statuses = ['ãÊÇÍÉ', 'ãÍÌæÒÉ', 'ãÊÇÍÉ', 'ãÊÇÍÉ', 'ÊÍÊ ÇáÕíÇäÉ'];
+      const types = ['ÔŞÉ ÚÇÏíÉ', 'ÔŞÉ ÏíáæßÓ', 'ÌäÇÍ'];
       
-      // Ø¥Ù†Ø´Ø§Ø¡ 35 Ø´Ù‚Ø©
+      // ÅäÔÇÁ 35 ÔŞÉ
       for (let i = 1; i <= 35; i++) {
         const status = statuses[Math.floor(Math.random() * statuses.length)];
         const type = types[Math.floor(Math.random() * types.length)];
         const floor = Math.ceil(i / 10);
-        const priceBase = type === 'Ø´Ù‚Ø© Ø¹Ø§Ø¯ÙŠØ©' ? 300 : type === 'Ø´Ù‚Ø© Ø¯ÙŠÙ„ÙˆÙƒØ³' ? 450 : 650;
+        const priceBase = type === 'ÔŞÉ ÚÇÏíÉ' ? 300 : type === 'ÔŞÉ ÏíáæßÓ' ? 450 : 650;
         
         defaultRooms.push({
           id: `R${String(i).padStart(3, '0')}`,
@@ -82,16 +82,16 @@ export default function RoomsPage() {
           type: type,
           status: status,
           floor: floor,
-          capacity: type === 'Ø¬Ù†Ø§Ø­' ? 4 : type === 'Ø´Ù‚Ø© Ø¯ÙŠÙ„ÙˆÙƒØ³' ? 3 : 2,
-          area: type === 'Ø¬Ù†Ø§Ø­' ? 55 : type === 'Ø´Ù‚Ø© Ø¯ÙŠÙ„ÙˆÙƒØ³' ? 35 : 25,
+          capacity: type === 'ÌäÇÍ' ? 4 : type === 'ÔŞÉ ÏíáæßÓ' ? 3 : 2,
+          area: type === 'ÌäÇÍ' ? 55 : type === 'ÔŞÉ ÏíáæßÓ' ? 35 : 25,
           pricePerNight: priceBase,
-          view: ['Ø¥Ø·Ù„Ø§Ù„Ø© Ø¨Ø­Ø±ÙŠØ©', 'Ø¥Ø·Ù„Ø§Ù„Ø© Ø¹Ù„Ù‰ Ø§Ù„Ø­Ø¯ÙŠÙ‚Ø©', 'Ø¥Ø·Ù„Ø§Ù„Ø© Ø¹Ù„Ù‰ Ø§Ù„Ù…Ø¯ÙŠÙ†Ø©'][Math.floor(Math.random() * 3)],
+          view: ['ÅØáÇáÉ ÈÍÑíÉ', 'ÅØáÇáÉ Úáì ÇáÍÏíŞÉ', 'ÅØáÇáÉ Úáì ÇáãÏíäÉ'][Math.floor(Math.random() * 3)],
           amenities: ['wifi', 'tv', 'ac', 'minibar'],
           lastCleaned: new Date().toISOString(),
-          nextBooking: status === 'Ù…Ø­Ø¬ÙˆØ²Ø©' ? new Date(Date.now() + 86400000).toISOString() : null,
+          nextBooking: status === 'ãÍÌæÒÉ' ? new Date(Date.now() + 86400000).toISOString() : null,
           rating: 4 + Math.random(),
           reviews: Math.floor(Math.random() * 50) + 10,
-          description: `${type} Ù…Ø±ÙŠØ­Ø© ÙˆÙ†Ø¸ÙŠÙØ©`
+          description: `${type} ãÑíÍÉ æäÙíİÉ`
         });
       }
       
@@ -102,48 +102,48 @@ export default function RoomsPage() {
     loadRooms();
   }, []);
 
-  // Ø­Ø³Ø§Ø¨ Ø§Ù„Ø¥Ø­ØµØ§Ø¦ÙŠØ§Øª Ù…Ù† Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø­Ù‚ÙŠÙ‚ÙŠØ©
+  // ÍÓÇÈ ÇáÅÍÕÇÆíÇÊ ãä ÇáÈíÇäÇÊ ÇáÍŞíŞíÉ
   const totalRooms = rooms.length;
-  const availableRooms = rooms.filter(r => r.status === 'Ù…ØªØ§Ø­Ø©').length;
-  const occupiedRooms = rooms.filter(r => r.status === 'Ù…Ø­Ø¬ÙˆØ²Ø©' || r.status === 'Ù…Ø´ØºÙˆÙ„Ø©').length;
-  const maintenanceRooms = rooms.filter(r => r.status === 'ØªØ­Øª Ø§Ù„ØµÙŠØ§Ù†Ø©' || r.status === 'ØµÙŠØ§Ù†Ø©').length;
+  const availableRooms = rooms.filter(r => r.status === 'ãÊÇÍÉ').length;
+  const occupiedRooms = rooms.filter(r => r.status === 'ãÍÌæÒÉ' || r.status === 'ãÔÛæáÉ').length;
+  const maintenanceRooms = rooms.filter(r => r.status === 'ÊÍÊ ÇáÕíÇäÉ' || r.status === 'ÕíÇäÉ').length;
 
   const roomStats = [
     {
-      title: 'Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„ØºØ±Ù',
+      title: 'ÅÌãÇáí ÇáÛÑİ',
       value: totalRooms.toString(),
-      change: `${totalRooms} Ø´Ù‚Ø©`,
+      change: `${totalRooms} ÔŞÉ`,
       changeType: 'increase',
       icon: Home,
       color: 'from-blue-500 to-indigo-600',
-      description: 'Ø§Ù„Ø¹Ø¯Ø¯ Ø§Ù„ÙƒÙ„ÙŠ'
+      description: 'ÇáÚÏÏ Çáßáí'
     },
     {
-      title: 'ØºØ±Ù Ù…ØªØ§Ø­Ø©',
+      title: 'ÛÑİ ãÊÇÍÉ',
       value: availableRooms.toString(),
-      change: 'Ø¬Ø§Ù‡Ø²Ø© Ù„Ù„Ø­Ø¬Ø²',
+      change: 'ÌÇåÒÉ ááÍÌÒ',
       changeType: 'increase',
       icon: CheckCircle,
       color: 'from-green-500 to-emerald-600',
-      description: 'Ø¬Ø§Ù‡Ø²Ø© Ù„Ù„Ø­Ø¬Ø²'
+      description: 'ÌÇåÒÉ ááÍÌÒ'
     },
     {
-      title: 'ØºØ±Ù Ù…Ø­Ø¬ÙˆØ²Ø©',
+      title: 'ÛÑİ ãÍÌæÒÉ',
       value: occupiedRooms.toString(),
-      change: 'Ù…Ø´ØºÙˆÙ„Ø© Ø­Ø§Ù„ÙŠØ§Ù‹',
+      change: 'ãÔÛæáÉ ÍÇáíÇğ',
       changeType: 'increase',
       icon: Calendar,
       color: 'from-purple-500 to-pink-600',
-      description: 'Ù…Ø´ØºÙˆÙ„Ø© Ø­Ø§Ù„ÙŠØ§Ù‹'
+      description: 'ãÔÛæáÉ ÍÇáíÇğ'
     },
     {
-      title: 'ØªØ­Øª Ø§Ù„ØµÙŠØ§Ù†Ø©',
+      title: 'ÊÍÊ ÇáÕíÇäÉ',
       value: maintenanceRooms.toString(),
-      change: 'ØªØ­ØªØ§Ø¬ ØµÙŠØ§Ù†Ø©',
+      change: 'ÊÍÊÇÌ ÕíÇäÉ',
       changeType: maintenanceRooms > 0 ? 'decrease' : 'increase',
       icon: Settings,
       color: 'from-orange-500 to-red-600',
-      description: 'ØªØ­ØªØ§Ø¬ ØµÙŠØ§Ù†Ø©'
+      description: 'ÊÍÊÇÌ ÕíÇäÉ'
     }
   ];
 
@@ -164,7 +164,7 @@ export default function RoomsPage() {
       rating: 4.5,
       reviews: 23,
       images: ['/room1.jpg', '/room2.jpg'],
-      description: 'ØºØ±ÙØ© Ù…Ø±ÙŠØ­Ø© Ù…Ø¹ Ø¥Ø·Ù„Ø§Ù„Ø© Ø¹Ù„Ù‰ Ø§Ù„Ø­Ø¯ÙŠÙ‚Ø©'
+      description: 'ÛÑİÉ ãÑíÍÉ ãÚ ÅØáÇáÉ Úáì ÇáÍÏíŞÉ'
     },
     {
       id: 'R002',
@@ -179,12 +179,12 @@ export default function RoomsPage() {
       amenities: ['wifi', 'tv', 'ac', 'minibar', 'balcony', 'safe'],
       lastCleaned: '2025-01-14T14:00:00',
       nextBooking: '2025-01-16T11:00:00',
-      guestName: 'Ø£Ø­Ù…Ø¯ Ù…Ø­Ù…Ø¯',
+      guestName: 'ÃÍãÏ ãÍãÏ',
       checkOut: '2025-01-18',
       rating: 4.8,
       reviews: 45,
       images: ['/room3.jpg', '/room4.jpg'],
-      description: 'ØºØ±ÙØ© Ø¯ÙŠÙ„ÙˆÙƒØ³ Ù…Ø¹ Ø¥Ø·Ù„Ø§Ù„Ø© Ø¨Ø­Ø±ÙŠØ© ÙˆØ´Ø±ÙØ© Ø®Ø§ØµØ©'
+      description: 'ÛÑİÉ ÏíáæßÓ ãÚ ÅØáÇáÉ ÈÍÑíÉ æÔÑİÉ ÎÇÕÉ'
     },
     {
       id: 'R003',
@@ -199,11 +199,11 @@ export default function RoomsPage() {
       amenities: ['wifi', 'tv', 'ac', 'minibar', 'balcony', 'safe', 'jacuzzi', 'kitchenette'],
       lastCleaned: '2025-01-13T09:00:00',
       nextBooking: '2025-01-20T15:00:00',
-      maintenanceIssue: 'Ø¥ØµÙ„Ø§Ø­ Ù†Ø¸Ø§Ù… Ø§Ù„ØªÙƒÙŠÙŠÙ',
+      maintenanceIssue: 'ÅÕáÇÍ äÙÇã ÇáÊßííİ',
       rating: 4.9,
       reviews: 67,
       images: ['/room5.jpg', '/room6.jpg'],
-      description: 'Ø¬Ù†Ø§Ø­ ÙØ§Ø®Ø± Ù…Ø¹ Ø¥Ø·Ù„Ø§Ù„Ø© Ø¹Ù„Ù‰ Ø§Ù„Ù…Ø¯ÙŠÙ†Ø© ÙˆÙ…Ø±Ø§ÙÙ‚ Ù…ØªÙ…ÙŠØ²Ø©'
+      description: 'ÌäÇÍ İÇÎÑ ãÚ ÅØáÇáÉ Úáì ÇáãÏíäÉ æãÑÇİŞ ãÊãíÒÉ'
     },
     {
       id: 'R004',
@@ -221,44 +221,44 @@ export default function RoomsPage() {
       rating: 4.3,
       reviews: 18,
       images: ['/room1.jpg', '/room2.jpg'],
-      description: 'ØºØ±ÙØ© Ø¹Ø§Ø¯ÙŠØ© Ù…Ø±ÙŠØ­Ø© ÙˆÙ†Ø¸ÙŠÙØ©'
+      description: 'ÛÑİÉ ÚÇÏíÉ ãÑíÍÉ æäÙíİÉ'
     }
   ];
 
   const getRoomTypeName = (type) => {
     const types = {
-      'standard': 'ØºØ±ÙØ© Ø¹Ø§Ø¯ÙŠØ©',
-      'deluxe': 'ØºØ±ÙØ© Ø¯ÙŠÙ„ÙˆÙƒØ³', 
-      'suite': 'Ø¬Ù†Ø§Ø­',
-      'family': 'ØºØ±ÙØ© Ø¹Ø§Ø¦Ù„ÙŠØ©',
-      'Ø´Ù‚Ø© Ø¹Ø§Ø¯ÙŠØ©': 'Ø´Ù‚Ø© Ø¹Ø§Ø¯ÙŠØ©',
-      'Ø´Ù‚Ø© Ø¯ÙŠÙ„ÙˆÙƒØ³': 'Ø´Ù‚Ø© Ø¯ÙŠÙ„ÙˆÙƒØ³'
+      'standard': 'ÛÑİÉ ÚÇÏíÉ',
+      'deluxe': 'ÛÑİÉ ÏíáæßÓ', 
+      'suite': 'ÌäÇÍ',
+      'family': 'ÛÑİÉ ÚÇÆáíÉ',
+      'ÔŞÉ ÚÇÏíÉ': 'ÔŞÉ ÚÇÏíÉ',
+      'ÔŞÉ ÏíáæßÓ': 'ÔŞÉ ÏíáæßÓ'
     };
     return types[type] || type;
   };
 
   const getStatusBadge = (status) => {
     const statuses = {
-      'available': { label: 'Ù…ØªØ§Ø­Ø©', class: 'bg-green-500/20 text-green-400', icon: CheckCircle },
-      'Ù…ØªØ§Ø­Ø©': { label: 'Ù…ØªØ§Ø­Ø©', class: 'bg-green-500/20 text-green-400', icon: CheckCircle },
-      'occupied': { label: 'Ù…Ø´ØºÙˆÙ„Ø©', class: 'bg-blue-500/20 text-blue-400', icon: Users },
-      'Ù…Ø´ØºÙˆÙ„Ø©': { label: 'Ù…Ø´ØºÙˆÙ„Ø©', class: 'bg-blue-500/20 text-blue-400', icon: Users },
-      'Ù…Ø­Ø¬ÙˆØ²Ø©': { label: 'Ù…Ø­Ø¬ÙˆØ²Ø©', class: 'bg-purple-500/20 text-purple-400', icon: Calendar },
-      'cleaning': { label: 'ØªÙ†Ø¸ÙŠÙ', class: 'bg-yellow-500/20 text-yellow-400', icon: Clock },
-      'maintenance': { label: 'ØµÙŠØ§Ù†Ø©', class: 'bg-red-500/20 text-red-400', icon: AlertTriangle },
-      'ØªØ­Øª Ø§Ù„ØµÙŠØ§Ù†Ø©': { label: 'ØµÙŠØ§Ù†Ø©', class: 'bg-red-500/20 text-red-400', icon: AlertTriangle },
-      'reserved': { label: 'Ù…Ø­Ø¬ÙˆØ²Ø©', class: 'bg-purple-500/20 text-purple-400', icon: Calendar }
+      'available': { label: 'ãÊÇÍÉ', class: 'bg-green-500/20 text-green-400', icon: CheckCircle },
+      'ãÊÇÍÉ': { label: 'ãÊÇÍÉ', class: 'bg-green-500/20 text-green-400', icon: CheckCircle },
+      'occupied': { label: 'ãÔÛæáÉ', class: 'bg-blue-500/20 text-blue-400', icon: Users },
+      'ãÔÛæáÉ': { label: 'ãÔÛæáÉ', class: 'bg-blue-500/20 text-blue-400', icon: Users },
+      'ãÍÌæÒÉ': { label: 'ãÍÌæÒÉ', class: 'bg-purple-500/20 text-purple-400', icon: Calendar },
+      'cleaning': { label: 'ÊäÙíİ', class: 'bg-yellow-500/20 text-yellow-400', icon: Clock },
+      'maintenance': { label: 'ÕíÇäÉ', class: 'bg-red-500/20 text-red-400', icon: AlertTriangle },
+      'ÊÍÊ ÇáÕíÇäÉ': { label: 'ÕíÇäÉ', class: 'bg-red-500/20 text-red-400', icon: AlertTriangle },
+      'reserved': { label: 'ãÍÌæÒÉ', class: 'bg-purple-500/20 text-purple-400', icon: Calendar }
     };
     return statuses[status] || { label: status, class: 'bg-gray-500/20 text-gray-400', icon: AlertTriangle };
   };
 
   const getViewName = (view) => {
     const views = {
-      'sea': 'Ø¥Ø·Ù„Ø§Ù„Ø© Ø¨Ø­Ø±ÙŠØ©',
-      'garden': 'Ø¥Ø·Ù„Ø§Ù„Ø© Ø¹Ù„Ù‰ Ø§Ù„Ø­Ø¯ÙŠÙ‚Ø©',
-      'city': 'Ø¥Ø·Ù„Ø§Ù„Ø© Ø¹Ù„Ù‰ Ø§Ù„Ù…Ø¯ÙŠÙ†Ø©',
-      'mountain': 'Ø¥Ø·Ù„Ø§Ù„Ø© Ø¬Ø¨Ù„ÙŠØ©',
-      'pool': 'Ø¥Ø·Ù„Ø§Ù„Ø© Ø¹Ù„Ù‰ Ø§Ù„Ù…Ø³Ø¨Ø­'
+      'sea': 'ÅØáÇáÉ ÈÍÑíÉ',
+      'garden': 'ÅØáÇáÉ Úáì ÇáÍÏíŞÉ',
+      'city': 'ÅØáÇáÉ Úáì ÇáãÏíäÉ',
+      'mountain': 'ÅØáÇáÉ ÌÈáíÉ',
+      'pool': 'ÅØáÇáÉ Úáì ÇáãÓÈÍ'
     };
     return views[view] || view;
   };
@@ -284,12 +284,12 @@ export default function RoomsPage() {
     
     if (selectedFilter === 'all') return matchesSearch;
     
-    // Ø¯Ø¹Ù… Ø§Ù„ÙÙ„ØªØ± Ø¨Ø§Ù„Ø¹Ø±Ø¨ÙŠ ÙˆØ§Ù„Ø¥Ù†Ø¬Ù„ÙŠØ²ÙŠ
+    // ÏÚã ÇáİáÊÑ ÈÇáÚÑÈí æÇáÅäÌáíÒí
     const statusMap = {
-      'available': 'Ù…ØªØ§Ø­Ø©',
-      'occupied': 'Ù…Ø­Ø¬ÙˆØ²Ø©',
-      'maintenance': 'ØªØ­Øª Ø§Ù„ØµÙŠØ§Ù†Ø©',
-      'cleaning': 'ØªÙ†Ø¸ÙŠÙ'
+      'available': 'ãÊÇÍÉ',
+      'occupied': 'ãÍÌæÒÉ',
+      'maintenance': 'ÊÍÊ ÇáÕíÇäÉ',
+      'cleaning': 'ÊäÙíİ'
     };
     
     const filterStatus = statusMap[selectedFilter] || selectedFilter;
@@ -299,7 +299,7 @@ export default function RoomsPage() {
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900 p-4 lg:p-6 relative overflow-hidden" dir="rtl">
-        {/* Ø®Ù„ÙÙŠØ© ØªØ²ÙŠÙŠÙ†ÙŠØ© */}
+        {/* ÎáİíÉ ÊÒííäíÉ */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-20 left-20 w-32 h-32 bg-indigo-500/20 rounded-full blur-xl animate-pulse"></div>
           <div className="absolute bottom-20 right-20 w-40 h-40 bg-blue-500/20 rounded-full blur-2xl animate-pulse delay-1000"></div>
@@ -308,26 +308,26 @@ export default function RoomsPage() {
 
         <div className="relative z-10 space-y-6">
           {/* Header */}
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 lg:p-6 shadow-2xl border border-white/20">
+          <div className="bg-gray-800/50 backdrop-blur-md rounded-2xl p-4 lg:p-6 shadow-2xl border border-white/20">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <Button
                   onClick={() => router.back()}
                   variant="outline"
-                  className="border-white/20 bg-white/10 text-white hover:bg-white/20"
+                  className="border-white/20 bg-gray-800/50 text-white hover:bg-gray-600/50"
                 >
                   <ArrowLeft className="w-4 h-4 ml-2" />
-                  Ø§Ù„Ø¹ÙˆØ¯Ø©
+                  ÇáÚæÏÉ
                 </Button>
                 <div className="w-14 h-14 lg:w-16 lg:h-16 bg-gradient-to-r from-indigo-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
                   <Bed className="w-7 h-7 lg:w-8 lg:h-8 text-white" />
                 </div>
                 <div>
                   <h1 className="text-2xl lg:text-4xl font-bold bg-gradient-to-r from-white to-indigo-200 bg-clip-text text-transparent">
-                    Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„ØºØ±Ù
+                    ÅÏÇÑÉ ÇáÛÑİ
                   </h1>
                   <p className="text-indigo-200/80 text-sm lg:text-base">
-                    Ù…ØªØ§Ø¨Ø¹Ø© ÙˆØ¥Ø¯Ø§Ø±Ø© Ø¬Ù…ÙŠØ¹ Ø§Ù„ØºØ±Ù ÙˆØ§Ù„Ø£Ø¬Ù†Ø­Ø©
+                    ãÊÇÈÚÉ æÅÏÇÑÉ ÌãíÚ ÇáÛÑİ æÇáÃÌäÍÉ
                   </p>
                 </div>
               </div>
@@ -337,15 +337,15 @@ export default function RoomsPage() {
                   className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
                 >
                   <Plus className="w-4 h-4 ml-2" />
-                  Ø¥Ø¶Ø§ÙØ© ØºØ±ÙØ©
+                  ÅÖÇİÉ ÛÑİÉ
                 </Button>
                 
                 <Button
                   variant="outline"
-                  className="border-white/20 bg-white/10 text-white hover:bg-white/20"
+                  className="border-white/20 bg-gray-800/50 text-white hover:bg-gray-600/50"
                 >
                   <RefreshCw className="w-4 h-4 ml-2" />
-                  ØªØ­Ø¯ÙŠØ«
+                  ÊÍÏíË
                 </Button>
               </div>
             </div>
@@ -354,7 +354,7 @@ export default function RoomsPage() {
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
             {roomStats.map((stat, index) => (
-              <Card key={index} className="bg-white/10 backdrop-blur-md border-white/20 shadow-2xl hover:bg-white/15 transition-all duration-300 group hover:scale-105">
+              <Card key={index} className="bg-gray-800/50 backdrop-blur-md border-white/20 shadow-2xl hover:bg-gray-700/50 transition-all duration-300 group hover:scale-105">
                 <CardContent className="p-4 lg:p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className={`w-12 h-12 lg:w-14 lg:h-14 bg-gradient-to-r ${stat.color} rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
@@ -379,28 +379,28 @@ export default function RoomsPage() {
           </div>
 
           {/* Search & Filter */}
-          <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-2xl">
+          <Card className="bg-gray-800/50 backdrop-blur-md border-white/20 shadow-2xl">
             <CardContent className="p-4 lg:p-6">
               <div className="flex flex-col lg:flex-row gap-4">
                 <div className="flex-1">
                   <div className="relative">
                     <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/60 w-4 h-4" />
                     <Input
-                      placeholder="Ø§Ù„Ø¨Ø­Ø« ÙÙŠ Ø§Ù„ØºØ±Ù..."
+                      placeholder="ÇáÈÍË İí ÇáÛÑİ..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pr-10 bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                      className="pr-10 bg-gray-800/50 border-white/20 text-white placeholder:text-white/50"
                     />
                   </div>
                 </div>
                 
                 <div className="flex gap-2 overflow-x-auto pb-2">
                   {[
-                    { key: 'all', label: 'Ø§Ù„ÙƒÙ„', count: rooms.length },
-                    { key: 'available', label: 'Ù…ØªØ§Ø­Ø©', count: rooms.filter(r => r.status === 'available').length },
-                    { key: 'occupied', label: 'Ù…Ø´ØºÙˆÙ„Ø©', count: rooms.filter(r => r.status === 'occupied').length },
-                    { key: 'cleaning', label: 'ØªÙ†Ø¸ÙŠÙ', count: rooms.filter(r => r.status === 'cleaning').length },
-                    { key: 'maintenance', label: 'ØµÙŠØ§Ù†Ø©', count: rooms.filter(r => r.status === 'maintenance').length }
+                    { key: 'all', label: 'Çáßá', count: rooms.length },
+                    { key: 'available', label: 'ãÊÇÍÉ', count: rooms.filter(r => r.status === 'available').length },
+                    { key: 'occupied', label: 'ãÔÛæáÉ', count: rooms.filter(r => r.status === 'occupied').length },
+                    { key: 'cleaning', label: 'ÊäÙíİ', count: rooms.filter(r => r.status === 'cleaning').length },
+                    { key: 'maintenance', label: 'ÕíÇäÉ', count: rooms.filter(r => r.status === 'maintenance').length }
                   ].map((filter) => (
                     <Button
                       key={filter.key}
@@ -409,7 +409,7 @@ export default function RoomsPage() {
                       className={`whitespace-nowrap ${
                         selectedFilter === filter.key 
                           ? 'bg-indigo-500 text-white' 
-                          : 'border-white/20 bg-white/10 text-white hover:bg-white/20'
+                          : 'border-white/20 bg-gray-800/50 text-white hover:bg-gray-600/50'
                       }`}
                     >
                       {filter.label} ({filter.count})
@@ -425,7 +425,7 @@ export default function RoomsPage() {
             {filteredRooms.map((room) => {
               const statusBadge = getStatusBadge(room.status);
               return (
-                <Card key={room.id} className="bg-white/10 backdrop-blur-md border-white/20 shadow-2xl hover:bg-white/15 transition-all duration-300 group hover:scale-105">
+                <Card key={room.id} className="bg-gray-800/50 backdrop-blur-md border-white/20 shadow-2xl hover:bg-gray-700/50 transition-all duration-300 group hover:scale-105">
                   <CardContent className="p-0">
                     {/* Room Image */}
                     <div className="relative h-48 bg-gradient-to-r from-indigo-500/20 to-blue-500/20 rounded-t-lg overflow-hidden">
@@ -440,7 +440,7 @@ export default function RoomsPage() {
                       </div>
                       <div className="absolute top-3 left-3">
                         <Badge className="bg-black/50 text-white">
-                          ØºØ±ÙØ© {room.number}
+                          ÛÑİÉ {room.number}
                         </Badge>
                       </div>
                     </div>
@@ -462,22 +462,22 @@ export default function RoomsPage() {
                         <div className="space-y-2">
                           <div className="flex items-center gap-2 text-sm text-white/80">
                             <Users className="w-4 h-4 text-blue-400" />
-                            <span>{room.capacity} Ø£Ø´Ø®Ø§Øµ</span>
+                            <span>{room.capacity} ÃÔÎÇÕ</span>
                           </div>
                           <div className="flex items-center gap-2 text-sm text-white/80">
                             <Home className="w-4 h-4 text-green-400" />
-                            <span>{room.area} Ù…ØªØ±Â²</span>
+                            <span>{room.area} ãÊÑ²</span>
                           </div>
                           <div className="flex items-center gap-2 text-sm text-white/80">
                             <MapPin className="w-4 h-4 text-purple-400" />
-                            <span>Ø§Ù„Ø·Ø§Ø¨Ù‚ {room.floor}</span>
+                            <span>ÇáØÇÈŞ {room.floor}</span>
                           </div>
                         </div>
                         
                         <div className="space-y-2">
                           <div className="text-right">
-                            <div className="text-white/60 text-xs">Ø§Ù„Ø³Ø¹Ø±/Ù„ÙŠÙ„Ø©</div>
-                            <div className="text-white font-bold text-lg">{room.pricePerNight} Ø±ÙŠØ§Ù„</div>
+                            <div className="text-white/60 text-xs">ÇáÓÚÑ/áíáÉ</div>
+                            <div className="text-white font-bold text-lg">{room.pricePerNight} ÑíÇá</div>
                           </div>
                           <div className="text-white/80 text-sm">{getViewName(room.view)}</div>
                         </div>
@@ -486,13 +486,13 @@ export default function RoomsPage() {
                       {/* Amenities */}
                       <div className="flex flex-wrap gap-2">
                         {room.amenities.slice(0, 4).map((amenity, index) => (
-                          <div key={index} className="flex items-center gap-1 bg-white/10 rounded-full px-2 py-1">
+                          <div key={index} className="flex items-center gap-1 bg-gray-800/50 rounded-full px-2 py-1">
                             {getAmenityIcon(amenity)}
                             <span className="text-xs text-white/80 capitalize">{amenity}</span>
                           </div>
                         ))}
                         {room.amenities.length > 4 && (
-                          <div className="bg-white/10 rounded-full px-2 py-1">
+                          <div className="bg-gray-800/50 rounded-full px-2 py-1">
                             <span className="text-xs text-white/80">+{room.amenities.length - 4}</span>
                           </div>
                         )}
@@ -506,7 +506,7 @@ export default function RoomsPage() {
                             <span className="text-blue-200 font-medium">{room.guestName}</span>
                           </div>
                           <div className="text-blue-200/80 text-sm">
-                            Ø§Ù„Ù…ØºØ§Ø¯Ø±Ø©: {new Date(room.checkOut).toLocaleDateString('ar-SA')}
+                            ÇáãÛÇÏÑÉ: {new Date(room.checkOut).toLocaleDateString('ar-SA')}
                           </div>
                         </div>
                       )}
@@ -516,7 +516,7 @@ export default function RoomsPage() {
                         <div className="bg-red-500/10 rounded-lg p-3 border border-red-500/20">
                           <div className="flex items-center gap-2 mb-1">
                             <AlertTriangle className="w-4 h-4 text-red-400" />
-                            <span className="text-red-200 font-medium">ØµÙŠØ§Ù†Ø© Ù…Ø·Ù„ÙˆØ¨Ø©</span>
+                            <span className="text-red-200 font-medium">ÕíÇäÉ ãØáæÈÉ</span>
                           </div>
                           <div className="text-red-200/80 text-sm">{room.maintenanceIssue}</div>
                         </div>
@@ -530,19 +530,19 @@ export default function RoomsPage() {
                           className="flex-1 bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/30"
                         >
                           <Eye className="w-4 h-4 ml-2" />
-                          Ø¹Ø±Ø¶
+                          ÚÑÖ
                         </Button>
                         <Button
                           size="sm"
                           variant="outline"
-                          className="border-white/20 bg-white/10 text-white hover:bg-white/20"
+                          className="border-white/20 bg-gray-800/50 text-white hover:bg-gray-600/50"
                         >
                           <Edit className="w-4 h-4" />
                         </Button>
                         <Button
                           size="sm"
                           variant="outline"
-                          className="border-white/20 bg-white/10 text-white hover:bg-white/20"
+                          className="border-white/20 bg-gray-800/50 text-white hover:bg-gray-600/50"
                         >
                           <Settings className="w-4 h-4" />
                         </Button>
@@ -555,21 +555,21 @@ export default function RoomsPage() {
           </div>
 
           {filteredRooms.length === 0 && (
-            <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-2xl">
+            <Card className="bg-gray-800/50 backdrop-blur-md border-white/20 shadow-2xl">
               <CardContent className="text-center py-12">
                 <Bed className="w-16 h-16 text-white/30 mx-auto mb-4" />
-                <h3 className="text-white text-xl font-semibold mb-2">Ù„Ø§ ØªÙˆØ¬Ø¯ ØºØ±Ù</h3>
-                <p className="text-white/60">Ù„Ù… ÙŠØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ ØºØ±Ù ØªØ·Ø§Ø¨Ù‚ Ø§Ù„Ø¨Ø­Ø«</p>
+                <h3 className="text-white text-xl font-semibold mb-2">áÇ ÊæÌÏ ÛÑİ</h3>
+                <p className="text-white/60">áã íÊã ÇáÚËæÑ Úáì ÛÑİ ÊØÇÈŞ ÇáÈÍË</p>
               </CardContent>
             </Card>
           )}
 
           {/* Quick Actions */}
-          <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-2xl">
+          <Card className="bg-gray-800/50 backdrop-blur-md border-white/20 shadow-2xl">
             <CardHeader>
               <CardTitle className="text-white text-xl flex items-center gap-3">
                 <Settings className="w-6 h-6 text-indigo-400" />
-                Ø¥Ø¬Ø±Ø§Ø¡Ø§Øª Ø³Ø±ÙŠØ¹Ø©
+                ÅÌÑÇÁÇÊ ÓÑíÚÉ
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -579,21 +579,21 @@ export default function RoomsPage() {
                   className="bg-blue-500/20 border border-blue-500/30 text-blue-300 hover:bg-blue-500/30 h-20 flex flex-col gap-2"
                 >
                   <Calendar className="w-6 h-6" />
-                  <span className="text-sm">Ø§Ù„Ø­Ø¬ÙˆØ²Ø§Øª</span>
+                  <span className="text-sm">ÇáÍÌæÒÇÊ</span>
                 </Button>
                 
                 <Button 
                   className="bg-green-500/20 border border-green-500/30 text-green-300 hover:bg-green-500/30 h-20 flex flex-col gap-2"
                 >
                   <CheckCircle className="w-6 h-6" />
-                  <span className="text-sm">ØªÙ†Ø¸ÙŠÙ Ø§Ù„ØºØ±Ù</span>
+                  <span className="text-sm">ÊäÙíİ ÇáÛÑİ</span>
                 </Button>
                 
                 <Button 
                   className="bg-orange-500/20 border border-orange-500/30 text-orange-300 hover:bg-orange-500/30 h-20 flex flex-col gap-2"
                 >
                   <AlertTriangle className="w-6 h-6" />
-                  <span className="text-sm">Ø·Ù„Ø¨Ø§Øª Ø§Ù„ØµÙŠØ§Ù†Ø©</span>
+                  <span className="text-sm">ØáÈÇÊ ÇáÕíÇäÉ</span>
                 </Button>
                 
                 <Button 
@@ -601,7 +601,7 @@ export default function RoomsPage() {
                   className="bg-purple-500/20 border border-purple-500/30 text-purple-300 hover:bg-purple-500/30 h-20 flex flex-col gap-2"
                 >
                   <TrendingUp className="w-6 h-6" />
-                  <span className="text-sm">Ø§Ù„ØªØ­Ù„ÙŠÙ„Ø§Øª</span>
+                  <span className="text-sm">ÇáÊÍáíáÇÊ</span>
                 </Button>
               </div>
             </CardContent>
@@ -613,54 +613,54 @@ export default function RoomsPage() {
           <Dialog open={!!selectedRoom} onOpenChange={() => setSelectedRoom(null)}>
             <DialogContent className="bg-slate-900 border-white/20 text-white max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle className="text-2xl">ØªÙØ§ØµÙŠÙ„ Ø§Ù„ØºØ±ÙØ© {selectedRoom.number}</DialogTitle>
+                <DialogTitle className="text-2xl">ÊİÇÕíá ÇáÛÑİÉ {selectedRoom.number}</DialogTitle>
                 <DialogDescription className="text-white/70">
-                  Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø´Ø§Ù…Ù„Ø© Ø¹Ù† Ø§Ù„ØºØ±ÙØ© ÙˆÙ…Ø±Ø§ÙÙ‚Ù‡Ø§
+                  ãÚáæãÇÊ ÔÇãáÉ Úä ÇáÛÑİÉ æãÑÇİŞåÇ
                 </DialogDescription>
               </DialogHeader>
               
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <h4 className="text-white font-semibold mb-3">Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø£Ø³Ø§Ø³ÙŠØ©</h4>
+                    <h4 className="text-white font-semibold mb-3">ãÚáæãÇÊ ÃÓÇÓíÉ</h4>
                     <div className="space-y-2 text-sm">
-                      <div><strong>Ø±Ù‚Ù… Ø§Ù„ØºØ±ÙØ©:</strong> {selectedRoom.number}</div>
-                      <div><strong>Ø§Ù„Ù†ÙˆØ¹:</strong> {getRoomTypeName(selectedRoom.type)}</div>
-                      <div><strong>Ø§Ù„Ø­Ø§Ù„Ø©:</strong> {getStatusBadge(selectedRoom.status).label}</div>
-                      <div><strong>Ø§Ù„Ø·Ø§Ø¨Ù‚:</strong> {selectedRoom.floor}</div>
-                      <div><strong>Ø§Ù„Ø³Ø¹Ø©:</strong> {selectedRoom.capacity} Ø£Ø´Ø®Ø§Øµ</div>
-                      <div><strong>Ø§Ù„Ù…Ø³Ø§Ø­Ø©:</strong> {selectedRoom.area} Ù…ØªØ± Ù…Ø±Ø¨Ø¹</div>
-                      <div><strong>Ø§Ù„Ø¥Ø·Ù„Ø§Ù„Ø©:</strong> {getViewName(selectedRoom.view)}</div>
-                      <div><strong>Ø§Ù„Ø³Ø¹Ø±/Ù„ÙŠÙ„Ø©:</strong> {selectedRoom.pricePerNight} Ø±ÙŠØ§Ù„</div>
+                      <div><strong>ÑŞã ÇáÛÑİÉ:</strong> {selectedRoom.number}</div>
+                      <div><strong>ÇáäæÚ:</strong> {getRoomTypeName(selectedRoom.type)}</div>
+                      <div><strong>ÇáÍÇáÉ:</strong> {getStatusBadge(selectedRoom.status).label}</div>
+                      <div><strong>ÇáØÇÈŞ:</strong> {selectedRoom.floor}</div>
+                      <div><strong>ÇáÓÚÉ:</strong> {selectedRoom.capacity} ÃÔÎÇÕ</div>
+                      <div><strong>ÇáãÓÇÍÉ:</strong> {selectedRoom.area} ãÊÑ ãÑÈÚ</div>
+                      <div><strong>ÇáÅØáÇáÉ:</strong> {getViewName(selectedRoom.view)}</div>
+                      <div><strong>ÇáÓÚÑ/áíáÉ:</strong> {selectedRoom.pricePerNight} ÑíÇá</div>
                     </div>
                   </div>
                   
                   <div>
-                    <h4 className="text-white font-semibold mb-3">Ø§Ù„ØªÙ‚ÙŠÙŠÙ…Ø§Øª</h4>
+                    <h4 className="text-white font-semibold mb-3">ÇáÊŞííãÇÊ</h4>
                     <div className="space-y-2 text-sm">
                       <div className="flex items-center gap-2">
                         <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                        <span><strong>Ø§Ù„ØªÙ‚ÙŠÙŠÙ…:</strong> {selectedRoom.rating}/5</span>
+                        <span><strong>ÇáÊŞííã:</strong> {selectedRoom.rating}/5</span>
                       </div>
-                      <div><strong>Ø¹Ø¯Ø¯ Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø§Øª:</strong> {selectedRoom.reviews}</div>
-                      <div><strong>Ø¢Ø®Ø± ØªÙ†Ø¸ÙŠÙ:</strong> {new Date(selectedRoom.lastCleaned).toLocaleDateString('ar-SA')}</div>
+                      <div><strong>ÚÏÏ ÇáãÑÇÌÚÇÊ:</strong> {selectedRoom.reviews}</div>
+                      <div><strong>ÂÎÑ ÊäÙíİ:</strong> {new Date(selectedRoom.lastCleaned).toLocaleDateString('ar-SA')}</div>
                       {selectedRoom.nextBooking && (
-                        <div><strong>Ø§Ù„Ø­Ø¬Ø² Ø§Ù„Ù‚Ø§Ø¯Ù…:</strong> {new Date(selectedRoom.nextBooking).toLocaleDateString('ar-SA')}</div>
+                        <div><strong>ÇáÍÌÒ ÇáŞÇÏã:</strong> {new Date(selectedRoom.nextBooking).toLocaleDateString('ar-SA')}</div>
                       )}
                     </div>
                   </div>
                 </div>
                 
                 <div>
-                  <h4 className="text-white font-semibold mb-3">Ø§Ù„ÙˆØµÙ</h4>
+                  <h4 className="text-white font-semibold mb-3">ÇáæÕİ</h4>
                   <p className="text-white/80">{selectedRoom.description}</p>
                 </div>
                 
                 <div>
-                  <h4 className="text-white font-semibold mb-3">Ø§Ù„Ù…Ø±Ø§ÙÙ‚ ÙˆØ§Ù„Ø®Ø¯Ù…Ø§Øª</h4>
+                  <h4 className="text-white font-semibold mb-3">ÇáãÑÇİŞ æÇáÎÏãÇÊ</h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {selectedRoom.amenities.map((amenity, index) => (
-                      <div key={index} className="flex items-center gap-2 bg-white/10 rounded-lg p-2">
+                      <div key={index} className="flex items-center gap-2 bg-gray-800/50 rounded-lg p-2">
                         {getAmenityIcon(amenity)}
                         <span className="text-sm capitalize">{amenity}</span>
                       </div>
@@ -670,17 +670,17 @@ export default function RoomsPage() {
                 
                 {selectedRoom.status === 'occupied' && selectedRoom.guestName && (
                   <div>
-                    <h4 className="text-white font-semibold mb-3">Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø§Ù„Ø¶ÙŠÙ Ø§Ù„Ø­Ø§Ù„ÙŠ</h4>
+                    <h4 className="text-white font-semibold mb-3">ãÚáæãÇÊ ÇáÖíİ ÇáÍÇáí</h4>
                     <div className="bg-blue-500/10 rounded-lg p-4 border border-blue-500/20">
-                      <div><strong>Ø§Ø³Ù… Ø§Ù„Ø¶ÙŠÙ:</strong> {selectedRoom.guestName}</div>
-                      <div><strong>ØªØ§Ø±ÙŠØ® Ø§Ù„Ù…ØºØ§Ø¯Ø±Ø©:</strong> {new Date(selectedRoom.checkOut).toLocaleDateString('ar-SA')}</div>
+                      <div><strong>ÇÓã ÇáÖíİ:</strong> {selectedRoom.guestName}</div>
+                      <div><strong>ÊÇÑíÎ ÇáãÛÇÏÑÉ:</strong> {new Date(selectedRoom.checkOut).toLocaleDateString('ar-SA')}</div>
                     </div>
                   </div>
                 )}
                 
                 {selectedRoom.status === 'maintenance' && selectedRoom.maintenanceIssue && (
                   <div>
-                    <h4 className="text-white font-semibold mb-3">ØªÙØ§ØµÙŠÙ„ Ø§Ù„ØµÙŠØ§Ù†Ø©</h4>
+                    <h4 className="text-white font-semibold mb-3">ÊİÇÕíá ÇáÕíÇäÉ</h4>
                     <div className="bg-red-500/10 rounded-lg p-4 border border-red-500/20">
                       <div className="text-red-200">{selectedRoom.maintenanceIssue}</div>
                     </div>
@@ -692,12 +692,12 @@ export default function RoomsPage() {
                 <Button
                   onClick={() => setSelectedRoom(null)}
                   variant="outline"
-                  className="border-white/20 bg-white/10 text-white hover:bg-white/20"
+                  className="border-white/20 bg-gray-800/50 text-white hover:bg-gray-600/50"
                 >
-                  Ø¥ØºÙ„Ø§Ù‚
+                  ÅÛáÇŞ
                 </Button>
                 <Button className="bg-indigo-500 hover:bg-indigo-600">
-                  ØªØ¹Ø¯ÙŠÙ„ Ø§Ù„ØºØ±ÙØ©
+                  ÊÚÏíá ÇáÛÑİÉ
                 </Button>
               </DialogFooter>
             </DialogContent>

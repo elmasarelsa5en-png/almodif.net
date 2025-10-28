@@ -373,7 +373,7 @@ export default function RestaurantPage() {
           <Button
             variant={activeTab === 'orders' ? 'default' : 'ghost'}
             onClick={() => setActiveTab('orders')}
-            className={`flex-1 ${activeTab === 'orders' ? 'bg-white text-black' : 'text-white hover:bg-slate-700/50'}`}
+            className={`flex-1 ${activeTab === 'orders' ? 'bg-gray-600 text-white' : 'text-white hover:bg-slate-700/50'}`}
           >
             <ShoppingCart className="h-4 w-4 mr-2" />
             إنشاء طلب
@@ -381,7 +381,7 @@ export default function RestaurantPage() {
           <Button
             variant={activeTab === 'menu' ? 'default' : 'ghost'}
             onClick={() => setActiveTab('menu')}
-            className={`flex-1 ${activeTab === 'menu' ? 'bg-white text-black' : 'text-white hover:bg-slate-700/50'}`}
+            className={`flex-1 ${activeTab === 'menu' ? 'bg-gray-600 text-white' : 'text-white hover:bg-slate-700/50'}`}
           >
             <UtensilsCrossed className="h-4 w-4 mr-2" />
             إدارة القائمة
@@ -389,7 +389,7 @@ export default function RestaurantPage() {
           <Button
             variant={activeTab === 'statistics' ? 'default' : 'ghost'}
             onClick={() => setActiveTab('statistics')}
-            className={`flex-1 ${activeTab === 'statistics' ? 'bg-white text-black' : 'text-white hover:bg-slate-700/50'}`}
+            className={`flex-1 ${activeTab === 'statistics' ? 'bg-gray-600 text-white' : 'text-white hover:bg-slate-700/50'}`}
           >
             <TrendingUp className="h-4 w-4 mr-2" />
             الإحصائيات

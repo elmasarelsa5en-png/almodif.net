@@ -94,7 +94,7 @@ export default function WhatsAppBotPage() {
               variant="ghost"
               size="icon"
               onClick={() => router.back()}
-              className="text-white hover:bg-white/10"
+              className="text-white hover:bg-gray-700/50"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
@@ -210,7 +210,7 @@ export default function WhatsAppBotPage() {
                   </p>
                   
                   {qrCode && (
-                    <div className="flex justify-center p-4 bg-white rounded-lg">
+                    <div className="flex justify-center p-4 bg-gray-800 rounded-lg">
                       <img src={qrCode} alt="QR Code" className="w-48 h-48" />
                     </div>
                   )}

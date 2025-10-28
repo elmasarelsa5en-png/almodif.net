@@ -259,23 +259,23 @@ export default function LaundryPage() {
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             {/* Customer Type */}
             <Select value={customerType} onValueChange={(value: CustomerType) => setCustomerType(value)}>
-              <SelectTrigger className="w-40 bg-white/10 border-white/20 text-white">
+              <SelectTrigger className="w-40 bg-gray-800/50 border-white/20 text-white">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-slate-900 border-white/20">
-                <SelectItem value="guest" className="text-white focus:bg-white/10 focus:text-white">
+                <SelectItem value="guest" className="text-white focus:bg-gray-800/50 focus:text-white">
                   <div className="flex items-center gap-2">
                     <UserCircle className="w-4 h-4" />
                     نزيل الفندق
                   </div>
                 </SelectItem>
-                <SelectItem value="staff" className="text-white focus:bg-white/10 focus:text-white">
+                <SelectItem value="staff" className="text-white focus:bg-gray-800/50 focus:text-white">
                   <div className="flex items-center gap-2">
                     <Badge className="w-4 h-4" />
                     موظف
                   </div>
                 </SelectItem>
-                <SelectItem value="external" className="text-white focus:bg-white/10 focus:text-white">
+                <SelectItem value="external" className="text-white focus:bg-gray-800/50 focus:text-white">
                   <div className="flex items-center gap-2">
                     <UserCircle className="w-4 h-4" />
                     عميل خارجي
@@ -287,12 +287,12 @@ export default function LaundryPage() {
             {/* Room Selection for Guests */}
             {customerType === 'guest' && (
               <Select value={selectedRoom} onValueChange={setSelectedRoom}>
-                <SelectTrigger className="w-40 bg-white/10 border-white/20 text-white">
+                <SelectTrigger className="w-40 bg-gray-800/50 border-white/20 text-white">
                   <SelectValue placeholder="اختر الغرفة" />
                 </SelectTrigger>
                 <SelectContent className="bg-slate-900 border-white/20">
                   {rooms.map(room => (
-                    <SelectItem key={room.id} value={room.number} className="text-white focus:bg-white/10 focus:text-white">
+                    <SelectItem key={room.id} value={room.number} className="text-white focus:bg-gray-800/50 focus:text-white">
                       غرفة {room.number}
                     </SelectItem>
                   ))}
@@ -325,17 +325,17 @@ export default function LaundryPage() {
               placeholder="البحث في خدمات المغسلة..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-white/10 border-white/20 text-white placeholder:text-white/50 pr-10"
+              className="bg-gray-800/50 border-white/20 text-white placeholder:text-white/50 pr-10"
             />
           </div>
 
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="bg-white/10 border-white/20 text-white">
+            <SelectTrigger className="bg-gray-800/50 border-white/20 text-white">
               <SelectValue placeholder="اختر نوع الخدمة" />
             </SelectTrigger>
             <SelectContent className="bg-slate-900 border-white/20">
               {categories.map(category => (
-                <SelectItem key={category.id} value={category.id} className="text-white focus:bg-white/10 focus:text-white">
+                <SelectItem key={category.id} value={category.id} className="text-white focus:bg-gray-800/50 focus:text-white">
                   {category.name}
                 </SelectItem>
               ))}
@@ -346,7 +346,7 @@ export default function LaundryPage() {
         {/* Services Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filteredServices.map(service => (
-            <Card key={service.id} className="bg-white/10 border-white/20 hover:bg-white/15 transition-colors">
+            <Card key={service.id} className="bg-gray-800/50 border-white/20 hover:bg-gray-700/50 transition-colors">
               <CardContent className="p-4">
                 <div className={`aspect-square bg-gradient-to-br ${getCategoryColor(service.category)} rounded-lg mb-3 flex items-center justify-center`}>
                   {getCategoryIcon(service.category)}
@@ -388,7 +388,7 @@ export default function LaundryPage() {
 
             <div className="space-y-4">
               {cart.map((item, index) => (
-                <div key={`${item.id}-${item.roomNumber}-${index}`} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                <div key={`${item.id}-${item.roomNumber}-${index}`} className="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg">
                   <div className="flex-1">
                     <h4 className="font-semibold">{item.nameAr}</h4>
                     <p className="text-white/60 text-sm">{item.price} ر.س</p>
@@ -406,7 +406,7 @@ export default function LaundryPage() {
                       size="sm"
                       variant="outline"
                       onClick={() => updateQuantity(item.id, item.roomNumber, item.quantity - 1)}
-                      className="w-8 h-8 p-0 bg-white/10 border-white/20 text-white"
+                      className="w-8 h-8 p-0 bg-gray-800/50 border-white/20 text-white"
                     >
                       <Minus className="w-4 h-4" />
                     </Button>
@@ -417,7 +417,7 @@ export default function LaundryPage() {
                       size="sm"
                       variant="outline"
                       onClick={() => updateQuantity(item.id, item.roomNumber, item.quantity + 1)}
-                      className="w-8 h-8 p-0 bg-white/10 border-white/20 text-white"
+                      className="w-8 h-8 p-0 bg-gray-800/50 border-white/20 text-white"
                     >
                       <Plus className="w-4 h-4" />
                     </Button>
@@ -459,7 +459,7 @@ export default function LaundryPage() {
               <Button
                 variant="outline"
                 onClick={() => setIsCheckoutOpen(false)}
-                className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                className="bg-gray-800/50 border-white/20 text-white hover:bg-gray-600/50"
               >
                 إلغاء
               </Button>
