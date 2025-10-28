@@ -16,7 +16,8 @@ import {
   CheckCheck,
   User,
   Clock,
-  RefreshCw
+  RefreshCw,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -47,6 +48,7 @@ export default function WhatsAppChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLoggingOut, setIsLoggingOut] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -318,6 +320,9 @@ export default function WhatsAppChatPage() {
 
   const handleLogout = async () => {
     try {
+      setIsLoggingOut(true);
+      console.log('🔴 Logging out from chat page...');
+      
       const response = await fetch('http://localhost:3002/api/disconnect', {
         method: 'POST',
         headers: {
@@ -326,11 +331,16 @@ export default function WhatsAppChatPage() {
       });
       
       if (response.ok) {
+        console.log('✅ Logout successful, redirecting...');
         // الرجوع لصفحة الاتصال
         router.push('/dashboard/crm-whatsapp/connect');
+      } else {
+        console.error('❌ Logout failed');
+        setIsLoggingOut(false);
       }
     } catch (err) {
       console.error('Logout error:', err);
+      setIsLoggingOut(false);
     }
   };
 
@@ -361,9 +371,17 @@ export default function WhatsAppChatPage() {
                 variant="ghost"
                 size="sm"
                 onClick={handleLogout}
-                className="text-white hover:bg-white/20 text-sm"
+                disabled={isLoggingOut}
+                className="text-white hover:bg-white/20 text-sm disabled:opacity-50"
               >
-                خروج
+                {isLoggingOut ? (
+                  <>
+                    <Loader2 className="w-4 h-4 ml-1 animate-spin" />
+                    جاري الخروج...
+                  </>
+                ) : (
+                  'خروج'
+                )}
               </Button>
               <MessageSquare className="w-6 h-6" />
             </div>

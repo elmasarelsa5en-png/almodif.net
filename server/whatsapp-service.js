@@ -237,10 +237,18 @@ app.post('/api/disconnect', async (req, res) => {
   }
 
   try {
+    console.log('🔴 Logging out from WhatsApp...');
     await client.logout();
     isReady = false;
     currentPhoneNumber = null;
     qrCodeData = null;
+    
+    console.log('🔄 Reinitializing WhatsApp client...');
+    // إعادة تشغيل الـ client للحصول على QR جديد
+    setTimeout(() => {
+      initializeWhatsAppClient();
+    }, 1000);
+    
     res.json({ success: true });
   } catch (error) {
     console.error('Error disconnecting:', error);

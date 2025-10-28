@@ -15,6 +15,7 @@ export default function WhatsAppConnectPage() {
   const [qrCode, setQrCode] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [countdown, setCountdown] = useState<number>(60);
+  const [isLoggingOut, setIsLoggingOut] = useState<boolean>(false);
 
   useEffect(() => {
     // Check connection first
@@ -148,9 +149,12 @@ export default function WhatsAppConnectPage() {
 
   const handleLogout = async () => {
     try {
+      setIsLoggingOut(true);
       setStep('scanning');
       setError('');
+      setQrCode('');
       
+      console.log('🔴 Sending logout request...');
       const response = await fetch('http://localhost:3002/api/disconnect', {
         method: 'POST',
         headers: {
@@ -159,20 +163,23 @@ export default function WhatsAppConnectPage() {
       });
       
       if (response.ok) {
-        // بعد الخروج، نحمل QR جديد
-        setQrCode('');
+        console.log('✅ Logout successful');
         setCountdown(60);
         
-        // انتظر ثانية ثم حاول توليد QR جديد
+        // انتظر 3 ثواني ثم حاول توليد QR جديد
         setTimeout(() => {
+          console.log('🔄 Generating new QR code...');
           generateQRCode();
-        }, 2000);
+          setIsLoggingOut(false);
+        }, 3000);
       } else {
         setError('فشل الخروج من الحساب');
+        setIsLoggingOut(false);
       }
     } catch (err) {
       console.error('Logout error:', err);
       setError('حدث خطأ أثناء الخروج');
+      setIsLoggingOut(false);
     }
   };
 
@@ -194,9 +201,17 @@ export default function WhatsAppConnectPage() {
             <Button
               variant="outline"
               onClick={handleLogout}
-              className="text-red-400 hover:text-red-300 hover:bg-red-500/10 border-red-500/30 hover:border-red-500"
+              disabled={isLoggingOut}
+              className="text-red-400 hover:text-red-300 hover:bg-red-500/10 border-red-500/30 hover:border-red-500 disabled:opacity-50"
             >
-              خروج من الحساب
+              {isLoggingOut ? (
+                <>
+                  <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                  جاري الخروج...
+                </>
+              ) : (
+                'خروج من الحساب'
+              )}
             </Button>
           </div>
           
