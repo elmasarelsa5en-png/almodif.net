@@ -226,6 +226,35 @@ export default function HomePage() {
                   {t('homepageSystemName')}
                 </span>
               </h2>
+              
+              {/* Hero Value Proposition */}
+              <div className="mb-8 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-indigo-500/10 backdrop-blur-sm border border-white/10 rounded-2xl p-6 lg:p-8 max-w-4xl mx-auto">
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <Sparkles className="w-8 h-8 text-yellow-400 animate-pulse" />
+                  <h3 className="text-2xl lg:text-3xl font-bold text-white">
+                    تطبيق المضيف
+                  </h3>
+                  <Sparkles className="w-8 h-8 text-yellow-400 animate-pulse" />
+                </div>
+                <p className="text-xl lg:text-2xl text-blue-100 font-semibold leading-relaxed">
+                  نقدم لك الإضافة ونساعدك في إدارة الاستضافة
+                </p>
+                <div className="mt-6 flex flex-wrap gap-3 justify-center">
+                  <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
+                    <CheckCircle className="w-5 h-5 text-green-400" />
+                    <span className="text-white font-medium">إدارة احترافية</span>
+                  </div>
+                  <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
+                    <CheckCircle className="w-5 h-5 text-green-400" />
+                    <span className="text-white font-medium">خدمات متكاملة</span>
+                  </div>
+                  <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
+                    <CheckCircle className="w-5 h-5 text-green-400" />
+                    <span className="text-white font-medium">دعم مستمر</span>
+                  </div>
+                </div>
+              </div>
+
               <p className="text-lg lg:text-xl text-blue-100/80 max-w-3xl mx-auto leading-relaxed">
                 {t('homepageSubtitle')}
                 <br />
