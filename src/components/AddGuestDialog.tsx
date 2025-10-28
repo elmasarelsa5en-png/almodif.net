@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,8 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Upload, Loader2, UserPlus, Image as ImageIcon, Edit } from 'lucide-react';
+import { Upload, Loader2, UserPlus, Image as ImageIcon, Edit, Download, Clipboard } from 'lucide-react';
 import Tesseract from 'tesseract.js';
+import { getGuestDataFromClipboard, clearGuestClipboard, saveGuestDataToClipboard } from './GuestDataClipboard';
 
 interface GuestData {
   fullName: string;
@@ -37,6 +38,8 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
   const [isProcessing, setIsProcessing] = useState(false);
   const [ocrProgress, setOcrProgress] = useState(0);
   const [roomNumber, setRoomNumber] = useState('');
+  const [hasClipboardData, setHasClipboardData] = useState(false);
+  const [showClipboardPrompt, setShowClipboardPrompt] = useState(false);
   const [guestData, setGuestData] = useState<GuestData>({
     fullName: '',
     nationality: '',
@@ -53,6 +56,56 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  // التحقق من وجود بيانات محفوظة عند فتح النافذة
+  useEffect(() => {
+    if (open) {
+      const clipboardData = getGuestDataFromClipboard();
+      if (clipboardData) {
+        setHasClipboardData(true);
+        setShowClipboardPrompt(true);
+      }
+    }
+  }, [open]);
+
+  // تحميل البيانات من الحافظة
+  const loadFromClipboard = () => {
+    const clipboardData = getGuestDataFromClipboard();
+    if (clipboardData) {
+      setGuestData({
+        fullName: clipboardData.fullName || '',
+        nationality: clipboardData.nationality || '',
+        idType: clipboardData.idType || '',
+        idNumber: clipboardData.idNumber || '',
+        expiryDate: clipboardData.expiryDate || '',
+        mobile: clipboardData.mobile || '',
+        workPhone: clipboardData.workPhone || '',
+        email: clipboardData.email || '',
+        address: clipboardData.address || '',
+        notes: clipboardData.notes || '',
+        privateNotes: ''
+      });
+      setShowClipboardPrompt(false);
+      setActiveTab('manual');
+    }
+  };
+
+  // حفظ البيانات الحالية في الحافظة
+  const saveToClipboard = () => {
+    saveGuestDataToClipboard({
+      fullName: guestData.fullName,
+      nationality: guestData.nationality,
+      idType: guestData.idType,
+      idNumber: guestData.idNumber,
+      expiryDate: guestData.expiryDate,
+      mobile: guestData.mobile,
+      workPhone: guestData.workPhone,
+      email: guestData.email,
+      address: guestData.address,
+      notes: guestData.notes
+    });
+    alert('تم حفظ البيانات مؤقتاً! يمكنك استخدامها لاحقاً.');
+  };
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -234,6 +287,44 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
             أدخل بيانات النزيل يدوياً أو ارفع صورة من نموذج نزيل
           </DialogDescription>
         </DialogHeader>
+
+        {/* رسالة البيانات المحفوظة */}
+        {showClipboardPrompt && hasClipboardData && (
+          <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 border-2 border-purple-400/40 rounded-xl p-4 animate-in slide-in-from-top">
+            <div className="flex items-start gap-3">
+              <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Clipboard className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-white mb-1">
+                  توجد بيانات نزيل محفوظة مسبقاً
+                </h3>
+                <p className="text-blue-200 text-sm mb-3">
+                  هل تريد استخدام البيانات المحفوظة أم ستقوم بالإدخال يدوياً؟
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={loadFromClipboard}
+                    className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                    size="sm"
+                  >
+                    <Download className="w-4 h-4 ml-2" />
+                    استخدم البيانات المحفوظة
+                  </Button>
+                  <Button
+                    onClick={() => setShowClipboardPrompt(false)}
+                    variant="outline"
+                    className="border-blue-400/30 text-blue-200 hover:bg-white/10"
+                    size="sm"
+                  >
+                    <Edit className="w-4 h-4 ml-2" />
+                    أدخل يدوياً
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 bg-white/10">
@@ -491,13 +582,32 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
           </TabsContent>
         </Tabs>
 
-        <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={onClose} className="border-blue-400/30">
-            إلغاء
-          </Button>
+        <DialogFooter className="gap-2 flex-col sm:flex-row">
+          <div className="flex gap-2 flex-1">
+            <Button 
+              variant="outline" 
+              onClick={onClose} 
+              className="border-blue-400/30 flex-1 sm:flex-initial"
+            >
+              إلغاء
+            </Button>
+            
+            {/* زر حفظ البيانات للاستخدام لاحقاً */}
+            <Button
+              onClick={saveToClipboard}
+              variant="outline"
+              className="border-purple-400/30 text-purple-200 hover:bg-purple-600/20 flex-1 sm:flex-initial"
+              disabled={!guestData.fullName.trim()}
+              title="حفظ البيانات مؤقتاً للاستخدام في وقت آخر"
+            >
+              <Clipboard className="w-4 h-4 ml-2" />
+              حفظ مؤقتاً
+            </Button>
+          </div>
+          
           <Button 
             onClick={handleSubmit}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 w-full sm:w-auto"
             disabled={isProcessing}
           >
             <UserPlus className="w-4 h-4 ml-2" />

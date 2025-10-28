@@ -50,6 +50,7 @@ import {
 } from '@/lib/rooms-data';
 import AddGuestDialog from '@/components/AddGuestDialog';
 import AddRoomsFromImageDialog from '@/components/AddRoomsFromImageDialog';
+import GuestDataClipboard from '@/components/GuestDataClipboard';
 
 const ICON_MAP = {
   CheckCircle2,
@@ -837,6 +838,9 @@ export default function RoomsPage() {
         onClose={() => setIsAddRoomsFromImageOpen(false)}
         onSubmit={handleAddRoomsFromImage}
       />
+
+      {/* حافظة بيانات النزيل العائمة */}
+      <GuestDataClipboard position="bottom-left" />
     </div>
   )
 }
