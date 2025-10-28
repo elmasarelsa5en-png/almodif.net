@@ -188,29 +188,6 @@ const navigationItems: NavigationItem[] = [
     permission: 'view:internal_chat',
   },
   {
-    icon: MessageSquare,
-    labelKey: 'crmWhatsapp',
-    descKey: 'crmWhatsappDesc',
-    href: '/dashboard/crm-whatsapp',
-    permission: 'view:internal_chat',
-    subItems: [
-      {
-        icon: Bot,
-        labelKey: 'bots',
-        descKey: 'botsDesc',
-        href: '/dashboard/crm-whatsapp',
-        permission: 'view:internal_chat',
-      },
-      {
-        icon: Zap,
-        labelKey: 'bots',
-        descKey: 'botsDesc',
-        href: '/dashboard/crm-whatsapp/auto-reply',
-        permission: 'manage:whatsapp_bot',
-      }
-    ]
-  },
-  {
     icon: Settings,
     labelKey: 'settings',
     descKey: 'settingsDesc',
