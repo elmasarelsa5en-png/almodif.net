@@ -169,6 +169,12 @@ export default function GuestLaundryPage() {
     setGuestData(JSON.parse(savedGuestData));
   }, [router]);
 
+  // مراقبة تغييرات السلة
+  React.useEffect(() => {
+    console.log('🛒 تحديث السلة:', cart.length, 'أصناف');
+    console.log('السلة الحالية:', cart);
+  }, [cart]);
+
   const filteredServices = useMemo(() => {
     if (selectedCategory === 'all') return LAUNDRY_SERVICES;
     return LAUNDRY_SERVICES.filter(item => item.category === selectedCategory);
@@ -183,17 +189,44 @@ export default function GuestLaundryPage() {
   }, [cart]);
 
   const addToCart = (item: LaundryItem) => {
+    console.log('🛒 إضافة إلى السلة:', item.nameAr, item);
+    
     setCart(prevCart => {
       const existingItem = prevCart.find(cartItem => cartItem.id === item.id);
       if (existingItem) {
+        console.log('✅ تحديث الكمية للصنف الموجود');
         return prevCart.map(cartItem =>
           cartItem.id === item.id
             ? { ...cartItem, quantity: cartItem.quantity + 1 }
             : cartItem
         );
       }
+      console.log('✅ إضافة صنف جديد إلى السلة');
       return [...prevCart, { ...item, quantity: 1 }];
     });
+    
+    // إشعار بالإضافة
+    const notification = document.createElement('div');
+    notification.textContent = `✅ تمت إضافة ${item.nameAr} إلى السلة`;
+    notification.style.cssText = `
+      position: fixed;
+      top: 100px;
+      right: 20px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      padding: 16px 24px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      z-index: 9999;
+      font-weight: bold;
+      animation: slideIn 0.3s ease-out;
+    `;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      notification.style.animation = 'slideOut 0.3s ease-in';
+      setTimeout(() => notification.remove(), 300);
+    }, 2000);
   };
 
   const updateQuantity = (itemId: string, newQuantity: number) => {
@@ -275,6 +308,28 @@ export default function GuestLaundryPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
+      <style jsx global>{`
+        @keyframes slideIn {
+          from {
+            transform: translateX(400px);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        @keyframes slideOut {
+          from {
+            transform: translateX(0);
+            opacity: 1;
+          }
+          to {
+            transform: translateX(400px);
+            opacity: 0;
+          }
+        }
+      `}</style>
       <div className="absolute inset-0 bg-gradient-to-br from-cyan-900 via-blue-900 to-teal-900" />
       
       <motion.header 
@@ -393,9 +448,14 @@ export default function GuestLaundryPage() {
                     </div>
                     
                     <Button
-                      onClick={() => addToCart(service)}
+                      onClick={() => {
+                        console.log('🔘 تم الضغط على زر الإضافة!');
+                        console.log('الصنف:', service.nameAr);
+                        console.log('متاح؟', service.available);
+                        addToCart(service);
+                      }}
                       disabled={!service.available}
-                      className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm py-2"
+                      className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm py-2 hover:from-cyan-600 hover:to-blue-600 transition-all"
                     >
                       <Plus className="h-4 w-4 ml-1" />
                       إضافة
