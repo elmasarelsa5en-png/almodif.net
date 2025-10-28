@@ -379,16 +379,16 @@ export default function ChatPage() {
 
   return (
     <ProtectedRoute>
-      <PermissionGuard permission="access_chat" fallback="page">
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6" dir="rtl">
-          <div className="max-w-7xl mx-auto">
-            {/* Header */}
-            <div className="mb-8 flex items-center justify-between relative z-20">
-            <div>
-              <h1 className="text-4xl font-bold text-white">محادثات الموظفين</h1>
-              <p className="text-purple-200 mt-1">التواصل المباشر والاحترافي مع فريق العمل</p>
-            </div>
+      {/* الدردشة متاحة لجميع الموظفين المسجلين */}
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6" dir="rtl">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="mb-8 flex items-center justify-between relative z-20">
+          <div>
+            <h1 className="text-4xl font-bold text-white">محادثات الموظفين</h1>
+            <p className="text-purple-200 mt-1">التواصل المباشر والاحترافي مع فريق العمل</p>
           </div>
+        </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-250px)] relative z-10">
             {/* Conversations List */}
@@ -786,7 +786,6 @@ export default function ChatPage() {
             }
           `}</style>
         </div>
-      </PermissionGuard>
     </ProtectedRoute>
   );
 }

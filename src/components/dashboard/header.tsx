@@ -64,6 +64,7 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
     actionRequired: 0
   });
   const [logo, setLogo] = useState<string | null>(null);
+  const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const [showSearch, setShowSearch] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const previousNotificationCount = useRef(0);
@@ -103,6 +104,35 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
     window.addEventListener('logo-updated', handleLogoUpdate);
     return () => window.removeEventListener('logo-updated', handleLogoUpdate);
   }, []);
+
+  // تحميل صورة المستخدم من Firebase
+  useEffect(() => {
+    const loadUserAvatar = async () => {
+      if (!user) return;
+      
+      const employeeId = user.username || user.email;
+      if (!employeeId) return;
+
+      try {
+        const { db } = await import('@/lib/firebase');
+        const { doc, getDoc } = await import('firebase/firestore');
+        
+        const employeeRef = doc(db, 'employees', employeeId);
+        const employeeSnap = await getDoc(employeeRef);
+
+        if (employeeSnap.exists()) {
+          const data = employeeSnap.data();
+          if (data.avatar) {
+            setUserAvatar(data.avatar);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading user avatar:', error);
+      }
+    };
+
+    loadUserAvatar();
+  }, [user]);
 
   // التحقق من صلاحية الموافقة (مدير أو استقبال)
   const canApproveRequests = () => {
@@ -697,10 +727,18 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
                 className="flex items-center gap-1 sm:gap-2 hover:bg-white/10 border border-white/20 hover:border-white/40 transition-all duration-200 p-1 sm:p-2"
                 title="الملف الشخصي"
               >
-                <div className="w-6 h-6 sm:w-7 sm:h-7 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center shadow-md">
-                  <span className="text-white font-medium text-xs">
-                    {user?.name?.charAt(0) || user?.username?.charAt(0) || 'A'}
-                  </span>
+                <div className="w-6 h-6 sm:w-7 sm:h-7 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center shadow-md overflow-hidden">
+                  {userAvatar ? (
+                    <img 
+                      src={userAvatar} 
+                      alt={user?.name || 'User'} 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-white font-medium text-xs">
+                      {user?.name?.charAt(0) || user?.username?.charAt(0) || 'A'}
+                    </span>
+                  )}
                 </div>
                 <div className="hidden md:block text-right">
                   <p className="text-xs font-medium text-white truncate max-w-[80px]">{user?.name || user?.username}</p>
