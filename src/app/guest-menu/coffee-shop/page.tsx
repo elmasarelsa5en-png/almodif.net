@@ -187,7 +187,7 @@ export default function GuestCoffeeShopPage() {
     }
   };
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (!guestData) return;
     
     const order = {
@@ -200,13 +200,37 @@ export default function GuestCoffeeShopPage() {
       service: 'coffee-shop'
     };
 
-    // حفظ الطلب
-    const existingOrders = JSON.parse(localStorage.getItem('guest_orders') || '[]');
-    localStorage.setItem('guest_orders', JSON.stringify([...existingOrders, order]));
+    try {
+      // حفظ في localStorage
+      const existingOrders = JSON.parse(localStorage.getItem('guest_orders') || '[]');
+      localStorage.setItem('guest_orders', JSON.stringify([...existingOrders, order]));
 
-    alert('تم إرسال طلبك بنجاح! سيتم تحضيره قريباً.');
-    setCart([]);
-    setIsCheckoutOpen(false);
+      // حفظ في Firebase كطلب نزيل
+      const { addRequest } = await import('@/lib/firebase-data');
+      
+      const itemsDescription = cart.map(item => 
+        `${item.nameAr} (${item.quantity}x) - ${item.price * item.quantity} ريال`
+      ).join('\n');
+
+      await addRequest({
+        room: guestData.roomNumber,
+        guest: guestData.name,
+        phone: guestData.phone,
+        type: 'طلب من الكوفي شوب',
+        description: `الطلب:\n${itemsDescription}\n\nالإجمالي: ${cartTotal} ريال`,
+        priority: 'medium',
+        status: 'awaiting_employee_approval',
+        notes: `طلب إلكتروني من المنيو - الخدمة: كوفي شوب`,
+        createdAt: new Date().toISOString()
+      });
+
+      alert('تم إرسال طلبك بنجاح! سيتم تحضيره قريباً.');
+      setCart([]);
+      setIsCheckoutOpen(false);
+    } catch (error) {
+      console.error('Error submitting order:', error);
+      alert('حدث خطأ أثناء إرسال الطلب. يرجى المحاولة مرة أخرى.');
+    }
   };
 
   const getCategoryIcon = (category: string) => {
