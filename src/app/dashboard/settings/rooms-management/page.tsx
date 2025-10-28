@@ -90,13 +90,19 @@ export default function RoomsManagementPage() {
       // محاولة جلب من Firebase أولاً
       const firebaseRooms = await getRoomsFromFirebase();
       
-      if (firebaseRooms.length > 0) {
-        setRooms(firebaseRooms);
-        setIsFirebaseConnected(true);
-      }
+      // تحديث الغرف بغض النظر عن العدد (حتى لو فاضي)
+      setRooms(firebaseRooms);
+      setIsFirebaseConnected(true);
+      
+      console.log(`✅ تم تحميل ${firebaseRooms.length} غرفة من Firebase`);
     } catch (error) {
-      console.error('خطأ في تحميل البيانات:', error);
+      console.error('❌ خطأ في تحميل البيانات من Firebase:', error);
       setIsFirebaseConnected(false);
+      
+      // في حالة الخطأ، نبدأ بـ array فاضي
+      setRooms([]);
+      
+      alert('⚠️ لا يمكن الاتصال بـ Firebase. تأكد من اتصال الإنترنت.\n\nلن تتمكن من إضافة أو تعديل الغرف حالياً.');
     } finally {
       setIsSyncing(false);
     }
@@ -225,13 +231,19 @@ export default function RoomsManagementPage() {
 
   const handleCreateRoom = async () => {
     if (!formData.number.trim()) {
-      alert('يرجى إدخال رقم الغرفة');
+      alert('⚠️ يرجى إدخال رقم الغرفة');
+      return;
+    }
+
+    // تحقق من الاتصال بـ Firebase
+    if (!isFirebaseConnected) {
+      alert('❌ لا يوجد اتصال بـ Firebase!\n\n⚠️ لن يتم حفظ الغرفة. تأكد من:\n1. اتصال الإنترنت\n2. إعدادات Firebase صحيحة\n\nثم أعد المحاولة.');
       return;
     }
 
     // تحقق من عدم التكرار
     if (rooms.some(r => r.number === formData.number)) {
-      alert('رقم الغرفة موجود مسبقاً');
+      alert('⚠️ رقم الغرفة موجود مسبقاً');
       return;
     }
 
@@ -253,18 +265,31 @@ export default function RoomsManagementPage() {
       lastUpdated: new Date().toISOString()
     };
     
-    const updatedRooms = [...rooms, newRoom];
-    
     try {
+      console.log('🔄 جاري حفظ الغرفة في Firebase...', newRoom);
+      
       // حفظ الغرفة الجديدة فقط في Firebase
       await saveRoomToFirebase(newRoom);
-      setRooms(updatedRooms); // تحديث الحالة بعد النجاح
+      
+      // تحديث الحالة محلياً بعد النجاح
+      const updatedRooms = [...rooms, newRoom];
+      setRooms(updatedRooms);
+      
       setIsAddDialogOpen(false);
       alert(`✅ تم إضافة الغرفة ${newRoom.number} بنجاح!`);
       console.log('✅ تم إضافة الغرفة إلى Firebase:', newRoom);
     } catch (error: any) {
-      console.error('خطأ في حفظ الغرفة الجديدة في Firebase:', error);
-      alert(`❌ حدث خطأ في حفظ الغرفة:\n${error?.message || 'خطأ غير معروف'}\n\nيرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى.`);
+      console.error('❌ خطأ في حفظ الغرفة الجديدة في Firebase:', error);
+      alert(`❌ حدث خطأ في حفظ الغرفة:
+
+📋 التفاصيل: ${error?.message || 'خطأ غير معروف'}
+
+🔧 الحلول المقترحة:
+1. تأكد من اتصال الإنترنت
+2. تأكد من إعدادات Firebase
+3. تحقق من صلاحيات Firestore Rules
+
+يرجى المحاولة مرة أخرى.`);
       return;
     }
   };

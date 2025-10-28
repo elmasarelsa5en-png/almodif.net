@@ -7,44 +7,50 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // قواعد للغرف - يمكن للمستخدمين المصادق عليهم قراءة وكتابة جميع الغرف
+    // قواعد للغرف - يمكن للجميع القراءة والكتابة (للتطوير)
+    // في الإنتاج: استخدم authentication
+    match /hotel_rooms/{roomId} {
+      allow read, write: if true;
+    }
+    
+    // Collection القديمة
     match /rooms/{roomId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
 
-    // قواعد للحجوزات - يمكن للمستخدمين المصادق عليهم قراءة وكتابة جميع الحجوزات
+    // قواعد للحجوزات - الكل يقدر يقرأ ويكتب (للتطوير)
     match /bookings/{bookingId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
 
-    // قواعد للعملاء - يمكن للمستخدمين المصادق عليهم قراءة وكتابة جميع بيانات العملاء
+    // قواعد للعملاء - الكل يقدر يقرأ ويكتب (للتطوير)
     match /guests/{guestId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
 
-    // قواعد للفواتير - يمكن للمستخدمين المصادق عليهم قراءة وكتابة جميع الفواتير
+    // قواعد للفواتير - الكل يقدر يقرأ ويكتب (للتطوير)
     match /invoices/{invoiceId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
 
-    // قواعد للمدفوعات - يمكن للمستخدمين المصادق عليهم قراءة وكتابة جميع المدفوعات
+    // قواعد للمدفوعات - الكل يقدر يقرأ ويكتب (للتطوير)
     match /payments/{paymentId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
 
-    // قواعد للإعدادات - يمكن للمستخدمين المصادق عليهم قراءة وكتابة الإعدادات
+    // قواعد للإعدادات - الكل يقدر يقرأ ويكتب (للتطوير)
     match /settings/{settingId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
 
-    // قواعد للإشعارات - يمكن للمستخدمين المصادق عليهم قراءة وكتابة الإشعارات
+    // قواعد للإشعارات - الكل يقدر يقرأ ويكتب (للتطوير)
     match /notifications/{notificationId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
 
-    // قواعد لطلبات النزلاء - يمكن للمستخدمين المصادق عليهم قراءة وكتابة جميع الطلبات
+    // قواعد لطلبات النزلاء - الكل يقدر يقرأ ويكتب (للتطوير)
     match /guestRequests/{requestId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
 
     // قاعدة عامة للمستندات غير المحددة - محظورة
