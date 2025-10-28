@@ -259,14 +259,14 @@ export default function RoomsManagementPage() {
       // حفظ الغرفة الجديدة فقط في Firebase
       await saveRoomToFirebase(newRoom);
       setRooms(updatedRooms); // تحديث الحالة بعد النجاح
-      console.log('✅ تم إضافة الغرفة إلى Firebase');
-    } catch (error) {
+      setIsAddDialogOpen(false);
+      alert(`✅ تم إضافة الغرفة ${newRoom.number} بنجاح!`);
+      console.log('✅ تم إضافة الغرفة إلى Firebase:', newRoom);
+    } catch (error: any) {
       console.error('خطأ في حفظ الغرفة الجديدة في Firebase:', error);
-      alert('حدث خطأ في حفظ الغرفة. يرجى المحاولة مرة أخرى.');
+      alert(`❌ حدث خطأ في حفظ الغرفة:\n${error?.message || 'خطأ غير معروف'}\n\nيرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى.`);
       return;
     }
-    
-    setIsAddDialogOpen(false);
   };
 
   const handleAddRoomsFromImage = async (newRooms: Partial<Room>[]) => {

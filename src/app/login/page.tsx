@@ -19,14 +19,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
 
-// بيانات المستخدم
-const USER_CREDENTIALS = {
-  username: 'akram',
-  password: 'Aa123456',
-  role: 'admin',
-  name: 'أكرم'
-};
-
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
@@ -45,13 +37,44 @@ export default function LoginPage() {
     // محاكاة تأخير الخادم
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // التحقق من بيانات تسجيل الدخول
-    if (username === USER_CREDENTIALS.username && password === USER_CREDENTIALS.password) {
+    // جلب المستخدمين من localStorage
+    let users = [];
+    try {
+      const storedUsers = localStorage.getItem('users');
+      if (storedUsers) {
+        users = JSON.parse(storedUsers);
+      }
+    } catch (error) {
+      console.error('Error loading users:', error);
+    }
+    
+    // إضافة المستخدم الافتراضي إذا لم يكن موجوداً
+    const defaultUser = {
+      uid: 'user_akram',
+      email: 'akram@almodif.com',
+      name: 'akram',
+      password: 'Aa123456',
+      role: 'admin',
+      createdAt: new Date().toISOString()
+    };
+    
+    // إذا لم يكن هناك مستخدمين، أضف المستخدم الافتراضي
+    if (users.length === 0) {
+      users = [defaultUser];
+      localStorage.setItem('users', JSON.stringify(users));
+    }
+
+    // البحث عن المستخدم
+    const foundUser = users.find((u: any) => 
+      (u.name === username || u.email === username) && u.password === password
+    );
+
+    if (foundUser) {
       // استخدام AuthContext لتسجيل الدخول
       const userData = {
-        username: USER_CREDENTIALS.username,
-        role: USER_CREDENTIALS.role,
-        name: USER_CREDENTIALS.name,
+        username: foundUser.name,
+        role: foundUser.role || 'admin',
+        name: foundUser.name,
         loginTime: new Date().toISOString()
       };
       
