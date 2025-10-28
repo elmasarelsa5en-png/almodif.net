@@ -32,19 +32,17 @@ import {
   TrendingUp
 } from 'lucide-react';
 
-export default function PublicHomePage({ params }: { params: Promise<{ hotelSlug: string }> }) {
+export default function PublicHomePage({ params }: { params: { hotelSlug: string } }) {
   const [settings, setSettings] = useState<WebsiteSettings | null>(null);
   const [rooms, setRooms] = useState<any[]>([]);
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
   const [guests, setGuests] = useState('2');
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
-  const [hotelSlug, setHotelSlug] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+  const hotelSlug = params.hotelSlug;
 
   useEffect(() => {
-    // Unwrap params
-    params.then((p) => setHotelSlug(p.hotelSlug));
-
     // Load settings
     const loaded = loadWebsiteSettings();
     setSettings(loaded);
@@ -56,6 +54,8 @@ export default function PublicHomePage({ params }: { params: Promise<{ hotelSlug
       // Get first 6 rooms for featured section
       setRooms(allRooms.slice(0, 6));
     }
+    
+    setLoading(false);
   }, []);
 
   const testimonials = [
@@ -96,7 +96,16 @@ export default function PublicHomePage({ params }: { params: Promise<{ hotelSlug
     }
   };
 
-  if (!settings) return null;
+  if (loading || !settings) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mb-4"></div>
+          <p className="text-gray-600">جاري التحميل...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
