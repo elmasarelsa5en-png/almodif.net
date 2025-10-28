@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/auth-context";
 import { LanguageProvider } from "@/contexts/language-context";
+import GlobalNotificationInitializer from "@/components/GlobalNotificationInitializer";
 
 export const metadata: Metadata = {
   title: "المضيف - النظام الذكي",
@@ -32,6 +33,7 @@ export default function RootLayout({
         }} />
       </head>
       <body className="font-sans antialiased">
+        <GlobalNotificationInitializer />
         <LanguageProvider>
           <AuthProvider>
             {children}

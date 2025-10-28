@@ -66,6 +66,15 @@ export default function SettingsPage() {
       badge: '⭐ جديد'
     },
     {
+      id: 'notification-sound',
+      title: 'نغمات الإشعارات',
+      description: 'اختر نغمة طويلة للطلبات الجديدة تسمعها في كل مكان',
+      icon: Volume2,
+      color: 'from-orange-500 via-red-500 to-pink-500',
+      href: '/dashboard/settings/notification-sound',
+      badge: '🔔 جديد'
+    },
+    {
       id: 'website',
       title: 'الموقع الإلكتروني',
       description: 'إنشاء وإدارة موقع الفندق للحجز أونلاين',
