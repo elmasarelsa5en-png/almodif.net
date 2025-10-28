@@ -316,6 +316,24 @@ export default function WhatsAppChatPage() {
     return date.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
   };
 
+  const handleLogout = async () => {
+    try {
+      const response = await fetch('http://localhost:3002/api/disconnect', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        // الرجوع لصفحة الاتصال
+        router.push('/dashboard/crm-whatsapp/connect');
+      }
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+  };
+
   const filteredChats = chats.filter(chat =>
     chat.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -339,6 +357,14 @@ export default function WhatsAppChatPage() {
               <h2 className="text-xl font-bold">المحادثات</h2>
             </div>
             <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLogout}
+                className="text-white hover:bg-white/20 text-sm"
+              >
+                خروج
+              </Button>
               <MessageSquare className="w-6 h-6" />
             </div>
           </div>

@@ -146,19 +146,59 @@ export default function WhatsAppConnectPage() {
     generateQRCode();
   };
 
+  const handleLogout = async () => {
+    try {
+      setStep('scanning');
+      setError('');
+      
+      const response = await fetch('http://localhost:3002/api/disconnect', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        // بعد الخروج، نحمل QR جديد
+        setQrCode('');
+        setCountdown(60);
+        
+        // انتظر ثانية ثم حاول توليد QR جديد
+        setTimeout(() => {
+          generateQRCode();
+        }, 2000);
+      } else {
+        setError('فشل الخروج من الحساب');
+      }
+    } catch (err) {
+      console.error('Logout error:', err);
+      setError('حدث خطأ أثناء الخروج');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-900 p-4 md:p-8" dir="rtl">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <Button
-            variant="ghost"
-            onClick={() => router.push('/dashboard/crm-whatsapp')}
-            className="mb-4 text-gray-400 hover:text-white hover:bg-gray-800"
-          >
-            <ArrowLeft className="w-4 h-4 ml-2" />
-            العودة للمنصات
-          </Button>
+          <div className="flex items-center justify-between mb-4">
+            <Button
+              variant="ghost"
+              onClick={() => router.push('/dashboard/crm-whatsapp')}
+              className="text-gray-400 hover:text-white hover:bg-gray-800"
+            >
+              <ArrowLeft className="w-4 h-4 ml-2" />
+              العودة للمنصات
+            </Button>
+            
+            <Button
+              variant="outline"
+              onClick={handleLogout}
+              className="text-red-400 hover:text-red-300 hover:bg-red-500/10 border-red-500/30 hover:border-red-500"
+            >
+              خروج من الحساب
+            </Button>
+          </div>
           
           <div className="flex items-center gap-4 mb-3">
             <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center shadow-2xl">
