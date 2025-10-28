@@ -51,14 +51,14 @@ export default function GuestMenuIndexPage() {
           {/* خدمة الغرف */}
           <Card 
             className="bg-gray-900/80 backdrop-blur-xl border-gray-700/50 hover:border-blue-500/50 transition-all duration-300 cursor-pointer group"
-            onClick={() => router.push('/dashboard/coffee-shop')}
+            onClick={() => router.push('/guest-menu/room-service')}
           >
             <CardContent className="p-6 text-center">
               <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform">
                 <Hotel className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-lg font-semibold text-white mb-2">خدمة الغرف</h3>
-              <p className="text-gray-300 text-sm">طلب الطعام والمشروبات للغرفة</p>
+              <p className="text-gray-300 text-sm">مخدات، مناشف، أدوات تنظيف</p>
             </CardContent>
           </Card>
 
