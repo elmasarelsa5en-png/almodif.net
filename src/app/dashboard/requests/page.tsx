@@ -156,10 +156,59 @@ export default function RequestsPage() {
 
   const updateRequestStatus = async (id: string, newStatus: GuestRequest['status']) => {
     try {
-      await updateRequest(id, { 
-        status: newStatus, 
-        approvedAt: new Date().toISOString() 
-      });
+      const request = requests.find(r => r.id === id);
+      if (!request) return;
+
+      // إذا كان الطلب مكتمل، نضيف المبلغ للغرفة ونحذف الطلب
+      if (newStatus === 'completed') {
+        // جلب الطلب من guest_orders للحصول على المبلغ
+        const guestOrders = JSON.parse(localStorage.getItem('guest_orders') || '[]');
+        const matchingOrder = guestOrders.find((order: any) => 
+          order.roomNumber === request.room && 
+          order.guestName === request.guest
+        );
+
+        const orderAmount = matchingOrder?.total || 0;
+
+        // تحديث بيانات الغرفة
+        const rooms = JSON.parse(localStorage.getItem('hotel_rooms_data') || '[]');
+        const roomIndex = rooms.findIndex((r: any) => r.number === request.room);
+        
+        if (roomIndex !== -1) {
+          // إضافة المبلغ للرصيد
+          rooms[roomIndex].balance = (rooms[roomIndex].balance || 0) + orderAmount;
+          
+          // إضافة حدث في السجل
+          const newEvent = {
+            id: Date.now().toString(),
+            type: 'order_completed',
+            description: `طلب مكتمل: ${request.type}${orderAmount > 0 ? ` - المبلغ: ${orderAmount} ر.س` : ''}`,
+            timestamp: new Date().toISOString(),
+            user: 'النظام',
+            newValue: `رصيد جديد: ${rooms[roomIndex].balance} ر.س`,
+            oldValue: `رصيد سابق: ${(rooms[roomIndex].balance || 0) - orderAmount} ر.س`
+          };
+          
+          if (!rooms[roomIndex].events) {
+            rooms[roomIndex].events = [];
+          }
+          rooms[roomIndex].events.push(newEvent);
+          rooms[roomIndex].lastUpdated = new Date().toISOString();
+          
+          // حفظ التحديثات
+          localStorage.setItem('hotel_rooms_data', JSON.stringify(rooms));
+        }
+
+        // حذف الطلب من Firebase
+        await deleteRequestFromFirebase(id);
+        alert(`✅ تم إكمال الطلب بنجاح!\n${orderAmount > 0 ? `تم إضافة ${orderAmount} ر.س لرصيد الغرفة ${request.room}` : ''}`);
+      } else {
+        // تحديث الحالة فقط للحالات الأخرى
+        await updateRequest(id, { 
+          status: newStatus, 
+          approvedAt: new Date().toISOString() 
+        });
+      }
     } catch (error) {
       console.error('Error updating request:', error);
       alert('حدث خطأ أثناء تحديث الطلب');
