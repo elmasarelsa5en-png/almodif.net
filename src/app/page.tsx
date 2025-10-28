@@ -115,13 +115,29 @@ export default function HomePage() {
           <div className="flex justify-between items-center py-4 lg:py-6">
             <div className="flex items-center gap-3 lg:gap-4">
               <div className="relative flex items-center gap-2">
-                <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-full bg-gradient-to-br from-blue-500 via-cyan-500 to-blue-600 flex items-center justify-center shadow-2xl ring-2 ring-white/30">
-                  <img src="/app-logo.png" alt={t('appName')} className="w-10 h-10 lg:w-12 lg:h-12 rounded-full object-cover" style={{objectFit:'contain'}} />
+                {/* Rotating Ring */}
+                <div className="absolute inset-0 w-14 h-14 lg:w-16 lg:h-16 rounded-full border border-transparent border-t-blue-400/50 border-r-purple-400/50 animate-spin-slow"></div>
+                
+                {/* Logo with animations */}
+                <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-full bg-gradient-to-br from-blue-500 via-cyan-500 to-blue-600 flex items-center justify-center shadow-2xl ring-1 ring-white/30 animate-pulse-glow relative group">
+                  <img 
+                    src="/app-logo.png" 
+                    alt={t('appName')} 
+                    className="w-10 h-10 lg:w-12 lg:h-12 rounded-full object-cover group-hover:scale-110 transition-transform duration-300" 
+                    style={{objectFit:'contain'}} 
+                  />
+                  
+                  {/* Shine Effect */}
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/30 to-transparent opacity-0 group-hover:opacity-100 group-hover:animate-shine transition-opacity"></div>
                 </div>
-                <div className="absolute -top-1 -right-1 w-4 h-4 lg:w-5 lg:h-5 bg-green-400 rounded-full border-2 border-white animate-pulse"></div>
+                
+                {/* Orbiting Dot */}
+                <div className="absolute inset-0 animate-orbit pointer-events-none">
+                  <div className="absolute top-0 left-1/2 w-2 h-2 bg-green-400 rounded-full -ml-1 shadow-md shadow-green-400/50"></div>
+                </div>
               </div>
               <div>
-                <h1 className="text-xl lg:text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-300 bg-clip-text text-transparent">
+                <h1 className="text-xl lg:text-3xl font-bold bg-gradient-to-r from-purple-400 via-pink-300 to-purple-400 bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">
                   {t('homepageSystemName')}
                 </h1>
                 <p className="text-purple-200/70 text-xs lg:text-sm font-medium">{t('appSubtitle')}</p>
@@ -263,28 +279,37 @@ export default function HomePage() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
                 <Button 
                   size="lg"
-                  className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-2xl text-lg px-8 py-4"
+                  className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-2xl text-lg px-8 py-4 relative overflow-hidden group hover:scale-105 transition-transform duration-300"
                   onClick={() => window.location.href = '/login'}
                 >
-                  <Play className="w-5 h-5 ml-2" />
-                  {t('homepageStartNow')}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-0 group-hover:opacity-100 group-hover:animate-shine"></div>
+                  <div className="relative flex items-center">
+                    <Play className="w-5 h-5 ml-2" />
+                    {t('homepageStartNow')}
+                  </div>
                 </Button>
                 <Button 
                   size="lg"
-                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-2xl text-lg px-8 py-4"
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-2xl text-lg px-8 py-4 relative overflow-hidden group hover:scale-105 transition-transform duration-300"
                   onClick={() => router.push('/guest-login')}
                 >
-                  <Menu className="w-5 h-5 ml-2" />
-                  المنيو الإلكتروني للنزلاء
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-0 group-hover:opacity-100 group-hover:animate-shine"></div>
+                  <div className="relative flex items-center">
+                    <Menu className="w-5 h-5 ml-2" />
+                    المنيو الإلكتروني للنزلاء
+                  </div>
                 </Button>
                 <Button 
                   size="lg"
                   variant="outline"
-                  className="border-white/30 text-white bg-white/10 hover:bg-white/20 backdrop-blur-sm text-lg px-8 py-4"
+                  className="border-white/30 text-white bg-white/10 hover:bg-white/20 backdrop-blur-sm text-lg px-8 py-4 relative overflow-hidden group hover:scale-105 transition-transform duration-300"
                   onClick={() => router.push('/dashboard')}
                 >
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                  {t('homepageExploreSystem')}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 group-hover:animate-shine"></div>
+                  <div className="relative flex items-center">
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                    {t('homepageExploreSystem')}
+                  </div>
                 </Button>
               </div>
             </div>
@@ -369,17 +394,23 @@ export default function HomePage() {
               {services.map((service, index) => (
                 <Card 
                   key={index}
-                  className="bg-white/5 border-white/10 hover:bg-white/10 transition-all duration-300 cursor-pointer group hover:scale-105 hover:shadow-2xl"
+                  className="bg-white/5 border-white/10 hover:bg-white/10 transition-all duration-500 cursor-pointer group hover:scale-110 hover:rotate-1 hover:shadow-2xl hover:shadow-blue-500/20 relative overflow-hidden"
                   onClick={() => window.location.href = service.path}
+                  style={{
+                    transitionDelay: `${index * 50}ms`
+                  }}
                 >
-                  <CardContent className="p-4 lg:p-6 text-center">
-                    <div className="w-12 h-12 lg:w-16 lg:h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-3 lg:mb-4 group-hover:scale-110 transition-transform">
-                      {React.cloneElement(service.icon, { className: "text-white" })}
+                  {/* Shine effect on hover */}
+                  <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:animate-shine transition-opacity"></div>
+                  
+                  <CardContent className="p-4 lg:p-6 text-center relative z-10">
+                    <div className="w-12 h-12 lg:w-16 lg:h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-3 lg:mb-4 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500 shadow-lg group-hover:shadow-blue-400/50">
+                      {React.cloneElement(service.icon, { className: "text-white group-hover:scale-110 transition-transform" })}
                     </div>
-                    <h3 className="text-white font-bold text-sm lg:text-base mb-1 lg:mb-2">
+                    <h3 className="text-white font-bold text-sm lg:text-base mb-1 lg:mb-2 group-hover:text-blue-300 transition-colors">
                       {service.title}
                     </h3>
-                    <p className="text-blue-100/60 text-xs lg:text-sm">
+                    <p className="text-blue-100/60 text-xs lg:text-sm group-hover:text-blue-100/80 transition-colors">
                       {service.desc}
                     </p>
                   </CardContent>
@@ -394,14 +425,22 @@ export default function HomePage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
               {stats.map((stat, index) => (
-                <div key={index} className="text-center">
-                  <div className="w-16 h-16 lg:w-20 lg:h-20 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-4 backdrop-blur-md border border-white/10">
-                    {stat.icon}
+                <div 
+                  key={index} 
+                  className="text-center group hover:scale-110 transition-all duration-500 cursor-pointer"
+                  style={{
+                    transitionDelay: `${index * 100}ms`
+                  }}
+                >
+                  <div className="w-16 h-16 lg:w-20 lg:h-20 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-4 backdrop-blur-md border border-white/10 group-hover:bg-white/20 group-hover:rotate-12 group-hover:shadow-xl group-hover:shadow-blue-400/30 transition-all duration-500">
+                    <div className="group-hover:scale-125 transition-transform duration-500">
+                      {stat.icon}
+                    </div>
                   </div>
-                  <div className="text-2xl lg:text-4xl font-bold text-white mb-2">
+                  <div className="text-2xl lg:text-4xl font-bold text-white mb-2 group-hover:scale-110 group-hover:text-blue-300 transition-all duration-300">
                     {stat.number}
                   </div>
-                  <div className="text-blue-100/70 text-sm lg:text-base">
+                  <div className="text-blue-100/70 text-sm lg:text-base group-hover:text-blue-100 transition-colors">
                     {stat.label}
                   </div>
                 </div>
@@ -564,6 +603,67 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+
+      {/* Animation Keyframes */}
+      <style jsx global>{`
+        @keyframes spin-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse-glow {
+          0%, 100% {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+          }
+          50% {
+            box-shadow: 0 0 40px rgba(59, 130, 246, 0.8), 0 0 60px rgba(139, 92, 246, 0.6);
+          }
+        }
+
+        @keyframes shine {
+          from {
+            transform: translateX(-100%) translateY(-100%) rotate(45deg);
+          }
+          to {
+            transform: translateX(100%) translateY(100%) rotate(45deg);
+          }
+        }
+
+        @keyframes orbit {
+          from {
+            transform: rotate(0deg) translateX(40px) rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg) translateX(40px) rotate(-360deg);
+          }
+        }
+
+        @keyframes gradient {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+
+        .animate-spin-slow {
+          animation: spin-slow 3s linear infinite;
+        }
+
+        .animate-pulse-glow {
+          animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        .animate-shine {
+          animation: shine 3s ease-in-out infinite;
+        }
+
+        .animate-orbit {
+          animation: orbit 4s linear infinite;
+        }
+
+        .animate-gradient {
+          animation: gradient 3s ease infinite;
+        }
+      `}</style>
     </div>
   );
 }

@@ -722,7 +722,7 @@ export default function ChatPage() {
             ) : (
               <Card className="lg:col-span-2 bg-slate-800/50 border-slate-700 flex items-center justify-center">
                 <div className="text-center">
-                  <Users className="w-16 h-16 text-gray-500 mx-auto mb-4 opacity-30" />
+                  <Users className="w-16 h-16 text-gray-500 mx-auto mb-4 opacity-30 animate-pulse-glow" />
                   <p className="text-gray-400 text-lg">اختر محادثة أو ابدأ محادثة جديدة</p>
                   <p className="text-gray-500 text-sm mt-1">تواصل مع فريق العمل بشكل احترافي</p>
                 </div>
@@ -730,6 +730,44 @@ export default function ChatPage() {
             )}
           </div>
           </div>
+
+          {/* Animation Keyframes */}
+          <style jsx global>{`
+            @keyframes pulse-glow {
+              0%, 100% {
+                opacity: 0.3;
+              }
+              50% {
+                opacity: 0.6;
+              }
+            }
+
+            @keyframes shine {
+              from {
+                transform: translateX(-100%) translateY(-100%) rotate(45deg);
+              }
+              to {
+                transform: translateX(100%) translateY(100%) rotate(45deg);
+              }
+            }
+
+            @keyframes bounce-slow {
+              0%, 100% { transform: translateY(0); }
+              50% { transform: translateY(-10px); }
+            }
+
+            .animate-pulse-glow {
+              animation: pulse-glow 2s ease-in-out infinite;
+            }
+
+            .animate-shine {
+              animation: shine 3s ease-in-out infinite;
+            }
+
+            .animate-bounce-slow {
+              animation: bounce-slow 2s ease-in-out infinite;
+            }
+          `}</style>
         </div>
       </PermissionGuard>
     </ProtectedRoute>

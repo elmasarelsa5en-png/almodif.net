@@ -123,11 +123,11 @@ export default function LoginPage() {
               isVisible ? 'scale-100 rotate-0' : 'scale-0 rotate-180'
             }`}>
               <div className="relative">
-                {/* Rotating Ring */}
-                <div className="absolute inset-0 w-28 h-28 rounded-full border-4 border-transparent border-t-blue-400 border-r-purple-400 animate-spin-slow"></div>
+                {/* Rotating Ring - رفيع جداً */}
+                <div className="absolute inset-0 w-24 h-24 rounded-full border border-transparent border-t-blue-400/50 border-r-purple-400/50 animate-spin-slow"></div>
                 
-                {/* Logo Container */}
-                <div className="w-28 h-28 rounded-full bg-gradient-to-br from-blue-500 via-cyan-500 to-blue-600 flex items-center justify-center shadow-2xl ring-4 ring-white/20 relative animate-pulse-glow">
+                {/* Logo Container - برواز رفيع */}
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 via-cyan-500 to-blue-600 flex items-center justify-center shadow-2xl ring-1 ring-white/30 relative animate-pulse-glow">
                   <img 
                     src="/app-logo.png" 
                     alt={t('appName')} 
@@ -139,12 +139,12 @@ export default function LoginPage() {
                   <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/30 to-transparent animate-shine"></div>
                 </div>
 
-                {/* Orbiting Dots */}
+                {/* Orbiting Dots - أصغر */}
                 <div className="absolute inset-0 animate-orbit">
-                  <div className="absolute top-0 left-1/2 w-3 h-3 bg-yellow-400 rounded-full -ml-1.5 shadow-lg shadow-yellow-400/50"></div>
+                  <div className="absolute top-0 left-1/2 w-2 h-2 bg-yellow-400 rounded-full -ml-1 shadow-md shadow-yellow-400/50"></div>
                 </div>
                 <div className="absolute inset-0 animate-orbit-reverse">
-                  <div className="absolute bottom-0 left-1/2 w-3 h-3 bg-pink-400 rounded-full -ml-1.5 shadow-lg shadow-pink-400/50"></div>
+                  <div className="absolute bottom-0 left-1/2 w-2 h-2 bg-pink-400 rounded-full -ml-1 shadow-md shadow-pink-400/50"></div>
                 </div>
               </div>
             </div>

@@ -1123,9 +1123,69 @@ const Dashboard: React.FC = () => {
             0%, 100% { transform: translateY(0px) rotate(0deg); }
             50% { transform: translateY(-20px) rotate(180deg); }
           }
+          
+          @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+
+          @keyframes pulse-glow {
+            0%, 100% {
+              box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+            }
+            50% {
+              box-shadow: 0 0 40px rgba(139, 92, 246, 0.8), 0 0 60px rgba(236, 72, 153, 0.6);
+            }
+          }
+
+          @keyframes shine {
+            from {
+              transform: translateX(-100%) translateY(-100%) rotate(45deg);
+            }
+            to {
+              transform: translateX(100%) translateY(100%) rotate(45deg);
+            }
+          }
+
+          @keyframes orbit {
+            from {
+              transform: rotate(0deg) translateX(40px) rotate(0deg);
+            }
+            to {
+              transform: rotate(360deg) translateX(40px) rotate(-360deg);
+            }
+          }
+
+          @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+          }
+
           .animate-float {
             animation: float 10s ease-in-out infinite;
           }
+          
+          .animate-spin-slow {
+            animation: spin-slow 3s linear infinite;
+          }
+
+          .animate-pulse-glow {
+            animation: pulse-glow 2s ease-in-out infinite;
+          }
+
+          .animate-shine {
+            animation: shine 3s ease-in-out infinite;
+          }
+
+          .animate-orbit {
+            animation: orbit 4s linear infinite;
+          }
+
+          .animate-gradient {
+            animation: gradient 3s ease infinite;
+          }
+          
           .animation-delay-2000 {
             animation-delay: 2s;
           }

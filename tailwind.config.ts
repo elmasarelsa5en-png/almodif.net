@@ -15,6 +15,67 @@ const config: Config = {
         'gradient-light': 'linear-gradient(135deg, #f0f9ff 0%, #faf5ff 100%)',
         'gradient-hero': 'linear-gradient(135deg, #f0f9ff 0%, #faf5ff 50%, #e0f2fe 100%)',
       },
+      animation: {
+        'spin-slow': 'spin-slow 3s linear infinite',
+        'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
+        'bounce-slow': 'bounce-slow 2s ease-in-out infinite',
+        'shine': 'shine 3s ease-in-out infinite',
+        'orbit': 'orbit 4s linear infinite',
+        'orbit-reverse': 'orbit-reverse 3s linear infinite',
+        'gradient': 'gradient 3s ease infinite',
+        'float': 'float 6s ease-in-out infinite',
+      },
+      keyframes: {
+        'spin-slow': {
+          from: { transform: 'rotate(0deg)' },
+          to: { transform: 'rotate(360deg)' },
+        },
+        'pulse-glow': {
+          '0%, 100%': {
+            boxShadow: '0 0 20px rgba(59, 130, 246, 0.5)',
+          },
+          '50%': {
+            boxShadow: '0 0 40px rgba(59, 130, 246, 0.8), 0 0 60px rgba(139, 92, 246, 0.6)',
+          },
+        },
+        'bounce-slow': {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-10px)' },
+        },
+        shine: {
+          from: {
+            transform: 'translateX(-100%) translateY(-100%) rotate(45deg)',
+          },
+          to: {
+            transform: 'translateX(100%) translateY(100%) rotate(45deg)',
+          },
+        },
+        orbit: {
+          from: {
+            transform: 'rotate(0deg) translateX(40px) rotate(0deg)',
+          },
+          to: {
+            transform: 'rotate(360deg) translateX(40px) rotate(-360deg)',
+          },
+        },
+        'orbit-reverse': {
+          from: {
+            transform: 'rotate(0deg) translateX(35px) rotate(0deg)',
+          },
+          to: {
+            transform: 'rotate(-360deg) translateX(35px) rotate(360deg)',
+          },
+        },
+        gradient: {
+          '0%': { backgroundPosition: '0% 50%' },
+          '50%': { backgroundPosition: '100% 50%' },
+          '100%': { backgroundPosition: '0% 50%' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-20px)' },
+        },
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],

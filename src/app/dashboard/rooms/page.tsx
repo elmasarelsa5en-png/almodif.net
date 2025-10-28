@@ -513,18 +513,21 @@ export default function RoomsPage() {
 
     return (
       <div
-        className={`relative group cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-2xl rounded-2xl overflow-hidden ${!imageUrl ? config.color : ''} active:scale-95`}
+        className={`relative group cursor-pointer transition-all duration-500 hover:scale-110 hover:rotate-1 hover:shadow-2xl hover:shadow-blue-500/30 rounded-2xl overflow-hidden ${!imageUrl ? config.color : ''} active:scale-95`}
         onClick={() => {
           console.log('🖱️ Click على الغرفة:', room.number);
           openRoomDetails(room);
         }}
         style={imageUrl ? { backgroundImage: `url(${imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
       >
+        {/* Shine effect on hover */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:animate-shine transition-opacity pointer-events-none"></div>
+        
         {imageUrl && <div className="absolute inset-0 bg-black/60 group-hover:bg-black/70 transition-colors"></div>}
         <div className="p-3 flex flex-col justify-between h-full min-h-[140px]">
           <div className="flex justify-between items-start">
             <div className="flex items-center gap-2">
-              <div className={`w-7 h-7 rounded-md flex items-center justify-center ${
+              <div className={`w-7 h-7 rounded-md flex items-center justify-center group-hover:scale-125 group-hover:rotate-12 transition-all duration-500 ${
                 imageUrl 
                   ? config.bgColor 
                   : 'bg-black/20'
@@ -535,7 +538,7 @@ export default function RoomsPage() {
                 <p className={`text-xs font-bold`}>{config.label}</p>
               </div>
             </div>
-            <span className="text-xl font-bold drop-shadow-md">{room.number}</span>
+            <span className="text-xl font-bold drop-shadow-md group-hover:scale-110 transition-transform duration-300">{room.number}</span>
           </div>
 
           <div className="flex-grow flex flex-col justify-end mt-2 z-10">
@@ -1006,6 +1009,44 @@ export default function RoomsPage() {
 
       {/* حافظة بيانات النزيل العائمة */}
       <GuestDataClipboard position="bottom-left" />
+
+      {/* Animation Keyframes */}
+      <style jsx global>{`
+        @keyframes shine {
+          from {
+            transform: translateX(-100%) translateY(-100%) rotate(45deg);
+          }
+          to {
+            transform: translateX(100%) translateY(100%) rotate(45deg);
+          }
+        }
+
+        @keyframes spin-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse-glow {
+          0%, 100% {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+          }
+          50% {
+            box-shadow: 0 0 40px rgba(59, 130, 246, 0.8), 0 0 60px rgba(139, 92, 246, 0.6);
+          }
+        }
+
+        .animate-shine {
+          animation: shine 3s ease-in-out infinite;
+        }
+
+        .animate-spin-slow {
+          animation: spin-slow 3s linear infinite;
+        }
+
+        .animate-pulse-glow {
+          animation: pulse-glow 2s ease-in-out infinite;
+        }
+      `}</style>
     </div>
     </PermissionGuard>
   )
