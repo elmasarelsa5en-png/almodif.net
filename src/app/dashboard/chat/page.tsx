@@ -256,6 +256,13 @@ export default function ChatPage() {
 
     try {
       setLoading(true);
+      console.log('🟢 بدء محادثة جديدة:', {
+        currentUser: user.username,
+        currentUserName: user.name,
+        otherEmployee: employee.id,
+        otherEmployeeName: employee.name
+      });
+      
       const chatId = await getOrCreateChat(
         user.username,
         user.name,
@@ -265,15 +272,25 @@ export default function ChatPage() {
         employee.avatar
       );
 
-      // Find the chat in the list or wait for subscription to update
-      const chat = chats.find((c) => c.id === chatId);
-      if (chat) {
-        selectChat(chat);
-      }
+      console.log('✅ تم إنشاء/الحصول على المحادثة:', chatId);
+
+      // Wait a bit for subscription to update, then select the chat
+      setTimeout(() => {
+        const chat = chats.find((c) => c.id === chatId);
+        if (chat) {
+          console.log('✅ تم العثور على المحادثة في القائمة');
+          selectChat(chat);
+        } else {
+          console.log('⚠️ المحادثة غير موجودة في القائمة، انتظر التحديث...');
+          // Force reload chats
+          window.location.reload();
+        }
+      }, 500);
+      
       setShowNewChat(false);
     } catch (error) {
-      console.error('Error starting new chat:', error);
-      alert('فشل إنشاء المحادثة. حاول مرة أخرى.');
+      console.error('❌ خطأ في إنشاء المحادثة:', error);
+      alert('فشل إنشاء المحادثة. حاول مرة أخرى.\n\nالخطأ: ' + (error as Error).message);
     } finally {
       setLoading(false);
     }

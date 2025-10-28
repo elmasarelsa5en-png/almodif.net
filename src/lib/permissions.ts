@@ -155,6 +155,9 @@ export const ALL_PERMISSIONS: PermissionCategory[] = [
       { id: 'delete_employee', label: 'حذف موظف', labelEn: 'Delete Employee', category: 'employees', description: 'حذف موظف' },
       { id: 'manage_permissions', label: 'إدارة الصلاحيات', labelEn: 'Manage Permissions', category: 'employees', description: 'تعديل صلاحيات الموظفين' },
       { id: 'view_employee_logs', label: 'عرض سجل الموظف', labelEn: 'View Employee Logs', category: 'employees', description: 'رؤية نشاط الموظف' },
+      { id: 'upload_employee_avatar', label: 'رفع صورة شخصية', labelEn: 'Upload Employee Avatar', category: 'employees', description: 'إضافة صورة للموظف' },
+      { id: 'edit_own_profile', label: 'تعديل الملف الشخصي', labelEn: 'Edit Own Profile', category: 'employees', description: 'تعديل بياناته الشخصية' },
+      { id: 'change_own_avatar', label: 'تغيير صورته الشخصية', labelEn: 'Change Own Avatar', category: 'employees', description: 'تحديث صورته الشخصية' },
     ]
   },
   {

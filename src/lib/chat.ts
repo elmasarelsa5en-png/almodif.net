@@ -72,6 +72,13 @@ export async function getOrCreateChat(
   otherUserAvatar?: string
 ): Promise<string> {
   try {
+    console.log('🔍 البحث عن محادثة موجودة...', {
+      currentUserId,
+      currentUserName,
+      otherUserId,
+      otherUserName
+    });
+
     // Check if chat already exists
     const chatsRef = collection(db, 'chats');
     const q = query(
@@ -86,12 +93,15 @@ export async function getOrCreateChat(
       const chat = doc.data() as Chat;
       if (chat.participants.includes(otherUserId)) {
         existingChatId = doc.id;
+        console.log('✅ تم العثور على محادثة موجودة:', existingChatId);
       }
     });
 
     if (existingChatId) {
       return existingChatId;
     }
+
+    console.log('📝 إنشاء محادثة جديدة...');
 
     // Create new chat
     const newChatRef = doc(collection(db, 'chats'));
@@ -122,9 +132,10 @@ export async function getOrCreateChat(
     };
 
     await setDoc(newChatRef, newChat);
+    console.log('✅ تم إنشاء المحادثة بنجاح:', newChatRef.id);
     return newChatRef.id;
   } catch (error) {
-    console.error('Error getting or creating chat:', error);
+    console.error('❌ خطأ في getOrCreateChat:', error);
     throw error;
   }
 }

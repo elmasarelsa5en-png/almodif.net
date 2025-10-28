@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إضافة صلاحيات الملف الشخصي</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .permissions-list {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .permission-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            margin-bottom: 8px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .permission-item .icon {
+            font-size: 20px;
+        }
+
+        .permission-item .text {
+            flex: 1;
+        }
+
+        .permission-item .label {
+            font-weight: 600;
+            color: #333;
+            display: block;
+        }
+
+        .permission-item .desc {
+            font-size: 12px;
+            color: #666;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .log {
+            margin-top: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        .log-entry {
+            padding: 5px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+        }
+
+        .log-entry.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .log-entry.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .log-entry.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-card .number {
+            font-size: 32px;
+            font-weight: bold;
+            display: block;
+        }
+
+        .stat-card .label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 إضافة صلاحيات الملف الشخصي</h1>
+        <p class="subtitle">إضافة 3 صلاحيات جديدة لجميع الموظفين</p>
+
+        <div class="permissions-list">
+            <div class="permission-item">
+                <span class="icon">📷</span>
+                <div class="text">
+                    <span class="label">upload_employee_avatar</span>
+                    <span class="desc">رفع صورة شخصية</span>
+                </div>
+            </div>
+            <div class="permission-item">
+                <span class="icon">✏️</span>
+                <div class="text">
+                    <span class="label">edit_own_profile</span>
+                    <span class="desc">تعديل الملف الشخصي</span>
+                </div>
+            </div>
+            <div class="permission-item">
+                <span class="icon">🖼️</span>
+                <div class="text">
+                    <span class="label">change_own_avatar</span>
+                    <span class="desc">تغيير الصورة الشخصية</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats" id="stats" style="display: none;">
+            <div class="stat-card">
+                <span class="number" id="totalCount">0</span>
+                <span class="label">إجمالي الموظفين</span>
+            </div>
+            <div class="stat-card">
+                <span class="number" id="successCount">0</span>
+                <span class="label">تم التحديث</span>
+            </div>
+            <div class="stat-card">
+                <span class="number" id="errorCount">0</span>
+                <span class="label">أخطاء</span>
+            </div>
+        </div>
+
+        <button id="addPermissions" onclick="addProfilePermissions()">
+            ✨ إضافة الصلاحيات لجميع الموظفين
+        </button>
+
+        <div class="log" id="log"></div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDGss7gte-50YV0Doy-zWMMPOpihNn-GEg",
+            authDomain: "almodif-db.firebaseapp.com",
+            projectId: "almodif-db",
+            storageBucket: "almodif-db.firebasestorage.app",
+            messagingSenderId: "681557750651",
+            appId: "1:681557750651:web:b4b9a56a3b46f3f4c9b8c0"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString('ar-SA')}] ${message}`;
+            logDiv.insertBefore(entry, logDiv.firstChild);
+        }
+
+        async function addProfilePermissions() {
+            const button = document.getElementById('addPermissions');
+            const statsDiv = document.getElementById('stats');
+            
+            button.disabled = true;
+            button.textContent = '⏳ جاري المعالجة...';
+            statsDiv.style.display = 'grid';
+
+            try {
+                log('🔵 بدء عملية إضافة الصلاحيات...', 'info');
+
+                // الصلاحيات الجديدة
+                const newPermissions = [
+                    'upload_employee_avatar',
+                    'edit_own_profile',
+                    'change_own_avatar'
+                ];
+
+                // جلب جميع الموظفين
+                const employeesSnapshot = await db.collection('employees').get();
+                
+                const totalCount = employeesSnapshot.size;
+                let successCount = 0;
+                let errorCount = 0;
+
+                document.getElementById('totalCount').textContent = totalCount;
+                log(`📊 تم العثور على ${totalCount} موظف`, 'info');
+
+                // تحديث كل موظف
+                for (const employeeDoc of employeesSnapshot.docs) {
+                    try {
+                        const employeeData = employeeDoc.data();
+                        const currentPermissions = employeeData.permissions || [];
+                        
+                        // إضافة الصلاحيات الجديدة (بدون تكرار)
+                        const updatedPermissions = [...new Set([...currentPermissions, ...newPermissions])];
+                        
+                        await db.collection('employees').doc(employeeDoc.id).update({
+                            permissions: updatedPermissions
+                        });
+
+                        successCount++;
+                        document.getElementById('successCount').textContent = successCount;
+                        log(`✅ تم تحديث: ${employeeData.name || employeeDoc.id} (${updatedPermissions.length} صلاحية)`, 'success');
+                    } catch (error) {
+                        errorCount++;
+                        document.getElementById('errorCount').textContent = errorCount;
+                        log(`❌ خطأ في: ${employeeDoc.id} - ${error.message}`, 'error');
+                    }
+                }
+
+                log(`🎉 تم الانتهاء! نجح: ${successCount}, فشل: ${errorCount}`, 'success');
+                button.textContent = '✅ تم الانتهاء بنجاح!';
+                
+                setTimeout(() => {
+                    button.disabled = false;
+                    button.textContent = '🔄 تحديث مرة أخرى';
+                }, 3000);
+
+            } catch (error) {
+                log(`❌ خطأ عام: ${error.message}`, 'error');
+                button.disabled = false;
+                button.textContent = '❌ حدث خطأ - حاول مرة أخرى';
+            }
+        }
+
+        // تحميل الإحصائيات عند بدء الصفحة
+        window.addEventListener('load', async () => {
+            try {
+                const employeesSnapshot = await db.collection('employees').get();
+                log(`📌 عدد الموظفين في قاعدة البيانات: ${employeesSnapshot.size}`, 'info');
+            } catch (error) {
+                log(`❌ خطأ في الاتصال بقاعدة البيانات: ${error.message}`, 'error');
+            }
+        });
+    </script>
+</body>
+</html>
