@@ -750,10 +750,10 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="flex items-center gap-1 sm:gap-2 hover:bg-white/10 border border-white/20 hover:border-white/40 transition-all duration-200 p-1 sm:p-2"
+                className="flex items-center gap-2 hover:bg-white/10 border border-white/20 hover:border-white/40 transition-all duration-200 px-2 py-1.5 rounded-lg"
                 title="الملف الشخصي"
               >
-                <div className="w-6 h-6 sm:w-7 sm:h-7 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center shadow-md overflow-hidden">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center shadow-lg overflow-hidden ring-2 ring-white/30">
                   {userAvatar ? (
                     <img 
                       src={userAvatar} 
@@ -761,14 +761,14 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="text-white font-medium text-xs">
+                    <span className="text-white font-bold text-base">
                       {user?.name?.charAt(0) || user?.username?.charAt(0) || 'A'}
                     </span>
                   )}
                 </div>
                 <div className="hidden md:block text-right">
-                  <p className="text-xs font-medium text-white truncate max-w-[80px]">{user?.name || user?.username}</p>
-                  <p className="text-[10px] text-purple-200 truncate">{user?.role}</p>
+                  <p className="text-sm font-semibold text-white truncate max-w-[100px] leading-tight">{user?.name || user?.username}</p>
+                  <p className="text-xs text-purple-200 truncate leading-tight">{user?.role}</p>
                 </div>
               </Button>
             </DropdownMenuTrigger>
