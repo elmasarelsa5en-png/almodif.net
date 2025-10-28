@@ -418,64 +418,6 @@ export default function RoomsPage() {
     }
   };
 
-          createdAt: bookingData.createdAt,
-          createdBy: user.name || user.username
-        },
-        events: [
-          ...selectedRoom.events,
-          {
-            id: Date.now().toString(),
-            type: 'check_in' as const,
-            description: `حجز جديد - عقد رقم: ${bookingData.contractNumber} - ${bookingData.guest.name}`,
-            timestamp: new Date().toISOString(),
-            user: user.name || user.username,
-            newValue: 'Occupied'
-          }
-        ]
-      };
-
-      // حفظ في Firebase
-      await saveRoomToFirebase(updatedRoom);
-
-      // تحديث القائمة المحلية
-      const updatedRooms = rooms.map(r => r.id === updatedRoom.id ? updatedRoom : r);
-      setRooms(updatedRooms);
-      setFilteredRooms(updatedRooms);
-
-      alert('✅ تم إنشاء الحجز بنجاح!');
-      setIsBookingDialogOpen(false);
-      setSelectedRoom(null);
-    } catch (error) {
-      console.error('خطأ في حفظ الحجز:', error);
-      alert('حدث خطأ أثناء حفظ الحجز');
-    }
-  };
-
-    try {
-      // حفظ الغرفة المحدثة في Firebase
-      const updatedRoom = updatedRooms.find(r => r.id === room.id);
-      if (updatedRoom) {
-        await saveRoomToFirebase(updatedRoom);
-        setRooms(updatedRooms);
-      }
-    } catch (error) {
-      console.error('خطأ في حفظ بيانات النزيل:', error);
-      alert('حدث خطأ في حفظ بيانات النزيل');
-      return;
-    }
-    
-    setIsAddGuestOpen(false);
-    
-    // إنشاء جلسة للنزيل
-    const guestSession = {
-      roomNumber: guestData.roomNumber,
-      guestName: guestData.fullName,
-      guestPhone: guestData.mobile,
-      checkInDate: new Date().toISOString()
-    };
-    localStorage.setItem('guest_session', JSON.stringify(guestSession));
-  };
-
   // معالج إضافة غرف من صورة
   const handleAddRoomsFromImage = async (newRooms: Partial<Room>[]) => {
     if (!user) return;
