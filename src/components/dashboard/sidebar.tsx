@@ -306,11 +306,11 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
         "dark:bg-black/30 dark:border-white/10",
         // عرض القائمة: أضيق بكثير ليناسب النص فقط
         isCollapsed ? "w-16" : "w-56",
-        // للجوال: sidebar يكون fixed فوق كل شيء
-        "fixed md:relative h-screen z-30",
-        // على الجوال: يخفى الـ sidebar عند الإغلاق
+        // للجوال: sidebar يكون fixed من اليمين (RTL)
+        "fixed right-0 top-0 md:relative h-screen z-30",
+        // على الجوال: يخفى الـ sidebar عند الإغلاق (يطلع لليمين في RTL)
         "transition-transform duration-300",
-        isCollapsed ? "-translate-x-full md:translate-x-0" : "translate-x-0",
+        isCollapsed ? "translate-x-full md:translate-x-0" : "translate-x-0",
         className
       )}>
       {/* Logo Section */}

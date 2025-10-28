@@ -8,6 +8,7 @@ import Header from '@/components/dashboard/header';
 import NewsTicker from '@/components/NewsTicker';
 import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
 import SmartAssistant from '@/components/SmartAssistant';
+import { cn } from '@/lib/utils';
 
 export default function DashboardLayout({
   children,
@@ -82,18 +83,9 @@ export default function DashboardLayout({
   return (
     <div className="h-screen flex overflow-hidden" dir="rtl">
       <AnimatedBackground />
-      {/* Sidebar - مفتوحة دائماً في الويب، قابلة للإخفاء في الموبايل */}
-      <div className="flex-shrink-0 transition-all duration-300">
-        <Sidebar isCollapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
-      </div>
-
-      {/* Overlay for mobile when sidebar is open */}
-      {!sidebarCollapsed && !isDesktop && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-25 md:hidden"
-          onClick={() => setSidebarCollapsed(true)}
-        />
-      )}
+      
+      {/* Sidebar */}
+      <Sidebar isCollapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 relative overflow-hidden">
