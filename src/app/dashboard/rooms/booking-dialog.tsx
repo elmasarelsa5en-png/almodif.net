@@ -61,6 +61,11 @@ const VISIT_TYPES = [
 ];
 
 export default function BookingDialog({ room, isOpen, onClose, onSave }: BookingDialogProps) {
+  // تتبع فتح النافذة
+  useEffect(() => {
+    console.log('🔷 BookingDialog - isOpen تغيرت إلى:', isOpen, 'الغرفة:', room?.number);
+  }, [isOpen, room]);
+
   // بيانات الحجز
   const [contractNumber, setContractNumber] = useState('');
   const [bookingSource, setBookingSource] = useState('reception');

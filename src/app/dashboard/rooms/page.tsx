@@ -274,15 +274,19 @@ export default function RoomsPage() {
 
   // فتح تفاصيل الشقة
   const openRoomDetails = (room: Room) => {
+    console.log('🔵 تم الضغط على الغرفة:', room.number, 'الحالة:', room.status);
+    
     setSelectedRoom(room);
     
     // إذا كانت الغرفة فارغة، افتح نافذة الحجز الجديدة
     if (room.status === 'Available') {
+      console.log('✅ فتح نافذة الحجز للغرفة:', room.number);
       setIsBookingDialogOpen(true);
       return;
     }
     
     // إذا كانت الغرفة مشغولة، افتح التفاصيل القديمة
+    console.log('📋 فتح تفاصيل الغرفة المشغولة:', room.number);
     setNewStatus(room.status);
     setGuestName(room.guestName || '');
     setPaymentAmount(room.balance);
@@ -509,8 +513,11 @@ export default function RoomsPage() {
 
     return (
       <div
-        className={`relative group cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-2xl rounded-2xl overflow-hidden ${!imageUrl ? config.color : ''}`}
-        onClick={() => openRoomDetails(room)}
+        className={`relative group cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-2xl rounded-2xl overflow-hidden ${!imageUrl ? config.color : ''} active:scale-95`}
+        onClick={() => {
+          console.log('🖱️ Click على الغرفة:', room.number);
+          openRoomDetails(room);
+        }}
         style={imageUrl ? { backgroundImage: `url(${imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
       >
         {imageUrl && <div className="absolute inset-0 bg-black/60 group-hover:bg-black/70 transition-colors"></div>}
