@@ -55,6 +55,7 @@ import {
 import AddGuestDialog from '@/components/AddGuestDialog';
 import AddRoomsFromImageDialog from '@/components/AddRoomsFromImageDialog';
 import GuestDataClipboard from '@/components/GuestDataClipboard';
+import BookingDialog from './booking-dialog';
 
 const ICON_MAP = {
   CheckCircle2,
@@ -84,6 +85,7 @@ export default function RoomsPage() {
   const [showTypeFilters, setShowTypeFilters] = useState(false);
   const [isAddGuestOpen, setIsAddGuestOpen] = useState(false);
   const [isAddRoomsFromImageOpen, setIsAddRoomsFromImageOpen] = useState(false);
+  const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
 
   // تحميل البيانات عند بدء التشغيل
   useEffect(() => {
@@ -271,6 +273,14 @@ export default function RoomsPage() {
   // فتح تفاصيل الشقة
   const openRoomDetails = (room: Room) => {
     setSelectedRoom(room);
+    
+    // إذا كانت الغرفة فارغة، افتح نافذة الحجز الجديدة
+    if (room.status === 'Available') {
+      setIsBookingDialogOpen(true);
+      return;
+    }
+    
+    // إذا كانت الغرفة مشغولة، افتح التفاصيل القديمة
     setNewStatus(room.status);
     setGuestName(room.guestName || '');
     setPaymentAmount(room.balance);
@@ -338,6 +348,69 @@ export default function RoomsPage() {
       return r;
     });
     
+
+  // معالج اكتمال الحجز
+  const handleBookingComplete = async (bookingData: any) => {
+    if (!selectedRoom || !user) return;
+    
+    try {
+      // تحديث بيانات الغرفة مع معلومات الحجز
+      const updatedRoom: Room = {
+        ...selectedRoom,
+        status: 'Occupied' as RoomStatus,
+        guestName: bookingData.guest.name,
+        guestPhone: bookingData.guest.phone,
+        guestNationality: bookingData.guest.nationality,
+        guestIdType: bookingData.guest.idType,
+        guestIdNumber: bookingData.guest.idNumber,
+        guestIdExpiry: bookingData.guest.idExpiry,
+        guestEmail: bookingData.guest.email,
+        balance: bookingData.financial.remaining,
+        // حفظ بيانات الحجز الإضافية
+        bookingDetails: {
+          contractNumber: bookingData.contractNumber,
+          bookingSource: bookingData.bookingSource,
+          rentalType: bookingData.rentalType,
+          checkIn: bookingData.checkIn,
+          checkOut: bookingData.checkOut,
+          numberOfDays: bookingData.numberOfDays,
+          visitType: bookingData.visitType,
+          company: bookingData.company,
+          companions: bookingData.companions,
+          financial: bookingData.financial,
+          createdAt: bookingData.createdAt,
+          createdBy: user.name || user.username
+        },
+        events: [
+          ...selectedRoom.events,
+          {
+            id: Date.now().toString(),
+            type: 'check_in' as const,
+            description: `حجز جديد - عقد رقم: ${bookingData.contractNumber} - ${bookingData.guest.name}`,
+            timestamp: new Date().toISOString(),
+            user: user.name || user.username,
+            newValue: 'Occupied'
+          }
+        ]
+      };
+
+      // حفظ في Firebase
+      await saveRoomToFirebase(updatedRoom);
+
+      // تحديث القائمة المحلية
+      const updatedRooms = rooms.map(r => r.id === updatedRoom.id ? updatedRoom : r);
+      setRooms(updatedRooms);
+      setFilteredRooms(updatedRooms);
+
+      alert('✅ تم إنشاء الحجز بنجاح!');
+      setIsBookingDialogOpen(false);
+      setSelectedRoom(null);
+    } catch (error) {
+      console.error('خطأ في حفظ الحجز:', error);
+      alert('حدث خطأ أثناء حفظ الحجز');
+    }
+  };
+
     try {
       // حفظ الغرفة المحدثة في Firebase
       const updatedRoom = updatedRooms.find(r => r.id === room.id);
@@ -900,6 +973,17 @@ export default function RoomsPage() {
         open={isAddRoomsFromImageOpen}
         onClose={() => setIsAddRoomsFromImageOpen(false)}
         onSubmit={handleAddRoomsFromImage}
+      />
+
+      {/* نافذة الحجز الاحترافية */}
+      <BookingDialog
+        room={selectedRoom}
+        isOpen={isBookingDialogOpen}
+        onClose={() => {
+          setIsBookingDialogOpen(false);
+          setSelectedRoom(null);
+        }}
+        onSave={handleBookingComplete}
       />
 
       {/* حافظة بيانات النزيل العائمة */}

@@ -19,6 +19,7 @@ export interface Room {
   floor: number;
   type: string;
   status: RoomStatus;
+  price?: number; // السعر اليومي الافتراضي
   guestName?: string;
   guestPhone?: string;
   guestNationality?: string;
@@ -30,6 +31,34 @@ export interface Room {
   guestAddress?: string;
   guestNotes?: string;
   balance: number;
+  bookingDetails?: {
+    contractNumber: string;
+    bookingSource: string;
+    rentalType: 'daily' | 'monthly';
+    checkIn: {
+      date: string;
+      time: string;
+    };
+    checkOut: {
+      date: string;
+      time: string;
+    };
+    numberOfDays: number;
+    visitType: string;
+    company?: any;
+    companions?: any[];
+    financial: {
+      dailyRate: number;
+      totalAmount: number;
+      deposits: number[];
+      advancePayments: number[];
+      totalDeposits: number;
+      totalAdvance: number;
+      remaining: number;
+    };
+    createdAt: string;
+    createdBy: string;
+  };
   events: RoomEvent[];
   lastUpdated: string;
 }
