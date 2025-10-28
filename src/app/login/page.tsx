@@ -60,11 +60,14 @@ export default function LoginPage() {
           username: foundEmployee.username,
           role: foundEmployee.role || 'admin',
           name: foundEmployee.name,
+          email: foundEmployee.email,
           loginTime: new Date().toISOString(),
           permissions: foundEmployee.permissions || [],
           department: foundEmployee.department,
           employeeId: foundEmployee.id
         };
+        
+        console.log('✅ Login successful for user:', userData);
         
         login(userData);
         

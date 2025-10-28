@@ -61,18 +61,39 @@ export default function ProfilePage() {
   // Load employee profile
   useEffect(() => {
     const loadProfile = async () => {
-      if (!user?.username) return;
+      console.log('🔍 Loading profile for user:', user);
+      
+      if (!user) {
+        console.log('❌ No user found');
+        setMessage({ type: 'error', text: 'لم يتم العثور على بيانات المستخدم' });
+        return;
+      }
+
+      // Try to get employee ID from username, email, or id
+      const employeeId = user.username || user.email || user.id;
+      
+      if (!employeeId) {
+        console.log('❌ No employee ID found in user:', user);
+        setMessage({ type: 'error', text: 'لم يتم العثور على معرف الموظف' });
+        return;
+      }
+
+      console.log('📝 Fetching employee data with ID:', employeeId);
 
       try {
-        const employeeRef = doc(db, 'employees', user.username);
+        const employeeRef = doc(db, 'employees', employeeId);
         const employeeSnap = await getDoc(employeeRef);
+
+        console.log('📦 Employee snapshot exists:', employeeSnap.exists());
 
         if (employeeSnap.exists()) {
           const data = employeeSnap.data();
+          console.log('✅ Employee data:', data);
+          
           const profileData: EmployeeProfile = {
             id: employeeSnap.id,
-            name: data.name || '',
-            email: data.email || '',
+            name: data.name || user.name || '',
+            email: data.email || user.email || '',
             phone: data.phone,
             position: data.position,
             department: data.department,
@@ -81,6 +102,8 @@ export default function ProfilePage() {
             avatar: data.avatar,
             dateJoined: data.dateJoined,
           };
+          
+          console.log('✅ Profile data set:', profileData);
           
           setProfile(profileData);
           setFormData({
@@ -92,22 +115,55 @@ export default function ProfilePage() {
             address: profileData.address || '',
             bio: profileData.bio || '',
           });
+        } else {
+          console.log('❌ Employee document does not exist for ID:', employeeId);
+          // Create a basic profile from user data if document doesn't exist
+          const basicProfile: EmployeeProfile = {
+            id: employeeId,
+            name: user.name || user.username || '',
+            email: user.email || '',
+          };
+          console.log('📝 Creating basic profile:', basicProfile);
+          setProfile(basicProfile);
+          setFormData({
+            name: basicProfile.name,
+            email: basicProfile.email,
+            phone: '',
+            position: '',
+            department: '',
+            address: '',
+            bio: '',
+          });
+          setMessage({ type: 'error', text: 'لم يتم العثور على بيانات الموظف في قاعدة البيانات' });
         }
       } catch (error) {
-        console.error('Error loading profile:', error);
-        setMessage({ type: 'error', text: 'فشل تحميل البيانات' });
+        console.error('❌ Error loading profile:', error);
+        setMessage({ type: 'error', text: 'فشل تحميل البيانات: ' + (error as Error).message });
       }
     };
 
     loadProfile();
-  }, [user?.username]);
+  }, [user]);
 
   const handleSave = async () => {
-    if (!user?.username || !profile) return;
+    if (!user || !profile) {
+      console.log('❌ Cannot save: missing user or profile');
+      return;
+    }
+
+    const employeeId = user.username || user.email || user.id;
+    
+    if (!employeeId) {
+      console.log('❌ Cannot save: no employee ID');
+      setMessage({ type: 'error', text: 'لم يتم العثور على معرف الموظف' });
+      return;
+    }
 
     try {
       setIsSaving(true);
-      const employeeRef = doc(db, 'employees', user.username);
+      console.log('💾 Saving profile for:', employeeId);
+      
+      const employeeRef = doc(db, 'employees', employeeId);
       
       await updateDoc(employeeRef, {
         name: formData.name,
@@ -117,6 +173,8 @@ export default function ProfilePage() {
         address: formData.address,
         bio: formData.bio,
       });
+
+      console.log('✅ Profile saved successfully');
 
       setProfile({
         ...profile,
@@ -134,8 +192,8 @@ export default function ProfilePage() {
       // Clear message after 3 seconds
       setTimeout(() => setMessage(null), 3000);
     } catch (error) {
-      console.error('Error saving profile:', error);
-      setMessage({ type: 'error', text: 'فشل حفظ التغييرات' });
+      console.error('❌ Error saving profile:', error);
+      setMessage({ type: 'error', text: 'فشل حفظ التغييرات: ' + (error as Error).message });
     } finally {
       setIsSaving(false);
     }
@@ -143,7 +201,15 @@ export default function ProfilePage() {
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user?.username) return;
+    if (!file || !user) return;
+
+    const employeeId = user.username || user.email || user.id;
+    
+    if (!employeeId) {
+      console.log('❌ Cannot upload avatar: no employee ID');
+      setMessage({ type: 'error', text: 'لم يتم العثور على معرف الموظف' });
+      return;
+    }
 
     // Check file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
@@ -159,6 +225,7 @@ export default function ProfilePage() {
 
     try {
       setIsUploadingAvatar(true);
+      console.log('📤 Uploading avatar for:', employeeId);
 
       // Convert to base64
       const reader = new FileReader();
@@ -166,17 +233,19 @@ export default function ProfilePage() {
         const base64String = reader.result as string;
 
         try {
-          const employeeRef = doc(db, 'employees', user.username);
+          const employeeRef = doc(db, 'employees', employeeId);
           await updateDoc(employeeRef, {
             avatar: base64String,
           });
 
+          console.log('✅ Avatar uploaded successfully');
+          
           setProfile(prev => prev ? { ...prev, avatar: base64String } : null);
           setMessage({ type: 'success', text: 'تم تحديث الصورة الشخصية!' });
           setTimeout(() => setMessage(null), 3000);
         } catch (error) {
-          console.error('Error uploading avatar:', error);
-          setMessage({ type: 'error', text: 'فشل رفع الصورة' });
+          console.error('❌ Error uploading avatar:', error);
+          setMessage({ type: 'error', text: 'فشل رفع الصورة: ' + (error as Error).message });
         } finally {
           setIsUploadingAvatar(false);
         }
@@ -184,7 +253,7 @@ export default function ProfilePage() {
 
       reader.readAsDataURL(file);
     } catch (error) {
-      console.error('Error reading file:', error);
+      console.error('❌ Error reading file:', error);
       setMessage({ type: 'error', text: 'فشل قراءة الملف' });
       setIsUploadingAvatar(false);
     }

@@ -7,6 +7,7 @@ interface User {
   username: string;
   role: string;
   name: string;
+  email?: string;
   loginTime: string;
   isEmployee?: boolean;
   employeeId?: string;
