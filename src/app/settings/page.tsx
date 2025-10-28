@@ -1,1636 +1,727 @@
 'use client';
 
-import { type ComponentType, useEffect, useMemo, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Badge } from '@/components/ui/badge';
+import { 
+  Settings, 
+  User, 
+  Bell, 
+  Shield, 
+  Palette, 
+  Database, 
+  Upload, 
+  Download, 
+  RefreshCw, 
+  Save,
+  ArrowLeft,
+  Eye,
+  EyeOff,
+  Sun,
+  Moon,
+  Monitor,
+  Globe,
+  Volume2,
+  Wifi,
+  Smartphone,
+  Mail,
+  Lock,
+  Key,
+  AlertCircle,
+  CheckCircle,
+  Info
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LogoUploader } from '@/components/settings/logo-uploader';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { SoundSettings } from '@/components/settings/sound-settings';
-import {
-  Activity,
-  BadgeCheck,
-  Bell,
-  BellRing,
-  Building2,
-  CheckCircle2,
-  BookOpen,
-  ChevronRight,
-  CloudDownload,
-  Database,
-  Globe,
-  Link2,
-  Lock,
-  Mail,
-  MessageSquare,
-  Palette,
-  Phone,
-  RefreshCcw,
-  Search,
-  ServerCog,
-  Settings,
-  Share2,
-  Shield,
-  ShieldAlert,
-  ShieldCheck,
-  Sparkles,
-  Users,
-  Zap
-} from 'lucide-react';
-
-type IconType = ComponentType<{ className?: string }>;
-
-interface GeneralSettings {
-  companyName: string;
-  companyTagline: string;
-  industry: string;
-  branchCount: number;
-  language: string;
-  timezone: string;
-  dateFormat: string;
-  currency: string;
-  systemMode: string;
-}
-
-interface NotificationSettings {
-  enableEmail: boolean;
-  enableSMS: boolean;
-  enablePush: boolean;
-  soundEnabled: boolean;
-  dailyDigest: boolean;
-  attendanceAlerts: boolean;
-  financeAlerts: boolean;
-  disableQuietHours: boolean;
-}
-
-interface SecuritySettings {
-  twoFactor: boolean;
-  autoLogoutMinutes: number;
-  allowGuestLogin: boolean;
-  passwordRotationDays: number;
-  biometricSupport: boolean;
-  loginAlerts: boolean;
-  ipRestriction: boolean;
-  maintenanceMode: boolean;
-}
-
-interface IntegrationSettings {
-  whatsapp: boolean;
-  accounting: boolean;
-  inventory: boolean;
-  crm: boolean;
-  googleCalendar: boolean;
-  slack: boolean;
-  customWebhooks: boolean;
-}
-
-interface BackupSettings {
-  autoBackup: boolean;
-  backupFrequency: string;
-  lastBackup: string;
-  retentionDays: number;
-  offsiteReplication: boolean;
-  compressBackups: boolean;
-}
-
-interface AppearanceSettings {
-  accentColor: string;
-  layoutDensity: string;
-  bubbleBackground: boolean;
-  animatedTransitions: boolean;
-  showTips: boolean;
-}
-
-interface AdvancedSettings {
-  autoUpdates: boolean;
-  betaFeatures: boolean;
-  cacheSize: number;
-  monitorPerformance: boolean;
-  purgeLogs: boolean;
-}
-
-interface WebsiteSettings {
-  siteName: string;
-  siteUrl: string;
-  siteDescription: string;
-  metaTitle: string;
-  metaKeywords: string;
-  contactEmail: string;
-  contactPhone: string;
-  socialFacebook: string;
-  socialInstagram: string;
-  socialTwitter: string;
-  enableBookingWidget: boolean;
-  enableLiveChat: boolean;
-  maintenanceMode: boolean;
-}
-
-interface StoredSettings {
-  general: GeneralSettings;
-  notifications: NotificationSettings;
-  security: SecuritySettings;
-  integrations: IntegrationSettings;
-  backups: BackupSettings;
-  appearance: AppearanceSettings;
-  advanced: AdvancedSettings;
-  website: WebsiteSettings;
-}
-
-type BooleanKeys<T> = {
-  [K in keyof T]-?: T[K] extends boolean ? K : never;
-}[keyof T];
-
-interface ToggleConfig<K> {
-  key: K;
-  label: string;
-  description: string;
-  icon?: IconType;
-}
-
-const STORAGE_KEY = 'system:settings:v1';
-
-const defaultSettings: StoredSettings = {
-  general: {
-    companyName: 'äÙÇã ÇáãÖíİ ÇáĞßí',
-    companyTagline: 'Íáæá ãÊßÇãáÉ áÅÏÇÑÉ ÇáÖíÇİÉ æÇáÚãáíÇÊ ÇáÊÔÛíáíÉ',
-    industry: 'ÇáÖíÇİÉ æÇáİäÏŞÉ',
-    branchCount: 3,
-    language: 'ar',
-    timezone: 'Asia/Riyadh',
-    dateFormat: 'DD/MM/YYYY',
-    currency: 'SAR',
-    systemMode: 'dark'
-  },
-  notifications: {
-    enableEmail: true,
-    enableSMS: false,
-    enablePush: true,
-    soundEnabled: true,
-    dailyDigest: true,
-    attendanceAlerts: true,
-    financeAlerts: true,
-    disableQuietHours: false
-  },
-  security: {
-    twoFactor: true,
-    autoLogoutMinutes: 30,
-    allowGuestLogin: false,
-    passwordRotationDays: 90,
-    biometricSupport: false,
-    loginAlerts: true,
-    ipRestriction: false,
-    maintenanceMode: false
-  },
-  integrations: {
-    whatsapp: true,
-    accounting: true,
-    inventory: true,
-    crm: true,
-    googleCalendar: false,
-    slack: false,
-    customWebhooks: true
-  },
-  backups: {
-    autoBackup: true,
-    backupFrequency: 'daily',
-    lastBackup: '2025-10-10 04:30',
-    retentionDays: 30,
-    offsiteReplication: true,
-    compressBackups: true
-  },
-  appearance: {
-    accentColor: 'indigo',
-    layoutDensity: 'comfortable',
-    bubbleBackground: true,
-    animatedTransitions: true,
-    showTips: false
-  },
-  advanced: {
-    autoUpdates: true,
-    betaFeatures: false,
-    cacheSize: 512,
-    monitorPerformance: true,
-    purgeLogs: false
-  },
-  website: {
-    siteName: 'äÙÇã ÇáãÖíİ ÇáĞßí',
-    siteUrl: 'https://almodif.com',
-    siteDescription: 'äÙÇã ÔÇãá áÅÏÇÑÉ ÇáÖíÇİÉ æÇáÚãáíÇÊ ÇáÊÔÛíáíÉ ÈßİÇÁÉ ÚÇáíÉ',
-    metaTitle: 'ÇáãÖíİ ÇáĞßí - äÙÇã ÅÏÇÑÉ ÇáÖíÇİÉ',
-    metaKeywords: 'ÅÏÇÑÉ ÇáİäÇÏŞ¡ ÍÌæÒÇÊ¡ ÔŞŞ ãİÑæÔÉ¡ ÅÏÇÑÉ ÇáÖíÇİÉ',
-    contactEmail: 'info@almodif.com',
-    contactPhone: '+966 50 123 4567',
-    socialFacebook: 'https://facebook.com/almodif',
-    socialInstagram: 'https://instagram.com/almodif',
-    socialTwitter: 'https://twitter.com/almodif',
-    enableBookingWidget: true,
-    enableLiveChat: true,
-    maintenanceMode: false
-  }
-};
-
-const mergeSettings = (base: StoredSettings, incoming: Partial<StoredSettings>): StoredSettings => ({
-  general: { ...base.general, ...(incoming.general ?? {}) },
-  notifications: { ...base.notifications, ...(incoming.notifications ?? {}) },
-  security: { ...base.security, ...(incoming.security ?? {}) },
-  integrations: { ...base.integrations, ...(incoming.integrations ?? {}) },
-  backups: { ...base.backups, ...(incoming.backups ?? {}) },
-  appearance: { ...base.appearance, ...(incoming.appearance ?? {}) },
-  advanced: { ...base.advanced, ...(incoming.advanced ?? {}) },
-  website: { ...base.website, ...(incoming.website ?? {}) }
-});
-
-const NOTIFICATION_TOGGLES: ToggleConfig<BooleanKeys<NotificationSettings>>[] = [
-  {
-    key: 'enableEmail',
-    label: 'ÊäÈíåÇÊ ÇáÈÑíÏ ÇáÅáßÊÑæäí',
-    description: 'ÅÑÓÇá ÅÔÚÇÑÇÊ ãİÕáÉ æãáÎÕ íæãí ÚÈÑ ÇáÈÑíÏ.',
-    icon: Bell
-  },
-  {
-    key: 'enableSMS',
-    label: 'ÑÓÇÆá SMS ÇáİæÑíÉ',
-    description: 'ÊäÈíåÇÊ ÚÇÌáÉ ááÍÇáÇÊ ÇáÍÑÌÉ ãÈÇÔÑÉ Åáì ÇáÌæÇá.',
-    icon: BellRing
-  },
-  {
-    key: 'enablePush',
-    label: 'ÅÔÚÇÑÇÊ ÏÇÎá ÇáäÙÇã',
-    description: 'ÚÑÖ ÊäÈíåÇÊ áÍÙíÉ Úáì áæÍÉ ÇáÊÍßã æÇáÊØÈíŞÇÊ.',
-    icon: Activity
-  },
-  {
-    key: 'soundEnabled',
-    label: 'ÊÔÛíá ÇáãÄËÑÇÊ ÇáÕæÊíÉ',
-    description: 'ÅÖÇİÉ ãÄËÑÇÊ ÎÇÕÉ áßá ÍÏË ãåã ÏÇÎá ÇáäÙÇã.',
-    icon: Sparkles
-  },
-  {
-    key: 'dailyDigest',
-    label: 'ÇáÊŞÑíÑ Çáíæãí ÇáãÌãÚ',
-    description: 'æÕæá ÊŞÑíÑ ÕÈÇÍí ÈÃåã ÇáãÄÔÑÇÊ ÇáÊÔÛíáíÉ.',
-    icon: RefreshCcw
-  },
-  {
-    key: 'attendanceAlerts',
-    label: 'ÊäÈíåÇÊ ÇáÍÖæÑ æÇáÇäÕÑÇİ',
-    description: 'ãÑÇŞÈÉ ÇáÊÃÎíÑ¡ ÇáÛíÇÈ¡ Ãæ ÊÓÌíá ÇáÎÑæÌ ÇáãÈßÑ.',
-    icon: Users
-  },
-  {
-    key: 'financeAlerts',
-    label: 'ÊäÈíåÇÊ ÇáÚãáíÇÊ ÇáãÇáíÉ',
-    description: 'ãÑÇŞÈÉ ÇáİæÇÊíÑ æÇáãÕÇÑíİ ÛíÑ ÇáãÚÊÇÏÉ İæÑ ÍÏæËåÇ.',
-    icon: Database
-  }
-];
-
-const SECURITY_TOGGLES: ToggleConfig<BooleanKeys<SecuritySettings>>[] = [
-  {
-    key: 'twoFactor',
-    label: 'ÊİÚíá ÇáãÕÇÏŞÉ ÇáËäÇÆíÉ',
-    description: 'ÅÖÇİÉ ØÈŞÉ ÍãÇíÉ ÅÖÇİíÉ ÚäÏ ÊÓÌíá ÇáÏÎæá.',
-    icon: ShieldCheck
-  },
-  {
-    key: 'allowGuestLogin',
-    label: 'ÏÎæá ÇáÖíæİ ÇáãÄŞÊ',
-    description: 'ãäÍ ÕáÇÍíÇÊ ãÍÏæÏÉ ááãæÑÏíä Ãæ ÇáÖíæİ.',
-    icon: Users
-  },
-  {
-    key: 'biometricSupport',
-    label: 'ÇáÊæËíŞ ÇáÍíæí',
-    description: 'ÊİÚíá ÇáÏÎæá ÈÈÕãÉ ÇáÅÕÈÚ Ãæ ÇáæÌå İí ÇáÊØÈíŞÇÊ.',
-    icon: Sparkles
-  },
-  {
-    key: 'loginAlerts',
-    label: 'ÊäÈíåÇÊ ÊÓÌíá ÇáÏÎæá ÇáÌÏíÏÉ',
-    description: 'ÅÔÚÇÑ İæÑí ÚäÏ ÇáÏÎæá ãä ÌåÇÒ Ãæ ãæŞÚ ÌÏíÏ.',
-    icon: Shield
-  },
-  {
-    key: 'ipRestriction',
-    label: 'ÊŞííÏ ÇáÏÎæá ÈÍÓÈ IP',
-    description: 'ÇáÓãÇÍ ÈÇáæÕæá İŞØ ãä ÇáÔÈßÇÊ ÇáãÚÊãÏÉ.',
-    icon: Lock
-  },
-  {
-    key: 'maintenanceMode',
-    label: 'æÖÚ ÇáÕíÇäÉ ÇáÚÇã',
-    description: 'ÚÑÖ ÑÓÇáÉ ÕíÇäÉ æÅíŞÇİ ÇáÚãáíÇÊ ÇáÍÑÌÉ ãÄŞÊğÇ.',
-    icon: ShieldAlert
-  }
-];
-
-const INTEGRATION_OPTIONS: ToggleConfig<BooleanKeys<IntegrationSettings>>[] = [
-  {
-    key: 'whatsapp',
-    label: 'ÊßÇãá æÇÊÓÇÈ ááÃÚãÇá',
-    description: 'ãÒÇãäÉ ÇáãÍÇÏËÇÊ æÇáÑÏæÏ ãÚ İÑíŞ ÎÏãÉ ÇáÚãáÇÁ.',
-    icon: BellRing
-  },
-  {
-    key: 'accounting',
-    label: 'ÇáÃäÙãÉ ÇáãÍÇÓÈíÉ',
-    description: 'ÇÓÊíÑÇÏ ÇáŞíæÏ æÊÍÏíË ÇáÍÑßÇÊ ÇáãÇáíÉ ÊáŞÇÆíğÇ.',
-    icon: Database
-  },
-  {
-    key: 'inventory',
-    label: 'ÅÏÇÑÉ ÇáãÎÒæä',
-    description: 'ÊÈÇÏá ÈíÇäÇÊ ÇáÃÕäÇİ æÇáãÓÊæÏÚÇÊ İí ÇáæŞÊ ÇáİÚáí.',
-    icon: CloudDownload
-  },
-  {
-    key: 'crm',
-    label: 'ÅÏÇÑÉ ÚáÇŞÇÊ ÇáÚãáÇÁ',
-    description: 'ÏãÌ ÈíÇäÇÊ ÇáÚãáÇÁ æÓÌá ÇáÊİÇÚá İí ãßÇä æÇÍÏ.',
-    icon: Users
-  },
-  {
-    key: 'googleCalendar',
-    label: 'ÊŞæíã Google',
-    description: 'ãÒÇãäÉ ÇáãæÇÚíÏ æÇáÇÌÊãÇÚÇÊ ãÚ İÑíŞ ÇáÚãá.',
-    icon: RefreshCcw
-  },
-  {
-    key: 'customWebhooks',
-    label: 'ÊßÇãáÇÊ ãÎÕøÕÉ (Webhook)',
-    description: 'ÑÈØ ÇáäÙÇã ãÚ Ãí ãäÕÉ ÎÇÑÌíÉ ÈÇÓÊÎÏÇã Webhook.',
-    icon: Link2
-  }
-];
-
-const BACKUP_TOGGLES: ToggleConfig<BooleanKeys<BackupSettings>>[] = [
-  {
-    key: 'autoBackup',
-    label: 'ÊÔÛíá ÇáäÓÎ ÇáÊáŞÇÆí',
-    description: 'ÅäÔÇÁ äÓÎÉ ÇÍÊíÇØíÉ æİŞğÇ ááÌÏæá ÇáãÍÏÏ.',
-    icon: RefreshCcw
-  },
-  {
-    key: 'offsiteReplication',
-    label: 'äÓÎ ÎÇÑÌ ÇáãæŞÚ',
-    description: 'ÍİÙ äÓÎÉ ãÔİÑÉ İí ãÑßÒ ÈíÇäÇÊ ãäİÕá.',
-    icon: CloudDownload
-  },
-  {
-    key: 'compressBackups',
-    label: 'ÖÛØ ÇáäÓÎ ÇáÇÍÊíÇØíÉ',
-    description: 'ÊŞáíá ÍÌã ÇáãáİÇÊ ãÚ ÇáÍİÇÙ Úáì ÇáÏŞÉ.',
-    icon: Activity
-  }
-];
-
-const APPEARANCE_TOGGLES: ToggleConfig<BooleanKeys<AppearanceSettings>>[] = [
-  {
-    key: 'bubbleBackground',
-    label: 'ÎáİíÉ ÇáİŞÇÚÇÊ ÇáÊİÇÚáíÉ',
-    description: 'ÅÖÇİÉ ÊÃËíÑ ÈÕÑí ÏíäÇãíßí İí ÇáæÇÌåÉ.',
-    icon: Sparkles
-  },
-  {
-    key: 'animatedTransitions',
-    label: 'ÇáÇäÊŞÇáÇÊ ÇáãÊÍÑßÉ',
-    description: 'ÊäŞá ÏíäÇãíßí æÓáÓ Èíä ÇáÕİÍÇÊ.',
-    icon: Activity
-  },
-  {
-    key: 'showTips',
-    label: 'ÊáãíÍÇÊ ÇáÇÓÊÎÏÇã ÇáĞßíÉ',
-    description: 'ÚÑÖ ÅÑÔÇÏÇÊ ãæÌåÉ ááãÓÊÎÏãíä ÇáÌÏÏ.',
-    icon: BadgeCheck
-  }
-];
-
-const ADVANCED_TOGGLES: ToggleConfig<BooleanKeys<AdvancedSettings>>[] = [
-  {
-    key: 'autoUpdates',
-    label: 'ÇáÊÍÏíËÇÊ ÇáÊáŞÇÆíÉ',
-    description: 'ÊËÈíÊ ÃÍÏË ÇáÊÍÓíäÇÊ İæÑ ÊæİÑåÇ.',
-    icon: RefreshCcw
-  },
-  {
-    key: 'betaFeatures',
-    label: 'ÊÌÑÈÉ ÇáãíÒÇÊ ÇáÊÌÑíÈíÉ',
-    description: 'ÇÎÊÈÇÑ ÇáãíÒÇÊ ŞÈá ÅÕÏÇÑåÇ ÇáÑÓãí.',
-    icon: Sparkles
-  },
-  {
-    key: 'monitorPerformance',
-    label: 'ãÑÇŞÈÉ ÇáÃÏÇÁ ÇááÍÙí',
-    description: 'ÌãÚ ãÄÔÑÇÊ ÇáÃÏÇÁ æÅÑÓÇá ÊäÈíåÇÊ İæÑíÉ.',
-    icon: Activity
-  },
-  {
-    key: 'purgeLogs',
-    label: 'ÊäÙíİ ÇáÓÌáÇÊ ÇáŞÏíãÉ',
-    description: 'ÍĞİ ÇáÓÌáÇÊ ÈÚÏ ÇäÊåÇÁ ÕáÇÍíÊåÇ ÊáŞÇÆíğÇ.',
-    icon: Zap
-  }
-];
-
-const BACKUP_FREQUENCIES = [
-  { value: 'hourly', label: 'ßá ÓÇÚÉ' },
-  { value: 'daily', label: 'íæãíğÇ' },
-  { value: 'weekly', label: 'ÃÓÈæÚíğÇ' },
-  { value: 'monthly', label: 'ÔåÑíğÇ' }
-];
-
-const ACCENT_OPTIONS = [
-  { value: 'indigo', label: 'ÃÒÑŞ ÈäİÓÌí' },
-  { value: 'emerald', label: 'ÃÎÖÑ ÒãÑÏí' },
-  { value: 'amber', label: 'ĞåÈí İÇÎÑ' },
-  { value: 'rose', label: 'æÑÏí ÏÇİÆ' },
-  { value: 'slate', label: 'ÑãÇÏí ÇÍÊÑÇİí' }
-];
-
-const DENSITY_OPTIONS = [
-  { value: 'compact', label: 'ãÖÛæØ' },
-  { value: 'comfortable', label: 'ãÑíÍ' },
-  { value: 'spacious', label: 'æÇÓÚ' }
-];
-
-interface ToggleRowProps {
-  icon?: IconType;
-  label: string;
-  description: string;
-  checked: boolean;
-  onCheckedChange: (value: boolean) => void;
-}
-
-const ToggleRow = ({ icon: Icon, label, description, checked, onCheckedChange }: ToggleRowProps) => (
-  <div className="flex items-start justify-between gap-4 rounded-2xl border border-slate-800/80 bg-slate-900/50 p-4">
-    <div className="space-y-1">
-      <div className="flex items-center gap-2 text-slate-100">
-        {Icon ? <Icon className="w-4 h-4 text-purple-300" /> : null}
-        <span className="text-sm font-semibold">{label}</span>
-      </div>
-      <p className="text-xs text-slate-400 leading-5">{description}</p>
-    </div>
-    <Switch checked={checked} onCheckedChange={onCheckedChange} />
-  </div>
-);
+import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 export default function SettingsPage() {
   const router = useRouter();
-  const [settings, setSettings] = useState<StoredSettings>(defaultSettings);
-  const [loading, setLoading] = useState(true);
+  const [settings, setSettings] = useState({
+    // Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø¹Ø§Ù…Ø©
+    hotelName: 'ÙÙ†Ø¯Ù‚ Ø§Ù„Ù…Ø¶ÙŠÙ',
+    hotelDescription: 'ÙÙ†Ø¯Ù‚ ÙØ§Ø®Ø± ÙŠÙˆÙØ± Ø®Ø¯Ù…Ø§Øª Ù…ØªÙ…ÙŠØ²Ø©',
+    language: 'ar',
+    timezone: 'Asia/Riyadh',
+    currency: 'SAR',
+    
+    // Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø§Ù„ÙˆØ§Ø¬Ù‡Ø©
+    theme: 'dark',
+    primaryColor: 'blue',
+    showLogo: true,
+    compactView: false,
+    
+    // Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø§Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª
+    enableNotifications: true,
+    emailNotifications: true,
+    smsNotifications: false,
+    soundEnabled: true,
+    
+    // Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø§Ù„Ø£Ù…Ø§Ù†
+    twoFactorAuth: false,
+    sessionTimeout: 30,
+    passwordPolicy: 'medium',
+    loginAttempts: 3,
+    
+    // Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø§Ù„Ù†Ø³Ø® Ø§Ù„Ø§Ø­ØªÙŠØ§Ø·ÙŠ
+    autoBackup: true,
+    backupFrequency: 'daily',
+    backupRetention: 30,
+    
+    // Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª API
+    apiEnabled: false,
+    apiKey: '',
+    webhookUrl: ''
+  });
+
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState(null);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) {
-      setSettings(defaultSettings);
-      setLoading(false);
-      return;
+    // ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø§Ù„Ù…Ø­ÙÙˆØ¸Ø©
+    const savedSettings = localStorage.getItem('app_settings');
+    if (savedSettings) {
+      try {
+        const parsed = JSON.parse(savedSettings);
+        setSettings(prev => ({ ...prev, ...parsed }));
+      } catch (error) {
+        console.error('Ø®Ø·Ø£ ÙÙŠ ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª:', error);
+      }
     }
-
-    try {
-      const parsed = JSON.parse(stored) as Partial<StoredSettings>;
-      setSettings(mergeSettings(defaultSettings, parsed));
-    } catch (error) {
-      setSettings(defaultSettings);
-    }
-
-    setLoading(false);
   }, []);
 
-  useEffect(() => {
-    if (loading || typeof window === 'undefined') return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-  }, [settings, loading]);
+  const handleSave = async () => {
+    setIsSaving(true);
+    setSaveStatus(null);
 
-  const updateSetting = <Section extends keyof StoredSettings, Key extends keyof StoredSettings[Section]>(
-    section: Section,
-    key: Key,
-    value: StoredSettings[Section][Key]
-  ) => {
-    setSettings((prev) => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [key]: value
-      }
-    }));
+    try {
+      // Ø­ÙØ¸ Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª ÙÙŠ localStorage
+      localStorage.setItem('app_settings', JSON.stringify(settings));
+      
+      // Ù…Ø­Ø§ÙƒØ§Ø© Ø­ÙØ¸ Ø¹Ù„Ù‰ Ø§Ù„Ø®Ø§Ø¯Ù…
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setSaveStatus('success');
+    } catch (error) {
+      console.error('Ø®Ø·Ø£ ÙÙŠ Ø­ÙØ¸ Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª:', error);
+      setSaveStatus('error');
+    } finally {
+      setIsSaving(false);
+      
+      // Ø¥Ø®ÙØ§Ø¡ Ø±Ø³Ø§Ù„Ø© Ø§Ù„Ø­Ø§Ù„Ø© Ø¨Ø¹Ø¯ 3 Ø«ÙˆØ§Ù†Ù
+      setTimeout(() => setSaveStatus(null), 3000);
+    }
   };
 
-  const resetSettings = () => setSettings(defaultSettings);
+  const handleReset = () => {
+    if (confirm('Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ Ù…Ù† Ø¥Ø¹Ø§Ø¯Ø© ØªØ¹ÙŠÙŠÙ† Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§ØªØŸ')) {
+      localStorage.removeItem('app_settings');
+      window.location.reload();
+    }
+  };
 
-  const activeIntegrations = useMemo(
-    () => Object.values(settings.integrations).filter(Boolean).length,
-    [settings.integrations]
-  );
+  const generateApiKey = () => {
+    const key = 'ak_' + Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
+    setSettings(prev => ({ ...prev, apiKey: key }));
+  };
 
-  const activeNotificationChannels = useMemo(
-    () =>
-      [
-        settings.notifications.enableEmail,
-        settings.notifications.enableSMS,
-        settings.notifications.enablePush,
-        settings.notifications.soundEnabled
-      ].filter(Boolean).length,
-    [settings.notifications]
-  );
+  const updateSetting = (key, value) => {
+    setSettings(prev => ({ ...prev, [key]: value }));
+  };
 
-  const stats = useMemo(
-    () => [
-      {
-        icon: Building2,
-        title: 'ÇáİÑæÚ ÇáäÔØÉ',
-        value: settings.general.branchCount,
-        badge: 'äãæ +2 åĞÇ ÇáÔåÑ'
-      },
-      {
-        icon: Bell,
-        title: 'ŞäæÇÊ ÇáÊäÈíå ÇáİÚÇáÉ',
-        value: `${activeNotificationChannels}/4`,
-        badge: settings.notifications.dailyDigest ? 'ÇáÊŞÑíÑ Çáíæãí ãİÚá' : 'ÇáÊŞÑíÑ Çáíæãí ãÊæŞİ'
-      },
-      {
-        icon: ShieldCheck,
-        title: 'ãÓÊæì ÇáÃãÇä',
-        value: settings.security.twoFactor ? 'ãÑÊİÚ' : 'ãÊæÓØ',
-        badge: settings.security.twoFactor ? 'ÇáãÕÇÏŞÉ ÇáËäÇÆíÉ ãİÚøáÉ' : 'íäÕÍ ÈÊİÚíá 2FA'
-      },
-      {
-        icon: Database,
-        title: 'ÍÇáÉ ÇáäÓÎ ÇáÇÍÊíÇØí',
-        value: settings.backups.autoBackup ? settings.backups.backupFrequency : 'íÏæí',
-        badge: `ÂÎÑ äÓÎÉ: ${settings.backups.lastBackup}`
-      }
-    ], [settings, activeNotificationChannels]
-  );
-
-  const quickActions = useMemo(
-    () => [
-      {
-        icon: Globe,
-        title: 'ÅÚÏÇÏÇÊ ÇáãæŞÚ ÇáÅáßÊÑæäí',
-        description: 'ÊÍÏíË ãÚáæãÇÊ ÇáãæŞÚ æÇáÊæÇÕá æãÍÑßÇÊ ÇáÈÍË.',
-        action: 'website'
-      },
-      {
-        icon: Users,
-        title: 'ÅÏÇÑÉ ÇáÕáÇÍíÇÊ',
-        description: 'ÊÚííä ÇáÃÏæÇÑ æÇáæÕæá áßá İÑíŞ Úãá.',
-        href: '/settings/hr'
-      },
-      {
-        icon: BookOpen,
-        title: 'ßÊÇáæÌ ÇáÔŞŞ',
-        description: 'ÅÏÇÑÉ ÃäæÇÚ ÇáÔŞŞ æÇáÛÑİ æÃÓÚÇÑåÇ.',
-        href: '/settings/rooms-catalog'
-      },
-      {
-        icon: Building2,
-        title: 'ÅÏÇÑÉ ÇáãæÇÑÏ ÇáÈÔÑíÉ',
-        description: 'ÅÖÇİÉ æÊÚÏíá ÇáãæÙİíä æÇáÕáÇÍíÇÊ.',
-        href: '/settings/hr'
-      },
-      {
-        icon: BellRing,
-        title: 'ÅÚÏÇÏÇÊ ÇáÃÕæÇÊ',
-        description: 'ÊÎÕíÕ äÛãÇÊ ÇáÊäÈíå áßá ÍÏË ãåã.',
-        href: '/settings/sound-settings'
-      },
-      {
-        icon: ServerCog,
-        title: 'ÌÏæáÉ ÇáäÓÎ ÇáÇÍÊíÇØí',
-        description: 'ãÑÇÌÚÉ ÊæŞíÊ ÇáäÓÎ ÇáÇÍÊíÇØíÉ ÇáŞÇÏãÉ.',
-        href: '/dashboard/accounting/reports'
-      }
-    ], []
-  );
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-purple-950" dir="rtl">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-14 h-14 rounded-full border-2 border-dashed border-purple-400 animate-spin" />
-          <p className="text-sm text-slate-300">ÌÇÑ ÊÍãíá ÅÚÏÇÏÇÊ ÇáäÙÇã...</p>
-        </div>
-      </div>
-    );
-  }
+  const themeColors = [
+    { value: 'blue', label: 'Ø£Ø²Ø±Ù‚', class: 'bg-blue-500' },
+    { value: 'green', label: 'Ø£Ø®Ø¶Ø±', class: 'bg-green-500' },
+    { value: 'purple', label: 'Ø¨Ù†ÙØ³Ø¬ÙŠ', class: 'bg-purple-500' },
+    { value: 'orange', label: 'Ø¨Ø±ØªÙ‚Ø§Ù„ÙŠ', class: 'bg-orange-500' },
+    { value: 'red', label: 'Ø£Ø­Ù…Ø±', class: 'bg-red-500' },
+    { value: 'pink', label: 'ÙˆØ±Ø¯ÙŠ', class: 'bg-pink-500' }
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-purple-950 p-6" dir="rtl">
-      <div className="max-w-6xl mx-auto space-y-8">
-        <header className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-start gap-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-violet-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-900/40">
-              <Settings className="w-7 h-7 text-white" />
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                <Badge variant="secondary" className="bg-emerald-500/20 text-emerald-200 border-emerald-500/30">
-                  äÙÇã ãÊßÇãá
-                </Badge>
-                <BadgeCheck className="w-5 h-5 text-emerald-300" />
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 p-4 lg:p-6" dir="rtl">
+        <div className="max-w-6xl mx-auto space-y-6">
+          
+          {/* Header */}
+          <div className="bg-gray-800/50 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-white/20">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <Button
+                  onClick={() => router.back()}
+                  variant="outline"
+                  className="border-white/20 bg-gray-800/50 text-white hover:bg-gray-600/50"
+                >
+                  <ArrowLeft className="w-4 h-4 ml-2" />
+                  Ø±Ø¬ÙˆØ¹
+                </Button>
+                <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <Settings className="w-8 h-8 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
+                    Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø§Ù„Ù†Ø¸Ø§Ù…
+                  </h1>
+                  <p className="text-blue-200/80">
+                    ØªØ®ØµÙŠØµ ÙˆØ¥Ø¯Ø§Ø±Ø© Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø§Ù„ØªØ·Ø¨ÙŠÙ‚
+                  </p>
+                </div>
               </div>
-              <h1 className="text-4xl font-bold text-white">áæÍÉ ÅÚÏÇÏÇÊ ÇáäÙÇã</h1>
-              <p className="text-slate-300 text-sm leading-6 max-w-2xl">
-                ÊÍßã ßÇãá İí ÇáåæíÉ¡ ÇáÊäÈíåÇÊ¡ ÇáÃãÇä¡ ÇáÊßÇãáÇÊ¡ ÇáäÓÎ ÇáÇÍÊíÇØí¡ ÇáãÙåÑ¡ æÇáÎíÇÑÇÊ ÇáãÊŞÏãÉ ãä ãßÇä æÇÍÏ.
-              </p>
+              
+              <div className="flex items-center gap-3">
+                <Button
+                  onClick={handleReset}
+                  variant="outline"
+                  className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+                >
+                  <RefreshCw className="w-4 h-4 ml-2" />
+                  Ø¥Ø¹Ø§Ø¯Ø© ØªØ¹ÙŠÙŠÙ†
+                </Button>
+                <Button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                >
+                  {isSaving ? (
+                    <RefreshCw className="w-4 h-4 ml-2 animate-spin" />
+                  ) : (
+                    <Save className="w-4 h-4 ml-2" />
+                  )}
+                  {isSaving ? 'Ø¬Ø§Ø±ÙŠ Ø§Ù„Ø­ÙØ¸...' : 'Ø­ÙØ¸ Ø§Ù„ØªØºÙŠÙŠØ±Ø§Øª'}
+                </Button>
+              </div>
             </div>
+
+            {/* Save Status */}
+            {saveStatus && (
+              <div className="mt-4">
+                {saveStatus === 'success' && (
+                  <Alert className="border-green-500/30 bg-green-500/10">
+                    <CheckCircle className="h-4 w-4 text-green-400" />
+                    <AlertDescription className="text-green-300">
+                      ØªÙ… Ø­ÙØ¸ Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø¨Ù†Ø¬Ø§Ø­!
+                    </AlertDescription>
+                  </Alert>
+                )}
+                {saveStatus === 'error' && (
+                  <Alert className="border-red-500/30 bg-red-500/10">
+                    <AlertCircle className="h-4 w-4 text-red-400" />
+                    <AlertDescription className="text-red-300">
+                      Ø­Ø¯Ø« Ø®Ø·Ø£ ÙÙŠ Ø­ÙØ¸ Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª. ÙŠØ±Ø¬Ù‰ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+            )}
           </div>
-          <div className="flex gap-3">
-            <Button
-              onClick={resetSettings}
-              variant="outline"
-              className="border-red-400/40 text-red-200 bg-red-500/10 hover:bg-red-500/20"
-            >
-              ÅÚÇÏÉ ÊÚííä ÇáÅÚÏÇÏÇÊ
-            </Button>
-            <Button
-              onClick={() => router.push('/dashboard')}
-              variant="outline"
-              className="border-white/20 bg-gray-700/30 text-white hover:bg-gray-800/50"
-            >
-              <ChevronRight className="ml-2 w-5 h-5" />
-              ÇáÚæÏÉ ááæÍÉ ÇáÊÍßã
-            </Button>
-          </div>
-        </header>
 
-        <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {stats.map((stat) => {
-            const Icon = stat.icon;
-            return (
-              <Card key={stat.title} className="border-slate-700/60 bg-slate-900/60 backdrop-blur-md shadow-lg">
-                <CardContent className="p-5 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="p-2 rounded-xl bg-slate-900/70 border border-white/10">
-                      <Icon className="w-5 h-5 text-white" />
-                    </div>
-                    <Badge className="bg-gray-800/50 border-white/20 text-white text-[11px]" variant="outline">
-                      {stat.badge}
-                    </Badge>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-200/80">{stat.title}</p>
-                    <p className="text-2xl font-bold text-white mt-2">{stat.value}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </section>
+          {/* Settings Tabs */}
+          <Tabs defaultValue="general" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6 bg-gray-800/50 border border-white/20">
+              <TabsTrigger value="general" className="data-[state=active]:bg-gray-700">
+                <Globe className="w-4 h-4 ml-2" />
+                Ø¹Ø§Ù…
+              </TabsTrigger>
+              <TabsTrigger value="interface" className="data-[state=active]:bg-gray-700">
+                <Palette className="w-4 h-4 ml-2" />
+                Ø§Ù„ÙˆØ§Ø¬Ù‡Ø©
+              </TabsTrigger>
+              <TabsTrigger value="notifications" className="data-[state=active]:bg-gray-700">
+                <Bell className="w-4 h-4 ml-2" />
+                Ø§Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª
+              </TabsTrigger>
+              <TabsTrigger value="security" className="data-[state=active]:bg-gray-700">
+                <Shield className="w-4 h-4 ml-2" />
+                Ø§Ù„Ø£Ù…Ø§Ù†
+              </TabsTrigger>
+              <TabsTrigger value="backup" className="data-[state=active]:bg-gray-700">
+                <Database className="w-4 h-4 ml-2" />
+                Ø§Ù„Ù†Ø³Ø® Ø§Ù„Ø§Ø­ØªÙŠØ§Ø·ÙŠ
+              </TabsTrigger>
+              <TabsTrigger value="api" className="data-[state=active]:bg-gray-700">
+                <Wifi className="w-4 h-4 ml-2" />
+                API
+              </TabsTrigger>
+            </TabsList>
 
-        <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {quickActions.map((action) => {
-            const Icon = action.icon;
-            const handleClick = () => {
-              if ('action' in action && action.action === 'website') {
-                // ÇáÊãÑíÑ Åáì ŞÓã ÇáÊÈæíÈÇÊ æÊİÚíá ÊÈæíÈ ÇáãæŞÚ ÇáÅáßÊÑæäí
-                const tabsList = document.querySelector('[role="tablist"]');
-                if (tabsList) {
-                  tabsList.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  setTimeout(() => {
-                    const websiteTab = document.querySelector('[value="website"]') as HTMLButtonElement;
-                    if (websiteTab) {
-                      websiteTab.click();
-                    }
-                  }, 300);
-                }
-              } else if ('href' in action) {
-                router.push(action.href);
-              }
-            };
-            
-            return (
-              <Card
-                key={action.title}
-                onClick={handleClick}
-                className="border-slate-700/60 bg-slate-900/60 hover:bg-slate-900/80 transition-colors cursor-pointer group"
-              >
-                <CardContent className="p-5 space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-purple-500/20 border border-purple-400/30 group-hover:bg-purple-500/30">
-                      <Icon className="w-5 h-5 text-purple-200" />
-                    </div>
-                    <div>
-                      <h3 className="text-white font-semibold text-base">{action.title}</h3>
-                      <p className="text-sm text-slate-300/80">{action.description}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </section>
-
-        <Card className="border-slate-700/60 bg-slate-900/50 backdrop-blur-lg shadow-xl">
-          <CardHeader className="pb-6">
-            <div className="flex flex-col gap-2">
-              <CardTitle className="text-white text-2xl flex items-center gap-3">
-                <ServerCog className="w-6 h-6 text-purple-300" />
-                ÅÏÇÑÉ ÅÚÏÇÏÇÊ ÇáäÙÇã
-              </CardTitle>
-              <CardDescription className="text-slate-300">
-                ÇÎÊÑ ÇáÊÈæíÈ ÇáãäÇÓÈ æŞã ÈÊÍÏíË ÇáÅÚÏÇÏÇÊ¡ æÓíÊã ÍİÙ ÊÛííÑÇÊß ÊáŞÇÆíğÇ.
-              </CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="general" className="space-y-6">
-              <TabsList className="flex flex-wrap gap-2 bg-slate-900/80 border border-slate-700/60 p-2 rounded-2xl text-slate-200">
-                <TabsTrigger value="general" className="data-[state=active]:bg-purple-500/20 data-[state=active]:text-white">
-                  ÇáÚÇã
-                </TabsTrigger>
-                <TabsTrigger value="website" className="data-[state=active]:bg-purple-500/20 data-[state=active]:text-white">
-                  ÇáãæŞÚ ÇáÅáßÊÑæäí
-                </TabsTrigger>
-                <TabsTrigger value="notifications" className="data-[state=active]:bg-purple-500/20 data-[state=active]:text-white">
-                  ÇáÊäÈíåÇÊ
-                </TabsTrigger>
-                <TabsTrigger value="security" className="data-[state=active]:bg-purple-500/20 data-[state=active]:text-white">
-                  ÇáÃãÇä
-                </TabsTrigger>
-                <TabsTrigger value="integrations" className="data-[state=active]:bg-purple-500/20 data-[state=active]:text-white">
-                  ÇáÊßÇãáÇÊ
-                </TabsTrigger>
-                <TabsTrigger value="backups" className="data-[state=active]:bg-purple-500/20 data-[state=active]:text-white">
-                  ÇáäÓÎ ÇáÇÍÊíÇØí
-                </TabsTrigger>
-                <TabsTrigger value="appearance" className="data-[state=active]:bg-purple-500/20 data-[state=active]:text-white">
-                  ÇáãÙåÑ
-                </TabsTrigger>
-                <TabsTrigger value="advanced" className="data-[state=active]:bg-purple-500/20 data-[state=active]:text-white">
-                  ãÊŞÏã
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="general" className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card className="border-slate-700/60 bg-slate-900/60">
-                    <CardHeader>
-                      <CardTitle className="text-white text-lg flex items-center gap-2">
-                        <Building2 className="w-5 h-5 text-purple-300" />
-                        åæíÉ ÇáãäÔÃÉ
-                      </CardTitle>
-                      <CardDescription className="text-slate-300">
-                        ÊÚÏíá ÇáåæíÉ ÇáãÚÑæÖÉ İí ÇáİæÇÊíÑ æÇáÊŞÇÑíÑ ÇáÑÓãíÉ.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-5">
-                      <div className="space-y-2">
-                        <label className="text-sm text-slate-200">ÇÓã ÇáãäÔÃÉ</label>
-                        <Input
-                          value={settings.general.companyName}
-                          onChange={(event) => updateSetting('general', 'companyName', event.target.value)}
-                          className="bg-slate-950 border-slate-700 text-white"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <LogoUploader />
-                        <label className="text-sm text-slate-200">ÇáÔÚÇÑ ÇáãÎÊÕÑ</label>
-                        <Textarea
-                          rows={3}
-                          value={settings.general.companyTagline}
-                          onChange={(event) => updateSetting('general', 'companyTagline', event.target.value)}
-                          className="bg-slate-950 border-slate-700 text-white"
-                        />
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label className="text-sm text-slate-200">ÇáŞØÇÚ</label>
-                          <Input
-                            value={settings.general.industry}
-                            onChange={(event) => updateSetting('general', 'industry', event.target.value)}
-                            className="bg-slate-950 border-slate-700 text-white"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-sm text-slate-200">ÚÏÏ ÇáİÑæÚ</label>
-                          <Input
-                            type="number"
-                            min={1}
-                            value={settings.general.branchCount}
-                            onChange={(event) => {
-                              const value = Number(event.target.value);
-                              updateSetting(
-                                'general',
-                                'branchCount',
-                                Number.isNaN(value) || value < 1 ? 1 : value
-                              );
-                            }}
-                            className="bg-slate-950 border-slate-700 text-white"
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label className="text-sm text-slate-200">ÇááÛÉ ÇáÑÆíÓíÉ</label>
-                          <Select
-                            value={settings.general.language}
-                            onValueChange={(value) => updateSetting('general', 'language', value)}
-                          >
-                            <SelectTrigger className="bg-slate-950 border-slate-700 text-white">
-                              <SelectValue placeholder="ÇÎÊÑ ÇááÛÉ" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-slate-950 border-slate-700 text-white">
-                              <SelectItem value="ar">ÇáÚÑÈíÉ</SelectItem>
-                              <SelectItem value="en">ÇáÅäÌáíÒíÉ</SelectItem>
-                              <SelectItem value="fr">ÇáİÑäÓíÉ</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-sm text-slate-200">ÇáÊæŞíÊ</label>
-                          <Select
-                            value={settings.general.timezone}
-                            onValueChange={(value) => updateSetting('general', 'timezone', value)}
-                          >
-                            <SelectTrigger className="bg-slate-950 border-slate-700 text-white">
-                              <SelectValue placeholder="ÇÎÊÑ ÇáÊæŞíÊ" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-slate-950 border-slate-700 text-white">
-                              <SelectItem value="Asia/Riyadh">GMT+3 | ÇáÑíÇÖ</SelectItem>
-                              <SelectItem value="Asia/Dubai">GMT+4 | ÏÈí</SelectItem>
-                              <SelectItem value="Europe/London">GMT | áäÏä</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label className="text-sm text-slate-200">ÕíÛÉ ÇáÊÇÑíÎ</label>
-                          <Select
-                            value={settings.general.dateFormat}
-                            onValueChange={(value) => updateSetting('general', 'dateFormat', value)}
-                          >
-                            <SelectTrigger className="bg-slate-950 border-slate-700 text-white">
-                              <SelectValue placeholder="ÇÎÊÑ ÇáÕíÛÉ" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-slate-950 border-slate-700 text-white">
-                              <SelectItem value="DD/MM/YYYY">31/12/2025</SelectItem>
-                              <SelectItem value="MM/DD/YYYY">12/31/2025</SelectItem>
-                              <SelectItem value="YYYY-MM-DD">2025-12-31</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-sm text-slate-200">ÇáÚãáÉ ÇáÑÆíÓíÉ</label>
-                          <Select
-                            value={settings.general.currency}
-                            onValueChange={(value) => updateSetting('general', 'currency', value)}
-                          >
-                            <SelectTrigger className="bg-slate-950 border-slate-700 text-white">
-                              <SelectValue placeholder="ÇÎÊÑ ÇáÚãáÉ" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-slate-950 border-slate-700 text-white">
-                              <SelectItem value="SAR">ÑíÇá ÓÚæÏí (SAR)</SelectItem>
-                              <SelectItem value="AED">ÏÑåã ÅãÇÑÇÊí (AED)</SelectItem>
-                              <SelectItem value="USD">ÏæáÇÑ ÃãÑíßí (USD)</SelectItem>
-                              <SelectItem value="EUR">íæÑæ (EUR)</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm text-slate-200">æÖÚ ÇáæÇÌåÉ</label>
-                        <Select
-                          value={settings.general.systemMode}
-                          onValueChange={(value) => updateSetting('general', 'systemMode', value)}
-                        >
-                          <SelectTrigger className="bg-slate-950 border-slate-700 text-white">
-                            <SelectValue placeholder="ÇÎÊÑ ÇáæÖÚ" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-slate-950 border-slate-700 text-white">
-                            <SelectItem value="dark">ÇáæÖÚ ÇáÏÇßä</SelectItem>
-                            <SelectItem value="light">ÇáæÖÚ ÇáİÇÊÍ</SelectItem>
-                            <SelectItem value="system">ÍÓÈ ÅÚÏÇÏÇÊ ÇáÌåÇÒ</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-slate-700/60 bg-slate-900/60">
-                    <CardHeader>
-                      <CardTitle className="text-white text-lg flex items-center gap-2">
-                        <Activity className="w-5 h-5 text-purple-300" />
-                        ãæÌÒ ÇáÍÇáÉ ÇáÍÇáíÉ
-                      </CardTitle>
-                      <CardDescription className="text-slate-300">
-                        äÙÑÉ ÓÑíÚÉ Úáì ÃÏÇÁ ÇáãäÙæãÉ æİŞ ÅÚÏÇÏÇÊß ÇáÍÇáíÉ.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="rounded-2xl border border-slate-700/60 bg-slate-950/40 p-4 space-y-2">
-                        <div className="flex items-center gap-2 text-slate-300 text-sm">
-                          <Shield className="w-4 h-4 text-purple-300" />
-                          ãÓÊæì ÇáÍãÇíÉ
-                        </div>
-                        <p className="text-white text-xl font-semibold">
-                          {settings.security.twoFactor ? 'ãÍãí ÈÇáßÇãá' : 'ÍãÇíÉ ÃÓÇÓíÉ'}
-                        </p>
-                        <p className="text-xs text-slate-400">
-                          {settings.security.loginAlerts
-                            ? 'ÇáãÑÇŞÈÉ ÇááÍÙíÉ áÊÓÌíá ÇáÏÎæá İÚøÇáÉ.'
-                            : 'ääÕÍ ÈÊİÚíá ÊäÈíåÇÊ ÇáÏÎæá áÊÍÓíä ÇáÍãÇíÉ.'}
-                        </p>
-                      </div>
-                      <div className="rounded-2xl border border-slate-700/60 bg-slate-950/40 p-4 space-y-2">
-                        <div className="flex items-center gap-2 text-slate-300 text-sm">
-                          <Link2 className="w-4 h-4 text-purple-300" />
-                          ÇáÊßÇãáÇÊ ÇáãÊÕáÉ
-                        </div>
-                        <p className="text-white text-xl font-semibold">{activeIntegrations} ÊßÇãáÇÊ äÔØÉ</p>
-                        <p className="text-xs text-slate-400">
-                          íÔãá æÇÊÓÇÈ¡ ÇáÃäÙãÉ ÇáãÍÇÓÈíÉ¡ ÇáãÎÒæä¡ æŞäæÇÊ ÇáÏÚã.
-                        </p>
-                      </div>
-                      <div className="rounded-2xl border border-slate-700/60 bg-slate-950/40 p-4 space-y-2">
-                        <div className="flex items-center gap-2 text-slate-300 text-sm">
-                          <RefreshCcw className="w-4 h-4 text-purple-300" />
-                          ÍÇáÉ ÇáäÓÎ ÇáÇÍÊíÇØí
-                        </div>
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                          <p className="text-white text-lg font-semibold">
-                            {settings.backups.autoBackup ? 'äÓÎ ÇÍÊíÇØí ÊáŞÇÆí' : 'ÇáäÓÎ ÇáÇÍÊíÇØí íÏæí'}
-                          </p>
-                          <div className="flex items-center gap-2 text-xs text-slate-400">
-                            <CheckCircle2 className="w-4 h-4 text-emerald-300" />
-                            ÂÎÑ äÓÎÉ ÚäÏ {settings.backups.lastBackup}
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="website" className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card className="border-slate-700/60 bg-slate-900/60">
-                    <CardHeader>
-                      <CardTitle className="text-white text-lg flex items-center gap-2">
-                        <Globe className="w-5 h-5 text-purple-300" />
-                        ãÚáæãÇÊ ÇáãæŞÚ
-                      </CardTitle>
-                      <CardDescription className="text-slate-300">
-                        ÊÍÏíË ãÚáæãÇÊ ÇáãæŞÚ ÇáÅáßÊÑæäí ÇáÃÓÇÓíÉ æÇáÈíÇäÇÊ ÇáæÕİíÉ.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-5">
-                      <div className="space-y-2">
-                        <label className="text-sm text-slate-200">ÇÓã ÇáãæŞÚ</label>
-                        <Input
-                          value={settings.website.siteName}
-                          onChange={(event) => updateSetting('website', 'siteName', event.target.value)}
-                          placeholder="ÇÓã ãæŞÚß ÇáÅáßÊÑæäí"
-                          className="bg-slate-950 border-slate-700 text-white"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm text-slate-200">ÑÇÈØ ÇáãæŞÚ (URL)</label>
-                        <Input
-                          value={settings.website.siteUrl}
-                          onChange={(event) => updateSetting('website', 'siteUrl', event.target.value)}
-                          placeholder="https://example.com"
-                          className="bg-slate-950 border-slate-700 text-white"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm text-slate-200">æÕİ ÇáãæŞÚ</label>
-                        <Textarea
-                          rows={3}
-                          value={settings.website.siteDescription}
-                          onChange={(event) => updateSetting('website', 'siteDescription', event.target.value)}
-                          placeholder="æÕİ ãæÌÒ áãæŞÚß íÙåÑ İí ãÍÑßÇÊ ÇáÈÍË"
-                          className="bg-slate-950 border-slate-700 text-white"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm text-slate-200 flex items-center gap-2">
-                          <Search className="w-4 h-4" />
-                          ÚäæÇä ÇáÊÍÓíä áãÍÑßÇÊ ÇáÈÍË (Meta Title)
-                        </label>
-                        <Input
-                          value={settings.website.metaTitle}
-                          onChange={(event) => updateSetting('website', 'metaTitle', event.target.value)}
-                          placeholder="ÇáÚäæÇä ÇáĞí íÙåÑ İí äÊÇÆÌ ÇáÈÍË"
-                          className="bg-slate-950 border-slate-700 text-white"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm text-slate-200">ÇáßáãÇÊ ÇáãİÊÇÍíÉ (Meta Keywords)</label>
-                        <Textarea
-                          rows={2}
-                          value={settings.website.metaKeywords}
-                          onChange={(event) => updateSetting('website', 'metaKeywords', event.target.value)}
-                          placeholder="ÖÚ ÇáßáãÇÊ ÇáãİÊÇÍíÉ ãİÕæáÉ ÈİÇÕáÉ"
-                          className="bg-slate-950 border-slate-700 text-white"
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-slate-700/60 bg-slate-900/60">
-                    <CardHeader>
-                      <CardTitle className="text-white text-lg flex items-center gap-2">
-                        <Mail className="w-5 h-5 text-purple-300" />
-                        ãÚáæãÇÊ ÇáÇÊÕÇá
-                      </CardTitle>
-                      <CardDescription className="text-slate-300">
-                        ÈíÇäÇÊ ÇáÊæÇÕá ÇáÊí ÊÙåÑ ááÒæÇÑ æÇáÚãáÇÁ.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-5">
-                      <div className="space-y-2">
-                        <label className="text-sm text-slate-200 flex items-center gap-2">
-                          <Mail className="w-4 h-4" />
-                          ÇáÈÑíÏ ÇáÅáßÊÑæäí
-                        </label>
-                        <Input
-                          type="email"
-                          value={settings.website.contactEmail}
-                          onChange={(event) => updateSetting('website', 'contactEmail', event.target.value)}
-                          placeholder="info@example.com"
-                          className="bg-slate-950 border-slate-700 text-white"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm text-slate-200 flex items-center gap-2">
-                          <Phone className="w-4 h-4" />
-                          ÑŞã ÇáåÇÊİ
-                        </label>
-                        <Input
-                          type="tel"
-                          value={settings.website.contactPhone}
-                          onChange={(event) => updateSetting('website', 'contactPhone', event.target.value)}
-                          placeholder="+966 50 123 4567"
-                          className="bg-slate-950 border-slate-700 text-white"
-                        />
-                      </div>
-                      <div className="rounded-2xl border border-slate-800/70 bg-slate-950/40 p-4 space-y-3">
-                        <p className="text-sm font-semibold text-slate-200 flex items-center gap-2">
-                          <Share2 className="w-4 h-4" />
-                          ÑæÇÈØ ãæÇŞÚ ÇáÊæÇÕá ÇáÇÌÊãÇÚí
-                        </p>
-                        <div className="space-y-3">
-                          <Input
-                            value={settings.website.socialFacebook}
-                            onChange={(event) => updateSetting('website', 'socialFacebook', event.target.value)}
-                            placeholder="ÑÇÈØ Facebook"
-                            className="bg-slate-950 border-slate-700 text-white text-sm"
-                          />
-                          <Input
-                            value={settings.website.socialInstagram}
-                            onChange={(event) => updateSetting('website', 'socialInstagram', event.target.value)}
-                            placeholder="ÑÇÈØ Instagram"
-                            className="bg-slate-950 border-slate-700 text-white text-sm"
-                          />
-                          <Input
-                            value={settings.website.socialTwitter}
-                            onChange={(event) => updateSetting('website', 'socialTwitter', event.target.value)}
-                            placeholder="ÑÇÈØ Twitter/X"
-                            className="bg-slate-950 border-slate-700 text-white text-sm"
-                          />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-slate-700/60 bg-slate-900/60 lg:col-span-2">
-                    <CardHeader>
-                      <CardTitle className="text-white text-lg flex items-center gap-2">
-                        <Settings className="w-5 h-5 text-purple-300" />
-                        ÎíÇÑÇÊ ÇáãæŞÚ ÇáãÊŞÏãÉ
-                      </CardTitle>
-                      <CardDescription className="text-slate-300">
-                        ÊİÚíá Ãæ ÅíŞÇİ ãíÒÇÊ ÇáãæŞÚ ÇáÅáßÊÑæäí.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <ToggleRow
-                          icon={BookOpen}
-                          label="ÊİÚíá äÙÇã ÇáÍÌÒ ÇáãÈÇÔÑ"
-                          description="ÇáÓãÇÍ ááÚãáÇÁ ÈÇáÍÌÒ ãÈÇÔÑÉ ãä ÇáãæŞÚ ÇáÅáßÊÑæäí."
-                          checked={settings.website.enableBookingWidget}
-                          onCheckedChange={(value) => updateSetting('website', 'enableBookingWidget', value)}
-                        />
-                        <ToggleRow
-                          icon={MessageSquare}
-                          label="ÊİÚíá ÇáÏÑÏÔÉ ÇáãÈÇÔÑÉ"
-                          description="ÊŞÏíã ÏÚã İæÑí ááÒæÇÑ ÚÈÑ äÇİĞÉ ÇáÏÑÏÔÉ ÇáãÈÇÔÑÉ."
-                          checked={settings.website.enableLiveChat}
-                          onCheckedChange={(value) => updateSetting('website', 'enableLiveChat', value)}
-                        />
-                      </div>
-                      <ToggleRow
-                        icon={ShieldAlert}
-                        label="æÖÚ ÇáÕíÇäÉ ááãæŞÚ"
-                        description="ÚÑÖ ÕİÍÉ ÕíÇäÉ ááÒæÇÑ ãÚ ÅÎİÇÁ ÇáãÍÊæì ãÄŞÊÇğ."
-                        checked={settings.website.maintenanceMode}
-                        onCheckedChange={(value) => updateSetting('website', 'maintenanceMode', value)}
+            {/* General Settings */}
+            <TabsContent value="general" className="space-y-6">
+              <Card className="bg-gray-800/50 backdrop-blur-md border-white/20">
+                <CardHeader>
+                  <CardTitle className="text-white">Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø§Ù„Ø¹Ø§Ù…Ø©</CardTitle>
+                  <CardDescription className="text-gray-400">
+                    Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø£Ø³Ø§Ø³ÙŠØ© Ù„Ù„ØªØ·Ø¨ÙŠÙ‚
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="hotelName" className="text-white">Ø§Ø³Ù… Ø§Ù„ÙÙ†Ø¯Ù‚</Label>
+                      <Input
+                        id="hotelName"
+                        value={settings.hotelName}
+                        onChange={(e) => updateSetting('hotelName', e.target.value)}
+                        className="bg-gray-700/30 border-white/20 text-white"
                       />
-                      <div className="rounded-2xl border border-slate-800/70 bg-slate-950/40 p-4 text-xs text-slate-400 leading-5">
-                        ?? äÕíÍÉ: ÊÃßÏ ãä ÊÍÏíË ãÚáæãÇÊ ÇáãæŞÚ ÈÇäÊÙÇã áÊÍÓíä ÙåæÑß İí ãÍÑßÇÊ ÇáÈÍË æÒíÇÏÉ ËŞÉ ÇáÚãáÇÁ.
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="language" className="text-white">Ø§Ù„Ù„ØºØ©</Label>
+                      <Select value={settings.language} onValueChange={(value) => updateSetting('language', value)}>
+                        <SelectTrigger className="bg-gray-700/30 border-white/20 text-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-800 border-white/20">
+                          <SelectItem value="ar">Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©</SelectItem>
+                          <SelectItem value="en">English</SelectItem>
+                          <SelectItem value="fr">FranÃ§ais</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-              <TabsContent value="notifications" className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card className="border-slate-700/60 bg-slate-900/60">
-                    <CardHeader>
-                      <CardTitle className="text-white text-lg flex items-center gap-2">
-                        <Bell className="w-5 h-5 text-purple-300" />
-                        ŞäæÇÊ ÇáÊäÈíå
-                      </CardTitle>
-                      <CardDescription className="text-slate-300">
-                        ÇÎÊÑ ÇáŞäæÇÊ ÇáãäÇÓÈÉ áÊäÈíå ÇáİÑŞ ÇáÊÔÛíáíÉ İí ÇáæŞÊ ÇáãäÇÓÈ.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {NOTIFICATION_TOGGLES.map((toggle) => (
-                        <ToggleRow
-                          key={toggle.key}
-                          icon={toggle.icon}
-                          label={toggle.label}
-                          description={toggle.description}
-                          checked={settings.notifications[toggle.key]}
-                          onCheckedChange={(value) => updateSetting('notifications', toggle.key, value)}
-                        />
-                      ))}
-                    </CardContent>
-                  </Card>
+                    <div className="space-y-2">
+                      <Label htmlFor="timezone" className="text-white">Ø§Ù„Ù…Ù†Ø·Ù‚Ø© Ø§Ù„Ø²Ù…Ù†ÙŠØ©</Label>
+                      <Select value={settings.timezone} onValueChange={(value) => updateSetting('timezone', value)}>
+                        <SelectTrigger className="bg-gray-700/30 border-white/20 text-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-800 border-white/20">
+                          <SelectItem value="Asia/Riyadh">Ø§Ù„Ø±ÙŠØ§Ø¶ (GMT+3)</SelectItem>
+                          <SelectItem value="Asia/Dubai">Ø¯Ø¨ÙŠ (GMT+4)</SelectItem>
+                          <SelectItem value="Europe/London">Ù„Ù†Ø¯Ù† (GMT+0)</SelectItem>
+                          <SelectItem value="America/New_York">Ù†ÙŠÙˆÙŠÙˆØ±Ùƒ (GMT-5)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                  <Card className="border-slate-700/60 bg-slate-900/60">
-                    <CardHeader>
-                      <CardTitle className="text-white text-lg flex items-center gap-2">
-                        <Sparkles className="w-5 h-5 text-purple-300" />
-                        ÊÎÕíÕ ÇáÃÕæÇÊ æÇáÊÓáíã
-                      </CardTitle>
-                      <CardDescription className="text-slate-300">
-                        ÍÏøÏ äÛãÉ áßá ÍÏË æÑÇÌÚ ÃæŞÇÊ ÇáÊÓáíã ÇáãÌÏæáÉ.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-5">
-                      <SoundSettings />
-                      <div className="rounded-2xl border border-slate-800/70 bg-slate-950/40 p-4 space-y-3">
-                        <p className="text-sm font-semibold text-slate-200">ÊæŞíÊ ÇáÊŞÑíÑ Çáíæãí</p>
-                        <Select
-                          value={settings.notifications.dailyDigest ? '08:00' : 'none'}
-                          onValueChange={(value) => updateSetting('notifications', 'dailyDigest', value !== 'none')}
-                        >
-                          <SelectTrigger className="bg-slate-950 border-slate-700 text-white">
-                            <SelectValue placeholder="ÇÎÊÑ ÇáæŞÊ" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-slate-950 border-slate-700 text-white">
-                            <SelectItem value="08:00">08:00 ÕÈÇÍğÇ</SelectItem>
-                            <SelectItem value="12:00">12:00 ÙåÑğÇ</SelectItem>
-                            <SelectItem value="18:00">06:00 ãÓÇÁğ</SelectItem>
-                            <SelectItem value="none">ÅíŞÇİ ÇáÊŞÑíÑ Çáíæãí</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
+                    <div className="space-y-2">
+                      <Label htmlFor="currency" className="text-white">Ø§Ù„Ø¹Ù…Ù„Ø©</Label>
+                      <Select value={settings.currency} onValueChange={(value) => updateSetting('currency', value)}>
+                        <SelectTrigger className="bg-gray-700/30 border-white/20 text-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-800 border-white/20">
+                          <SelectItem value="SAR">Ø±ÙŠØ§Ù„ Ø³Ø¹ÙˆØ¯ÙŠ (SAR)</SelectItem>
+                          <SelectItem value="USD">Ø¯ÙˆÙ„Ø§Ø± Ø£Ù…Ø±ÙŠÙƒÙŠ (USD)</SelectItem>
+                          <SelectItem value="EUR">ÙŠÙˆØ±Ùˆ (EUR)</SelectItem>
+                          <SelectItem value="AED">Ø¯Ø±Ù‡Ù… Ø¥Ù…Ø§Ø±Ø§ØªÙŠ (AED)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
 
-              <TabsContent value="security" className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card className="border-slate-700/60 bg-slate-900/60">
-                    <CardHeader>
-                      <CardTitle className="text-white text-lg flex items-center gap-2">
-                        <ShieldCheck className="w-5 h-5 text-purple-300" />
-                        ÓíÇÓÇÊ ÇáÍãÇíÉ
-                      </CardTitle>
-                      <CardDescription className="text-slate-300">
-                        İÚøá ÇáÓíÇÓÇÊ ÇáÊí ÊÖãä ÍãÇíÉ ÈíÇäÇÊ ÇáãäÔÃÉ æÇáãÓÊÎÏãíä.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {SECURITY_TOGGLES.map((toggle) => (
-                        <ToggleRow
-                          key={toggle.key}
-                          icon={toggle.icon}
-                          label={toggle.label}
-                          description={toggle.description}
-                          checked={Boolean(settings.security[toggle.key])}
-                          onCheckedChange={(value) => updateSetting('security', toggle.key, value)}
-                        />
-                      ))}
-                    </CardContent>
-                  </Card>
+                  <div className="space-y-2">
+                    <Label htmlFor="description" className="text-white">ÙˆØµÙ Ø§Ù„ÙÙ†Ø¯Ù‚</Label>
+                    <Textarea
+                      id="description"
+                      value={settings.hotelDescription}
+                      onChange={(e) => updateSetting('hotelDescription', e.target.value)}
+                      className="bg-gray-700/30 border-white/20 text-white min-h-[100px]"
+                      placeholder="Ø£Ø¯Ø®Ù„ ÙˆØµÙØ§Ù‹ Ù…Ø®ØªØµØ±Ø§Ù‹ Ø¹Ù† Ø§Ù„ÙÙ†Ø¯Ù‚..."
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-                  <Card className="border-slate-700/60 bg-slate-900/60">
-                    <CardHeader>
-                      <CardTitle className="text-white text-lg flex items-center gap-2">
-                        <Lock className="w-5 h-5 text-purple-300" />
-                        ÖæÇÈØ ÇáÌáÓÇÊ
-                      </CardTitle>
-                      <CardDescription className="text-slate-300">
-                        ÅÏÇÑÉ ãÏÉ ÇáÌáÓÉ æÓíÇÓÉ ÊÛííÑ ßáãÉ ÇáãÑæÑ.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-5">
+            {/* Interface Settings */}
+            <TabsContent value="interface" className="space-y-6">
+              <Card className="bg-gray-800/50 backdrop-blur-md border-white/20">
+                <CardHeader>
+                  <CardTitle className="text-white">Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø§Ù„ÙˆØ§Ø¬Ù‡Ø©</CardTitle>
+                  <CardDescription className="text-gray-400">
+                    ØªØ®ØµÙŠØµ Ù…Ø¸Ù‡Ø± Ø§Ù„ØªØ·Ø¨ÙŠÙ‚
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
                       <div className="space-y-2">
-                        <label className="text-sm text-slate-200">ÇäÊåÇÁ ÇáÌáÓÉ (ÏŞÇÆŞ)</label>
-                        <Input
-                          type="number"
-                          min={5}
-                          value={settings.security.autoLogoutMinutes}
-                          onChange={(event) => {
-                            const value = Number(event.target.value);
-                            updateSetting(
-                              'security',
-                              'autoLogoutMinutes',
-                              Number.isNaN(value) || value < 5 ? 5 : value
-                            );
-                          }}
-                          className="bg-slate-950 border-slate-700 text-white"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm text-slate-200">ÊÛííÑ ßáãÉ ÇáãÑæÑ (ÃíÇã)</label>
-                        <Input
-                          type="number"
-                          min={30}
-                          value={settings.security.passwordRotationDays}
-                          onChange={(event) => {
-                            const value = Number(event.target.value);
-                            updateSetting(
-                              'security',
-                              'passwordRotationDays',
-                              Number.isNaN(value) || value < 30 ? 30 : value
-                            );
-                          }}
-                          className="bg-slate-950 border-slate-700 text-white"
-                        />
-                      </div>
-                      <div className="rounded-2xl border border-slate-800/70 bg-slate-950/40 p-4 text-xs text-slate-400 leading-5">
-                        Şã ÈãÑÇÌÚÉ ÓÌáÇÊ ÇáÏÎæá ÃÓÈæÚíğÇ¡ æÊÃßÏ ãä ÅíŞÇİ ÍÓÇÈÇÊ ÇáãæÙİíä ÇáÓÇÈŞíä İæÑ ãÛÇÏÑÊåã.
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="integrations" className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card className="border-slate-700/60 bg-slate-900/60">
-                    <CardHeader>
-                      <CardTitle className="text-white text-lg flex items-center gap-2">
-                        <ServerCog className="w-5 h-5 text-purple-300" />
-                        ÇáÊßÇãáÇÊ ÇáãÊÇÍÉ
-                      </CardTitle>
-                      <CardDescription className="text-slate-300">
-                        İÚøá ÇáÊßÇãáÇÊ ÇáÊí ÊÏÚã ÚãáíÇÊß ÇáíæãíÉ æÎÕÕ ÕáÇÍíÇÊåÇ.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {INTEGRATION_OPTIONS.map((option) => (
-                        <ToggleRow
-                          key={option.key}
-                          icon={option.icon}
-                          label={option.label}
-                          description={option.description}
-                          checked={settings.integrations[option.key]}
-                          onCheckedChange={(value) => updateSetting('integrations', option.key, value)}
-                        />
-                      ))}
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-slate-700/60 bg-slate-900/60">
-                    <CardHeader>
-                      <CardTitle className="text-white text-lg flex items-center gap-2">
-                        <Link2 className="w-5 h-5 text-purple-300" />
-                        ãÑÇŞÈÉ ãİÇÊíÍ ÇáÑÈØ
-                      </CardTitle>
-                      <CardDescription className="text-slate-300">
-                        ÑÇÌÚ ÍÇáÉ ãİÇÊíÍ API æÊÃßÏ ãä ÕáÇÍíÊåÇ æÊæÒíÚåÇ ÇáÂãä.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-5">
-                      <div className="rounded-2xl border border-slate-800/70 bg-slate-950/40 p-4 text-xs text-slate-400 leading-5">
-                        {activeIntegrations} ÊßÇãáÇÊ äÔØÉ ÍÇáíğÇ. ääÕÍ ÈÊÌÏíÏ ÑãæÒ ÇáæÕæá ßá 90 íæãğÇ æÊæËíŞ ÈíÇäÇÊ ÇáÇÚÊãÇÏ İí ÎÒäÉ ÂãäÉ.
-                      </div>
-                      <Button
-                        variant="outline"
-                        className="w-full border-purple-400/40 text-purple-200 bg-purple-500/10 hover:bg-purple-500/20"
-                        onClick={() => router.push('/dashboard/settings/keys')}
-                      >
-                        ÅÏÇÑÉ ãİÇÊíÍ API æÇáÊßÇãáÇÊ
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="backups" className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card className="border-slate-700/60 bg-slate-900/60">
-                    <CardHeader>
-                      <CardTitle className="text-white text-lg flex items-center gap-2">
-                        <Database className="w-5 h-5 text-purple-300" />
-                        ÓíÇÓÉ ÇáäÓÎ ÇáÇÍÊíÇØí
-                      </CardTitle>
-                      <CardDescription className="text-slate-300">
-                        ÍÏÏ ÊßÑÇÑ ÇáäÓÎ¡ ãÏÉ ÇáÇÍÊİÇÙ¡ æÎíÇÑÇÊ ÇáÊÎÒíä ÇáãÊŞÏãÉ.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-5">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label className="text-sm text-slate-200">ÊßÑÇÑ ÇáäÓÎ ÇáÇÍÊíÇØí</label>
-                          <Select
-                            value={settings.backups.backupFrequency}
-                            onValueChange={(value) => updateSetting('backups', 'backupFrequency', value)}
-                          >
-                            <SelectTrigger className="bg-slate-950 border-slate-700 text-white">
-                              <SelectValue placeholder="ÇÎÊÑ ÇáÊßÑÇÑ" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-slate-950 border-slate-700 text-white">
-                              {BACKUP_FREQUENCIES.map((option) => (
-                                <SelectItem key={option.value} value={option.value}>
-                                  {option.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-sm text-slate-200">ãÏÉ ÇáÇÍÊİÇÙ (ÃíÇã)</label>
-                          <Input
-                            type="number"
-                            min={7}
-                            value={settings.backups.retentionDays}
-                            onChange={(event) => {
-                              const value = Number(event.target.value);
-                              updateSetting(
-                                'backups',
-                                'retentionDays',
-                                Number.isNaN(value) || value < 7 ? 7 : value
-                              );
-                            }}
-                            className="bg-slate-950 border-slate-700 text-white"
-                          />
+                        <Label className="text-white">Ø§Ù„Ù…Ø¸Ù‡Ø±</Label>
+                        <div className="flex gap-3">
+                          {[
+                            { value: 'light', label: 'ÙØ§ØªØ­', icon: Sun },
+                            { value: 'dark', label: 'Ø¯Ø§ÙƒÙ†', icon: Moon },
+                            { value: 'auto', label: 'ØªÙ„Ù‚Ø§Ø¦ÙŠ', icon: Monitor }
+                          ].map((theme) => (
+                            <Button
+                              key={theme.value}
+                              onClick={() => updateSetting('theme', theme.value)}
+                              variant={settings.theme === theme.value ? 'default' : 'outline'}
+                              className={`flex-1 ${
+                                settings.theme === theme.value 
+                                  ? 'bg-blue-500 text-white' 
+                                  : 'border-white/20 bg-gray-700/30 text-white hover:bg-gray-600/50'
+                              }`}
+                            >
+                              <theme.icon className="w-4 h-4 ml-2" />
+                              {theme.label}
+                            </Button>
+                          ))}
                         </div>
                       </div>
-                      {BACKUP_TOGGLES.map((toggle) => (
-                        <ToggleRow
-                          key={toggle.key}
-                          icon={toggle.icon}
-                          label={toggle.label}
-                          description={toggle.description}
-                          checked={settings.backups[toggle.key] as boolean}
-                          onCheckedChange={(value) => updateSetting('backups', toggle.key, value)}
-                        />
-                      ))}
-                      <div className="rounded-2xl border border-slate-800/70 bg-slate-950/40 p-4 text-xs text-slate-400 leading-5">
-                        íÊã ÍİÙ ÇáäÓÎ ÇáÇÍÊíÇØíÉ İí ÓÍÇÈÉ ãÔİÑÉ. íãßäß ÊäÒíá äÓÎÉ íÏæíÉ Ãæ ÇÓÊÚÇÏÊåÇ ãä ÎáÇá áæÍÉ ÇáÊŞÇÑíÑ ÇáãÇáíÉ.
-                      </div>
-                    </CardContent>
-                  </Card>
 
-                  <Card className="border-slate-700/60 bg-slate-900/60">
-                    <CardHeader>
-                      <CardTitle className="text-white text-lg flex items-center gap-2">
-                        <CloudDownload className="w-5 h-5 text-purple-300" />
-                        ÂÎÑ äÓÎÉ ÇÍÊíÇØíÉ
-                      </CardTitle>
-                      <CardDescription className="text-slate-300">
-                        ÊÍÏíË æŞÊ ÂÎÑ äÓÎÉ æÇáÊÃßÏ ãä ÌÇåÒíÉ ÎØÉ ÇáÇÓÊÌÇÈÉ ááØæÇÑÆ.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-5">
                       <div className="space-y-2">
-                        <label className="text-sm text-slate-200">ÊÇÑíÎ ææŞÊ ÂÎÑ äÓÎÉ</label>
-                        <Input
-                          value={settings.backups.lastBackup}
-                          onChange={(event) => updateSetting('backups', 'lastBackup', event.target.value)}
-                          className="bg-slate-950 border-slate-700 text-white"
-                        />
-                        <p className="text-xs text-slate-400">
-                          íÊã ÇÓÊÎÏÇã åĞå ÇáŞíãÉ áÅÑÓÇá ÊĞßíÑ ÊáŞÇÆí ŞÈá ÇáÍÇÌÉ Åáì ÇáäÓÎÉ ÇáÊÇáíÉ.
-                        </p>
+                        <Label className="text-white">Ø§Ù„Ù„ÙˆÙ† Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠ</Label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {themeColors.map((color) => (
+                            <Button
+                              key={color.value}
+                              onClick={() => updateSetting('primaryColor', color.value)}
+                              variant="outline"
+                              className={`border-white/20 bg-gray-700/30 text-white hover:bg-gray-600/50 ${
+                                settings.primaryColor === color.value ? 'ring-2 ring-blue-500' : ''
+                              }`}
+                            >
+                              <div className={`w-4 h-4 rounded-full ${color.class} ml-2`} />
+                              {color.label}
+                            </Button>
+                          ))}
+                        </div>
                       </div>
-                      <Button
-                        className="w-full bg-purple-600 hover:bg-purple-700 text-white"
-                        onClick={() => router.push('/dashboard/accounting/cash-flow')}
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-white">Ø¥Ø¸Ù‡Ø§Ø± Ø§Ù„Ø´Ø¹Ø§Ø±</Label>
+                        <Switch
+                          checked={settings.showLogo}
+                          onCheckedChange={(checked) => updateSetting('showLogo', checked)}
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <Label className="text-white">Ø§Ù„Ø¹Ø±Ø¶ Ø§Ù„Ù…Ø¶ØºÙˆØ·</Label>
+                        <Switch
+                          checked={settings.compactView}
+                          onCheckedChange={(checked) => updateSetting('compactView', checked)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Notifications Settings */}
+            <TabsContent value="notifications" className="space-y-6">
+              <Card className="bg-gray-800/50 backdrop-blur-md border-white/20">
+                <CardHeader>
+                  <CardTitle className="text-white">Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø§Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª</CardTitle>
+                  <CardDescription className="text-gray-400">
+                    Ø¥Ø¯Ø§Ø±Ø© Ø·Ø±ÙŠÙ‚Ø© Ø§Ø³ØªÙ„Ø§Ù… Ø§Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Bell className="w-5 h-5 text-blue-400" />
+                        <div>
+                          <div className="text-white font-medium">ØªÙØ¹ÙŠÙ„ Ø§Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª</div>
+                          <div className="text-gray-400 text-sm">Ø§Ø³ØªÙ„Ø§Ù… Ø¥Ø´Ø¹Ø§Ø±Ø§Øª Ø§Ù„Ù†Ø¸Ø§Ù…</div>
+                        </div>
+                      </div>
+                      <Switch
+                        checked={settings.enableNotifications}
+                        onCheckedChange={(checked) => updateSetting('enableNotifications', checked)}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Mail className="w-5 h-5 text-green-400" />
+                        <div>
+                          <div className="text-white font-medium">Ø¥Ø´Ø¹Ø§Ø±Ø§Øª Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ</div>
+                          <div className="text-gray-400 text-sm">Ø§Ø³ØªÙ„Ø§Ù… Ø¥Ø´Ø¹Ø§Ø±Ø§Øª Ø¹Ø¨Ø± Ø§Ù„Ø¨Ø±ÙŠØ¯</div>
+                        </div>
+                      </div>
+                      <Switch
+                        checked={settings.emailNotifications}
+                        onCheckedChange={(checked) => updateSetting('emailNotifications', checked)}
+                        disabled={!settings.enableNotifications}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Smartphone className="w-5 h-5 text-purple-400" />
+                        <div>
+                          <div className="text-white font-medium">Ø±Ø³Ø§Ø¦Ù„ SMS</div>
+                          <div className="text-gray-400 text-sm">Ø§Ø³ØªÙ„Ø§Ù… Ø±Ø³Ø§Ø¦Ù„ Ù†ØµÙŠØ©</div>
+                        </div>
+                      </div>
+                      <Switch
+                        checked={settings.smsNotifications}
+                        onCheckedChange={(checked) => updateSetting('smsNotifications', checked)}
+                        disabled={!settings.enableNotifications}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Volume2 className="w-5 h-5 text-orange-400" />
+                        <div>
+                          <div className="text-white font-medium">Ø§Ù„Ø£ØµÙˆØ§Øª</div>
+                          <div className="text-gray-400 text-sm">ØªØ´ØºÙŠÙ„ Ø£ØµÙˆØ§Øª Ø§Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª</div>
+                        </div>
+                      </div>
+                      <Switch
+                        checked={settings.soundEnabled}
+                        onCheckedChange={(checked) => updateSetting('soundEnabled', checked)}
+                        disabled={!settings.enableNotifications}
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Security Settings */}
+            <TabsContent value="security" className="space-y-6">
+              <Card className="bg-gray-800/50 backdrop-blur-md border-white/20">
+                <CardHeader>
+                  <CardTitle className="text-white">Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø§Ù„Ø£Ù…Ø§Ù†</CardTitle>
+                  <CardDescription className="text-gray-400">
+                    ØªØ£Ù…ÙŠÙ† Ø§Ù„Ø­Ø³Ø§Ø¨ ÙˆØ¥Ø¯Ø§Ø±Ø© ÙƒÙ„Ù…Ø§Øª Ø§Ù„Ù…Ø±ÙˆØ±
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Shield className="w-5 h-5 text-green-400" />
+                        <div>
+                          <div className="text-white font-medium">Ø§Ù„ØªØ­Ù‚Ù‚ Ø¨Ø®Ø·ÙˆØªÙŠÙ†</div>
+                          <div className="text-gray-400 text-sm">Ø­Ù…Ø§ÙŠØ© Ø¥Ø¶Ø§ÙÙŠØ© Ù„Ù„Ø­Ø³Ø§Ø¨</div>
+                        </div>
+                      </div>
+                      <Switch
+                        checked={settings.twoFactorAuth}
+                        onCheckedChange={(checked) => updateSetting('twoFactorAuth', checked)}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-white">Ø§Ù†ØªÙ‡Ø§Ø¡ Ø§Ù„Ø¬Ù„Ø³Ø© (Ø¯Ù‚ÙŠÙ‚Ø©)</Label>
+                        <Select 
+                          value={settings.sessionTimeout.toString()} 
+                          onValueChange={(value) => updateSetting('sessionTimeout', parseInt(value))}
+                        >
+                          <SelectTrigger className="bg-gray-700/30 border-white/20 text-white">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-gray-800 border-white/20">
+                            <SelectItem value="15">15 Ø¯Ù‚ÙŠÙ‚Ø©</SelectItem>
+                            <SelectItem value="30">30 Ø¯Ù‚ÙŠÙ‚Ø©</SelectItem>
+                            <SelectItem value="60">60 Ø¯Ù‚ÙŠÙ‚Ø©</SelectItem>
+                            <SelectItem value="120">Ø³Ø§Ø¹ØªÙŠÙ†</SelectItem>
+                            <SelectItem value="0">Ø¨Ø¯ÙˆÙ† Ø§Ù†ØªÙ‡Ø§Ø¡</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-white">Ù…Ø­Ø§ÙˆÙ„Ø§Øª ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„</Label>
+                        <Select 
+                          value={settings.loginAttempts.toString()} 
+                          onValueChange={(value) => updateSetting('loginAttempts', parseInt(value))}
+                        >
+                          <SelectTrigger className="bg-gray-700/30 border-white/20 text-white">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-gray-800 border-white/20">
+                            <SelectItem value="3">3 Ù…Ø­Ø§ÙˆÙ„Ø§Øª</SelectItem>
+                            <SelectItem value="5">5 Ù…Ø­Ø§ÙˆÙ„Ø§Øª</SelectItem>
+                            <SelectItem value="10">10 Ù…Ø­Ø§ÙˆÙ„Ø§Øª</SelectItem>
+                            <SelectItem value="0">Ø¨Ø¯ÙˆÙ† Ø­Ø¯</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-white">Ø³ÙŠØ§Ø³Ø© ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±</Label>
+                      <Select value={settings.passwordPolicy} onValueChange={(value) => updateSetting('passwordPolicy', value)}>
+                        <SelectTrigger className="bg-gray-700/30 border-white/20 text-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-800 border-white/20">
+                          <SelectItem value="weak">Ø¶Ø¹ÙŠÙØ© (6+ Ø£Ø­Ø±Ù)</SelectItem>
+                          <SelectItem value="medium">Ù…ØªÙˆØ³Ø·Ø© (8+ Ø£Ø­Ø±Ù + Ø£Ø±Ù‚Ø§Ù…)</SelectItem>
+                          <SelectItem value="strong">Ù‚ÙˆÙŠØ© (12+ Ø£Ø­Ø±Ù + Ø±Ù…ÙˆØ² Ø®Ø§ØµØ©)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Backup Settings */}
+            <TabsContent value="backup" className="space-y-6">
+              <Card className="bg-gray-800/50 backdrop-blur-md border-white/20">
+                <CardHeader>
+                  <CardTitle className="text-white">Ø§Ù„Ù†Ø³Ø® Ø§Ù„Ø§Ø­ØªÙŠØ§Ø·ÙŠ</CardTitle>
+                  <CardDescription className="text-gray-400">
+                    Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ù†Ø³Ø® Ø§Ù„Ø§Ø­ØªÙŠØ§Ø·ÙŠØ© ÙˆØ§Ø³ØªØ¹Ø§Ø¯Ø© Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Database className="w-5 h-5 text-blue-400" />
+                      <div>
+                        <div className="text-white font-medium">Ø§Ù„Ù†Ø³Ø® Ø§Ù„ØªÙ„Ù‚Ø§Ø¦ÙŠ</div>
+                        <div className="text-gray-400 text-sm">Ø¥Ù†Ø´Ø§Ø¡ Ù†Ø³Ø® Ø§Ø­ØªÙŠØ§Ø·ÙŠØ© ØªÙ„Ù‚Ø§Ø¦ÙŠØ§Ù‹</div>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={settings.autoBackup}
+                      onCheckedChange={(checked) => updateSetting('autoBackup', checked)}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-white">ØªÙƒØ±Ø§Ø± Ø§Ù„Ù†Ø³Ø®</Label>
+                      <Select 
+                        value={settings.backupFrequency} 
+                        onValueChange={(value) => updateSetting('backupFrequency', value)}
+                        disabled={!settings.autoBackup}
                       >
-                        ÊäÒíá ÓÌá ÇáäÓÎ ÇáÇÍÊíÇØíÉ
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
+                        <SelectTrigger className="bg-gray-700/30 border-white/20 text-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-800 border-white/20">
+                          <SelectItem value="hourly">ÙƒÙ„ Ø³Ø§Ø¹Ø©</SelectItem>
+                          <SelectItem value="daily">ÙŠÙˆÙ…ÙŠØ§Ù‹</SelectItem>
+                          <SelectItem value="weekly">Ø£Ø³Ø¨ÙˆØ¹ÙŠØ§Ù‹</SelectItem>
+                          <SelectItem value="monthly">Ø´Ù‡Ø±ÙŠØ§Ù‹</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-              <TabsContent value="appearance" className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card className="border-slate-700/60 bg-slate-900/60">
-                    <CardHeader>
-                      <CardTitle className="text-white text-lg flex items-center gap-2">
-                        <Palette className="w-5 h-5 text-purple-300" />
-                        ÅÚÏÇÏÇÊ ÇáãÙåÑ
-                      </CardTitle>
-                      <CardDescription className="text-slate-300">
-                        ÇÖÈØ ÇáÃáæÇä æßËÇİÉ ÇáæÇÌåÉ ÈãÇ íÊäÇÓÈ ãÚ åæíÉ ãäÔÃÊß.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-5">
-                      <div className="space-y-2">
-                        <label className="text-sm text-slate-200">áæä ÇáÊãííÒ</label>
-                        <Select
-                          value={settings.appearance.accentColor}
-                          onValueChange={(value) => updateSetting('appearance', 'accentColor', value)}
-                        >
-                          <SelectTrigger className="bg-slate-950 border-slate-700 text-white">
-                            <SelectValue placeholder="ÇÎÊÑ Çááæä" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-slate-950 border-slate-700 text-white">
-                            {ACCENT_OPTIONS.map((option) => (
-                              <SelectItem key={option.value} value={option.value}>
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm text-slate-200">ßËÇİÉ ÇáæÇÌåÉ</label>
-                        <Select
-                          value={settings.appearance.layoutDensity}
-                          onValueChange={(value) => updateSetting('appearance', 'layoutDensity', value)}
-                        >
-                          <SelectTrigger className="bg-slate-950 border-slate-700 text-white">
-                            <SelectValue placeholder="ÇÎÊÑ ÇáßËÇİÉ" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-slate-950 border-slate-700 text-white">
-                            {DENSITY_OPTIONS.map((option) => (
-                              <SelectItem key={option.value} value={option.value}>
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      {APPEARANCE_TOGGLES.map((toggle) => (
-                        <ToggleRow
-                          key={toggle.key}
-                          icon={toggle.icon}
-                          label={toggle.label}
-                          description={toggle.description}
-                          checked={Boolean(settings.appearance[toggle.key])}
-                          onCheckedChange={(value) => updateSetting('appearance', toggle.key, value)}
-                        />
-                      ))}
-                    </CardContent>
-                  </Card>
+                    <div className="space-y-2">
+                      <Label className="text-white">Ø§Ù„Ø§Ø­ØªÙØ§Ø¸ Ø¨Ø§Ù„Ù†Ø³Ø® (Ø£ÙŠØ§Ù…)</Label>
+                      <Input
+                        type="number"
+                        value={settings.backupRetention}
+                        onChange={(e) => updateSetting('backupRetention', parseInt(e.target.value) || 30)}
+                        className="bg-gray-700/30 border-white/20 text-white"
+                        min="1"
+                        max="365"
+                        disabled={!settings.autoBackup}
+                      />
+                    </div>
+                  </div>
 
-                  <Card className="border-slate-700/60 bg-slate-900/60">
-                    <CardHeader>
-                      <CardTitle className="text-white text-lg flex items-center gap-2">
-                        <Sparkles className="w-5 h-5 text-purple-300" />
-                        ãÚÇíäÉ ÇáæÇÌåÉ
-                      </CardTitle>
-                      <CardDescription className="text-slate-300">
-                        ÊÃßÏ ãä ÊØÇÈŞ ÇáãÙåÑ ÇáäåÇÆí ãÚ åæíÉ ãäÔÃÊß ŞÈá ÇáÇÚÊãÇÏ.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="rounded-2xl border border-slate-800/80 bg-gradient-to-br from-slate-950 via-slate-900 to-purple-950 p-6 space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-1">
-                            <p className="text-xs uppercase tracking-wide text-slate-400">ãÚÇíäÉ</p>
-                            <p className="text-white font-semibold">{settings.general.companyName}</p>
+                  <div className="flex gap-3">
+                    <Button className="bg-blue-500/20 border border-blue-500/30 text-blue-300 hover:bg-blue-500/30">
+                      <Download className="w-4 h-4 ml-2" />
+                      Ø¥Ù†Ø´Ø§Ø¡ Ù†Ø³Ø®Ø© Ø§Ø­ØªÙŠØ§Ø·ÙŠØ©
+                    </Button>
+                    <Button className="bg-green-500/20 border border-green-500/30 text-green-300 hover:bg-green-500/30">
+                      <Upload className="w-4 h-4 ml-2" />
+                      Ø§Ø³ØªØ¹Ø§Ø¯Ø© Ù†Ø³Ø®Ø© Ø§Ø­ØªÙŠØ§Ø·ÙŠØ©
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* API Settings */}
+            <TabsContent value="api" className="space-y-6">
+              <Card className="bg-gray-800/50 backdrop-blur-md border-white/20">
+                <CardHeader>
+                  <CardTitle className="text-white">Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª API</CardTitle>
+                  <CardDescription className="text-gray-400">
+                    Ø¥Ø¯Ø§Ø±Ø© ÙˆØ§Ø¬Ù‡Ø© Ø¨Ø±Ù…Ø¬Ø© Ø§Ù„ØªØ·Ø¨ÙŠÙ‚Ø§Øª ÙˆØ§Ù„ØªÙƒØ§Ù…Ù„Ø§Øª Ø§Ù„Ø®Ø§Ø±Ø¬ÙŠØ©
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Wifi className="w-5 h-5 text-green-400" />
+                      <div>
+                        <div className="text-white font-medium">ØªÙØ¹ÙŠÙ„ API</div>
+                        <div className="text-gray-400 text-sm">Ø§Ù„Ø³Ù…Ø§Ø­ Ø¨Ø§Ù„ÙˆØµÙˆÙ„ Ø¹Ø¨Ø± API</div>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={settings.apiEnabled}
+                      onCheckedChange={(checked) => updateSetting('apiEnabled', checked)}
+                    />
+                  </div>
+
+                  {settings.apiEnabled && (
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label className="text-white">Ù…ÙØªØ§Ø­ API</Label>
+                        <div className="flex gap-2">
+                          <div className="relative flex-1">
+                            <Input
+                              type={showApiKey ? 'text' : 'password'}
+                              value={settings.apiKey}
+                              onChange={(e) => updateSetting('apiKey', e.target.value)}
+                              className="bg-gray-700/30 border-white/20 text-white pr-10"
+                              placeholder="Ø£Ø¯Ø®Ù„ Ù…ÙØªØ§Ø­ API Ø£Ùˆ Ø§Ø¶ØºØ· Ø¹Ù„Ù‰ ØªÙˆÙ„ÙŠØ¯"
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setShowApiKey(!showApiKey)}
+                              className="absolute left-2 top-1/2 -translate-y-1/2 h-6 w-6 p-0 text-gray-400 hover:text-white"
+                            >
+                              {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </Button>
                           </div>
-                          <Badge className="bg-gray-800/50 border-white/20 text-white text-[11px]" variant="outline">
-                            {settings.appearance.accentColor.toUpperCase()}
-                          </Badge>
-                        </div>
-                        <div className="rounded-xl border border-slate-800/70 bg-slate-900/70 p-4 space-y-2">
-                          <p className="text-sm text-slate-200">{settings.general.companyTagline}</p>
-                          <p className="text-xs text-slate-400">
-                            ßËÇİÉ ÇáæÇÌåÉ: {settings.appearance.layoutDensity === 'compact'
-                              ? 'ãÖÛæØ'
-                              : settings.appearance.layoutDensity === 'comfortable'
-                                ? 'ãÑíÍ'
-                                : 'æÇÓÚ'}
-                          </p>
-                        </div>
-                        <div className="flex flex-wrap gap-2 text-xs text-slate-400">
-                          <span className="px-3 py-1 rounded-full border border-purple-400/40 bg-purple-500/10 text-purple-200">
-                            æÖÚ ÇáäÙÇã: {settings.general.systemMode === 'dark' ? 'ÏÇßä' : settings.general.systemMode === 'light' ? 'İÇÊÍ' : 'ÍÓÈ ÇáÌåÇÒ'}
-                          </span>
-                          {settings.appearance.bubbleBackground ? (
-                            <span className="px-3 py-1 rounded-full border border-emerald-400/30 bg-emerald-500/10 text-emerald-200">
-                              ÊÃËíÑ ÇáİŞÇÚÇÊ ãİÚá
-                            </span>
-                          ) : null}
-                          {settings.appearance.animatedTransitions ? (
-                            <span className="px-3 py-1 rounded-full border border-purple-400/30 bg-purple-500/10 text-purple-200">
-                              ÇäÊŞÇáÇÊ ÏíäÇãíßíÉ
-                            </span>
-                          ) : null}
-                          {settings.appearance.showTips ? (
-                            <span className="px-3 py-1 rounded-full border border-amber-400/30 bg-amber-500/10 text-amber-200">
-                              ÊáãíÍÇÊ ãİÚáÉ
-                            </span>
-                          ) : null}
+                          <Button
+                            onClick={generateApiKey}
+                            variant="outline"
+                            className="border-white/20 bg-gray-700/30 text-white hover:bg-gray-600/50"
+                          >
+                            <Key className="w-4 h-4 ml-2" />
+                            ØªÙˆÙ„ÙŠØ¯
+                          </Button>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
 
-              <TabsContent value="advanced" className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card className="border-slate-700/60 bg-slate-900/60">
-                    <CardHeader>
-                      <CardTitle className="text-white text-lg flex items-center gap-2">
-                        <Zap className="w-5 h-5 text-purple-300" />
-                        ÎíÇÑÇÊ ãÊŞÏãÉ
-                      </CardTitle>
-                      <CardDescription className="text-slate-300">
-                        ÖÈØ Óáæß ÇáäÙÇã ÇáÊŞäí æÃÏæÇÊ ÇáãÑÇŞÈÉ ÇáãÊŞÏãÉ.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {ADVANCED_TOGGLES.map((toggle) => (
-                        <ToggleRow
-                          key={toggle.key}
-                          icon={toggle.icon}
-                          label={toggle.label}
-                          description={toggle.description}
-                          checked={Boolean(settings.advanced[toggle.key])}
-                          onCheckedChange={(value) => updateSetting('advanced', toggle.key, value)}
-                        />
-                      ))}
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-slate-700/60 bg-slate-900/60">
-                    <CardHeader>
-                      <CardTitle className="text-white text-lg flex items-center gap-2">
-                        <ServerCog className="w-5 h-5 text-purple-300" />
-                        ÅÏÇÑÉ ÇáÃÏÇÁ æÇáÊÎÒíä ÇáãÄŞÊ
-                      </CardTitle>
-                      <CardDescription className="text-slate-300">
-                        ÖÈØ ÍÌã ÇáßÇÔ æãÊÇÈÚÉ ÚãáíÇÊ ÇáÕíÇäÉ ÇáãÓÊãÑÉ.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-5">
                       <div className="space-y-2">
-                        <label className="text-sm text-slate-200">ÓÚÉ ÇáÊÎÒíä ÇáãÄŞÊ (ãíÌÇÈÇíÊ)</label>
+                        <Label htmlFor="webhookUrl" className="text-white">Ø±Ø§Ø¨Ø· Webhook</Label>
                         <Input
-                          type="number"
-                          min={128}
-                          value={settings.advanced.cacheSize}
-                          onChange={(event) => {
-                            const value = Number(event.target.value);
-                            updateSetting(
-                              'advanced',
-                              'cacheSize',
-                              Number.isNaN(value) || value < 128 ? 128 : value
-                            );
-                          }}
-                          className="bg-slate-950 border-slate-700 text-white"
+                          id="webhookUrl"
+                          value={settings.webhookUrl}
+                          onChange={(e) => updateSetting('webhookUrl', e.target.value)}
+                          className="bg-gray-700/30 border-white/20 text-white"
+                          placeholder="https://yourapp.com/webhook"
                         />
                       </div>
-                      <div className="rounded-2xl border border-slate-800/70 bg-slate-950/40 p-4 text-xs text-slate-400 leading-5">
-                        İÚøá ãÑÇŞÈÉ ÇáÃÏÇÁ ááÍÕæá Úáì ÅÔÚÇÑÇÊ İæÑíÉ ÚäÏ ÇÑÊİÇÚ ÇÓÊåáÇß ÇáãÚÇáÌ Ãæ ÇáĞÇßÑÉ¡ ãÚ ÊŞÇÑíÑ ÃÓÈæÚíÉ áÃÈÑÒ ÇáãÄÔÑÇÊ.
-                      </div>
-                      <Button
-                        variant="outline"
-                        className="w-full border-purple-400/40 text-purple-200 bg-purple-500/10 hover:bg-purple-500/20"
-                        onClick={() => router.push('/dashboard/analytics')}
-                      >
-                        ÚÑÖ áæÍÉ ãÑÇŞÈÉ ÇáÃÏÇÁ
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
 
-        <footer className="text-center text-sm text-purple-300/50 py-4">
-          <p>
-            Êã ÊØæíÑ åĞÇ ÇáäÙÇã ÈæÇÓØÉ <span className="font-semibold text-purple-300/80">Eng/Akram elmasry</span>
-          </p>
-        </footer>
+                      <Alert className="border-yellow-500/30 bg-yellow-500/10">
+                        <Info className="h-4 w-4 text-yellow-400" />
+                        <AlertDescription className="text-yellow-300">
+                          <strong>ØªÙ†Ø¨ÙŠÙ‡ Ø£Ù…Ù†ÙŠ:</strong> Ø§Ø­ØªÙØ¸ Ø¨Ù…ÙØªØ§Ø­ API ÙÙŠ Ù…ÙƒØ§Ù† Ø¢Ù…Ù† ÙˆÙ„Ø§ ØªØ´Ø§Ø±ÙƒÙ‡ Ù…Ø¹ Ø£Ø­Ø¯. 
+                          ÙŠÙ…ÙƒÙ† Ø§Ø³ØªØ®Ø¯Ø§Ù…Ù‡ Ù„Ù„ÙˆØµÙˆÙ„ Ù„Ø¬Ù…ÙŠØ¹ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù†Ø¸Ø§Ù….
+                        </AlertDescription>
+                      </Alert>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
-    </div>
+    </ProtectedRoute>
   );
 }
