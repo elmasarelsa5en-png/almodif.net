@@ -12,8 +12,7 @@ export default function GuestLoginPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
     name: '',
-    phone: '',
-    roomNumber: '' // إضافة رقم الغرفة
+    roomNumber: '' // فقط الاسم ورقم الغرفة
   });
   
   const [loading, setLoading] = useState(false);
@@ -22,8 +21,8 @@ export default function GuestLoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.phone) {
-      setError('الرجاء إدخال الاسم ورقم الهاتف');
+    if (!formData.name || !formData.roomNumber) {
+      setError('الرجاء إدخال الاسم ورقم الغرفة');
       return;
     }
 
@@ -34,59 +33,42 @@ export default function GuestLoginPage() {
       // البحث عن الحجز في الغرف المشغولة
       const rooms = JSON.parse(localStorage.getItem('hotel_rooms_data') || '[]');
       
-      // البحث عن غرف مشغولة أو محجوزة بنفس اسم النزيل ورقم الهاتف
-      const matchedRooms = rooms.filter((room: any) => {
+      // البحث بالاسم ورقم الغرفة فقط
+      const matchedRoom = rooms.find((room: any) => {
         const isOccupied = room.status === 'Occupied' || room.status === 'Reserved';
-        const nameMatch = room.guestName && room.guestName.trim().toLowerCase() === formData.name.trim().toLowerCase();
+        const nameMatch = room.guestName && 
+          room.guestName.trim().toLowerCase().includes(formData.name.trim().toLowerCase());
+        const roomMatch = room.number === formData.roomNumber;
         
-        // البحث عن رقم الهاتف في guestPhone
-        const phoneMatch = room.guestPhone && room.guestPhone.includes(formData.phone);
-        
-        // إذا تم إدخال رقم غرفة، تحقق منه أيضاً
-        const roomNumberMatch = !formData.roomNumber || room.number === formData.roomNumber;
-        
-        return isOccupied && nameMatch && phoneMatch && roomNumberMatch;
+        return isOccupied && nameMatch && roomMatch;
       });
 
-      if (matchedRooms.length === 0) {
-        // محاولة البحث بالاسم فقط إذا لم يتم إيجاد تطابق كامل
-        const roomsByName = rooms.filter((room: any) => {
+      if (!matchedRoom) {
+        // محاولة البحث بالاسم فقط إذا لم يتم إيجاد تطابق
+        const roomByName = rooms.find((room: any) => {
           const isOccupied = room.status === 'Occupied' || room.status === 'Reserved';
-          const nameMatch = room.guestName && room.guestName.trim().toLowerCase() === formData.name.trim().toLowerCase();
+          const nameMatch = room.guestName && 
+            room.guestName.trim().toLowerCase().includes(formData.name.trim().toLowerCase());
           return isOccupied && nameMatch;
         });
 
-        if (roomsByName.length > 0) {
-          // وُجِد الاسم لكن رقم الهاتف أو رقم الغرفة غير متطابق
-          if (formData.roomNumber) {
-            setError('رقم الهاتف أو رقم الغرفة غير مطابق للحجز المسجل. يرجى التحقق من البيانات.');
-          } else {
-            setError(`وجدنا ${roomsByName.length} حجز/حجوزات بهذا الاسم. يرجى إدخال رقم الغرفة للتأكيد.`);
-          }
+        if (roomByName) {
+          setError(`وجدنا حجز باسم "${formData.name}" في غرفة ${roomByName.number}. يرجى التأكد من رقم الغرفة.`);
           setLoading(false);
           return;
         }
 
         // لم يتم العثور على حجز
-        setError('عذراً، لم يتم العثور على حجز بهذا الاسم. يرجى التواصل مع الاستقبال.');
-        setLoading(false);
-        return;
-      }
-
-      // إذا كان هناك أكثر من حجز ولم يتم إدخال رقم الغرفة
-      if (matchedRooms.length > 1 && !formData.roomNumber) {
-        const roomNumbers = matchedRooms.map((r: any) => r.number).join('، ');
-        setError(`لديك ${matchedRooms.length} حجوزات (غرف: ${roomNumbers}). يرجى إدخال رقم الغرفة للمتابعة.`);
+        setError('عذراً، لم يتم العثور على حجز بهذا الاسم ورقم الغرفة. يرجى التواصل مع الاستقبال.');
         setLoading(false);
         return;
       }
 
       // تم العثور على الحجز - حفظ بيانات النزيل
-      const selectedRoom = matchedRooms[0];
       const guestData = {
         name: formData.name,
-        phone: formData.phone,
-        roomNumber: selectedRoom.number,
+        phone: matchedRoom.guestPhone || '',
+        roomNumber: matchedRoom.number,
         loginTime: new Date().toISOString()
       };
 
@@ -149,29 +131,11 @@ export default function GuestLoginPage() {
               />
             </div>
 
-            {/* رقم الهاتف */}
-            <div className="space-y-2">
-              <Label htmlFor="phone" className="text-white flex items-center gap-2">
-                <Phone className="h-4 w-4" />
-                رقم الهاتف
-              </Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                placeholder="05xxxxxxxx"
-                className="bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
-                required
-                disabled={loading}
-              />
-            </div>
-
-            {/* رقم الغرفة (اختياري) */}
+            {/* رقم الغرفة */}
             <div className="space-y-2">
               <Label htmlFor="roomNumber" className="text-white flex items-center gap-2">
                 <Home className="h-4 w-4" />
-                رقم الغرفة (اختياري)
+                رقم الغرفة
               </Label>
               <Input
                 id="roomNumber"
@@ -179,11 +143,9 @@ export default function GuestLoginPage() {
                 onChange={(e) => setFormData({ ...formData, roomNumber: e.target.value })}
                 placeholder="مثال: 101"
                 className="bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
+                required
                 disabled={loading}
               />
-              <p className="text-gray-400 text-xs">
-                * إذا كان لديك أكثر من حجز، يرجى إدخال رقم الغرفة
-              </p>
             </div>
 
             {/* معلومات إضافية */}
@@ -192,9 +154,8 @@ export default function GuestLoginPage() {
                 <CheckCircle2 className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
                 <div className="text-blue-300 text-sm space-y-1">
                   <p className="font-semibold">ملاحظة هامة:</p>
-                  <p>• تأكد من إدخال الاسم كما هو مسجل في الحجز</p>
-                  <p>• تأكد من إدخال رقم الهاتف المسجل في الحجز</p>
-                  <p>• إذا كان لديك أكثر من حجز، أدخل رقم الغرفة</p>
+                  <p>• أدخل اسمك كما هو مسجل في الحجز</p>
+                  <p>• أدخل رقم الغرفة الخاصة بك</p>
                   <p>• سيتم التحقق تلقائياً من بياناتك</p>
                 </div>
               </div>
