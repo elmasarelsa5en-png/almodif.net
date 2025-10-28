@@ -6,44 +6,95 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { User, Phone, Home, Coffee, Utensils } from 'lucide-react';
+import { User, Phone, Home, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export default function GuestLoginPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
     name: '',
-    phone: '',
-    roomNumber: '',
-    service: 'coffee' // coffee أو restaurant
+    phone: ''
   });
   
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.phone || !formData.roomNumber) {
-      alert('الرجاء إدخال جميع البيانات المطلوبة');
+    if (!formData.name || !formData.phone) {
+      setError('الرجاء إدخال الاسم ورقم الهاتف');
       return;
     }
 
     setLoading(true);
+    setError('');
 
-    // حفظ بيانات النزيل في localStorage
-    const guestData = {
-      name: formData.name,
-      phone: formData.phone,
-      roomNumber: formData.roomNumber,
-      service: formData.service,
-      loginTime: new Date().toISOString()
-    };
+    try {
+      // البحث عن الحجز في الغرف المشغولة
+      const rooms = JSON.parse(localStorage.getItem('hotel_rooms_data') || '[]');
+      
+      // البحث عن غرفة مشغولة أو محجوزة بنفس اسم النزيل ورقم الهاتف
+      const matchedRoom = rooms.find((room: any) => {
+        const isOccupied = room.status === 'Occupied' || room.status === 'Reserved';
+        const nameMatch = room.guestName && room.guestName.trim().toLowerCase() === formData.name.trim().toLowerCase();
+        
+        // البحث في events عن رقم الهاتف
+        let phoneMatch = false;
+        if (room.events && Array.isArray(room.events)) {
+          phoneMatch = room.events.some((event: any) => 
+            event.description && event.description.includes(formData.phone)
+          );
+        }
+        
+        // البحث في بيانات الحجز المحفوظة
+        if (!phoneMatch && room.guestPhone) {
+          phoneMatch = room.guestPhone === formData.phone;
+        }
+        
+        return isOccupied && nameMatch && phoneMatch;
+      });
 
-    localStorage.setItem('guest_session', JSON.stringify(guestData));
+      if (!matchedRoom) {
+        // محاولة البحث بالاسم فقط إذا لم يتم إيجاد تطابق كامل
+        const roomByName = rooms.find((room: any) => {
+          const isOccupied = room.status === 'Occupied' || room.status === 'Reserved';
+          const nameMatch = room.guestName && room.guestName.trim().toLowerCase() === formData.name.trim().toLowerCase();
+          return isOccupied && nameMatch;
+        });
 
-    // التوجه لصفحة المنيو
-    setTimeout(() => {
-      router.push(`/guest-menu/${formData.service}`);
-    }, 1000);
+        if (roomByName) {
+          // وُجِد الاسم لكن رقم الهاتف غير متطابق
+          setError('رقم الهاتف غير مطابق للحجز المسجل. يرجى التحقق من رقم الهاتف.');
+          setLoading(false);
+          return;
+        }
+
+        // لم يتم العثور على حجز
+        setError('عذراً، لم يتم العثور على حجز بهذا الاسم. يرجى التواصل مع الاستقبال.');
+        setLoading(false);
+        return;
+      }
+
+      // تم العثور على الحجز - حفظ بيانات النزيل
+      const guestData = {
+        name: formData.name,
+        phone: formData.phone,
+        roomNumber: matchedRoom.number,
+        loginTime: new Date().toISOString()
+      };
+
+      localStorage.setItem('guest_session', JSON.stringify(guestData));
+
+      // التوجه لصفحة المنيو الرئيسية
+      setTimeout(() => {
+        router.push('/guest-menu');
+      }, 800);
+
+    } catch (error) {
+      console.error('Error during login:', error);
+      setError('حدث خطأ أثناء التحقق من البيانات. يرجى المحاولة مرة أخرى.');
+      setLoading(false);
+    }
   };
 
   return (
@@ -58,14 +109,22 @@ export default function GuestLoginPage() {
       <Card className="w-full max-w-md bg-gray-900/80 backdrop-blur-xl border-gray-700/50 shadow-2xl relative z-10">
         <CardHeader className="text-center pb-4">
           <div className="mx-auto w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-4">
-            <Coffee className="h-10 w-10 text-white" />
+            <Home className="h-10 w-10 text-white" />
           </div>
-          <CardTitle className="text-2xl font-bold text-white">أهلاً وسهلاً</CardTitle>
-          <p className="text-gray-300 text-sm">يرجى إدخال بياناتك للوصول إلى المنيو</p>
+          <CardTitle className="text-2xl font-bold text-white">مرحباً بك</CardTitle>
+          <p className="text-gray-300 text-sm">يرجى إدخال بياناتك للوصول إلى خدمات الفندق</p>
         </CardHeader>
 
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* رسالة خطأ */}
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4 flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
+                <p className="text-red-300 text-sm">{error}</p>
+              </div>
+            )}
+
             {/* الاسم */}
             <div className="space-y-2">
               <Label htmlFor="name" className="text-white flex items-center gap-2">
@@ -76,9 +135,10 @@ export default function GuestLoginPage() {
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="أدخل اسمك الكامل"
+                placeholder="أدخل اسمك كما هو مسجل في الحجز"
                 className="bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
                 required
+                disabled={loading}
               />
             </div>
 
@@ -96,54 +156,20 @@ export default function GuestLoginPage() {
                 placeholder="05xxxxxxxx"
                 className="bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
                 required
+                disabled={loading}
               />
             </div>
 
-            {/* رقم الغرفة */}
-            <div className="space-y-2">
-              <Label htmlFor="room" className="text-white flex items-center gap-2">
-                <Home className="h-4 w-4" />
-                رقم الغرفة
-              </Label>
-              <Input
-                id="room"
-                value={formData.roomNumber}
-                onChange={(e) => setFormData({ ...formData, roomNumber: e.target.value })}
-                placeholder="مثال: 101"
-                className="bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
-                required
-              />
-            </div>
-
-            {/* نوع الخدمة */}
-            <div className="space-y-2">
-              <Label className="text-white">نوع الخدمة</Label>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, service: 'coffee' })}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    formData.service === 'coffee'
-                      ? 'border-blue-500 bg-blue-500/20 text-blue-300'
-                      : 'border-gray-600 bg-gray-700/30 text-gray-300 hover:border-gray-500'
-                  }`}
-                >
-                  <Coffee className="h-6 w-6 mx-auto mb-2" />
-                  <div className="text-sm font-medium">كوفي شوب</div>
-                </button>
-                
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, service: 'restaurant' })}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    formData.service === 'restaurant'
-                      ? 'border-orange-500 bg-orange-500/20 text-orange-300'
-                      : 'border-gray-600 bg-gray-700/30 text-gray-300 hover:border-gray-500'
-                  }`}
-                >
-                  <Utensils className="h-6 w-6 mx-auto mb-2" />
-                  <div className="text-sm font-medium">المطعم</div>
-                </button>
+            {/* معلومات إضافية */}
+            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                <div className="text-blue-300 text-sm space-y-1">
+                  <p className="font-semibold">ملاحظة هامة:</p>
+                  <p>• تأكد من إدخال الاسم كما هو مسجل في الحجز</p>
+                  <p>• تأكد من إدخال رقم الهاتف المسجل في الحجز</p>
+                  <p>• سيتم التحقق تلقائياً من بياناتك</p>
+                </div>
               </div>
             </div>
 
@@ -156,17 +182,23 @@ export default function GuestLoginPage() {
               {loading ? (
                 <div className="flex items-center justify-center gap-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  جاري التحميل...
+                  جاري التحقق من البيانات...
                 </div>
               ) : (
-                'دخول إلى المنيو'
+                <>
+                  <CheckCircle2 className="h-5 w-5 ml-2" />
+                  تحقق ودخول
+                </>
               )}
             </Button>
           </form>
 
           <div className="mt-6 text-center">
+            <p className="text-gray-400 text-xs mb-2">
+              إذا كانت لديك مشكلة في تسجيل الدخول
+            </p>
             <p className="text-gray-400 text-xs">
-              بالمتابعة، أنت توافق على شروط الخدمة وسياسة الخصوصية
+              يرجى التواصل مع الاستقبال
             </p>
           </div>
         </CardContent>
