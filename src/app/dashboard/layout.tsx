@@ -16,9 +16,26 @@ export default function DashboardLayout({
 }) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
-  const pathname = usePathname(); // للاستماع لتغييرات المسار
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(true); // مقفول افتراضياً على الموبايل
+  const pathname = usePathname();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true); // مقفول افتراضياً على الموبايل فقط
   const [tickerItems, setTickerItems] = useState<string[]>([]);
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  // تحديد نوع الجهاز
+  useEffect(() => {
+    const checkDesktop = () => {
+      const desktop = window.innerWidth >= 768;
+      setIsDesktop(desktop);
+      // في وضع الويب: القائمة مفتوحة دائماً
+      if (desktop) {
+        setSidebarCollapsed(false);
+      }
+    };
+    
+    checkDesktop();
+    window.addEventListener('resize', checkDesktop);
+    return () => window.removeEventListener('resize', checkDesktop);
+  }, []);
 
   // Fetch latest requests for the ticker
   useEffect(() => {
@@ -36,10 +53,12 @@ export default function DashboardLayout({
     ]);
   }, []);
 
-  // إغلاق القائمة عند تغيير الصفحة (للموبايل)
+  // إغلاق القائمة عند تغيير الصفحة (للموبايل فقط)
   useEffect(() => {
-    setSidebarCollapsed(true);
-  }, [pathname]);
+    if (!isDesktop) {
+      setSidebarCollapsed(true);
+    }
+  }, [pathname, isDesktop]);
 
   // إذا لم يكن المستخدم مسجل دخوله، إعادة توجيه لصفحة تسجيل الدخول
   useEffect(() => {
@@ -63,13 +82,13 @@ export default function DashboardLayout({
   return (
     <div className="h-screen flex overflow-hidden" dir="rtl">
       <AnimatedBackground />
-      {/* Sidebar - مخفي افتراضياً على الموبايل */}
-      <div className={`flex-shrink-0 transition-all duration-300 ${sidebarCollapsed ? 'hidden md:block' : 'block'}`}>
+      {/* Sidebar - مفتوحة دائماً في الويب، قابلة للإخفاء في الموبايل */}
+      <div className="flex-shrink-0 transition-all duration-300">
         <Sidebar isCollapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
       </div>
 
-      {/* Overlay for mobile when sidebar is open - يتم الضغط عليه لإغلاق القائمة */}
-      {!sidebarCollapsed && (
+      {/* Overlay for mobile when sidebar is open */}
+      {!sidebarCollapsed && !isDesktop && (
         <div 
           className="fixed inset-0 bg-black/50 z-25 md:hidden"
           onClick={() => setSidebarCollapsed(true)}

@@ -231,8 +231,20 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
   const { t } = useLanguage();
   const [logo, setLogo] = useState<string | null>(null);
   
-  // استخدام الحالة الخارجية إذا كانت موجودة، وإلا استخدام الحالة الداخلية
-  const isCollapsed = externalCollapsed !== undefined ? externalCollapsed : internalCollapsed;
+  // في وضع الويب: دائماً مفتوحة، في الموبايل: تستخدم الحالة الخارجية
+  const [isDesktop, setIsDesktop] = useState(false);
+  
+  useEffect(() => {
+    const checkDesktop = () => {
+      setIsDesktop(window.innerWidth >= 768);
+    };
+    
+    checkDesktop();
+    window.addEventListener('resize', checkDesktop);
+    return () => window.removeEventListener('resize', checkDesktop);
+  }, []);
+  
+  const isCollapsed = isDesktop ? false : (externalCollapsed !== undefined ? externalCollapsed : internalCollapsed);
   const toggleCollapse = onToggle || (() => setInternalCollapsed(!internalCollapsed));
   const pathname = usePathname();
   const router = useRouter();
@@ -288,10 +300,11 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
   return (
     <Card className={cn(
       "flex flex-col h-full border-0 rounded-none shadow-2xl transition-all duration-300",
-      "bg-black/30 backdrop-blur-xl border-r border-white/10", // خلفية شبه شفافة مع تأثير ضبابي
+      "bg-black/30 backdrop-blur-xl border-r border-white/10",
       "dark:bg-black/30 dark:border-white/10",
-      isCollapsed ? "w-16" : "w-72",
-      // للجوال: sidebar يكون fixed فوق كل شيء - z-30 أقل من Dropdowns (z-50) والهيدر (z-40)
+      // عرض القائمة: أضيق بكثير ليناسب النص فقط
+      isCollapsed ? "w-16" : "w-56",
+      // للجوال: sidebar يكون fixed فوق كل شيء
       "fixed md:relative h-screen z-30",
       // على الجوال: يخفى الـ sidebar عند الضغط خارجه
       "md:translate-x-0",
@@ -300,9 +313,9 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
     )}>
       {/* Logo Section */}
       {logo && !isCollapsed && (
-        <div className="p-4 sm:p-8 pb-4 sm:pb-6 border-b border-white/10 dark:border-white/10 light:border-purple-200">
+        <div className="p-3 pb-3 border-b border-white/10 dark:border-white/10 light:border-purple-200">
           <div className="flex items-center justify-center">
-            <div className="relative w-full max-w-[150px] sm:max-w-[200px]">
+            <div className="relative w-full max-w-[120px]">
               {/* Logo - Clean, No Background */}
               <div className="relative w-full aspect-square">
                 <img 
@@ -351,7 +364,7 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
                 {/* Main Item - Always clickable */}
                 <Link href={item.href}>
                   <div className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative",
+                    "flex items-center gap-2 px-2.5 py-2 rounded-lg transition-all duration-200 group relative",
                     isActive 
                       ? "bg-gradient-to-r from-blue-500/20 to-indigo-500/20 text-white dark:text-white light:text-purple-900 light:from-purple-200 light:to-pink-200 border border-blue-400/30 dark:border-blue-400/30 light:border-purple-400 shadow-lg" 
                       : "text-blue-200 dark:text-blue-200 light:text-purple-700 hover:text-white dark:hover:text-white light:hover:text-purple-900 hover:bg-slate-700/50 dark:hover:bg-slate-700/50 light:hover:bg-purple-100",
@@ -359,14 +372,14 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
                   )}>
                     <Icon className={cn(
                       "flex-shrink-0 transition-transform group-hover:scale-110",
-                      isCollapsed ? "w-6 h-6" : "w-5 h-5"
+                      isCollapsed ? "w-6 h-6" : "w-4 h-4"
                     )} />
                     
                     {!isCollapsed && (
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{t(item.labelKey as any)}</p>
+                        <p className="font-medium truncate text-sm">{t(item.labelKey as any)}</p>
                         {item.descKey && (
-                          <p className="text-xs opacity-70 truncate">{t(item.descKey as any)}</p>
+                          <p className="text-[10px] opacity-70 truncate">{t(item.descKey as any)}</p>
                         )}
                       </div>
                     )}
