@@ -92,9 +92,9 @@ export default function GuestLoginPage() {
 
       localStorage.setItem('guest_session', JSON.stringify(guestData));
 
-      // التوجه لصفحة المنيو الرئيسية
+      // التوجه لصفحة المنيو الموحدة
       setTimeout(() => {
-        router.push('/guest-menu');
+        router.push('/guest-menu-unified');
       }, 800);
 
     } catch (error) {
