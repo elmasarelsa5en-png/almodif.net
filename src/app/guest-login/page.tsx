@@ -33,12 +33,29 @@ export default function GuestLoginPage() {
       // البحث عن الحجز في الغرف المشغولة
       const rooms = JSON.parse(localStorage.getItem('hotel_rooms_data') || '[]');
       
-      // البحث بالاسم ورقم الغرفة فقط
+      console.log('Searching for:', { name: formData.name, room: formData.roomNumber });
+      console.log('Available rooms:', rooms.map((r: any) => ({ 
+        number: r.number, 
+        name: r.guestName, 
+        status: r.status 
+      })));
+      
+      // البحث بالاسم ورقم الغرفة - مع تحويل الأرقام للنص
       const matchedRoom = rooms.find((room: any) => {
         const isOccupied = room.status === 'Occupied' || room.status === 'Reserved';
         const nameMatch = room.guestName && 
           room.guestName.trim().toLowerCase().includes(formData.name.trim().toLowerCase());
-        const roomMatch = room.number === formData.roomNumber;
+        // تحويل كلا الرقمين للنص للمقارنة
+        const roomMatch = String(room.number).trim() === String(formData.roomNumber).trim();
+        
+        console.log('Checking room:', { 
+          roomNum: room.number, 
+          guestName: room.guestName, 
+          status: room.status,
+          isOccupied,
+          nameMatch,
+          roomMatch 
+        });
         
         return isOccupied && nameMatch && roomMatch;
       });
@@ -63,6 +80,8 @@ export default function GuestLoginPage() {
         setLoading(false);
         return;
       }
+
+      console.log('Found match:', matchedRoom);
 
       // تم العثور على الحجز - حفظ بيانات النزيل
       const guestData = {
