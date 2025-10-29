@@ -126,10 +126,23 @@ const cleanUndefinedValues = (obj: any): any => {
  */
 export const saveRoomToFirebase = async (room: Room): Promise<void> => {
   try {
+    console.log('💾 saveRoomToFirebase v3.0 - قبل التنظيف:', {
+      roomNumber: room.number,
+      status: room.status,
+      hasGuestName: 'guestName' in room,
+      guestNameValue: (room as any).guestName
+    });
+    
     // تنظيف عميق لإزالة جميع القيم undefined
     const cleanRoom = cleanUndefinedValues(room);
     
-    console.log('💾 حفظ الغرفة:', room.number, 'الحالة:', room.status);
+    console.log('🧹 بعد التنظيف:', {
+      roomNumber: cleanRoom.number,
+      status: cleanRoom.status,
+      hasGuestName: 'guestName' in cleanRoom,
+      guestNameValue: (cleanRoom as any).guestName,
+      allKeys: Object.keys(cleanRoom)
+    });
     
     await setDoc(doc(db, ROOMS_COLLECTION, room.id), {
       ...cleanRoom,

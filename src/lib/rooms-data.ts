@@ -254,6 +254,7 @@ export const updateRoomStatus = (
   user: string,
   guestName?: string
 ): Room[] => {
+  console.log('🔧 updateRoomStatus v3.0 - NEW VERSION');
   return rooms.map(room => {
     if (room.id === roomId) {
       const oldStatus = room.status;
@@ -269,6 +270,13 @@ export const updateRoomStatus = (
 
       // إذا الغرفة أصبحت متاحة أو تحت الصيانة، نحذف جميع بيانات الحجز
       const shouldClearBooking = newStatus === 'Available' || newStatus === 'Maintenance';
+      
+      console.log('📊 تغيير الحالة:', {
+        roomId: room.number,
+        oldStatus,
+        newStatus,
+        shouldClearBooking
+      });
       
       if (shouldClearBooking) {
         // إنشاء غرفة جديدة بدون بيانات الحجز
@@ -287,13 +295,21 @@ export const updateRoomStatus = (
           ...cleanRoom 
         } = room;
         
-        return {
+        const newRoom = {
           ...cleanRoom,
           status: newStatus,
           balance: 0, // إعادة تعيين الرصيد
           events: [newEvent, ...room.events],
           lastUpdated: new Date().toISOString()
         };
+        
+        console.log('✅ تنظيف كامل للغرفة - الحقول المحذوفة:', {
+          hadGuestName: !!guestName,
+          hadBookingDetails: !!bookingDetails,
+          newRoomHasGuestName: !!(newRoom as any).guestName
+        });
+        
+        return newRoom;
       } else {
         // الغرفة محجوزة أو مشغولة
         const updatedRoom: Room = {
