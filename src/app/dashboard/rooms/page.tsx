@@ -297,6 +297,12 @@ export default function RoomsPage() {
       const updatedRoom = updatedRooms.find(r => r.id === selectedRoom.id);
       if (updatedRoom) {
         console.log('💾 حفظ الغرفة المحدثة في Firebase...');
+        console.log('📝 بيانات الغرفة قبل الحفظ:', {
+          roomNumber: updatedRoom.number,
+          status: updatedRoom.status,
+          guestName: updatedRoom.guestName,
+          hasGuestName: !!updatedRoom.guestName
+        });
         await saveRoomToFirebase(updatedRoom);
         console.log('✅ تم حفظ التغييرات بنجاح');
         
@@ -353,6 +359,11 @@ export default function RoomsPage() {
   // فتح تفاصيل الشقة - دائماً نافذة الحجز
   const openRoomDetails = (room: Room) => {
     console.log('🔵 تم الضغط على الغرفة:', room.number, 'الحالة:', room.status);
+    console.log('👤 بيانات النزيل:', {
+      hasGuestName: !!room.guestName,
+      guestName: room.guestName,
+      guestPhone: room.guestPhone
+    });
     
     setSelectedRoom(room);
     setNewStatus(room.status);
@@ -442,12 +453,12 @@ export default function RoomsPage() {
       const updatedRoom: Room = {
         ...selectedRoom,
         status: 'Occupied' as RoomStatus,
-        guestName: bookingData.guest.name,
-        guestPhone: bookingData.guest.phone,
+        guestName: bookingData.guest.fullName || bookingData.guest.name,
+        guestPhone: bookingData.guest.mobile || bookingData.guest.phone,
         guestNationality: bookingData.guest.nationality,
         guestIdType: bookingData.guest.idType,
         guestIdNumber: bookingData.guest.idNumber,
-        guestIdExpiry: bookingData.guest.idExpiry,
+        guestIdExpiry: bookingData.guest.expiryDate || bookingData.guest.idExpiry,
         guestEmail: bookingData.guest.email,
         balance: bookingData.financial.remaining,
         // حفظ بيانات الحجز الإضافية
@@ -470,7 +481,7 @@ export default function RoomsPage() {
           {
             id: Date.now().toString(),
             type: 'check_in' as const,
-            description: `حجز جديد - عقد رقم: ${bookingData.contractNumber} - ${bookingData.guest.name}`,
+            description: `حجز جديد - عقد رقم: ${bookingData.contractNumber} - ${bookingData.guest.fullName || bookingData.guest.name}`,
             timestamp: new Date().toISOString(),
             user: user.name || user.username,
             newValue: 'Occupied'

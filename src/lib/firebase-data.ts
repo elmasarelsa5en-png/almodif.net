@@ -28,6 +28,7 @@ export const COLLECTIONS = {
   AUDIT_LOG: 'audit-log',
   SOUND_SETTINGS: 'sound-settings',
   REQUEST_TYPES: 'request-types',
+  NOTIFICATIONS: 'notifications',
 };
 
 // ==================== EMPLOYEES ====================
@@ -208,10 +209,16 @@ export const deleteRequest = async (id: string): Promise<boolean> => {
 
 // Subscribe to requests
 export const subscribeToRequests = (callback: (requests: GuestRequest[]) => void) => {
-  const unsubscribe = onSnapshot(
+  const q = query(
     collection(db, COLLECTIONS.REQUESTS),
+    orderBy('createdAt', 'desc')
+  );
+  
+  const unsubscribe = onSnapshot(
+    q,
     (snapshot) => {
       const requests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as GuestRequest));
+      console.log(`🔄 تحديث فوري للطلبات: ${requests.length} طلب`);
       callback(requests);
     },
     (error) => {
@@ -326,3 +333,119 @@ export const syncFirebaseToLocalStorage = async () => {
     return false;
   }
 };
+
+// ==================== NOTIFICATIONS ====================
+
+export interface EmployeeNotification {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  type: 'new_request' | 'request_update' | 'request_approved' | 'request_rejected';
+  title: string;
+  message: string;
+  requestId?: string;
+  roomNumber?: string;
+  priority: 'low' | 'medium' | 'high';
+  read: boolean;
+  createdAt: string;
+}
+
+// إرسال إشعار للموظف
+export const sendNotificationToEmployee = async (notification: Omit<EmployeeNotification, 'id'>): Promise<string | null> => {
+  try {
+    const docRef = doc(collection(db, COLLECTIONS.NOTIFICATIONS));
+    await setDoc(docRef, {
+      ...notification,
+      read: false,
+      createdAt: new Date().toISOString(),
+    });
+    console.log(`✅ تم إرسال إشعار للموظف ${notification.employeeName}`);
+    return docRef.id;
+  } catch (error) {
+    console.error('Error sending notification:', error);
+    return null;
+  }
+};
+
+// جلب إشعارات الموظف
+export const getEmployeeNotifications = async (employeeId: string): Promise<EmployeeNotification[]> => {
+  try {
+    const q = query(
+      collection(db, COLLECTIONS.NOTIFICATIONS),
+      where('employeeId', '==', employeeId),
+      orderBy('createdAt', 'desc')
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as EmployeeNotification));
+  } catch (error) {
+    console.error('Error getting notifications:', error);
+    return [];
+  }
+};
+
+// الاستماع لإشعارات الموظف (real-time)
+export const subscribeToEmployeeNotifications = (
+  employeeId: string,
+  onUpdate: (notifications: EmployeeNotification[]) => void,
+  onError?: (error: Error) => void
+) => {
+  const q = query(
+    collection(db, COLLECTIONS.NOTIFICATIONS),
+    where('employeeId', '==', employeeId),
+    orderBy('createdAt', 'desc')
+  );
+  
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const notifications = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      } as EmployeeNotification));
+      onUpdate(notifications);
+    },
+    (error) => {
+      console.error('Error listening to notifications:', error);
+      if (onError) onError(error);
+    }
+  );
+};
+
+// تعليم الإشعار كمقروء
+export const markNotificationAsRead = async (notificationId: string): Promise<boolean> => {
+  try {
+    const docRef = doc(db, COLLECTIONS.NOTIFICATIONS, notificationId);
+    await updateDoc(docRef, {
+      read: true,
+    });
+    return true;
+  } catch (error) {
+    console.error('Error marking notification as read:', error);
+    return false;
+  }
+};
+
+// تعليم كل إشعارات الموظف كمقروءة
+export const markAllNotificationsAsRead = async (employeeId: string): Promise<boolean> => {
+  try {
+    const q = query(
+      collection(db, COLLECTIONS.NOTIFICATIONS),
+      where('employeeId', '==', employeeId),
+      where('read', '==', false)
+    );
+    const querySnapshot = await getDocs(q);
+    
+    const batch = writeBatch(db);
+    querySnapshot.docs.forEach(docSnap => {
+      batch.update(docSnap.ref, { read: true });
+    });
+    
+    await batch.commit();
+    console.log(`✅ تم تعليم ${querySnapshot.size} إشعار كمقروء`);
+    return true;
+  } catch (error) {
+    console.error('Error marking all notifications as read:', error);
+    return false;
+  }
+};
+

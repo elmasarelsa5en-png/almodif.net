@@ -216,6 +216,17 @@ export const subscribeToRooms = (
         id: doc.id
       } as Room));
       
+      // طباعة الغرف المشغولة مع بيانات النزلاء للتأكد
+      const occupiedRooms = rooms.filter(r => r.status === 'Occupied' || r.status === 'Reserved');
+      if (occupiedRooms.length > 0) {
+        console.log('🏨 تحديث فوري - الغرف المحجوزة/المشغولة:', occupiedRooms.map(r => ({
+          number: r.number,
+          status: r.status,
+          hasGuestName: !!r.guestName,
+          guestName: r.guestName
+        })));
+      }
+      
       // تحديث localStorage أيضاً
       localStorage.setItem('hotel_rooms_data', JSON.stringify(rooms));
       

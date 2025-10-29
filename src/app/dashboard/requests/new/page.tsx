@@ -20,7 +20,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import { getRequestTypes, type RequestType } from '@/lib/requests-management';
 import { playNotificationSound } from '@/lib/notification-sounds';
 import { logAction } from '@/lib/audit-log';
-import { addRequest, getEmployees } from '@/lib/firebase-data';
+import { addRequest, getEmployees, sendNotificationToEmployee } from '@/lib/firebase-data';
 
 interface GuestRequest {
   id: string;
@@ -301,6 +301,36 @@ export default function NewRequestPage() {
 
       // Save to Firebase
       const docId = await addRequest(newRequest);
+      console.log('✅ تم حفظ الطلب في Firebase:', docId);
+
+      if (!docId) {
+        throw new Error('فشل حفظ الطلب في Firebase');
+      }
+
+      // إرسال إشعار للموظف المحدد
+      if (formData.assignedEmployee) {
+        const assignedEmp = employees.find(emp => emp.id === formData.assignedEmployee);
+        console.log('📤 محاولة إرسال إشعار للموظف:', assignedEmp);
+        if (assignedEmp) {
+          const notificationId = await sendNotificationToEmployee({
+            employeeId: assignedEmp.id,
+            employeeName: assignedEmp.name,
+            type: 'new_request',
+            title: '📋 طلب جديد',
+            message: `لديك طلب جديد من غرفة ${formData.room} - ${formData.guest}`,
+            requestId: docId,
+            roomNumber: formData.room,
+            priority: formData.priority,
+            read: false,
+            createdAt: new Date().toISOString(),
+          });
+          console.log(`✅ تم إرسال إشعار للموظف ${assignedEmp.name}، ID: ${notificationId}`);
+        } else {
+          console.warn('⚠️ لم يتم العثور على الموظف المحدد');
+        }
+      } else {
+        console.warn('⚠️ لم يتم تحديد موظف للطلب');
+      }
 
       // تسجيل في Audit Log
       const assignedEmp = employees.find(emp => emp.id === formData.assignedEmployee);

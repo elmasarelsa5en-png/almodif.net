@@ -29,6 +29,7 @@ import { useRouter } from 'next/navigation';
 import * as NotificationService from '@/lib/notification-service';
 import type { SmartNotification, NotificationType, NotificationPriority } from '@/lib/notification-service';
 import { playNotificationSound as playSound, NotificationSoundType } from '@/lib/notification-sounds';
+import EmployeeNotifications from '@/components/EmployeeNotifications';
 
 interface Notification {
   id: string;
@@ -651,6 +652,14 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
           >
             <Settings className="w-4 h-4" />
           </Button>
+
+          {/* Employee Notifications - For assigned tasks/requests */}
+          {user && user.id && (
+            <EmployeeNotifications 
+              employeeId={user.id} 
+              employeeName={user.name || user.username}
+            />
+          )}
 
           {/* Notifications - Icon Only with Badge */}
           <DropdownMenu>
