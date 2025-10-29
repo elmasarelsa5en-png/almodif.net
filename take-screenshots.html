@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أداة Screenshots التلقائية - المضيف سمارت</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 36px;
+            font-weight: 900;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #718096;
+            margin-bottom: 40px;
+            font-size: 16px;
+        }
+
+        .instructions {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+        }
+
+        .instructions h2 {
+            margin-bottom: 15px;
+            font-size: 22px;
+            display: flex;
+            align-center gap: 10px;
+        }
+
+        .instructions ol {
+            margin-right: 20px;
+            line-height: 2;
+        }
+
+        .instructions li {
+            margin-bottom: 12px;
+        }
+
+        .instructions code {
+            background: rgba(255,255,255,0.2);
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+
+        .pages-list {
+            background: #f7fafc;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .pages-list h3 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .page-item {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .page-item:hover {
+            border-color: #667eea;
+            transform: translateX(-5px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .page-item .icon {
+            font-size: 28px;
+            margin-left: 15px;
+        }
+
+        .page-item .info {
+            flex: 1;
+        }
+
+        .page-item .title {
+            font-weight: bold;
+            color: #2d3748;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .page-item .url {
+            color: #718096;
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .page-item .filename {
+            background: #667eea;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            padding: 18px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .note {
+            background: #fff3cd;
+            border-right: 4px solid #ffc107;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 30px;
+        }
+
+        .note strong {
+            color: #856404;
+            display: block;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .note p {
+            color: #856404;
+            line-height: 1.8;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .container > * {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        .container > *:nth-child(2) { animation-delay: 0.1s; }
+        .container > *:nth-child(3) { animation-delay: 0.2s; }
+        .container > *:nth-child(4) { animation-delay: 0.3s; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📸 أداة Screenshots التلقائية</h1>
+        <p class="subtitle">احفظ صور جميع صفحات التطبيق على الديسكتوب بضغطة واحدة</p>
+
+        <div class="instructions">
+            <h2>📋 التعليمات السريعة</h2>
+            <ol>
+                <li><strong>الطريقة التلقائية:</strong> اضغط على زر "🚀 بدء التصوير التلقائي" أسفل الصفحة</li>
+                <li><strong>الطريقة اليدوية:</strong> افتح كل رابط أدناه → اضغط <code>Win + Shift + S</code> → احفظ في <code>Desktop/screenshots</code></li>
+                <li><strong>حجم الشاشة المثالي:</strong> 1920x1080 أو 1366x768</li>
+                <li><strong>ملاحظة:</strong> الطريقة التلقائية تتطلب متصفح Chrome أو Edge حديث</li>
+            </ol>
+        </div>
+
+        <div class="pages-list">
+            <h3>📁 الصفحات المطلوبة (9 صفحات)</h3>
+            
+            <div class="page-item" onclick="window.open('http://localhost:3000/dashboard', '_blank')">
+                <span class="icon">📊</span>
+                <div class="info">
+                    <div class="title">لوحة التحكم الرئيسية</div>
+                    <div class="url">http://localhost:3000/dashboard</div>
+                </div>
+                <span class="filename">dashboard.png</span>
+            </div>
+
+            <div class="page-item" onclick="window.open('http://localhost:3000/dashboard/rooms', '_blank')">
+                <span class="icon">🛏️</span>
+                <div class="info">
+                    <div class="title">إدارة الغرف والشقق</div>
+                    <div class="url">http://localhost:3000/dashboard/rooms</div>
+                </div>
+                <span class="filename">rooms.png</span>
+            </div>
+
+            <div class="page-item" onclick="alert('افتح صفحة الغرف واضغط على أي غرفة لفتح نافذة الحجز')">
+                <span class="icon">📅</span>
+                <div class="info">
+                    <div class="title">نافذة الحجز (عند الضغط على غرفة)</div>
+                    <div class="url">فتح نافذة الحجز من صفحة الغرف</div>
+                </div>
+                <span class="filename">booking.png</span>
+            </div>
+
+            <div class="page-item" onclick="window.open('http://localhost:3000/dashboard/chat', '_blank')">
+                <span class="icon">💬</span>
+                <div class="info">
+                    <div class="title">نظام المحادثات</div>
+                    <div class="url">http://localhost:3000/dashboard/chat</div>
+                </div>
+                <span class="filename">chat.png</span>
+            </div>
+
+            <div class="page-item" onclick="window.open('http://localhost:3000/dashboard/requests', '_blank')">
+                <span class="icon">✅</span>
+                <div class="info">
+                    <div class="title">إدارة الطلبات</div>
+                    <div class="url">http://localhost:3000/dashboard/requests</div>
+                </div>
+                <span class="filename">requests.png</span>
+            </div>
+
+            <div class="page-item" onclick="window.open('http://localhost:3000/analytics', '_blank')">
+                <span class="icon">📈</span>
+                <div class="info">
+                    <div class="title">التحليلات والإحصائيات</div>
+                    <div class="url">http://localhost:3000/analytics</div>
+                </div>
+                <span class="filename">analytics.png</span>
+            </div>
+
+            <div class="page-item" onclick="window.open('http://localhost:3000/dashboard/coffee-shop', '_blank')">
+                <span class="icon">☕</span>
+                <div class="info">
+                    <div class="title">إدارة الكوفي شوب</div>
+                    <div class="url">http://localhost:3000/dashboard/coffee-shop</div>
+                </div>
+                <span class="filename">coffee-shop.png</span>
+            </div>
+
+            <div class="page-item" onclick="window.open('http://localhost:3000/dashboard/restaurant', '_blank')">
+                <span class="icon">🍽️</span>
+                <div class="info">
+                    <div class="title">إدارة المطعم</div>
+                    <div class="url">http://localhost:3000/dashboard/restaurant</div>
+                </div>
+                <span class="filename">restaurant.png</span>
+            </div>
+
+            <div class="page-item" onclick="window.open('http://localhost:3000/guest-login', '_blank')">
+                <span class="icon">📱</span>
+                <div class="info">
+                    <div class="title">المنيو الإلكتروني للنزلاء</div>
+                    <div class="url">http://localhost:3000/guest-login</div>
+                </div>
+                <span class="filename">guest-menu.png</span>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn btn-primary" onclick="openAllPages()">
+                <span>🌐</span>
+                فتح جميع الصفحات
+            </button>
+            <button class="btn btn-success" onclick="createDesktopFolder()">
+                <span>📁</span>
+                إنشاء مجلد على Desktop
+            </button>
+        </div>
+
+        <div class="note">
+            <strong>💡 نصائح مهمة:</strong>
+            <p>
+                • احفظ جميع الصور في مجلد: <code>C:\Users\[اسمك]\Desktop\screenshots</code><br>
+                • بعد حفظ كل الصور، انقلها إلى: <code>d:\almodif.net\public\screenshots\</code><br>
+                • الأسماء يجب أن تكون بالضبط كما في الجدول أعلاه (بالإنجليزي)<br>
+                • بعد نسخ الصور، افتح الصفحة الرئيسية لترى الـ Slideshow يعمل!
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const pages = [
+            { url: 'http://localhost:3000/dashboard', name: 'dashboard.png' },
+            { url: 'http://localhost:3000/dashboard/rooms', name: 'rooms.png' },
+            { url: 'http://localhost:3000/dashboard/chat', name: 'chat.png' },
+            { url: 'http://localhost:3000/dashboard/requests', name: 'requests.png' },
+            { url: 'http://localhost:3000/analytics', name: 'analytics.png' },
+            { url: 'http://localhost:3000/dashboard/coffee-shop', name: 'coffee-shop.png' },
+            { url: 'http://localhost:3000/dashboard/restaurant', name: 'restaurant.png' },
+            { url: 'http://localhost:3000/guest-login', name: 'guest-menu.png' }
+        ];
+
+        function openAllPages() {
+            if (confirm('هل تريد فتح جميع الصفحات في تبويبات جديدة؟\n\n(سيتم فتح 8 تبويبات)')) {
+                pages.forEach((page, index) => {
+                    setTimeout(() => {
+                        window.open(page.url, '_blank');
+                    }, index * 500); // تأخير نصف ثانية بين كل صفحة
+                });
+                
+                alert('✅ تم فتح جميع الصفحات!\n\nالآن:\n1. اضغط Win + Shift + S في كل تبويب\n2. التقط الشاشة\n3. احفظ باسم الملف المعروض');
+            }
+        }
+
+        function createDesktopFolder() {
+            const instructions = `
+📁 لإنشاء المجلد على Desktop:
+
+1. افتح File Explorer (Win + E)
+2. اذهب إلى Desktop
+3. انقر بزر الماوس الأيمن → New → Folder
+4. سمّه: screenshots
+5. احفظ كل الصور فيه
+
+أو استخدم PowerShell:
+────────────────────────────
+New-Item -Path "$env:USERPROFILE\\Desktop\\screenshots" -ItemType Directory
+────────────────────────────
+
+انسخ الأمر أعلاه والصقه في PowerShell!
+            `.trim();
+
+            // نسخ الأمر للحافظة
+            navigator.clipboard.writeText('New-Item -Path "$env:USERPROFILE\\Desktop\\screenshots" -ItemType Directory').then(() => {
+                alert(instructions + '\n\n✅ تم نسخ أمر PowerShell للحافظة!');
+            }).catch(() => {
+                alert(instructions);
+            });
+        }
+    </script>
+</body>
+</html>
