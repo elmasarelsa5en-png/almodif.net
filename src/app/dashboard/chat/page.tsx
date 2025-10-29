@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/auth-context';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { collection, query, where, orderBy, onSnapshot, addDoc, updateDoc, doc, getDocs, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, orderBy, onSnapshot, addDoc, updateDoc, doc, getDocs, serverTimestamp, setDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { cn } from '@/lib/utils';
 import { 
@@ -110,7 +110,7 @@ export default function ChatPage() {
               avatar: data.avatar,
               role: data.role,
               department: data.department,
-              isOnline: true,
+              isOnline: false, // سيتم تحديثها من presence
             });
           }
         });
@@ -128,6 +128,65 @@ export default function ChatPage() {
     }
   }, [user]);
 
+  // مراقبة حالة Online/Offline للموظفين
+  useEffect(() => {
+    if (!user || employees.length === 0) return;
+
+    const currentUserId = user.username || user.email;
+    if (!currentUserId) return;
+
+    console.log('👀 Setting up presence listener for employees');
+
+    // تخزين الحالات السابقة
+    const previousStates: Record<string, boolean> = {};
+    employees.forEach(emp => {
+      previousStates[emp.id] = emp.isOnline || false;
+    });
+
+    const presenceRef = collection(db, 'presence');
+    const unsubscribe = onSnapshot(presenceRef, (snapshot) => {
+      const onlineStatuses: Record<string, boolean> = {};
+      
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        const isOnline = data.status === 'online';
+        onlineStatuses[data.userId] = isOnline;
+        
+        // إرسال إشعار إذا موظف فتح المحادثات (تغيّر من offline لـ online)
+        if (isOnline && data.page === 'chat' && data.userId !== currentUserId) {
+          const wasOffline = previousStates[data.userId] === false;
+          if (wasOffline) {
+            console.log('🟢', data.name, 'فتح المحادثات');
+            
+            // عرض إشعار في المتصفح
+            if ('Notification' in window && Notification.permission === 'granted') {
+              new Notification('موظف متصل', {
+                body: `${data.name} فتح المحادثات الآن`,
+                icon: '/images/logo.png',
+                tag: `online-${data.userId}`
+              });
+            }
+
+            // تحديث الحالة السابقة
+            previousStates[data.userId] = true;
+          }
+        } else if (!isOnline && data.userId !== currentUserId) {
+          previousStates[data.userId] = false;
+        }
+      });
+
+      // تحديث حالة الموظفين
+      setEmployees(prevEmployees => 
+        prevEmployees.map(emp => ({
+          ...emp,
+          isOnline: onlineStatuses[emp.id] || false
+        }))
+      );
+    });
+
+    return () => unsubscribe();
+  }, [user, employees.length]);
+
   // تهيئة Push Notifications
   useEffect(() => {
     if (user) {
@@ -137,8 +196,86 @@ export default function ChatPage() {
         setupPushNotifications(userId).catch(err => {
           console.error('❌ Failed to setup push notifications:', err);
         });
+
+        // طلب إذن الإشعارات
+        if ('Notification' in window && Notification.permission === 'default') {
+          Notification.requestPermission().then(permission => {
+            console.log('🔔 Notification permission:', permission);
+          });
+        }
       }
     }
+  }, [user]);
+
+  // تسجيل الحالة Online/Offline في Firestore
+  useEffect(() => {
+    if (!user) return;
+
+    const currentUserId = user.username || user.email;
+    if (!currentUserId) return;
+
+    const presenceRef = doc(db, 'presence', currentUserId);
+
+    // تسجيل Online عند الدخول
+    const setOnline = async () => {
+      try {
+        await setDoc(presenceRef, {
+          userId: currentUserId,
+          name: user.name || currentUserId,
+          status: 'online',
+          lastSeen: serverTimestamp(),
+          page: 'chat'
+        });
+        console.log('✅ User is now online:', currentUserId);
+      } catch (error) {
+        console.error('❌ Error setting online status:', error);
+      }
+    };
+
+    // تسجيل Offline عند الخروج
+    const setOffline = async () => {
+      try {
+        await setDoc(presenceRef, {
+          userId: currentUserId,
+          name: user.name || currentUserId,
+          status: 'offline',
+          lastSeen: serverTimestamp(),
+          page: 'chat'
+        });
+        console.log('👋 User is now offline:', currentUserId);
+      } catch (error) {
+        console.error('❌ Error setting offline status:', error);
+      }
+    };
+
+    setOnline();
+
+    // تحديث الحالة كل 30 ثانية (heartbeat)
+    const heartbeatInterval = setInterval(setOnline, 30000);
+
+    // عند إغلاق الصفحة أو الخروج
+    const handleBeforeUnload = () => {
+      // استخدام sendBeacon للإرسال السريع قبل إغلاق الصفحة
+      setOffline();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        setOffline();
+      } else {
+        setOnline();
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(heartbeatInterval);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      setOffline();
+    };
   }, [user]);
 
   // مراقبة جميع المحادثات للمستخدم (للإشعارات)
@@ -838,10 +975,17 @@ export default function ChatPage() {
                   </div>
                   <div>
                     <h3 className='font-bold text-white text-lg'>{selectedEmployee.name}</h3>
-                    <p className='text-sm text-green-400 flex items-center gap-1.5'>
-                      <Circle className='w-2 h-2 fill-current animate-pulse' />
-                      متصل الآن
-                    </p>
+                    {selectedEmployee.isOnline ? (
+                      <p className='text-sm text-green-400 flex items-center gap-1.5'>
+                        <Circle className='w-2 h-2 fill-current animate-pulse' />
+                        متصل الآن
+                      </p>
+                    ) : (
+                      <p className='text-sm text-gray-400 flex items-center gap-1.5'>
+                        <Circle className='w-2 h-2 fill-current opacity-50' />
+                        غير متصل
+                      </p>
+                    )}
                   </div>
                 </div>
 

@@ -104,6 +104,12 @@ service cloud.firestore {
       allow read, write: if true;
     }
     
+    // حالة Online/Offline للمستخدمين
+    match /presence/{userId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
     // إعدادات المطور - للمطورين فقط
     match /developerSettings/{settingId} {
       allow read, write: if true;
