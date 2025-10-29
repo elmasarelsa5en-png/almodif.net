@@ -765,6 +765,93 @@ export default function RoomsPage() {
               عرض الكل ({stats.total})
             </Button>
 
+            {/* زر التقرير */}
+            <div className="relative group">
+              <Button
+                className="px-6 py-6 rounded-xl font-bold text-base transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 bg-gradient-to-r from-purple-600 to-pink-600 text-white border-2 border-purple-400"
+              >
+                <span className="text-xl mr-2">📋</span>
+                تقرير
+              </Button>
+              
+              {/* قائمة منسدلة عند hover */}
+              <div className="absolute top-full left-0 mt-2 hidden group-hover:block z-50 min-w-[200px]">
+                <div className="bg-slate-900/95 backdrop-blur-xl rounded-xl border-2 border-white/20 shadow-2xl p-2 space-y-2">
+                  {/* محجوزة */}
+                  <button
+                    onClick={() => setActiveFilter('Reserved')}
+                    className="w-full px-4 py-3 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm transition-all flex items-center gap-3"
+                  >
+                    <span className="text-xl">📅</span>
+                    <div className="flex-1 text-right">
+                      <div>محجوزة</div>
+                      <div className="text-xs text-purple-200">({stats.reserved})</div>
+                    </div>
+                  </button>
+                  
+                  {/* تحت الصيانة */}
+                  <button
+                    onClick={() => setActiveFilter('Maintenance')}
+                    className="w-full px-4 py-3 rounded-lg bg-gray-600 hover:bg-gray-700 text-white font-bold text-sm transition-all flex items-center gap-3"
+                  >
+                    <span className="text-xl">🔧</span>
+                    <div className="flex-1 text-right">
+                      <div>تحت الصيانة</div>
+                      <div className="text-xs text-gray-200">({stats.maintenance})</div>
+                    </div>
+                  </button>
+                  
+                  {/* تحتاج تنظيف */}
+                  <button
+                    onClick={() => setActiveFilter('NeedsCleaning')}
+                    className="w-full px-4 py-3 rounded-lg bg-orange-600 hover:bg-orange-700 text-white font-bold text-sm transition-all flex items-center gap-3"
+                  >
+                    <span className="text-xl">🧹</span>
+                    <div className="flex-1 text-right">
+                      <div>تحتاج تنظيف</div>
+                      <div className="text-xs text-orange-200">({stats.needsCleaning})</div>
+                    </div>
+                  </button>
+                  
+                  {/* خروج اليوم */}
+                  <button
+                    onClick={() => setActiveFilter('CheckoutToday')}
+                    className="w-full px-4 py-3 rounded-lg bg-gradient-to-r from-red-600 to-blue-600 hover:from-red-700 hover:to-blue-700 text-white font-bold text-sm transition-all flex items-center gap-3"
+                  >
+                    <span className="text-xl">⏰</span>
+                    <div className="flex-1 text-right">
+                      <div>خروج اليوم</div>
+                      <div className="text-xs text-white/80">({stats.checkoutToday})</div>
+                    </div>
+                  </button>
+                  
+                  {/* مشغولة */}
+                  <button
+                    onClick={() => setActiveFilter('Occupied')}
+                    className="w-full px-4 py-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-sm transition-all flex items-center gap-3"
+                  >
+                    <span className="text-xl">🛏️</span>
+                    <div className="flex-1 text-right">
+                      <div>مشغولة</div>
+                      <div className="text-xs text-cyan-200">({stats.occupied})</div>
+                    </div>
+                  </button>
+                  
+                  {/* متاحة */}
+                  <button
+                    onClick={() => setActiveFilter('Available')}
+                    className="w-full px-4 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white font-bold text-sm transition-all flex items-center gap-3"
+                  >
+                    <span className="text-xl">✅</span>
+                    <div className="flex-1 text-right">
+                      <div>متاحة</div>
+                      <div className="text-xs text-green-200">({stats.available})</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+
             {/* أزرار الحالات */}
             {Object.entries(ROOM_STATUS_CONFIG).map(([status, config]) => {
               const count = rooms.filter(r => r.status === status).length;
@@ -782,7 +869,7 @@ export default function RoomsPage() {
                 >
                   <span className="text-xl mr-2">
                     {status === 'Available' && '✅'}
-                    {status === 'Occupied' && '🔴'}
+                    {status === 'Occupied' && '🛏️'}
                     {status === 'CheckoutToday' && '⏰'}
                     {status === 'NeedsCleaning' && '🧹'}
                     {status === 'Maintenance' && '🔧'}
@@ -810,7 +897,7 @@ export default function RoomsPage() {
           </div>
 
           {/* مشغولة */}
-          <div className="bg-gradient-to-br from-red-600 to-red-700 rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer border-2 border-red-400/30"
+          <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer border-2 border-cyan-400/30"
                onClick={() => setActiveFilter('Occupied')}>
             <div className="flex items-center justify-between mb-3">
               <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
@@ -818,7 +905,7 @@ export default function RoomsPage() {
               </div>
               <span className="text-3xl font-black text-white">{stats.occupied}</span>
             </div>
-            <p className="text-red-50 font-bold text-sm">مشغولة</p>
+            <p className="text-cyan-50 font-bold text-sm">مشغولة</p>
           </div>
 
           {/* خروج اليوم */}

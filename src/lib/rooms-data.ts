@@ -91,11 +91,11 @@ export const ROOM_STATUS_CONFIG = {
   },
   Occupied: {
     label: 'مشغولة',
-    color: 'bg-red-600 text-white',
+    color: 'bg-cyan-600 text-white',
     icon: 'BedDouble',
-    bgColor: 'bg-red-600',
+    bgColor: 'bg-cyan-600',
     statusColor: 'text-white',
-    accentColor: 'bg-red-500',
+    accentColor: 'bg-cyan-500',
     textColor: 'text-white',
     description: 'يوجد نزيل في الشقة'
   },
