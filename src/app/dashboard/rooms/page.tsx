@@ -744,82 +744,192 @@ export default function RoomsPage() {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-indigo-500/10 rounded-full blur-2xl"></div>
       </div>
       
-      <div className="relative z-10 space-y-6 p-4">
-        {/* العنوان والتصفية */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 shadow-2xl border border-white/20">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
-              إدارة الشقق {activeFilter !== 'All' && `- ${ROOM_STATUS_CONFIG[activeFilter as RoomStatus]?.label}`}
-            </h1>
+      <div className="relative z-10 max-w-[1800px] mx-auto space-y-8 p-4 lg:p-8">
+        {/* Header Section - تصميم احترافي جداً */}
+        <div className="bg-gradient-to-r from-slate-800/90 via-blue-900/90 to-indigo-900/90 backdrop-blur-xl rounded-3xl p-6 lg:p-8 shadow-2xl border border-white/10">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+            {/* العنوان */}
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-xl">
+                <BedDouble className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl lg:text-4xl font-black bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent mb-1">
+                  إدارة الشقق - متشغولة
+                </h1>
+                <p className="text-blue-200/70 text-sm font-medium">
+                  {activeFilter !== 'All' 
+                    ? `عرض: ${ROOM_STATUS_CONFIG[activeFilter as RoomStatus]?.label}` 
+                    : 'عرض جميع الشقق'}
+                  {' • '}
+                  {filteredRooms.length} شقة
+                </p>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-wrap gap-3">
+              <HasPermission permission="add_guest">
+                <Button
+                  onClick={() => setIsAddGuestOpen(true)}
+                  className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 font-bold px-6 py-6 rounded-xl hover:scale-105"
+                >
+                  <UserPlus className="w-5 h-5 ml-2" />
+                  إضافة نزيل
+                </Button>
+              </HasPermission>
+
+              <HasPermission permission="add_rooms_from_image">
+                <Button
+                  onClick={() => setIsAddRoomsFromImageOpen(true)}
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 font-bold px-6 py-6 rounded-xl hover:scale-105"
+                >
+                  <Image className="w-5 h-5 ml-2" />
+                  إضافة من صورة
+                </Button>
+              </HasPermission>
+            </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3">
-            {/* زر إضافة نزيل */}
-            <HasPermission permission="add_guest">
-              <Button
-                onClick={() => setIsAddGuestOpen(true)}
-                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 font-medium"
-              >
-                <UserPlus className="w-5 h-5 ml-2" />
-                إضافة نزيل
-              </Button>
-            </HasPermission>
-
-            {/* زر إضافة غرف من صورة */}
-            <HasPermission permission="add_rooms_from_image">
-              <Button
-                onClick={() => setIsAddRoomsFromImageOpen(true)}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 font-medium"
-              >
-                <Image className="w-5 h-5 ml-2" />
-                إضافة غرف من صورة
-              </Button>
-            </HasPermission>
-
-            {/* شريط البحث */}
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-200/60" />
+          {/* Search Bar */}
+          <div className="mt-6">
+            <div className="relative max-w-2xl">
+              <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-blue-300/60" />
               <Input
-                placeholder="ابحث برقم الشقة..."
+                placeholder="🔍 ابحث برقم الشقة أو اسم النزيل..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full lg:w-72 bg-white/10 border-white/20 text-white placeholder:text-blue-200/50 pl-12"
+                className="w-full h-14 bg-white/10 border-2 border-white/20 text-white text-lg placeholder:text-blue-200/50 pl-16 rounded-xl focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 transition-all"
               />
             </div>
           </div>
-          
-          {/* أزرار التصفية */}
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 shadow-2xl border border-white/20 space-y-5">
-            {/* فلتر الحالة */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-              <span className="text-white font-semibold text-sm w-20 flex-shrink-0">الحالة:</span>
-              <div className="flex items-center flex-wrap gap-2">
-                <Button
-                  variant={activeFilter === 'All' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setActiveFilter('All')}
-                  className={`shadow-lg hover:shadow-xl transition-all duration-200 font-medium border ${activeFilter === 'All' ? 'bg-blue-600 text-white border-blue-500 hover:bg-blue-700' : 'bg-slate-800/80 text-blue-200 border-slate-600 hover:bg-slate-700/80 hover:text-white'}`}
-                >
-                  عرض الكل ({stats.total})
-                </Button>
-                {Object.entries(ROOM_STATUS_CONFIG)
-                  .filter(([status]) => status !== 'Reserved' && status !== 'Maintenance')
-                  .map(([status, config]) => {
-                  const count = rooms.filter(r => r.status === status).length;
-                  return (
-                    <Button
-                      key={status}
-                      variant={activeFilter === status ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setActiveFilter(status as RoomStatus)}
-                      className={`shadow-lg hover:shadow-xl transition-all duration-200 font-medium border ${activeFilter === status ? `${config.bgColor} text-white border-transparent hover:opacity-90` : 'bg-slate-800/80 text-blue-200 border-slate-600 hover:bg-slate-700/80 hover:text-white'}`}
-                    >
-                      {config.label} ({count})
-                    </Button>
-                  );
-                })}
-              </div>
+        </div>
+
+        {/* Filter Section - تصميم أنيق */}
+        <div className="bg-gradient-to-r from-slate-800/80 via-blue-900/80 to-purple-900/80 backdrop-blur-xl rounded-2xl p-6 shadow-xl border border-white/10">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
+              <span className="text-2xl">🔽</span>
             </div>
+            <h2 className="text-xl font-bold text-white">تصفية حسب الحالة</h2>
+          </div>
+
+          <div className="flex items-center flex-wrap gap-3">
+            {/* زر عرض الكل */}
+            <Button
+              onClick={() => setActiveFilter('All')}
+              className={`px-6 py-6 rounded-xl font-bold text-base transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 ${
+                activeFilter === 'All'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-2 border-blue-400'
+                  : 'bg-slate-700/50 text-blue-200 border-2 border-slate-600 hover:bg-slate-600/70 hover:text-white'
+              }`}
+            >
+              <span className="text-xl mr-2">📊</span>
+              عرض الكل ({stats.total})
+            </Button>
+
+            {/* أزرار الحالات */}
+            {Object.entries(ROOM_STATUS_CONFIG).map(([status, config]) => {
+              const count = rooms.filter(r => r.status === status).length;
+              if (count === 0) return null;
+              
+              return (
+                <Button
+                  key={status}
+                  onClick={() => setActiveFilter(status as RoomStatus)}
+                  className={`px-6 py-6 rounded-xl font-bold text-base transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 ${
+                    activeFilter === status
+                      ? `${config.bgColor} text-white border-2 border-white/40 ring-4 ring-white/20`
+                      : 'bg-slate-700/50 text-blue-200 border-2 border-slate-600 hover:bg-slate-600/70 hover:text-white'
+                  }`}
+                >
+                  <span className="text-xl mr-2">
+                    {status === 'Available' && '✅'}
+                    {status === 'Occupied' && '🔴'}
+                    {status === 'CheckoutToday' && '⏰'}
+                    {status === 'NeedsCleaning' && '🧹'}
+                    {status === 'Maintenance' && '🔧'}
+                    {status === 'Reserved' && '📅'}
+                  </span>
+                  {config.label} ({count})
+                </Button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Stats Cards - إحصائيات احترافية */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          {/* متاحة */}
+          <div className="bg-gradient-to-br from-green-600 to-emerald-700 rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer border-2 border-green-400/30"
+               onClick={() => setActiveFilter('Available')}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                <CheckCircle2 className="w-7 h-7 text-white" />
+              </div>
+              <span className="text-3xl font-black text-white">{stats.available}</span>
+            </div>
+            <p className="text-green-50 font-bold text-sm">متاحة</p>
+          </div>
+
+          {/* مشغولة */}
+          <div className="bg-gradient-to-br from-red-600 to-red-700 rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer border-2 border-red-400/30"
+               onClick={() => setActiveFilter('Occupied')}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                <BedDouble className="w-7 h-7 text-white" />
+              </div>
+              <span className="text-3xl font-black text-white">{stats.occupied}</span>
+            </div>
+            <p className="text-red-50 font-bold text-sm">مشغولة</p>
+          </div>
+
+          {/* خروج اليوم */}
+          <div className="bg-gradient-to-br from-red-500 via-red-600 to-blue-600 rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer border-2 border-purple-400/30"
+               onClick={() => setActiveFilter('CheckoutToday')}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                <Clock className="w-7 h-7 text-white" />
+              </div>
+              <span className="text-3xl font-black text-white">{rooms.filter(r => r.status === 'CheckoutToday').length}</span>
+            </div>
+            <p className="text-white font-bold text-sm">خروج اليوم</p>
+          </div>
+
+          {/* تحتاج تنظيف */}
+          <div className="bg-gradient-to-br from-orange-600 to-orange-700 rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer border-2 border-orange-400/30"
+               onClick={() => setActiveFilter('NeedsCleaning')}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                <Trash2 className="w-7 h-7 text-white" />
+              </div>
+              <span className="text-3xl font-black text-white">{stats.needsCleaning}</span>
+            </div>
+            <p className="text-orange-50 font-bold text-sm">تحتاج تنظيف</p>
+          </div>
+
+          {/* صيانة */}
+          <div className="bg-gradient-to-br from-gray-600 to-gray-700 rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer border-2 border-gray-400/30"
+               onClick={() => setActiveFilter('Maintenance')}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                <Hammer className="w-7 h-7 text-white" />
+              </div>
+              <span className="text-3xl font-black text-white">{stats.maintenance}</span>
+            </div>
+            <p className="text-gray-50 font-bold text-sm">تحت الصيانة</p>
+          </div>
+
+          {/* محجوزة */}
+          <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer border-2 border-purple-400/30"
+               onClick={() => setActiveFilter('Reserved')}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                <Calendar className="w-7 h-7 text-white" />
+              </div>
+              <span className="text-3xl font-black text-white">{stats.reserved}</span>
+            </div>
+            <p className="text-purple-50 font-bold text-sm">محجوزة</p>
           </div>
         </div>
 
