@@ -59,6 +59,7 @@ export default function ChatPage() {
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [unreadChats, setUnreadChats] = useState<Set<string>>(new Set());
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
@@ -186,7 +187,53 @@ export default function ChatPage() {
     };
   }, [user, currentChatId]);
 
-  const getOrCreateChat = async (employeeId: string) => {
+  // حساب عدد الرسائل غير المقروءة لكل موظف
+  useEffect(() => {
+    if (!user || employees.length === 0) return;
+
+    const currentUserId = user.username || user.email;
+    if (!currentUserId) return;
+
+    const updateUnreadCounts = async () => {
+      const counts: Record<string, number> = {};
+
+      for (const employee of employees) {
+        try {
+          const chatsRef = collection(db, 'chats');
+          const q = query(chatsRef, where('participants', 'array-contains', currentUserId));
+          const querySnapshot = await getDocs(q);
+          
+          for (const chatDoc of querySnapshot.docs) {
+            const chatData = chatDoc.data();
+            if (chatData.participants.includes(employee.id)) {
+              // حساب الرسائل غير المقروءة في هذه المحادثة
+              const messagesRef = collection(db, 'chats', chatDoc.id, 'messages');
+              const messagesQuery = query(
+                messagesRef,
+                where('senderId', '==', employee.id),
+                where('read', '==', false)
+              );
+              const unreadMessages = await getDocs(messagesQuery);
+              counts[employee.id] = unreadMessages.size;
+              break;
+            }
+          }
+        } catch (error) {
+          console.error('Error counting unread messages for', employee.id, error);
+        }
+      }
+
+      setUnreadCounts(counts);
+    };
+
+    updateUnreadCounts();
+
+    // إعادة الحساب كل 5 ثواني
+    const interval = setInterval(updateUnreadCounts, 5000);
+    return () => clearInterval(interval);
+  }, [user, employees, messages]);
+
+  const getOrCreateChat = async (employeeId: string) {
     try {
       const currentUserId = user?.username || user?.email;
       if (!currentUserId) {
@@ -247,6 +294,37 @@ export default function ChatPage() {
     const chatId = await getOrCreateChat(employee.id);
     if (chatId) {
       setCurrentChatId(chatId);
+      
+      // إزالة من unread chats
+      setUnreadChats(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(chatId);
+        return newSet;
+      });
+      
+      // تحديث العداد إلى صفر
+      setUnreadCounts(prev => ({ ...prev, [employee.id]: 0 }));
+      
+      // تحديد جميع الرسائل كمقروءة
+      try {
+        const messagesRef = collection(db, 'messages');
+        const q = query(
+          messagesRef, 
+          where('chatId', '==', chatId),
+          where('senderId', '==', employee.id),
+          where('read', '==', false)
+        );
+        const unreadSnapshot = await getDocs(q);
+        
+        const updatePromises = unreadSnapshot.docs.map(docSnapshot => 
+          updateDoc(doc(db, 'messages', docSnapshot.id), { read: true })
+        );
+        
+        await Promise.all(updatePromises);
+        console.log(`✅ Marked ${unreadSnapshot.size} messages as read`);
+      } catch (error) {
+        console.error('❌ Error marking messages as read:', error);
+      }
       
       console.log('👂 Setting up message listener for chat:', chatId);
       const messagesRef = collection(db, 'messages');
@@ -612,7 +690,14 @@ export default function ChatPage() {
                   </div>
 
                   <div className='flex-1 text-right overflow-hidden'>
-                    <p className='font-semibold text-white truncate text-sm'>{employee.name}</p>
+                    <div className='flex items-center justify-between gap-2'>
+                      <p className='font-semibold text-white truncate text-sm'>{employee.name}</p>
+                      {unreadCounts[employee.id] > 0 && (
+                        <span className='flex-shrink-0 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse'>
+                          {unreadCounts[employee.id]}
+                        </span>
+                      )}
+                    </div>
                     <p className='text-xs text-gray-400 truncate'>{employee.role || employee.department || 'موظف'}</p>
                   </div>
                 </button>
@@ -755,7 +840,11 @@ export default function ChatPage() {
                           
                           <div className='flex items-center gap-1.5 mt-2 justify-end'>
                             <span className='text-xs opacity-70'>{message.timestamp.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</span>
-                            {isCurrentUser && (message.read ? <CheckCheck className='w-3.5 h-3.5 text-blue-200' /> : <Check className='w-3.5 h-3.5 opacity-70' />)}
+                            {isCurrentUser && (
+                              message.read ? 
+                                <CheckCheck className='w-4 h-4 text-blue-300' title='تم القراءة' /> : 
+                                <Check className='w-4 h-4 opacity-60' title='تم الإرسال' />
+                            )}
                           </div>
                         </div>
                       </div>
