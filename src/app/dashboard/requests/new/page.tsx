@@ -176,9 +176,26 @@ export default function NewRequestPage() {
 
   const loadRoomsAndEmployees = async () => {
     try {
-      // تحميل الشقق المشغولة من localStorage (مؤقتاً)
-      const roomsData = JSON.parse(localStorage.getItem('hotel_rooms_data') || '[]');
-      const occupiedRooms = roomsData.filter((room: Room) => room.status === 'Occupied');
+      // تحميل الشقق من Firebase
+      const { getRoomsFromFirebase } = await import('@/lib/firebase-sync');
+      const roomsData = await getRoomsFromFirebase();
+      
+      // فلترة الغرف المشغولة فقط (التي فيها نزلاء)
+      const occupiedRooms = roomsData
+        .filter((room: any) => 
+          room.status === 'Occupied' || 
+          room.status === 'occupied' || 
+          (room.guestName && room.guestName.trim() !== '')
+        )
+        .map((room: any) => ({
+          id: room.id,
+          number: room.number,
+          guestName: room.guestName,
+          phone: room.phone || room.guestPhone,
+          status: room.status
+        }));
+      
+      console.log('📦 Loaded rooms:', occupiedRooms.length, 'occupied rooms found');
       setRooms(occupiedRooms);
 
       // تحميل الموظفين من Firebase
@@ -190,6 +207,20 @@ export default function NewRequestPage() {
       setRequestTypes(types);
     } catch (error) {
       console.error('Error loading data:', error);
+      
+      // Fallback: محاولة التحميل من localStorage
+      try {
+        const roomsData = JSON.parse(localStorage.getItem('hotel_rooms_data') || '[]');
+        const occupiedRooms = roomsData.filter((room: Room) => 
+          room.status === 'Occupied' || 
+          room.status === 'occupied' ||
+          (room.guestName && room.guestName.trim() !== '')
+        );
+        console.log('📦 Fallback: Loaded rooms from localStorage:', occupiedRooms.length);
+        setRooms(occupiedRooms);
+      } catch (fallbackError) {
+        console.error('Fallback error:', fallbackError);
+      }
     }
   };
 
