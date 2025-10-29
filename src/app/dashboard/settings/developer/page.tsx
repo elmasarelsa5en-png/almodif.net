@@ -139,22 +139,40 @@ export default function DeveloperSettingsPage() {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
+    // التحقق من تسجيل الدخول
+    if (!user) {
+      alert('⚠️ يجب تسجيل الدخول أولاً');
+      return;
+    }
+
+    console.log('🔐 User authenticated:', user.email || user.username);
+    console.log('📤 Starting upload process...');
+
     setUploading(true);
     try {
       for (const file of Array.from(files)) {
+        console.log('📁 Uploading file:', file.name, 'Size:', file.size, 'bytes');
+        
         // رفع الصورة
         const timestamp = Date.now();
         const fileName = `slider-${timestamp}-${file.name}`;
         const imageRef = ref(storage, `slider-images/${fileName}`);
         
+        console.log('📍 Storage path:', `slider-images/${fileName}`);
+        
         const metadata = {
           customMetadata: {
-            order: String(sliderImages.length)
+            order: String(sliderImages.length),
+            uploadedBy: user.email || user.username || 'unknown'
           }
         };
 
+        console.log('⏳ Uploading to Firebase Storage...');
         await uploadBytes(imageRef, file, metadata);
+        console.log('✅ Upload successful!');
+        
         const url = await getDownloadURL(imageRef);
+        console.log('🔗 Download URL:', url);
 
         setSliderImages(prev => [...prev, {
           id: fileName,
@@ -163,9 +181,17 @@ export default function DeveloperSettingsPage() {
           uploadedAt: new Date()
         }]);
       }
-    } catch (error) {
-      console.error('Error uploading images:', error);
-      alert('حدث خطأ أثناء رفع الصور');
+      alert('✅ تم رفع الصور بنجاح!');
+    } catch (error: any) {
+      console.error('❌ Error uploading images:', error);
+      console.error('Error code:', error.code);
+      console.error('Error message:', error.message);
+      
+      if (error.code === 'storage/unauthorized') {
+        alert('❌ خطأ في الصلاحيات!\n\nالرجاء التأكد من:\n1. تسجيل الدخول بحساب akram\n2. قواعد Firebase Storage صحيحة\n3. إعادة تحميل الصفحة');
+      } else {
+        alert('حدث خطأ أثناء رفع الصور: ' + error.message);
+      }
     } finally {
       setUploading(false);
     }
