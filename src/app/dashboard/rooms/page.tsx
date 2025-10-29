@@ -22,7 +22,8 @@ import {
   Smartphone,
   UserPlus,
   Image,
-  X
+  X,
+  FileText
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -984,6 +985,29 @@ export default function RoomsPage() {
           
           {selectedRoom && (
             <div className="space-y-6">
+              {/* زر إنشاء طلب للغرف المشغولة */}
+              {selectedRoom && selectedRoom.status === 'Occupied' && selectedRoom.guestName && (
+                <Card className="bg-gradient-to-r from-blue-500/20 to-indigo-500/20 backdrop-blur-md border-blue-400/30">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-bold text-white mb-1">📋 إنشاء طلب للنزيل</h3>
+                        <p className="text-sm text-blue-200">إنشاء طلب جديد للنزيل {selectedRoom.guestName}</p>
+                      </div>
+                      <Button
+                        onClick={() => {
+                          window.location.href = `/dashboard/requests/new?roomNumber=${selectedRoom.number}&guestName=${encodeURIComponent(selectedRoom.guestName || '')}&phone=${encodeURIComponent(selectedRoom.guestPhone || '')}`;
+                        }}
+                        className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold px-6 py-3 shadow-lg"
+                      >
+                        <FileText className="w-5 h-5 mr-2" />
+                        إنشاء طلب جديد
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              
               {/* زر الحجز السريع للغرف المتاحة */}
               {selectedRoom && selectedRoom.status === 'Available' && (
                 <Card className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 backdrop-blur-md border-green-400/30">
