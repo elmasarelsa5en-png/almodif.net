@@ -61,13 +61,13 @@ const VISIT_TYPES = [
   { value: 'business', label: 'عمل', icon: '💼' }
 ];
 export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusChange }: BookingDialogProps) {
+  // حالة زر تغيير الحالة
+  const [showStatusChange, setShowStatusChange] = useState(false);
+  
   // تتبع فتح النافذة
   useEffect(() => {
     console.log('🔷 BookingDialog - isOpen تغيرت إلى:', isOpen, 'الغرفة:', room?.number);
-  }, [isOpen, room]);
-
-  // حالة زر تغيير الحالة
-  const [showStatusChange, setShowStatusChange] = useState(false);ookingDialog - isOpen تغيرت إلى:', isOpen, 'الغرفة:', room?.number);
+  }, [isOpen, room]);ookingDialog - isOpen تغيرت إلى:', isOpen, 'الغرفة:', room?.number);
   }, [isOpen, room]);
 
   // بيانات الحجز
