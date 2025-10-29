@@ -216,6 +216,8 @@ export default function RoomsPage() {
   const handleStatusChange = async () => {
     if (!selectedRoom || !user) return;
     
+    console.log('🔄 بدء تغيير حالة الغرفة:', selectedRoom.number, 'من', selectedRoom.status, 'إلى', newStatus);
+    
     const updatedRooms = updateRoomStatus(
       rooms, 
       selectedRoom.id, 
@@ -228,17 +230,27 @@ export default function RoomsPage() {
       // حفظ الغرفة المحدثة في Firebase
       const updatedRoom = updatedRooms.find(r => r.id === selectedRoom.id);
       if (updatedRoom) {
+        console.log('💾 حفظ الغرفة المحدثة في Firebase...');
         await saveRoomToFirebase(updatedRoom);
+        console.log('✅ تم حفظ التغييرات بنجاح');
+        
+        // تحديث الحالة المحلية فوراً
         setRooms(updatedRooms);
+        setFilteredRooms(updatedRooms);
+        setSelectedRoom(updatedRoom);
+        
+        // إغلاق النافذة
+        setIsDetailsOpen(false);
+        setGuestName('');
+        
+        // إظهار رسالة نجاح
+        alert('✅ تم تغيير حالة الشقة بنجاح');
       }
     } catch (error) {
-      console.error('خطأ في حفظ التغييرات:', error);
-      alert('حدث خطأ في حفظ التغييرات');
+      console.error('❌ خطأ في حفظ التغييرات:', error);
+      alert('حدث خطأ في حفظ التغييرات. الرجاء المحاولة مرة أخرى.');
       return;
     }
-    
-    setIsDetailsOpen(false);
-    setGuestName('');
   };
 
   // معالج الدفع
@@ -277,19 +289,16 @@ export default function RoomsPage() {
     console.log('🔵 تم الضغط على الغرفة:', room.number, 'الحالة:', room.status);
     
     setSelectedRoom(room);
-    
-    // إذا كانت الغرفة فارغة، افتح نافذة الحجز الجديدة
-    if (room.status === 'Available') {
-      console.log('✅ فتح نافذة الحجز للغرفة:', room.number);
-      setIsBookingDialogOpen(true);
-      return;
-    }
-    
-    // إذا كانت الغرفة مشغولة، افتح التفاصيل القديمة
-    console.log('📋 فتح تفاصيل الغرفة المشغولة:', room.number);
     setNewStatus(room.status);
     setGuestName(room.guestName || '');
     setPaymentAmount(room.balance);
+    
+    // إذا كانت الغرفة فارغة، اعرض خيار الحجز أو تغيير الحالة
+    if (room.status === 'Available') {
+      console.log('✅ الغرفة متاحة - افتح نافذة التفاصيل لتغيير الحالة أو الحجز');
+    }
+    
+    console.log('📋 فتح تفاصيل الغرفة:', room.number);
     setIsDetailsOpen(true);
   };
 
@@ -702,6 +711,30 @@ export default function RoomsPage() {
           
           {selectedRoom && (
             <div className="space-y-6">
+              {/* زر الحجز السريع للغرف المتاحة */}
+              {selectedRoom && selectedRoom.status === 'Available' && (
+                <Card className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 backdrop-blur-md border-green-400/30">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-bold text-white mb-1">🎉 الغرفة متاحة للحجز!</h3>
+                        <p className="text-sm text-green-200">يمكنك حجز هذه الغرفة للنزلاء مباشرة</p>
+                      </div>
+                      <Button
+                        onClick={() => {
+                          setIsDetailsOpen(false);
+                          setIsBookingDialogOpen(true);
+                        }}
+                        className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold px-6 py-3 shadow-lg"
+                      >
+                        <Calendar className="w-5 h-5 mr-2" />
+                        فتح نافذة الحجز
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              
               {/* معلومات الشقة الحالية */}
               <div className="grid grid-cols-2 gap-6">
                 <Card className="bg-white/10 backdrop-blur-md border-white/20">
