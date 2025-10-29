@@ -96,12 +96,40 @@ export const getRoomsFromFirebase = async (): Promise<Room[]> => {
 /**
  * حفظ غرفة واحدة في Firebase
  */
+/**
+ * تنظيف الـ object من القيم undefined بشكل عميق (deep cleaning)
+ */
+const cleanUndefinedValues = (obj: any): any => {
+  if (obj === null || obj === undefined) {
+    return null;
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj.map(item => cleanUndefinedValues(item));
+  }
+  
+  if (typeof obj === 'object') {
+    const cleaned: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (value !== undefined) {
+        cleaned[key] = cleanUndefinedValues(value);
+      }
+    }
+    return cleaned;
+  }
+  
+  return obj;
+};
+
+/**
+ * حفظ غرفة في Firebase
+ */
 export const saveRoomToFirebase = async (room: Room): Promise<void> => {
   try {
-    // إزالة أي قيم undefined قبل الحفظ في Firebase
-    const cleanRoom = Object.fromEntries(
-      Object.entries(room).filter(([_, value]) => value !== undefined)
-    );
+    // تنظيف عميق لإزالة جميع القيم undefined
+    const cleanRoom = cleanUndefinedValues(room);
+    
+    console.log('💾 حفظ الغرفة:', room.number, 'الحالة:', room.status);
     
     await setDoc(doc(db, ROOMS_COLLECTION, room.id), {
       ...cleanRoom,

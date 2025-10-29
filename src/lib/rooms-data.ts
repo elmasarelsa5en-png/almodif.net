@@ -270,34 +270,45 @@ export const updateRoomStatus = (
       // إذا الغرفة أصبحت متاحة أو تحت الصيانة، نحذف جميع بيانات الحجز
       const shouldClearBooking = newStatus === 'Available' || newStatus === 'Maintenance';
       
-      const updatedRoom: Room = {
-        ...room,
-        status: newStatus,
-        events: [newEvent, ...room.events],
-        lastUpdated: new Date().toISOString()
-      };
-
-      // حذف بيانات الحجز إذا لزم الأمر
       if (shouldClearBooking) {
-        // @ts-ignore - نحتاج حذف الحقول الاختيارية
-        delete updatedRoom.guestName;
-        delete updatedRoom.guestPhone;
-        delete updatedRoom.guestNationality;
-        delete updatedRoom.guestIdType;
-        delete updatedRoom.guestIdNumber;
-        delete updatedRoom.guestIdExpiry;
-        delete updatedRoom.guestEmail;
-        delete updatedRoom.guestWorkPhone;
-        delete updatedRoom.guestAddress;
-        delete updatedRoom.guestNotes;
-        delete updatedRoom.balance;
-        delete updatedRoom.bookingDetails;
-      } else if (newStatus === 'Occupied' || newStatus === 'Reserved') {
-        // إذا الغرفة محجوزة أو مشغولة، نحدث اسم النزيل
-        updatedRoom.guestName = guestName || room.guestName;
+        // إنشاء غرفة جديدة بدون بيانات الحجز
+        const { 
+          guestName, 
+          guestPhone, 
+          guestNationality, 
+          guestIdType, 
+          guestIdNumber, 
+          guestIdExpiry, 
+          guestEmail, 
+          guestWorkPhone, 
+          guestAddress, 
+          guestNotes, 
+          bookingDetails,
+          ...cleanRoom 
+        } = room;
+        
+        return {
+          ...cleanRoom,
+          status: newStatus,
+          balance: 0, // إعادة تعيين الرصيد
+          events: [newEvent, ...room.events],
+          lastUpdated: new Date().toISOString()
+        };
+      } else {
+        // الغرفة محجوزة أو مشغولة
+        const updatedRoom: Room = {
+          ...room,
+          status: newStatus,
+          events: [newEvent, ...room.events],
+          lastUpdated: new Date().toISOString()
+        };
+        
+        if (newStatus === 'Occupied' || newStatus === 'Reserved') {
+          updatedRoom.guestName = guestName || room.guestName;
+        }
+        
+        return updatedRoom;
       }
-
-      return updatedRoom;
     }
     return room;
   });
