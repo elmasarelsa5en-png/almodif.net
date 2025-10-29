@@ -219,63 +219,84 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
     window.addEventListener('smart-notification-added', handleSmartNotificationAdded);
     window.addEventListener('smart-notifications-updated', handleNewNotification);
 
-    // TODO: تفعيل فحص الإشعارات من API عند تشغيل السيرفر
-    // فحص الإشعارات من الـ API كل 30 ثانية (معطل حالياً)
-    /* 
-    const apiInterval = setInterval(async () => {
-      try {
-        const lastCheck = parseInt(localStorage.getItem('last_api_check') || '0');
-        console.log('🔍 Checking API for notifications since:', new Date(lastCheck).toLocaleTimeString());
-
-        const response = await fetch(`/api/notifications?since=${lastCheck}`, {
-          signal: AbortSignal.timeout(4000) // timeout بعد 4 ثواني
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (data.success) {
-          // تحديث آخر فحص دائماً (حتى لو لم توجد إشعارات جديدة)
-          localStorage.setItem('last_api_check', data.timestamp.toString());
-
-          if (data.notifications.length > 0) {
-            console.log('🌐 Received notifications from API:', data.notifications.length);
-            console.log('📋 Notifications:', data.notifications);
-
-            // دمج الإشعارات الجديدة
-            NotificationService.mergeNewSmartNotifications(data.notifications);
-
-            // إعادة تحميل الإشعارات
-            loadNotifications();
-
-            // تشغيل الصوت - استخدام أول إشعار لتحديد النوع
-            playNotificationSound('general', data.notifications[0]);
-          } else {
-            console.log('✓ No new notifications');
-          }
-        }
-      } catch (error) {
-        // تجاهل الأخطاء بصمت - السيرفر قد يكون متوقف مؤقتاً
-        if (error instanceof Error && error.name !== 'AbortError') {
-          console.warn('⚠️ API check skipped:', error.message);
-        }
-      }
-    }, 30000); // كل 30 ثانية بدلاً من 5
-    */
-
     return () => {
       stopSync();
-      // clearInterval(apiInterval); // معطل مؤقتاً
       clearInterval(autoNotificationInterval);
       window.removeEventListener('new-notification', handleNewNotification);
       window.removeEventListener('notifications-updated', handleNewNotification);
       window.removeEventListener('smart-notification-added', handleSmartNotificationAdded);
       window.removeEventListener('smart-notifications-updated', handleNewNotification);
     };
-  }, []);  // تشغيل صوت الإشعار - يدعم أنواع مختلفة
+  }, []);
+  
+  // مراقبة الرسائل الجديدة من Firebase للمستخدم الحالي
+  useEffect(() => {
+    if (!user) return;
+
+    const setupChatNotifications = async () => {
+      try {
+        const { db } = await import('@/lib/firebase');
+        const { collection, query, where, onSnapshot, orderBy } = await import('firebase/firestore');
+        
+        const currentUserId = user.username || user.email;
+        if (!currentUserId) return;
+
+        console.log('👂 Setting up chat notifications for:', currentUserId);
+
+        // مراقبة المحادثات التي يشارك فيها المستخدم
+        const chatsRef = collection(db, 'chats');
+        const chatsQuery = query(
+          chatsRef, 
+          where('participants', 'array-contains', currentUserId)
+        );
+
+        const unsubscribeChats = onSnapshot(chatsQuery, (snapshot) => {
+          snapshot.docChanges().forEach((change) => {
+            if (change.type === 'modified') {
+              const chatData = change.doc.data();
+              const chatId = change.doc.id;
+              
+              console.log('💬 Chat updated:', chatId, chatData);
+
+              // التحقق من وجود رسالة جديدة
+              if (chatData.lastMessage && chatData.lastMessageTime) {
+                // الحصول على المرسل (الشخص الآخر في المحادثة)
+                const senderId = chatData.participants.find((p: string) => p !== currentUserId);
+                
+                // إنشاء إشعار
+                NotificationService.addSmartNotification({
+                  title: `💬 رسالة جديدة من ${senderId}`,
+                  message: chatData.lastMessage,
+                  time: 'الآن',
+                  unread: true,
+                  type: 'system_alert',
+                  priority: 'medium',
+                  category: 'staff',
+                  actionRequired: false,
+                  requiresApproval: false,
+                  actionUrl: '/dashboard/chat'
+                });
+
+                // تشغيل صوت الإشعار
+                playNotificationSound('general');
+                
+                console.log('✅ Chat notification created');
+              }
+            }
+          });
+        });
+
+        return () => {
+          console.log('🧹 Cleaning up chat notifications');
+          unsubscribeChats();
+        };
+      } catch (error) {
+        console.error('❌ Error setting up chat notifications:', error);
+      }
+    };
+
+    setupChatNotifications();
+  }, [user]);  // تشغيل صوت الإشعار - يدعم أنواع مختلفة
   const playNotificationSound = (type: NotificationSoundType = 'general', notification?: SmartNotification) => {
     try {
       // إذا كان الإشعار يحتاج موافقة (طلب جديد)
