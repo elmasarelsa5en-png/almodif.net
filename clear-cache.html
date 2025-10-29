@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تنظيف الكاش - المضيف</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .status {
+            background: #f0f4ff;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            font-size: 16px;
+            line-height: 1.8;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+        
+        button {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px 0;
+            transition: all 0.3s;
+        }
+        
+        .clear-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .clear-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .reload-btn {
+            background: #28a745;
+            color: white;
+            display: none;
+        }
+        
+        .reload-btn:hover {
+            background: #218838;
+        }
+        
+        ul {
+            text-align: right;
+            padding-right: 20px;
+        }
+        
+        li {
+            margin: 10px 0;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧹 تنظيف الكاش والتحديث</h1>
+        
+        <div class="status" id="status">
+            <strong>📋 سيتم تنفيذ الخطوات التالية:</strong>
+            <ul>
+                <li>إلغاء تسجيل Service Workers</li>
+                <li>مسح Cache Storage</li>
+                <li>مسح LocalStorage</li>
+                <li>مسح SessionStorage</li>
+                <li>مسح IndexedDB</li>
+                <li>مسح Cookies</li>
+            </ul>
+        </div>
+        
+        <div class="spinner" id="spinner"></div>
+        
+        <button class="clear-btn" id="clearBtn" onclick="clearAll()">
+            🚀 ابدأ التنظيف الشامل
+        </button>
+        
+        <button class="reload-btn" id="reloadBtn" onclick="window.location.href='/'">
+            ✅ العودة للصفحة الرئيسية
+        </button>
+    </div>
+
+    <script>
+        async function clearAll() {
+            const statusDiv = document.getElementById('status');
+            const spinner = document.getElementById('spinner');
+            const clearBtn = document.getElementById('clearBtn');
+            const reloadBtn = document.getElementById('reloadBtn');
+            
+            clearBtn.disabled = true;
+            spinner.style.display = 'block';
+            
+            let messages = [];
+            
+            try {
+                // 1. إلغاء Service Workers
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (let registration of registrations) {
+                        await registration.unregister();
+                    }
+                    messages.push('✅ تم إلغاء تسجيل Service Workers');
+                }
+                
+                // 2. مسح Cache Storage
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    for (let cacheName of cacheNames) {
+                        await caches.delete(cacheName);
+                    }
+                    messages.push(`✅ تم مسح ${cacheNames.length} Cache`);
+                }
+                
+                // 3. مسح LocalStorage
+                localStorage.clear();
+                messages.push('✅ تم مسح LocalStorage');
+                
+                // 4. مسح SessionStorage
+                sessionStorage.clear();
+                messages.push('✅ تم مسح SessionStorage');
+                
+                // 5. مسح IndexedDB
+                if ('indexedDB' in window) {
+                    const databases = await indexedDB.databases();
+                    for (let db of databases) {
+                        if (db.name) {
+                            indexedDB.deleteDatabase(db.name);
+                        }
+                    }
+                    messages.push(`✅ تم مسح ${databases.length} قاعدة بيانات`);
+                }
+                
+                // 6. مسح Cookies
+                document.cookie.split(";").forEach(function(c) { 
+                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                });
+                messages.push('✅ تم مسح Cookies');
+                
+                spinner.style.display = 'none';
+                statusDiv.className = 'status success';
+                statusDiv.innerHTML = `
+                    <strong>🎉 تم التنظيف بنجاح!</strong><br><br>
+                    ${messages.join('<br>')}
+                    <br><br>
+                    <strong>⚠️ مهم: اضغط على زر "العودة للصفحة الرئيسية" لتحديث التطبيق</strong>
+                `;
+                
+                clearBtn.style.display = 'none';
+                reloadBtn.style.display = 'block';
+                
+            } catch (error) {
+                spinner.style.display = 'none';
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = `
+                    <strong>❌ حدث خطأ:</strong><br><br>
+                    ${error.message}
+                `;
+                clearBtn.disabled = false;
+            }
+        }
+        
+        // تشغيل تلقائي عند الضغط على Enter
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                clearAll();
+            }
+        });
+    </script>
+</body>
+</html>
