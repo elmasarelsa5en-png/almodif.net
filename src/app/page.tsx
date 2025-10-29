@@ -40,6 +40,12 @@ export default function HomePage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeFeature, setActiveFeature] = useState(0);
 
+  // التأكد من عدم وجود redirect
+  useEffect(() => {
+    console.log('✅ HomePage loaded - No automatic redirect');
+    console.log('Current path:', window.location.pathname);
+  }, []);
+
   const features = [
     {
       icon: <Bed className="w-8 h-8 text-blue-400" />,

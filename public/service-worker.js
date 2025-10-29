@@ -1,4 +1,4 @@
-const CACHE_NAME = 'almudif-smart-cache-v2'; // تم تغيير اسم الكاش لتحديثه
+const CACHE_NAME = 'almudif-smart-cache-v3'; // ✅ تحديث الكاش لإزالة redirect القديم
 const urlsToCache = [
   '/',
   '/dashboard',
