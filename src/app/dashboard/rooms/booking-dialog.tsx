@@ -67,7 +67,6 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
   // تتبع فتح النافذة
   useEffect(() => {
     console.log('🔷 BookingDialog - isOpen تغيرت إلى:', isOpen, 'الغرفة:', room?.number);
-  }, [isOpen, room]);ookingDialog - isOpen تغيرت إلى:', isOpen, 'الغرفة:', room?.number);
   }, [isOpen, room]);
 
   // بيانات الحجز
