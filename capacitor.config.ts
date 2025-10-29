@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.almudif.guest',
-  appName: 'المضيف الذكي - النزلاء',
+  appName: 'المضيف سمارت - النزلاء',
   webDir: 'public',
   server: {
     // للتطوير - اتصال بالسيرفر المحلي

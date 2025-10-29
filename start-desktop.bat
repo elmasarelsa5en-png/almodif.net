@@ -2,7 +2,7 @@
 chcp 65001 >nul
 cls
 echo ========================================
-echo      نظام المضيف الذكي
+echo      نظام المضيف سمارت
 echo      Smart Host Management System
 echo    ========================================
 echo.

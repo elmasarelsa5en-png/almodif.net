@@ -1,6 +1,6 @@
 @echo off
 REM ==============================================
-REM   المضيف الذكي - Smart Host System
+REM   المضيف سمارت - Smart Host System
 REM   Al-Modif Smart Host Application
 REM ==============================================
 
@@ -8,7 +8,7 @@ cls
 color 0B
 echo.
 echo    ========================================
-echo      المضيف الذكي
+echo      المضيف سمارت
 echo      Smart Host Management System
 echo    ========================================
 echo.

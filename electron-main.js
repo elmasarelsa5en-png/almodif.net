@@ -7,7 +7,7 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1400,
     height: 900,
-    title: 'نظام المضيف الذكي - Smart Host System',
+    title: 'نظام المضيف سمارت - Smart Host System',
     icon: path.join(__dirname, 'public', 'app-logo.png'),
     webPreferences: {
       nodeIntegration: false,

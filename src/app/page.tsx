@@ -39,12 +39,79 @@ export default function HomePage() {
   const { t, language, setLanguage } = useLanguage();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeFeature, setActiveFeature] = useState(0);
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   // التأكد من عدم وجود redirect
   useEffect(() => {
     console.log('✅ HomePage loaded - No automatic redirect');
     console.log('Current path:', window.location.pathname);
   }, []);
+
+  // Screenshots slideshow data
+  const screenshots = [
+    {
+      image: '/screenshots/dashboard.png',
+      title: 'لوحة التحكم الرئيسية',
+      description: 'إدارة شاملة لجميع عمليات الفندق من مكان واحد',
+      icon: <BarChart3 className="w-6 h-6" />
+    },
+    {
+      image: '/screenshots/rooms.png',
+      title: 'إدارة الغرف والشقق',
+      description: 'متابعة حالة الغرف والحجوزات بشكل مباشر ولحظي',
+      icon: <Bed className="w-6 h-6" />
+    },
+    {
+      image: '/screenshots/booking.png',
+      title: 'نظام الحجز الذكي',
+      description: 'حجز سريع وسهل مع حساب تلقائي للتكاليف والأسعار',
+      icon: <Calendar className="w-6 h-6" />
+    },
+    {
+      image: '/screenshots/chat.png',
+      title: 'نظام المحادثات المتقدم',
+      description: 'تواصل فوري مع الموظفين والنزلاء مع مكالمات فيديو',
+      icon: <MessageCircle className="w-6 h-6" />
+    },
+    {
+      image: '/screenshots/requests.png',
+      title: 'إدارة الطلبات',
+      description: 'متابعة جميع طلبات النزلاء وتوزيعها على الموظفين',
+      icon: <CheckCircle className="w-6 h-6" />
+    },
+    {
+      image: '/screenshots/analytics.png',
+      title: 'التحليلات والإحصائيات',
+      description: 'تقارير تفصيلية ورسوم بيانية لأداء الفندق',
+      icon: <TrendingUp className="w-6 h-6" />
+    },
+    {
+      image: '/screenshots/coffee-shop.png',
+      title: 'إدارة الكوفي شوب',
+      description: 'نظام POS متكامل لإدارة المقهى والمشروبات',
+      icon: <Coffee className="w-6 h-6" />
+    },
+    {
+      image: '/screenshots/restaurant.png',
+      title: 'إدارة المطعم',
+      description: 'قوائم الطعام والطلبات مع حساب الفواتير',
+      icon: <Utensils className="w-6 h-6" />
+    },
+    {
+      image: '/screenshots/guest-menu.png',
+      title: 'المنيو الإلكتروني للنزلاء',
+      description: 'منيو رقمي تفاعلي للطلب المباشر من الغرفة',
+      icon: <Menu className="w-6 h-6" />
+    }
+  ];
+
+  // Auto-advance slideshow every 3 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % screenshots.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [screenshots.length]);
 
   const features = [
     {
@@ -269,6 +336,96 @@ export default function HomePage() {
               </div>
             </div>
 
+            {/* Screenshots Slideshow - NEW */}
+            <div className="bg-white/5 backdrop-blur-md rounded-3xl p-6 lg:p-8 border border-white/10 shadow-2xl mb-8">
+              <div className="text-center mb-6">
+                <h3 className="text-2xl lg:text-3xl font-bold text-white mb-2">
+                  استكشف أجزاء التطبيق
+                </h3>
+                <p className="text-blue-100/70">
+                  شاهد كيف يعمل التطبيق من الداخل
+                </p>
+              </div>
+
+              <div className="relative overflow-hidden rounded-2xl bg-black/30 aspect-video">
+                {/* Main Screenshot Display */}
+                <div className="relative w-full h-full">
+                  {screenshots.map((screenshot, index) => (
+                    <div
+                      key={index}
+                      className={`absolute inset-0 transition-all duration-700 ease-in-out ${
+                        index === currentSlide
+                          ? 'opacity-100 scale-100'
+                          : 'opacity-0 scale-95 pointer-events-none'
+                      }`}
+                    >
+                      <img
+                        src={screenshot.image}
+                        alt={screenshot.title}
+                        className="w-full h-full object-contain"
+                        onError={(e) => {
+                          // Fallback if image not found
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                        }}
+                      />
+                      {/* Fallback placeholder */}
+                      <div className="hidden absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-blue-600/20 to-purple-600/20">
+                        <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-4">
+                          {screenshot.icon}
+                        </div>
+                        <p className="text-white/60 text-sm">الصورة غير متوفرة حالياً</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Navigation Arrows */}
+                <button
+                  onClick={() => setCurrentSlide((prev) => (prev - 1 + screenshots.length) % screenshots.length)}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-all hover:scale-110"
+                >
+                  <ArrowRight className="w-6 h-6" />
+                </button>
+                <button
+                  onClick={() => setCurrentSlide((prev) => (prev + 1) % screenshots.length)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-all hover:scale-110"
+                >
+                  <ArrowRight className="w-6 h-6 rotate-180" />
+                </button>
+
+                {/* Info Overlay */}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent p-6">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                      {screenshots[currentSlide].icon}
+                    </div>
+                    <h4 className="text-xl font-bold text-white">
+                      {screenshots[currentSlide].title}
+                    </h4>
+                  </div>
+                  <p className="text-blue-100/80 text-sm lg:text-base">
+                    {screenshots[currentSlide].description}
+                  </p>
+                </div>
+              </div>
+
+              {/* Slide Indicators */}
+              <div className="flex gap-2 justify-center mt-6">
+                {screenshots.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentSlide(index)}
+                    className={`transition-all duration-300 rounded-full ${
+                      index === currentSlide
+                        ? 'bg-blue-400 w-8 h-3'
+                        : 'bg-white/30 w-3 h-3 hover:bg-white/50'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+
             {/* Feature Showcase */}
             <div className="bg-white/5 backdrop-blur-md rounded-3xl p-6 lg:p-8 border border-white/10 shadow-2xl">
               <div className="grid lg:grid-cols-2 gap-8 items-center">
@@ -411,7 +568,7 @@ export default function HomePage() {
               جاهز لتطوير إدارة فندقك؟
             </h2>
             <p className="text-xl text-blue-100/80 mb-8 leading-relaxed">
-              انضم إلى مئات الفنادق التي تثق في نظام المضيف الذكي
+              انضم إلى مئات الفنادق التي تثق في نظام المضيف سمارت
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 

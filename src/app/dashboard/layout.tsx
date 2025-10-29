@@ -49,7 +49,7 @@ export default function DashboardLayout({
       );
     
     setTickerItems([
-      '✨ أهلاً بك في نظام المضيف الذكي ✨',
+      '✨ أهلاً بك في نظام المضيف سمارت ✨',
       ...latestItems
     ]);
   }, []);
@@ -107,7 +107,7 @@ export default function DashboardLayout({
         </main>
       </div>
 
-      {/* مساعد المضيف الذكي - يظهر فقط في الصفحة الرئيسية للداشبورد */}
+      {/* مساعد المضيف سمارت - يظهر فقط في الصفحة الرئيسية للداشبورد */}
       {pathname === '/dashboard' && <SmartAssistant />}
     </div>
   );

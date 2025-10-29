@@ -312,7 +312,7 @@ export default function GuestMenuUnifiedPage() {
                   </div>
                   <div>
                     <h1 className="text-lg font-bold bg-gradient-to-r from-purple-300 to-pink-200 bg-clip-text text-transparent">
-                      المضيف الذكي
+                      المضيف سمارت
                     </h1>
                     <p className="text-purple-200/70 text-xs font-medium">المنيو الإلكتروني</p>
                   </div>

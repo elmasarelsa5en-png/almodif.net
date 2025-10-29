@@ -24,7 +24,7 @@ function createWindow() {
     titleBarStyle: 'default',
     show: false, // Don't show until ready-to-show
     backgroundColor: '#ffffff',
-    title: 'المضيف الذكي - Smart Host'
+    title: 'المضيف سمارت - Smart Host'
   });
 
   // Try multiple ports for dev server

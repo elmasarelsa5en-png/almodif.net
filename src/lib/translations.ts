@@ -59,7 +59,7 @@ const ar = {
   language: 'اللغة',
   
   // Homepage
-  homepageSystemName: 'المضيف الذكي',
+  homepageSystemName: 'المضيف سمارت',
   appSubtitle: 'نظام إدارة متطور بالذكاء الاصطناعي',
   homepageWelcome: 'مرحباً بك في',
   homepageSubtitle: 'نظام متكامل لإدارة الفنادق والشقق الفندقية بتقنيات الذكاء الاصطناعي',

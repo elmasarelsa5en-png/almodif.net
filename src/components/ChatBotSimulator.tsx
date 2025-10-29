@@ -121,7 +121,7 @@ export default function ChatBotSimulator({ isOpen, onOpenChange }: ChatBotProps)
           <DialogHeader className="bg-gradient-to-r from-blue-700 via-indigo-800 to-purple-800 p-6">
             <DialogTitle className="flex items-center gap-2 text-white text-xl font-bold">
               <Bot className="w-6 h-6 text-yellow-300" />
-              مساعد المضيف الذكي
+              مساعد المضيف سمارت
             </DialogTitle>
           </DialogHeader>
           <div className="h-[400px] overflow-y-auto bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 p-4 space-y-3">
