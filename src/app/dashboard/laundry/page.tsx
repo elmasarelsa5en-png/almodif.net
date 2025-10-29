@@ -722,9 +722,9 @@ export default function LaundryPage() {
                         <SelectTrigger className="bg-white/10 border-cyan-400/50 text-white">
                           <SelectValue placeholder="اختر الغرفة" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-gray-900 border-cyan-400/30">
                           {rooms.map(room => (
-                            <SelectItem key={room.id} value={room.id}>
+                            <SelectItem key={room.id} value={room.id} className="text-white hover:bg-cyan-500/20 focus:bg-cyan-500/30">
                               غرفة {room.number} - {room.guestName}
                             </SelectItem>
                           ))}
@@ -747,9 +747,9 @@ export default function LaundryPage() {
                       <SelectTrigger className="bg-white/10 border-cyan-400/50 text-white">
                         <SelectValue placeholder="اختر الموظف المسؤول" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-gray-900 border-cyan-400/30">
                         {employees.map(emp => (
-                          <SelectItem key={emp.id} value={emp.id}>
+                          <SelectItem key={emp.id} value={emp.id} className="text-white hover:bg-cyan-500/20 focus:bg-cyan-500/30">
                             {emp.name}
                           </SelectItem>
                         ))}
