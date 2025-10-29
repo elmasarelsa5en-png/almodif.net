@@ -37,6 +37,7 @@ interface BookingDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (bookingData: any) => void;
+  onStatusChange?: (roomId: string, newStatus: string, guestName?: string) => void;
 }
 
 // مصادر الحجز
@@ -59,11 +60,14 @@ const VISIT_TYPES = [
   { value: 'tourism', label: 'سياحة', icon: '🏖️' },
   { value: 'business', label: 'عمل', icon: '💼' }
 ];
-
-export default function BookingDialog({ room, isOpen, onClose, onSave }: BookingDialogProps) {
+export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusChange }: BookingDialogProps) {
   // تتبع فتح النافذة
   useEffect(() => {
     console.log('🔷 BookingDialog - isOpen تغيرت إلى:', isOpen, 'الغرفة:', room?.number);
+  }, [isOpen, room]);
+
+  // حالة زر تغيير الحالة
+  const [showStatusChange, setShowStatusChange] = useState(false);ookingDialog - isOpen تغيرت إلى:', isOpen, 'الغرفة:', room?.number);
   }, [isOpen, room]);
 
   // بيانات الحجز
@@ -94,6 +98,8 @@ export default function BookingDialog({ room, isOpen, onClose, onSave }: Booking
   // تهيئة البيانات عند فتح الحوار
   useEffect(() => {
     if (isOpen && room) {
+      console.log('🔄 تحميل بيانات الغرفة:', room);
+      
       // تعيين تاريخ ووقت الدخول الحالي
       const now = new Date();
       setCheckInDate(now.toISOString().split('T')[0]);
@@ -104,6 +110,54 @@ export default function BookingDialog({ room, isOpen, onClose, onSave }: Booking
       
       // توليد رقم عقد تلقائي
       setContractNumber(`CONTRACT-${Date.now()}`);
+      
+      // إذا كانت الغرفة مشغولة أو محجوزة، حمّل بيانات النزيل الحالي
+      if ((room.status === 'Occupied' || room.status === 'Reserved') && room.guestName) {
+        console.log('✅ الغرفة مشغولة - تحميل بيانات النزيل:', room.guestName);
+        
+        // تحميل بيانات النزيل من بيانات الغرفة
+        setSelectedGuest({
+          name: room.guestName,
+          phone: room.guestPhone || '',
+          nationality: room.guestNationality || '',
+          idType: room.guestIdType || '',
+          idNumber: room.guestIdNumber || '',
+          idExpiry: room.guestIdExpiry || '',
+          email: room.guestEmail || '',
+          address: room.guestAddress || ''
+        });
+        
+        // تحميل بيانات الحجز إذا كانت موجودة
+        if (room.bookingDetails) {
+          const booking = room.bookingDetails;
+          setContractNumber(booking.contractNumber || contractNumber);
+          setBookingSource(booking.bookingSource || 'reception');
+          setRentalType(booking.rentalType || 'daily');
+          setCheckInDate(booking.checkIn?.date || checkInDate);
+          setCheckInTime(booking.checkIn?.time || checkInTime);
+          setCheckOutDate(booking.checkOut?.date || '');
+          setCheckOutTime(booking.checkOut?.time || '');
+          setNumberOfDays(booking.numberOfDays || 1);
+          setVisitType(booking.visitType || 'tourism');
+          
+          // تحميل البيانات المالية
+          if (booking.financial) {
+            setDailyRate(booking.financial.dailyRate || room.price || 0);
+            setDeposits(booking.financial.deposits || []);
+            setAdvancePayments(booking.financial.advancePayments || []);
+          }
+          
+          console.log('✅ تم تحميل بيانات الحجز الحالية');
+        }
+      } else {
+        console.log('ℹ️ الغرفة متاحة - حجز جديد');
+        // إعادة تعيين البيانات لحجز جديد
+        setSelectedGuest(null);
+        setCompanions([]);
+        setCompany(null);
+        setDeposits([]);
+        setAdvancePayments([]);
+      }
     }
   }, [isOpen, room]);
 
@@ -205,12 +259,145 @@ export default function BookingDialog({ room, isOpen, onClose, onSave }: Booking
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
           <DialogHeader className="border-b border-cyan-500/20 pb-4">
-            <DialogTitle className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
-              إضافة حجز جديد
-            </DialogTitle>
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
+                {room.status === 'Occupied' || room.status === 'Reserved' 
+                  ? `تفاصيل الحجز - غرفة ${room.number}` 
+                  : `حجز جديد - غرفة ${room.number}`}
+              </DialogTitle>
+              
+              {/* زر تغيير الحالة */}
+              <Button
+                variant="outline"
+                onClick={() => setShowStatusChange(!showStatusChange)}
+                className="bg-purple-600/20 border-purple-500/50 text-purple-300 hover:bg-purple-600/30"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                </svg>
+                تغيير الحالة
+              </Button>
+            </div>
           </DialogHeader>
 
           <div className="space-y-6 py-4">
+            {/* قسم تغيير الحالة (يظهر عند الضغط على الزر) */}
+            {showStatusChange && onStatusChange && (
+              <div className="bg-purple-500/10 backdrop-blur-sm rounded-xl p-6 border-2 border-purple-500/30 animate-in slide-in-from-top duration-300">
+                <h3 className="text-lg font-bold text-purple-300 mb-4 flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                  </svg>
+                  تغيير حالة الغرفة
+                </h3>
+                
+                <div className="grid grid-cols-3 gap-3">
+                  <Button
+                    onClick={() => {
+                      onStatusChange(room.id, 'Available');
+                      setShowStatusChange(false);
+                      handleClose();
+                    }}
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    متاحة
+                  </Button>
+                  
+                  <Button
+                    onClick={() => {
+                      onStatusChange(room.id, 'Cleaning');
+                      setShowStatusChange(false);
+                      handleClose();
+                    }}
+                    className="bg-orange-600 hover:bg-orange-700 text-white"
+                  >
+                    تحت التنظيف
+                  </Button>
+                  
+                  <Button
+                    onClick={() => {
+                      onStatusChange(room.id, 'Maintenance');
+                      setShowStatusChange(false);
+                      handleClose();
+                    }}
+                    className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                  >
+                    صيانة
+                  </Button>
+                  
+                  <Button
+                    onClick={() => {
+                      onStatusChange(room.id, 'OutOfOrder');
+                      setShowStatusChange(false);
+                      handleClose();
+                    }}
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    خارج الخدمة
+                  </Button>
+                  
+                  <Button
+                    onClick={() => {
+                      // خروج اليوم = تحويل لـ PendingCleaning
+                      onStatusChange(room.id, 'PendingCleaning');
+                      setShowStatusChange(false);
+                      handleClose();
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    خروج اليوم
+                  </Button>
+                  
+                  <Button
+                    onClick={() => setShowStatusChange(false)}
+                    variant="outline"
+                    className="border-purple-500/50 text-purple-300"
+                  >
+                    إلغاء
+                  </Button>
+                </div>
+              </div>
+            )}
+            
+            {/* عرض بيانات النزيل الحالي إذا كانت الغرفة مشغولة */}
+            {selectedGuest && (room.status === 'Occupied' || room.status === 'Reserved') && (
+              <div className="bg-blue-500/10 backdrop-blur-sm rounded-xl p-6 border-2 border-blue-500/30">
+                <h3 className="text-lg font-bold text-blue-300 mb-4 flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  بيانات النزيل الحالي
+                </h3>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-blue-200/70 mb-1">الاسم</p>
+                    <p className="text-white font-semibold">{selectedGuest.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-blue-200/70 mb-1">رقم الهاتف</p>
+                    <p className="text-white font-semibold">{selectedGuest.phone || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-blue-200/70 mb-1">الجنسية</p>
+                    <p className="text-white font-semibold">{selectedGuest.nationality || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-blue-200/70 mb-1">رقم الهوية</p>
+                    <p className="text-white font-semibold">{selectedGuest.idNumber || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-blue-200/70 mb-1">البريد الإلكتروني</p>
+                    <p className="text-white font-semibold">{selectedGuest.email || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-blue-200/70 mb-1">الرصيد المستحق</p>
+                    <p className={`font-bold text-lg ${room.balance > 0 ? 'text-red-400' : 'text-green-400'}`}>
+                      {room.balance} ر.س
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             {/* معلومات الحجز */}
             <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-cyan-500/20">
               <h3 className="text-lg font-bold text-cyan-300 mb-4 flex items-center gap-2">

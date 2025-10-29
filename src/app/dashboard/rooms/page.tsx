@@ -284,7 +284,7 @@ export default function RoomsPage() {
     setPaymentMethod({ type: 'cash' });
   };
 
-  // فتح تفاصيل الشقة
+  // فتح تفاصيل الشقة - دائماً نافذة الحجز
   const openRoomDetails = (room: Room) => {
     console.log('🔵 تم الضغط على الغرفة:', room.number, 'الحالة:', room.status);
     
@@ -293,13 +293,9 @@ export default function RoomsPage() {
     setGuestName(room.guestName || '');
     setPaymentAmount(room.balance);
     
-    // إذا كانت الغرفة فارغة، اعرض خيار الحجز أو تغيير الحالة
-    if (room.status === 'Available') {
-      console.log('✅ الغرفة متاحة - افتح نافذة التفاصيل لتغيير الحالة أو الحجز');
-    }
-    
-    console.log('📋 فتح تفاصيل الغرفة:', room.number);
-    setIsDetailsOpen(true);
+    // فتح نافذة الحجز مباشرة (سواء فارغة أو مشغولة)
+    console.log('📋 فتح نافذة الحجز للغرفة:', room.number);
+    setIsBookingDialogOpen(true);
   };
 
   // معالج إضافة نزيل جديد
@@ -1035,6 +1031,31 @@ export default function RoomsPage() {
           setSelectedRoom(null);
         }}
         onSave={handleBookingComplete}
+        onStatusChange={async (roomId: string, newStatus: string) => {
+          console.log('🔄 تغيير حالة الغرفة من نافذة الحجز:', roomId, newStatus);
+          
+          if (!user) return;
+          
+          const updatedRooms = updateRoomStatus(
+            rooms,
+            roomId,
+            newStatus as RoomStatus,
+            user.name || user.username
+          );
+          
+          try {
+            const updatedRoom = updatedRooms.find(r => r.id === roomId);
+            if (updatedRoom) {
+              await saveRoomToFirebase(updatedRoom);
+              setRooms(updatedRooms);
+              setFilteredRooms(updatedRooms);
+              alert('✅ تم تغيير حالة الشقة بنجاح');
+            }
+          } catch (error) {
+            console.error('❌ خطأ في حفظ التغييرات:', error);
+            alert('حدث خطأ في حفظ التغييرات');
+          }
+        }}
       />
 
       {/* زر تحديث الصلاحيات */}
