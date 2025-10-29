@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Send, Search, Phone, Video, MoreVertical, Smile, Paperclip,
   CheckCheck, Check, Circle, Loader2, MessageSquare, Users, AlertCircle,
-  Image as ImageIcon, Mic, MicOff, X, Play, Pause, Download, FileText
+  Image as ImageIcon, Mic, MicOff, X, Play, Pause, Download, FileText, Trash2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -884,6 +884,39 @@ export default function ChatPage() {
     }
   };
 
+  // مسح رسالة
+  const deleteMessage = async (messageId: string, chatId: string, senderId: string) => {
+    const currentUserId = user?.username || user?.email;
+    if (!currentUserId) return;
+
+    // التحقق من الصلاحيات
+    const canDelete = 
+      senderId === currentUserId || // صاحب الرسالة يقدر يمسح رسائله
+      user?.permissions?.includes('delete_own_message') || // صلاحية مسح رسائله الخاصة
+      currentUserId === 'akram' ||  // حساب akram له كل الصلاحيات
+      user?.permissions?.includes('delete_any_message'); // صلاحية مسح أي رسالة (admin)
+
+    if (!canDelete) {
+      setErrorMessage('ليس لديك صلاحية لمسح هذه الرسالة');
+      setTimeout(() => setErrorMessage(''), 3000);
+      return;
+    }
+
+    if (!confirm('هل تريد مسح هذه الرسالة؟')) {
+      return;
+    }
+
+    try {
+      console.log('🗑️ Deleting message:', messageId);
+      await deleteDoc(doc(db, 'chats', chatId, 'messages', messageId));
+      console.log('✅ Message deleted successfully');
+    } catch (error) {
+      console.error('❌ Error deleting message:', error);
+      setErrorMessage('فشل مسح الرسالة');
+      setTimeout(() => setErrorMessage(''), 3000);
+    }
+  };
+
   const filteredEmployees = employees
     .filter(emp => 
       emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -1058,15 +1091,22 @@ export default function ChatPage() {
                 ) : (
                   messages.map((message) => {
                     const isCurrentUser = message.senderId === (user?.username || user?.email);
+                    const currentUserId = user?.username || user?.email;
+                    const canDelete = 
+                      message.senderId === currentUserId || 
+                      user?.permissions?.includes('delete_own_message') ||
+                      currentUserId === 'akram' || 
+                      user?.permissions?.includes('delete_any_message');
                     
                     return (
-                      <div key={message.id} className={cn('flex animate-in fade-in slide-in-from-bottom-2 duration-300', isCurrentUser ? 'justify-start' : 'justify-end')}>
-                        <div className={cn('max-w-[70%] rounded-2xl px-4 py-3 shadow-xl', isCurrentUser ? 'bg-gradient-to-br from-purple-600 to-blue-600 text-white rounded-br-sm' : 'bg-slate-700/90 backdrop-blur-sm text-white rounded-bl-sm')}>
-                          
-                          {/* رسالة نصية */}
-                          {message.type === 'text' && message.text && (
-                            <p className='text-sm leading-relaxed whitespace-pre-wrap break-words'>{message.text}</p>
-                          )}
+                      <div key={message.id} className={cn('flex animate-in fade-in slide-in-from-bottom-2 duration-300 group', isCurrentUser ? 'justify-start' : 'justify-end')}>
+                        <div className='relative'>
+                          <div className={cn('max-w-[70%] rounded-2xl px-4 py-3 shadow-xl', isCurrentUser ? 'bg-gradient-to-br from-purple-600 to-blue-600 text-white rounded-br-sm' : 'bg-slate-700/90 backdrop-blur-sm text-white rounded-bl-sm')}>
+                            
+                            {/* رسالة نصية */}
+                            {message.type === 'text' && message.text && (
+                              <p className='text-sm leading-relaxed whitespace-pre-wrap break-words'>{message.text}</p>
+                            )}
                           
                           {/* صورة */}
                           {message.type === 'image' && message.fileUrl && (
@@ -1117,13 +1157,27 @@ export default function ChatPage() {
                             </a>
                           )}
                           
-                          <div className='flex items-center gap-1.5 mt-2 justify-end'>
-                            <span className='text-xs opacity-70'>{message.timestamp.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</span>
-                            {isCurrentUser && (
-                              message.read ? 
-                                <CheckCheck className='w-4 h-4 text-blue-300' aria-label='تم القراءة' /> : 
-                                <Check className='w-4 h-4 opacity-60' aria-label='تم الإرسال' />
+                          <div className='flex items-center gap-1.5 mt-2 justify-between'>
+                            <div className='flex items-center gap-1.5'>
+                              <span className='text-xs opacity-70'>{message.timestamp.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</span>
+                              {isCurrentUser && (
+                                message.read ? 
+                                  <CheckCheck className='w-4 h-4 text-blue-300' aria-label='تم القراءة' /> : 
+                                  <Check className='w-4 h-4 opacity-60' aria-label='تم الإرسال' />
+                              )}
+                            </div>
+                            
+                            {/* زر المسح - يظهر عند hover */}
+                            {canDelete && (
+                              <button
+                                onClick={() => deleteMessage(message.id, currentChatId!, message.senderId)}
+                                className='opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500/20 rounded p-1'
+                                title='مسح الرسالة'
+                              >
+                                <Trash2 className='w-3.5 h-3.5 text-red-400 hover:text-red-300' />
+                              </button>
                             )}
+                          </div>
                           </div>
                         </div>
                       </div>
