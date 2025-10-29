@@ -7,7 +7,7 @@ import {
   UserCircle, CheckCircle, Search, Clock, Sparkles, Wind, Droplets, 
   Star, Crown, Award, Zap, Timer, ArrowRight, CheckCircle2,
   Package, Truck, Phone, Calendar, RefreshCw, Filter, Home, Badge as BadgeIcon,
-  Eye, Edit, Calculator
+  Eye, Edit, Calculator, Users, AlertTriangle
 } from 'lucide-react';
 // استخدام Firebase فقط
 import { getRoomsFromFirebase, subscribeToRooms } from '@/lib/firebase-sync';
@@ -82,6 +82,9 @@ export default function LaundryPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [customerType, setCustomerType] = useState<CustomerType>('guest');
   const [selectedRoom, setSelectedRoom] = useState<string>('');
+  const [guestName, setGuestName] = useState<string>('');
+  const [selectedEmployee, setSelectedEmployee] = useState<string>('');
+  const [employees, setEmployees] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -90,6 +93,7 @@ export default function LaundryPage() {
   // تحميل الغرف من Firebase
   useEffect(() => {
     loadRooms();
+    loadEmployees();
     
     // الاستماع للتحديثات الفورية
     const unsubscribe = subscribeToRooms(
@@ -104,12 +108,38 @@ export default function LaundryPage() {
     return () => unsubscribe();
   }, []);
   
+  // تحديث اسم العميل عند اختيار غرفة
+  useEffect(() => {
+    if (selectedRoom && customerType === 'guest') {
+      const room = rooms.find(r => r.number === selectedRoom);
+      if (room && room.status === 'occupied' && room.guestName) {
+        setGuestName(room.guestName);
+      } else {
+        setGuestName('');
+      }
+    }
+  }, [selectedRoom, rooms, customerType]);
+  
   const loadRooms = async () => {
     try {
       const roomsData = await getRoomsFromFirebase();
       setRooms(roomsData);
     } catch (error) {
       console.error('خطأ في تحميل الغرف:', error);
+    }
+  };
+
+  const loadEmployees = async () => {
+    try {
+      const { getEmployees } = await import('@/lib/firebase-data');
+      const employeesData = await getEmployees();
+      // فلترة الموظفين: موظفي المغسلة فقط
+      const laundryStaff = employeesData.filter(emp => 
+        emp.role === 'laundry_staff' || emp.role === 'admin' || emp.role === 'manager'
+      );
+      setEmployees(laundryStaff);
+    } catch (error) {
+      console.error('خطأ في تحميل الموظفين:', error);
     }
   };
 
@@ -313,8 +343,35 @@ export default function LaundryPage() {
   };
 
   const handleCheckout = () => {
-    console.log('Laundry order processed:', { cart, customerType, total });
+    // التحقق من اختيار الموظف
+    if (!selectedEmployee) {
+      alert('⚠️ يرجى اختيار الموظف المسؤول عن تنفيذ الطلب');
+      return;
+    }
+
+    // التحقق من اختيار الغرفة للنزلاء
+    if (customerType === 'guest' && !selectedRoom) {
+      alert('⚠️ يرجى اختيار رقم الغرفة');
+      return;
+    }
+
+    console.log('✅ Laundry order processed:', { 
+      cart, 
+      customerType, 
+      selectedRoom,
+      guestName,
+      selectedEmployee,
+      employeeName: employees.find(e => e.id === selectedEmployee)?.name,
+      total 
+    });
+    
+    // TODO: حفظ الطلب في Firebase
+    
+    alert(`✅ تم تسجيل الطلب بنجاح!\n\nالمجموع: ${total} ر.س\nالموظف المسؤول: ${employees.find(e => e.id === selectedEmployee)?.name}`);
+    
+    // إعادة تعيين
     setCart([]);
+    setSelectedEmployee('');
     setIsCheckoutOpen(false);
   };
 
@@ -449,7 +506,7 @@ export default function LaundryPage() {
             {/* Premium Room Selection */}
             {customerType === 'guest' && (
               <motion.div 
-                className="relative"
+                className="relative flex items-center gap-3"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
               >
@@ -461,7 +518,7 @@ export default function LaundryPage() {
                     </div>
                   </SelectTrigger>
                   <SelectContent className="bg-black/90 backdrop-blur-2xl border border-cyan-400/20 rounded-2xl">
-                    {rooms.map(room => (
+                    {rooms.filter(r => r.status === 'occupied').map(room => (
                       <SelectItem 
                         key={room.id} 
                         value={room.number} 
@@ -469,35 +526,47 @@ export default function LaundryPage() {
                       >
                         <div className="flex items-center gap-2">
                           <Home className="h-4 w-4" />
-                          غرفة {room.number}
+                          غرفة {room.number} - {room.guestName || 'بدون نزيل'}
                         </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                
+                {/* عرض اسم العميل */}
+                {guestName && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex items-center gap-2 bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-xl border border-purple-400/30 px-4 py-2 rounded-2xl"
+                  >
+                    <UserCircle className="h-4 w-4 text-purple-400" />
+                    <span className="text-white font-medium">{guestName}</span>
+                  </motion.div>
+                )}
               </motion.div>
             )}
 
-            {/* Premium Cart Button */}
+            {/* Premium Cart Button - Fixed */}
             <motion.button
               onClick={() => setIsCheckoutOpen(true)}
               disabled={cart.length === 0}
-              className="relative bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white font-bold px-6 py-3 rounded-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-2xl shadow-emerald-500/25"
+              className="fixed bottom-6 left-6 z-50 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white font-bold px-6 py-3 rounded-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-2xl shadow-emerald-500/50"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               <div className="flex items-center gap-2">
-                <ShoppingCart className="h-4 w-4" />
-                <span>السلة ({cart.length})</span>
+                <ShoppingCart className="h-5 w-5" />
+                <span className="text-lg">السلة ({cart.length})</span>
               </div>
               
               {cart.length > 0 && (
                 <>
-                  <div className="absolute -top-2 -right-2 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center animate-pulse">
+                  <div className="absolute -top-2 -right-2 bg-gradient-to-r from-red-500 to-pink-500 text-white text-sm font-bold w-7 h-7 rounded-full flex items-center justify-center animate-pulse shadow-lg">
                     {cart.reduce((sum, item) => sum + item.quantity, 0)}
                   </div>
                   <div className="absolute -bottom-1 -left-1">
-                    <Sparkles className="h-4 w-4 text-yellow-400" />
+                    <Sparkles className="h-5 w-5 text-yellow-400 animate-spin" />
                   </div>
                 </>
               )}
@@ -795,6 +864,43 @@ export default function LaundryPage() {
               </motion.div>
             </div>
 
+            {/* اختيار الموظف المسؤول */}
+            <div className="pt-6 border-t border-white/10">
+              <label className="block text-white font-semibold mb-3 flex items-center gap-2">
+                <Users className="h-5 w-5 text-cyan-400" />
+                <span>الموظف المسؤول عن التنفيذ</span>
+                <span className="text-red-400">*</span>
+              </label>
+              <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
+                <SelectTrigger className="w-full bg-black/40 backdrop-blur-xl border border-cyan-400/30 text-white rounded-2xl px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <UserCircle className="h-4 w-4 text-cyan-400" />
+                    <SelectValue placeholder="اختر موظف المغسلة" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="bg-black/90 backdrop-blur-2xl border border-cyan-400/20 rounded-2xl">
+                  {employees.map(emp => (
+                    <SelectItem 
+                      key={emp.id} 
+                      value={emp.id} 
+                      className="text-white focus:bg-cyan-500/20 focus:text-cyan-300 rounded-xl m-1"
+                    >
+                      <div className="flex items-center gap-2">
+                        <UserCircle className="h-4 w-4" />
+                        {emp.name} - {emp.department}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {!selectedEmployee && (
+                <p className="text-yellow-400 text-sm mt-2 flex items-center gap-1">
+                  <AlertTriangle className="h-4 w-4" />
+                  يرجى اختيار الموظف المسؤول قبل تأكيد الطلب
+                </p>
+              )}
+            </div>
+
             {/* Premium Action Buttons */}
             <DialogFooter className="gap-4 pt-6 border-t border-white/10">
               <motion.button
@@ -811,9 +917,10 @@ export default function LaundryPage() {
               
               <motion.button
                 onClick={handleCheckout}
-                className="flex-2 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white font-bold py-4 px-8 rounded-2xl transition-all duration-300 shadow-2xl shadow-emerald-500/25"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                disabled={!selectedEmployee}
+                className="flex-2 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white font-bold py-4 px-8 rounded-2xl transition-all duration-300 shadow-2xl shadow-emerald-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+                whileHover={{ scale: !selectedEmployee ? 1 : 1.02 }}
+                whileTap={{ scale: !selectedEmployee ? 1 : 0.98 }}
               >
                 <div className="flex items-center justify-center gap-3">
                   <CheckCircle className="h-6 w-6" />
