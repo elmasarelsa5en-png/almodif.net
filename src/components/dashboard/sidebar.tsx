@@ -227,6 +227,7 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
   const [logo, setLogo] = useState<string | null>(null);
   const [visibleItems, setVisibleItems] = useState<Set<string>>(new Set());
   const [loadingSettings, setLoadingSettings] = useState(true);
+  const [totalUnreadMessages, setTotalUnreadMessages] = useState(0);
   
   // في وضع الويب: دائماً مفتوحة، في الموبايل: تستخدم الحالة الخارجية
   const [isDesktop, setIsDesktop] = useState(false);
@@ -326,6 +327,51 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
     window.addEventListener('logo-updated', handleLogoUpdate);
     return () => window.removeEventListener('logo-updated', handleLogoUpdate);
   }, []);
+
+  // حساب إجمالي الرسائل غير المقروءة
+  useEffect(() => {
+    if (!user) return;
+
+    const countUnreadMessages = async () => {
+      try {
+        const currentUserId = user.username || user.email;
+        if (!currentUserId) return;
+
+        const { collection, query, where, getDocs } = await import('firebase/firestore');
+        
+        const chatsRef = collection(db, 'chats');
+        const q = query(chatsRef, where('participants', 'array-contains', currentUserId));
+        const chatsSnapshot = await getDocs(q);
+        
+        let totalUnread = 0;
+        
+        for (const chatDoc of chatsSnapshot.docs) {
+          const messagesRef = collection(db, 'messages');
+          const messagesQuery = query(
+            messagesRef,
+            where('chatId', '==', chatDoc.id),
+            where('read', '==', false)
+          );
+          const messagesSnapshot = await getDocs(messagesQuery);
+          
+          messagesSnapshot.forEach((msgDoc) => {
+            const msgData = msgDoc.data();
+            if (msgData.senderId !== currentUserId) {
+              totalUnread++;
+            }
+          });
+        }
+        
+        setTotalUnreadMessages(totalUnread);
+      } catch (error) {
+        console.error('Error counting unread messages:', error);
+      }
+    };
+
+    countUnreadMessages();
+    const interval = setInterval(countUnreadMessages, 10000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   // دالة للتحقق من الصلاحيات (مؤقتة - ستتم إضافة منطق حقيقي لاحقاً)
   const hasPermission = (permission?: string) => {
@@ -455,6 +501,13 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
                       "flex-shrink-0 transition-transform group-hover:scale-110",
                       isCollapsed ? "w-6 h-6" : "w-4 h-4"
                     )} />
+                    
+                    {/* Badge للرسائل غير المقروءة */}
+                    {item.href === '/dashboard/chat' && totalUnreadMessages > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse shadow-lg">
+                        {totalUnreadMessages > 99 ? '99+' : totalUnreadMessages}
+                      </span>
+                    )}
                     
                     {!isCollapsed && (
                       <div className="flex-1 min-w-0">
