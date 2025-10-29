@@ -40,21 +40,6 @@ export default function HomePage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeFeature, setActiveFeature] = useState(0);
 
-  // للموبايل فقط: تحويل مباشر لصفحة تسجيل الدخول عند فتح التطبيق
-  useEffect(() => {
-    // التحقق إذا كان التطبيق يعمل في Capacitor (موبايل) وليس في المتصفح
-    const isCapacitor = typeof window !== 'undefined' && 
-      (window as any).Capacitor !== undefined &&
-      (window as any).Capacitor.isNativePlatform !== undefined &&
-      (window as any).Capacitor.isNativePlatform();
-    
-    // فقط إذا كان موبايل حقيقي، يتم التحويل
-    if (isCapacitor) {
-      console.log('🔄 تطبيق موبايل - تحويل لصفحة تسجيل الدخول');
-      router.push('/guest-login');
-    }
-  }, [router]);
-
   const features = [
     {
       icon: <Bed className="w-8 h-8 text-blue-400" />,
