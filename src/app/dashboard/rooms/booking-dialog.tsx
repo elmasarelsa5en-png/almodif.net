@@ -423,7 +423,9 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                     <SelectTrigger className="bg-white/10 border-cyan-500/30 text-white">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-cyan-500/30">
+                    <SelectContent 
+                      className="bg-slate-800 border-cyan-500/30 max-h-[250px] overflow-y-auto z-[100]"
+                    >
                       {BOOKING_SOURCES.map(source => (
                         <SelectItem key={source.value} value={source.value} className="text-white">
                           <span className="flex items-center gap-2">
@@ -453,7 +455,9 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                     <SelectTrigger className="bg-white/10 border-green-500/30 text-white">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-green-500/30">
+                    <SelectContent 
+                      className="bg-slate-800 border-green-500/30 z-[100]"
+                    >
                       <SelectItem value="daily" className="text-white">📅 حجز يومي</SelectItem>
                       <SelectItem value="monthly" className="text-white">📆 حجز شهري</SelectItem>
                     </SelectContent>
@@ -603,14 +607,16 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                 <div className="space-y-2">
                   <Label className="text-purple-200 font-semibold">نوع الزيارة</Label>
                   <Select value={visitType} onValueChange={setVisitType}>
+                <div className="space-y-2">
+                  <Label className="text-purple-200 font-semibold">نوع الزيارة</Label>
+                  <Select value={visitType} onValueChange={setVisitType}>
                     <SelectTrigger className="bg-white/10 border-purple-500/30 text-white">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-purple-500/30">
-                      {VISIT_TYPES.map(type => (
-                        <SelectItem key={type.value} value={type.value} className="text-white">
-                          <span className="flex items-center gap-2">
-                            <span>{type.icon}</span>
+                    <SelectContent 
+                      className="bg-slate-800 border-purple-500/30 z-[100]"
+                    >
+                      {VISIT_TYPES.map(type => (pan>
                             <span>{type.label}</span>
                           </span>
                         </SelectItem>
