@@ -40,14 +40,17 @@ export default function HomePage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeFeature, setActiveFeature] = useState(0);
 
-  // للموبايل: تحويل مباشر لصفحة تسجيل الدخول
+  // للموبايل فقط: تحويل مباشر لصفحة تسجيل الدخول عند فتح التطبيق
   useEffect(() => {
-    // التحقق إذا كان التطبيق يعمل في Capacitor (موبايل)
+    // التحقق إذا كان التطبيق يعمل في Capacitor (موبايل) وليس في المتصفح
     const isCapacitor = typeof window !== 'undefined' && 
-      (window as any).Capacitor !== undefined;
+      (window as any).Capacitor !== undefined &&
+      (window as any).Capacitor.isNativePlatform !== undefined &&
+      (window as any).Capacitor.isNativePlatform();
     
+    // فقط إذا كان موبايل حقيقي، يتم التحويل
     if (isCapacitor) {
-      // تحويل مباشر لصفحة تسجيل دخول النزيل
+      console.log('🔄 تطبيق موبايل - تحويل لصفحة تسجيل الدخول');
       router.push('/guest-login');
     }
   }, [router]);
