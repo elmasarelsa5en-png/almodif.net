@@ -90,7 +90,17 @@ export default function HRSettingsPage() {
   const [targetEmployeeForCopy, setTargetEmployeeForCopy] = useState<Employee | null>(null);
   const [sourceEmployeeId, setSourceEmployeeId] = useState<string>('');
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    username: string;
+    password: string;
+    name: string;
+    role: string;
+    department: string;
+    email: string;
+    phone: string;
+    status: 'available' | 'busy' | 'offline';
+    permissions: string[];
+  }>({
     username: '',
     password: '',
     name: '',
@@ -98,8 +108,8 @@ export default function HRSettingsPage() {
     department: 'استقبال',
     email: '',
     phone: '',
-    status: 'available' as const,
-    permissions: [] as string[],
+    status: 'available',
+    permissions: [],
   });
 
   // Load employees from Firebase with real-time updates
