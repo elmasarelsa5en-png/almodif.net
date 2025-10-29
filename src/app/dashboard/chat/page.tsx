@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Send, Search, Phone, Video, MoreVertical, Smile, Paperclip,
   CheckCheck, Check, Circle, Loader2, MessageSquare, Users, AlertCircle,
-  Image as ImageIcon, Mic, MicOff, X, Play, Pause, Download
+  Image as ImageIcon, Mic, MicOff, X, Play, Pause, Download, FileText
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +20,8 @@ import {
   validateFile 
 } from '@/lib/chat-file-manager';
 import { setupPushNotifications } from '@/lib/push-notifications';
+import { CallDialog } from '@/components/call-dialog';
+import { RequestDialog } from '@/components/request-dialog';
 
 interface Employee {
   id: string;
@@ -61,6 +63,9 @@ export default function ChatPage() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
+  const [isCallDialogOpen, setIsCallDialogOpen] = useState(false);
+  const [callType, setCallType] = useState<'audio' | 'video'>('audio');
+  const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const unsubscribeRef = useRef<(() => void) | null>(null);
   const allChatsUnsubscribeRef = useRef<(() => void) | null>(null);
@@ -638,11 +643,38 @@ export default function ChatPage() {
                 </div>
 
                 <div className='flex items-center gap-1'>
-                  <Button variant='ghost' size='sm' className='text-white hover:bg-slate-700/50 rounded-full w-9 h-9 p-0'>
+                  <Button 
+                    variant='ghost' 
+                    size='sm' 
+                    onClick={() => {
+                      setCallType('audio');
+                      setIsCallDialogOpen(true);
+                    }}
+                    className='text-white hover:bg-slate-700/50 rounded-full w-9 h-9 p-0 transition-all hover:scale-110'
+                    title='مكالمة صوتية'
+                  >
                     <Phone className='w-5 h-5' />
                   </Button>
-                  <Button variant='ghost' size='sm' className='text-white hover:bg-slate-700/50 rounded-full w-9 h-9 p-0'>
+                  <Button 
+                    variant='ghost' 
+                    size='sm' 
+                    onClick={() => {
+                      setCallType('video');
+                      setIsCallDialogOpen(true);
+                    }}
+                    className='text-white hover:bg-slate-700/50 rounded-full w-9 h-9 p-0 transition-all hover:scale-110'
+                    title='مكالمة فيديو'
+                  >
                     <Video className='w-5 h-5' />
+                  </Button>
+                  <Button 
+                    variant='ghost' 
+                    size='sm' 
+                    onClick={() => setIsRequestDialogOpen(true)}
+                    className='text-white hover:bg-slate-700/50 rounded-full w-9 h-9 p-0 transition-all hover:scale-110'
+                    title='إرسال طلب'
+                  >
+                    <FileText className='w-5 h-5' />
                   </Button>
                   <Button variant='ghost' size='sm' className='text-white hover:bg-slate-700/50 rounded-full w-9 h-9 p-0'>
                     <MoreVertical className='w-5 h-5' />
@@ -882,6 +914,23 @@ export default function ChatPage() {
           )}
         </div>
       </div>
+
+      {/* Call Dialog */}
+      {selectedEmployee && (
+        <CallDialog
+          isOpen={isCallDialogOpen}
+          onClose={() => setIsCallDialogOpen(false)}
+          employeeName={selectedEmployee.name}
+          callType={callType}
+        />
+      )}
+
+      {/* Request Dialog */}
+      <RequestDialog
+        isOpen={isRequestDialogOpen}
+        onClose={() => setIsRequestDialogOpen(false)}
+        currentUser={user}
+      />
     </ProtectedRoute>
   );
 }
