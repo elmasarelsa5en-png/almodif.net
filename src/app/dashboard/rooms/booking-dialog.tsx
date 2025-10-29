@@ -355,7 +355,7 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                   {/* تنظيف معلق */}
                   <Button
                     onClick={() => {
-                      onStatusChange(room.id, 'PendingCleaning');
+                      onStatusChange(room.id, 'CheckoutToday');
                       setShowStatusChange(false);
                       handleClose();
                     }}

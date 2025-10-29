@@ -21,7 +21,8 @@ import {
   Banknote,
   Smartphone,
   UserPlus,
-  Image
+  Image,
+  X
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -46,7 +47,10 @@ import {
   ROOM_TYPE_CONFIG,
   updateRoomStatus,
   processPayment, 
-  getRoomTypesFromStorage
+  getRoomTypesFromStorage,
+  autoUpdateRoomStatusByCheckout,
+  getLateCheckoutRooms,
+  isLateCheckout
 } from '@/lib/rooms-data';
 // استخدام Firebase فقط - المصدر الاحترافي للبيانات
 import { 
@@ -88,6 +92,8 @@ export default function RoomsPage() {
   const [isAddGuestOpen, setIsAddGuestOpen] = useState(false);
   const [isAddRoomsFromImageOpen, setIsAddRoomsFromImageOpen] = useState(false);
   const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
+  const [lateCheckoutRooms, setLateCheckoutRooms] = useState<Room[]>([]);
+  const [showLateCheckoutAlert, setShowLateCheckoutAlert] = useState(false);
 
   // تحميل البيانات عند بدء التشغيل
   useEffect(() => {
@@ -112,6 +118,53 @@ export default function RoomsPage() {
     
     return () => unsubscribe();
   }, []);
+
+  // الفحص التلقائي لحالة الغرف بناءً على تاريخ الخروج - كل دقيقة
+  useEffect(() => {
+    const checkRoomsStatus = async () => {
+      if (rooms.length === 0) return;
+      
+      console.log('🔍 فحص تلقائي لحالة الغرف...');
+      
+      // تحديث حالة الغرف تلقائياً
+      const updatedRooms = autoUpdateRoomStatusByCheckout(rooms);
+      
+      // التحقق من وجود تغييرات
+      const hasChanges = updatedRooms.some((room, index) => 
+        room.status !== rooms[index].status
+      );
+      
+      if (hasChanges) {
+        console.log('✅ تم تحديث حالة الغرف تلقائياً');
+        setRooms(updatedRooms);
+        setFilteredRooms(updatedRooms);
+        
+        // حفظ التغييرات في Firebase
+        for (const room of updatedRooms) {
+          const oldRoom = rooms.find(r => r.id === room.id);
+          if (oldRoom && room.status !== oldRoom.status) {
+            await saveRoomToFirebase(room);
+          }
+        }
+      }
+      
+      // التحقق من النزلاء المتأخرين
+      const lateRooms = getLateCheckoutRooms(updatedRooms);
+      setLateCheckoutRooms(lateRooms);
+      
+      if (lateRooms.length > 0) {
+        setShowLateCheckoutAlert(true);
+      }
+    };
+    
+    // فحص فوري عند التحميل
+    checkRoomsStatus();
+    
+    // فحص كل دقيقة
+    const interval = setInterval(checkRoomsStatus, 60000);
+    
+    return () => clearInterval(interval);
+  }, [rooms]);
   
   const loadRoomsData = async () => {
     try {
@@ -514,49 +567,73 @@ export default function RoomsPage() {
     const roomPrice = roomPrices[room.type];
     const catalogRoomType = roomTypes.find(rt => rt.name === room.type);
     const imageUrl = catalogRoomType?.images?.[0];
-    const isOccupied = room.status === 'Occupied';
+    const isOccupied = room.status === 'Occupied' || room.status === 'CheckoutToday';
+    const isCheckoutToday = room.status === 'CheckoutToday';
+    const isLate = isCheckoutToday && room.bookingDetails?.checkOut?.date && isLateCheckout(room.bookingDetails.checkOut.date);
 
     return (
       <div
-        className={`relative group cursor-pointer transition-all duration-500 hover:scale-110 hover:rotate-1 hover:shadow-2xl hover:shadow-blue-500/30 rounded-2xl overflow-hidden ${!imageUrl ? config.color : ''} active:scale-95`}
+        className={`relative group cursor-pointer transition-all duration-500 hover:scale-110 hover:rotate-1 hover:shadow-2xl hover:shadow-blue-500/30 rounded-2xl overflow-hidden ${
+          imageUrl ? '' : config.bgColor
+        } active:scale-95 ${isLate ? 'animate-pulse ring-4 ring-red-500' : ''}`}
         onClick={() => {
           console.log('🖱️ Click على الغرفة:', room.number);
           openRoomDetails(room);
         }}
         style={imageUrl ? { backgroundImage: `url(${imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
       >
+        {/* تنبيه متأخر عن checkout */}
+        {isLate && (
+          <div className="absolute top-0 left-0 right-0 bg-red-600 text-white text-xs font-bold py-1 px-2 text-center z-20 animate-pulse">
+            ⚠️ متأخر عن checkout
+          </div>
+        )}
+
         {/* Shine effect on hover */}
         <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:animate-shine transition-opacity pointer-events-none"></div>
         
         {imageUrl && <div className="absolute inset-0 bg-black/60 group-hover:bg-black/70 transition-colors"></div>}
-        <div className="p-3 flex flex-col justify-between h-full min-h-[140px]">
-          <div className="flex justify-between items-start">
+        <div className={`p-3 flex flex-col justify-between h-full min-h-[140px] ${isLate ? 'pt-8' : ''}`}>
+          <div className="flex justify-between items-start relative z-10">
             <div className="flex items-center gap-2">
               <div className={`w-7 h-7 rounded-md flex items-center justify-center group-hover:scale-125 group-hover:rotate-12 transition-all duration-500 ${
                 imageUrl 
                   ? config.bgColor 
                   : 'bg-black/20'
-              }`}>
-                <IconComponent className="w-4 h-4" />
+              } shadow-lg`}>
+                <IconComponent className="w-4 h-4 text-white" />
               </div>
               <div>
-                <p className={`text-xs font-bold`}>{config.label}</p>
+                <p className="text-xs font-bold text-white drop-shadow-md">{config.label}</p>
+                {isCheckoutToday && (
+                  <p className="text-[10px] text-yellow-300 font-bold">خروج اليوم</p>
+                )}
               </div>
             </div>
-            <span className="text-xl font-bold drop-shadow-md group-hover:scale-110 transition-transform duration-300">{room.number}</span>
+            <span className="text-xl font-bold drop-shadow-md group-hover:scale-110 transition-transform duration-300 text-white">{room.number}</span>
           </div>
 
           <div className="flex-grow flex flex-col justify-end mt-2 z-10">
             <div className="text-center mb-2">
-              <p className="text-sm font-semibold opacity-90 truncate">{room.type}</p>
+              <p className="text-sm font-semibold opacity-90 truncate text-white drop-shadow-md">{room.type}</p>
             </div>
+            
+            {/* اسم العميل - بشكل بارز للغرف المشغولة */}
             {room.guestName && (
-              <div className="text-center bg-black/20 p-1.5 rounded-md">
-                <p className="text-xs font-semibold truncate">{room.guestName}</p>
+              <div className={`text-center ${
+                isCheckoutToday 
+                  ? 'bg-gradient-to-r from-red-600/90 to-blue-600/90' 
+                  : 'bg-gradient-to-r from-red-600/90 to-red-700/90'
+              } backdrop-blur-sm p-2 rounded-lg border-2 border-white/30 shadow-xl mb-2`}>
+                <p className="text-sm font-bold text-white truncate drop-shadow-md">👤 {room.guestName}</p>
+                {room.guestPhone && (
+                  <p className="text-xs text-white/90 truncate mt-0.5">📱 {room.guestPhone}</p>
+                )}
               </div>
             )}
+            
             {room.balance !== 0 && (
-              <div className="text-center mt-1 ">
+              <div className="text-center mt-1">
                 <Badge className={`shadow-md px-2 py-1 text-xs font-bold border ${
                   room.balance > 0 
                     ? 'bg-red-500/80 text-white border-red-400/40' 
@@ -597,6 +674,72 @@ export default function RoomsPage() {
       {/* خلفية تزيينية */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-20 left-20 w-32 h-32 bg-blue-500/20 rounded-full blur-xl"></div>
+        <div className="absolute bottom-20 right-20 w-40 h-40 bg-purple-500/20 rounded-full blur-xl"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-indigo-500/10 rounded-full blur-2xl"></div>
+      </div>
+
+      {/* تنبيه النزلاء المتأخرين عن checkout */}
+      {showLateCheckoutAlert && lateCheckoutRooms.length > 0 && (
+        <div className="fixed top-4 right-4 left-4 z-50 max-w-2xl mx-auto animate-in slide-in-from-top">
+          <div className="bg-gradient-to-r from-red-600 to-orange-600 text-white rounded-2xl shadow-2xl border-2 border-red-400 overflow-hidden">
+            <div className="p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center animate-pulse">
+                    <AlertTriangle className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold">⚠️ تنبيه: نزلاء متأخرين عن checkout</h3>
+                    <p className="text-sm text-white/90">تأخروا عن الساعة 2 ظهراً</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowLateCheckoutAlert(false)}
+                  className="text-white/80 hover:text-white transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="space-y-3 max-h-60 overflow-y-auto">
+                {lateCheckoutRooms.map((room) => (
+                  <div
+                    key={room.id}
+                    className="bg-white/10 backdrop-blur-sm rounded-xl p-4 flex items-center justify-between cursor-pointer hover:bg-white/20 transition-colors"
+                    onClick={() => {
+                      openRoomDetails(room);
+                      setShowLateCheckoutAlert(false);
+                    }}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 bg-red-500 rounded-xl flex items-center justify-center text-2xl font-bold">
+                        {room.number}
+                      </div>
+                      <div>
+                        <p className="text-lg font-bold">{room.guestName || 'نزيل غير معروف'}</p>
+                        <p className="text-sm text-white/80">
+                          {room.guestPhone && `📱 ${room.guestPhone}`}
+                        </p>
+                        <p className="text-xs text-white/70 mt-1">
+                          الخروج: {room.bookingDetails?.checkOut?.date} - {room.bookingDetails?.checkOut?.time || '12:00 ظهراً'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <Button
+                        size="sm"
+                        className="bg-white text-red-600 hover:bg-white/90"
+                      >
+                        اتصل الآن
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
         <div className="absolute bottom-20 right-20 w-40 h-40 bg-purple-500/20 rounded-full blur-xl"></div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-indigo-500/10 rounded-full blur-2xl"></div>
       </div>

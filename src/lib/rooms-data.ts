@@ -69,7 +69,7 @@ export type RoomStatus =
   | 'Maintenance'
   | 'NeedsCleaning'
   | 'Reserved'
-  | 'PendingCleaning';
+  | 'CheckoutToday';
 
 export interface PaymentMethod {
   type: 'cash' | 'card' | 'transfer';
@@ -83,46 +83,61 @@ export const ROOM_STATUS_CONFIG = {
     label: 'متاحة',
     color: 'bg-green-600 text-white',
     icon: 'CheckCircle2',
-    bgColor: 'bg-green-500',
+    bgColor: 'bg-green-600',
     statusColor: 'text-white',
     accentColor: 'bg-green-500',
-    textColor: 'text-white'
+    textColor: 'text-white',
+    description: 'الشقة متاحة للحجز'
   },
   Occupied: {
     label: 'مشغولة',
     color: 'bg-red-600 text-white',
     icon: 'BedDouble',
-    bgColor: 'bg-red-500',
+    bgColor: 'bg-red-600',
     statusColor: 'text-white',
     accentColor: 'bg-red-500',
-    textColor: 'text-white'
+    textColor: 'text-white',
+    description: 'يوجد نزيل في الشقة'
+  },
+  CheckoutToday: {
+    label: 'خروج اليوم',
+    color: 'bg-gradient-to-br from-red-500 via-red-600 to-blue-600 text-white',
+    icon: 'Clock',
+    bgColor: 'bg-gradient-to-r from-red-500 to-blue-600',
+    statusColor: 'text-white',
+    accentColor: 'bg-gradient-to-r from-red-500 to-blue-600',
+    textColor: 'text-white',
+    description: 'موعد خروج النزيل اليوم'
   },
   Maintenance: {
     label: 'تحت الصيانة',
-    color: 'bg-orange-500 text-white',
+    color: 'bg-gray-600 text-white',
     icon: 'Hammer',
-    bgColor: 'bg-orange-500',
+    bgColor: 'bg-gray-600',
     statusColor: 'text-white',
-    accentColor: 'bg-orange-500',
-    textColor: 'text-white'
+    accentColor: 'bg-gray-500',
+    textColor: 'text-white',
+    description: 'الشقة تحتاج صيانة'
   },
   NeedsCleaning: {
     label: 'تحتاج تنظيف',
-    color: 'bg-yellow-500 text-black',
+    color: 'bg-orange-600 text-white',
     icon: 'Trash2',
-    bgColor: 'bg-yellow-500',
-    statusColor: 'text-black',
-    accentColor: 'bg-yellow-500',
-    textColor: 'text-black'
+    bgColor: 'bg-orange-600',
+    statusColor: 'text-white',
+    accentColor: 'bg-orange-500',
+    textColor: 'text-white',
+    description: 'تحتاج إلى تنظيف'
   },
   Reserved: {
     label: 'محجوزة',
     color: 'bg-purple-600 text-white',
     icon: 'Clock',
-    bgColor: 'bg-purple-500',
+    bgColor: 'bg-purple-600',
     statusColor: 'text-white',
     accentColor: 'bg-purple-500',
-    textColor: 'text-white'
+    textColor: 'text-white',
+    description: 'محجوزة ولم يصل النزيل'
   },
   PendingCleaning: {
     label: 'خروج اليوم',
@@ -366,4 +381,89 @@ const getPaymentMethodText = (method: PaymentMethod): string => {
     case 'transfer': return 'التحويل البنكي';
     default: return method.type;
   }
+};
+
+/**
+ * التحقق من ما إذا كان checkout اليوم
+ * @param checkoutDate تاريخ الخروج من bookingDetails
+ * @returns true إذا كان الخروج اليوم
+ */
+export const isCheckoutToday = (checkoutDate: string): boolean => {
+  if (!checkoutDate) return false;
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const checkout = new Date(checkoutDate);
+  checkout.setHours(0, 0, 0, 0);
+  
+  return today.getTime() === checkout.getTime();
+};
+
+/**
+ * التحقق من تأخر الـ checkout (بعد الساعة 2 ظهراً)
+ * @param checkoutDate تاريخ الخروج من bookingDetails
+ * @returns true إذا كان الخروج اليوم وتأخر عن الساعة 2 ظهراً
+ */
+export const isLateCheckout = (checkoutDate: string): boolean => {
+  if (!isCheckoutToday(checkoutDate)) return false;
+  
+  const now = new Date();
+  const currentHour = now.getHours();
+  
+  // بعد الساعة 2 ظهراً (14:00)
+  return currentHour >= 14;
+};
+
+/**
+ * تحديث حالة الغرف تلقائياً بناءً على تاريخ الخروج
+ * @param rooms قائمة الغرف
+ * @returns قائمة الغرف المحدثة
+ */
+export const autoUpdateRoomStatusByCheckout = (rooms: Room[]): Room[] => {
+  return rooms.map(room => {
+    // فقط الغرف المشغولة التي لها تاريخ خروج
+    if (room.status === 'Occupied' && room.bookingDetails?.checkOut?.date) {
+      const checkoutDate = room.bookingDetails.checkOut.date;
+      
+      if (isCheckoutToday(checkoutDate)) {
+        console.log(`🔄 تحديث تلقائي: الغرفة ${room.number} - الخروج اليوم`);
+        return {
+          ...room,
+          status: 'CheckoutToday' as RoomStatus,
+          lastUpdated: new Date().toISOString()
+        };
+      }
+    }
+    
+    // إذا كانت الغرفة CheckoutToday لكن التاريخ مختلف، نرجعها لـ Occupied
+    if (room.status === 'CheckoutToday' && room.bookingDetails?.checkOut?.date) {
+      const checkoutDate = room.bookingDetails.checkOut.date;
+      
+      if (!isCheckoutToday(checkoutDate)) {
+        console.log(`🔄 تحديث تلقائي: الغرفة ${room.number} - إرجاع لـ مشغولة`);
+        return {
+          ...room,
+          status: 'Occupied' as RoomStatus,
+          lastUpdated: new Date().toISOString()
+        };
+      }
+    }
+    
+    return room;
+  });
+};
+
+/**
+ * الحصول على قائمة النزلاء المتأخرين عن checkout
+ * @param rooms قائمة الغرف
+ * @returns قائمة الغرف المتأخرة
+ */
+export const getLateCheckoutRooms = (rooms: Room[]): Room[] => {
+  return rooms.filter(room => {
+    if (room.status === 'CheckoutToday' && room.bookingDetails?.checkOut?.date) {
+      return isLateCheckout(room.bookingDetails.checkOut.date);
+    }
+    return false;
+  });
 };
