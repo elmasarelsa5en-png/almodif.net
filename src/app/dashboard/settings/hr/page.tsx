@@ -68,8 +68,6 @@ const DEPARTMENTS = [
 // استيراد الصلاحيات من الملف المخصص
 import { ALL_PERMISSIONS, getAllPermissions } from '@/lib/permissions';
 
-const PERMISSIONS = getAllPermissions();
-
 const STATUS_CONFIG = {
   available: { label: 'متاح', color: 'bg-green-500' },
   busy: { label: 'مشغول', color: 'bg-yellow-500' },
@@ -77,6 +75,7 @@ const STATUS_CONFIG = {
 };
 
 export default function HRSettingsPage() {
+  const PERMISSIONS = getAllPermissions();
   const router = useRouter();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
@@ -495,7 +494,7 @@ export default function HRSettingsPage() {
               ) : (
                 filteredEmployees.map(employee => {
                   const roleInfo = getRoleInfo(employee.role);
-                  const statusInfo = STATUS_CONFIG[employee.status];
+                  const statusInfo = STATUS_CONFIG[employee.status] || STATUS_CONFIG.available;
                   
                   return (
                     <div
