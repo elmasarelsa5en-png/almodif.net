@@ -4,6 +4,8 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/language-context';
+import { ref, listAll, getDownloadURL } from 'firebase/storage';
+import { storage } from '@/lib/firebase';
 import { 
   Bed,
   LogIn,
@@ -40,12 +42,53 @@ export default function HomePage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeFeature, setActiveFeature] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [sliderImages, setSliderImages] = useState<string[]>([]);
+  const [loadingImages, setLoadingImages] = useState(true);
 
   // التأكد من عدم وجود redirect
   useEffect(() => {
     console.log('✅ HomePage loaded - No automatic redirect');
     console.log('Current path:', window.location.pathname);
   }, []);
+
+  // تحميل صور السلايدر من Firebase
+  useEffect(() => {
+    const loadSliderImages = async () => {
+      try {
+        console.log('📥 Loading slider images from Firebase...');
+        const imagesRef = ref(storage, 'slider-images');
+        const imagesList = await listAll(imagesRef);
+        
+        const imageUrls: string[] = [];
+        for (const item of imagesList.items) {
+          const url = await getDownloadURL(item);
+          imageUrls.push(url);
+        }
+        
+        console.log('✅ Loaded', imageUrls.length, 'slider images');
+        setSliderImages(imageUrls);
+      } catch (error) {
+        console.error('❌ Error loading slider images:', error);
+        // استخدام الصور الافتراضية في حالة الخطأ
+        setSliderImages([]);
+      } finally {
+        setLoadingImages(false);
+      }
+    };
+
+    loadSliderImages();
+  }, []);
+
+  // Auto-play slideshow
+  useEffect(() => {
+    if (sliderImages.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % sliderImages.length);
+    }, 3000); // تغيير كل 3 ثواني
+
+    return () => clearInterval(interval);
+  }, [sliderImages.length]);
 
   // Screenshots slideshow data
   const screenshots = [
@@ -340,6 +383,95 @@ export default function HomePage() {
             <div className="bg-white/5 backdrop-blur-md rounded-3xl p-6 lg:p-8 border border-white/10 shadow-2xl mb-8">
               <div className="text-center mb-6">
                 <h3 className="text-2xl lg:text-3xl font-bold text-white mb-2">
+                  {sliderImages.length > 0 ? 'استكشف أجزاء التطبيق' : 'معرض الصور'}
+                </h3>
+                <p className="text-blue-100/70">
+                  {sliderImages.length > 0 ? 'شاهد كيف يعمل التطبيق من الداخل' : 'صور من التطبيق'}
+                </p>
+              </div>
+
+              {loadingImages ? (
+                <div className="relative overflow-hidden rounded-2xl bg-black/30 aspect-video flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                    <p className="text-white/60">جاري تحميل الصور...</p>
+                  </div>
+                </div>
+              ) : sliderImages.length === 0 ? (
+                <div className="relative overflow-hidden rounded-2xl bg-black/30 aspect-video flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-4 mx-auto">
+                      <Sparkles className="w-10 h-10 text-white" />
+                    </div>
+                    <p className="text-white/80 text-lg font-medium mb-2">لا توجد صور حالياً</p>
+                    <p className="text-white/60 text-sm">سيتم إضافة صور التطبيق قريباً</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="relative overflow-hidden rounded-2xl bg-black/30 aspect-video">
+                  {/* Main Image Display from Firebase */}
+                  <div className="relative w-full h-full">
+                    {sliderImages.map((imageUrl, index) => (
+                      <div
+                        key={index}
+                        className={`absolute inset-0 transition-all duration-700 ease-in-out ${
+                          index === currentSlide
+                            ? 'opacity-100 scale-100'
+                            : 'opacity-0 scale-95 pointer-events-none'
+                        }`}
+                      >
+                        <img
+                          src={imageUrl}
+                          alt={`Screenshot ${index + 1}`}
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Navigation Arrows - only show if more than 1 image */}
+                  {sliderImages.length > 1 && (
+                    <>
+                      <button
+                        onClick={() => setCurrentSlide((prev) => (prev - 1 + sliderImages.length) % sliderImages.length)}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-all hover:scale-110"
+                      >
+                        <ArrowRight className="w-6 h-6" />
+                      </button>
+                      <button
+                        onClick={() => setCurrentSlide((prev) => (prev + 1) % sliderImages.length)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-all hover:scale-110"
+                      >
+                        <ArrowRight className="w-6 h-6 rotate-180" />
+                      </button>
+                    </>
+                  )}
+
+                  {/* Dots Indicator */}
+                  {sliderImages.length > 1 && (
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                      {sliderImages.map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setCurrentSlide(index)}
+                          className={`w-2 h-2 rounded-full transition-all ${
+                            index === currentSlide
+                              ? 'bg-white w-8'
+                              : 'bg-white/50 hover:bg-white/75'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Keep old slideshow as fallback */}
+            {sliderImages.length === 0 && !loadingImages && (
+            <div className="bg-white/5 backdrop-blur-md rounded-3xl p-6 lg:p-8 border border-white/10 shadow-2xl mb-8">
+              <div className="text-center mb-6">
+                <h3 className="text-2xl lg:text-3xl font-bold text-white mb-2">
                   استكشف أجزاء التطبيق
                 </h3>
                 <p className="text-blue-100/70">
@@ -425,6 +557,7 @@ export default function HomePage() {
                 ))}
               </div>
             </div>
+            )}
 
             {/* Feature Showcase */}
             <div className="bg-white/5 backdrop-blur-md rounded-3xl p-6 lg:p-8 border border-white/10 shadow-2xl">
