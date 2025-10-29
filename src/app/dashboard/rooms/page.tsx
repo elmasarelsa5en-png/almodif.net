@@ -169,7 +169,19 @@ export default function RoomsPage() {
   
   const loadRoomsData = async () => {
     try {
+      console.log('📥 بدء تحميل الغرف من Firebase...');
       const roomsData = await getRoomsFromFirebase();
+      console.log(`✅ تم تحميل ${roomsData.length} غرفة من Firebase`);
+      
+      // طباعة الغرف المشغولة مع بيانات النزلاء
+      const occupiedRooms = roomsData.filter(r => r.status === 'Occupied' || r.status === 'CheckoutToday');
+      console.log('🏨 الغرف المشغولة:', occupiedRooms.map(r => ({
+        number: r.number,
+        status: r.status,
+        guestName: r.guestName,
+        hasGuestName: !!r.guestName
+      })));
+      
       setRooms(roomsData);
       setFilteredRooms(roomsData);
     } catch (error) {
@@ -466,13 +478,24 @@ export default function RoomsPage() {
         ]
       };
 
+      console.log('💾 حفظ الغرفة مع بيانات النزيل:', {
+        roomNumber: updatedRoom.number,
+        guestName: updatedRoom.guestName,
+        guestPhone: updatedRoom.guestPhone,
+        status: updatedRoom.status
+      });
+
       // حفظ في Firebase
       await saveRoomToFirebase(updatedRoom);
+
+      console.log('✅ تم حفظ الغرفة في Firebase - تحديث الحالة المحلية');
 
       // تحديث القائمة المحلية
       const updatedRooms = rooms.map(r => r.id === updatedRoom.id ? updatedRoom : r);
       setRooms(updatedRooms);
       setFilteredRooms(updatedRooms);
+      
+      console.log('📋 الغرف المحدثة:', updatedRooms.find(r => r.id === updatedRoom.id));
 
       alert('✅ تم إنشاء الحجز بنجاح!');
       setIsBookingDialogOpen(false);
