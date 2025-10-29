@@ -654,9 +654,9 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
           </Button>
 
           {/* Employee Notifications - For assigned tasks/requests */}
-          {user && user.id && (
+          {user && (user.id || user.username) && (
             <EmployeeNotifications 
-              employeeId={user.id} 
+              employeeId={user.id || user.username} 
               employeeName={user.name || user.username}
             />
           )}
