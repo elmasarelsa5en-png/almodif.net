@@ -44,6 +44,7 @@ export default function ChatPage() {
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const unsubscribeRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     const loadEmployees = async () => {
@@ -117,6 +118,15 @@ export default function ChatPage() {
   };
 
   const selectEmployee = async (employee: Employee) => {
+    console.log('🎯 Selecting employee:', employee.name);
+    
+    // إلغاء الـ listener القديم إذا كان موجود
+    if (unsubscribeRef.current) {
+      console.log('🔕 Unsubscribing from old chat');
+      unsubscribeRef.current();
+      unsubscribeRef.current = null;
+    }
+    
     setSelectedEmployee(employee);
     setMessages([]);
     
@@ -124,10 +134,12 @@ export default function ChatPage() {
     if (chatId) {
       setCurrentChatId(chatId);
       
+      console.log('👂 Setting up message listener for chat:', chatId);
       const messagesRef = collection(db, 'messages');
       const q = query(messagesRef, where('chatId', '==', chatId), orderBy('timestamp', 'asc'));
 
       const unsubscribe = onSnapshot(q, (snapshot) => {
+        console.log('📨 Messages snapshot received:', snapshot.size, 'messages');
         const messagesList: Message[] = [];
         snapshot.forEach((doc) => {
           const data = doc.data();
@@ -140,13 +152,27 @@ export default function ChatPage() {
             read: data.read || false,
           });
         });
+        console.log('💬 Setting messages state:', messagesList.length);
         setMessages(messagesList);
         setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+      }, (error) => {
+        console.error('❌ Error in messages listener:', error);
       });
 
-      return () => unsubscribe();
+      // حفظ الـ unsubscribe function
+      unsubscribeRef.current = unsubscribe;
     }
   };
+  
+  // تنظيف الـ listener عند إلغاء المكون
+  useEffect(() => {
+    return () => {
+      if (unsubscribeRef.current) {
+        console.log('🧹 Cleaning up message listener');
+        unsubscribeRef.current();
+      }
+    };
+  }, []);
 
   const sendMessage = async () => {
     if (!messageText.trim() || !currentChatId || !selectedEmployee) {
