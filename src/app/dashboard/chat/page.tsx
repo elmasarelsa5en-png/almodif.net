@@ -32,6 +32,9 @@ interface Employee {
   role?: string;
   department?: string;
   isOnline?: boolean;
+  lastMessage?: string;
+  lastMessageTime?: Date;
+  lastMessageType?: 'text' | 'image' | 'audio' | 'file';
 }
 
 interface Message {
@@ -60,6 +63,7 @@ export default function ChatPage() {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [unreadChats, setUnreadChats] = useState<Set<string>>(new Set());
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+  const [lastMessages, setLastMessages] = useState<Record<string, { text: string; time: Date; type: string }>>({});
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
@@ -232,6 +236,75 @@ export default function ChatPage() {
     updateUnreadCounts();
 
     const interval = setInterval(updateUnreadCounts, 5000);
+    return () => clearInterval(interval);
+  }, [user, employees]);
+
+  // جلب آخر رسالة لكل موظف
+  useEffect(() => {
+    if (!user || employees.length === 0) {
+      return;
+    }
+
+    const currentUserId = user.username || user.email;
+    if (!currentUserId) {
+      return;
+    }
+
+    const fetchLastMessages = async () => {
+      const lastMsgs: Record<string, { text: string; time: Date; type: string }> = {};
+
+      for (const employee of employees) {
+        try {
+          const chatsRef = collection(db, 'chats');
+          const q = query(chatsRef, where('participants', 'array-contains', currentUserId));
+          const querySnapshot = await getDocs(q);
+          
+          for (const chatDoc of querySnapshot.docs) {
+            const chatData = chatDoc.data();
+            if (chatData.participants.includes(employee.id)) {
+              // جلب آخر رسالة من هذه المحادثة
+              const messagesRef = collection(db, 'chats', chatDoc.id, 'messages');
+              const lastMessageQuery = query(
+                messagesRef,
+                orderBy('timestamp', 'desc')
+              );
+              const lastMessageSnap = await getDocs(lastMessageQuery);
+              
+              if (!lastMessageSnap.empty) {
+                const lastMsg = lastMessageSnap.docs[0].data();
+                let displayText = '';
+                
+                if (lastMsg.type === 'text') {
+                  displayText = lastMsg.text || '';
+                } else if (lastMsg.type === 'image') {
+                  displayText = '📷 صورة';
+                } else if (lastMsg.type === 'audio') {
+                  displayText = '🎤 رسالة صوتية';
+                } else if (lastMsg.type === 'file') {
+                  displayText = `📎 ${lastMsg.fileName || 'ملف'}`;
+                }
+
+                lastMsgs[employee.id] = {
+                  text: displayText,
+                  time: lastMsg.timestamp?.toDate() || new Date(),
+                  type: lastMsg.type
+                };
+              }
+              break;
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching last message for', employee.id, error);
+        }
+      }
+
+      setLastMessages(lastMsgs);
+    };
+
+    fetchLastMessages();
+
+    // تحديث كل 10 ثواني
+    const interval = setInterval(fetchLastMessages, 10000);
     return () => clearInterval(interval);
   }, [user, employees]);
 
@@ -634,11 +707,41 @@ export default function ChatPage() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const filteredEmployees = employees.filter(emp => 
-    emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    emp.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    emp.department?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // تنسيق وقت آخر رسالة (زي WhatsApp)
+  const formatMessageTime = (date: Date) => {
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const diffInMinutes = Math.floor(diff / 60000);
+    const diffInHours = Math.floor(diff / 3600000);
+    const diffInDays = Math.floor(diff / 86400000);
+
+    if (diffInMinutes < 1) {
+      return 'الآن';
+    } else if (diffInMinutes < 60) {
+      return `${diffInMinutes} د`;
+    } else if (diffInHours < 24) {
+      return date.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+    } else if (diffInDays === 1) {
+      return 'أمس';
+    } else if (diffInDays < 7) {
+      return date.toLocaleDateString('ar-SA', { weekday: 'long' });
+    } else {
+      return date.toLocaleDateString('ar-SA', { day: 'numeric', month: 'numeric' });
+    }
+  };
+
+  const filteredEmployees = employees
+    .filter(emp => 
+      emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      emp.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      emp.department?.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => {
+      // ترتيب حسب آخر رسالة (الأحدث أولاً)
+      const timeA = lastMessages[a.id]?.time?.getTime() || 0;
+      const timeB = lastMessages[b.id]?.time?.getTime() || 0;
+      return timeB - timeA;
+    });
 
   return (
     <ProtectedRoute>
@@ -692,15 +795,28 @@ export default function ChatPage() {
                   </div>
 
                   <div className='flex-1 text-right overflow-hidden'>
-                    <div className='flex items-center justify-between gap-2'>
+                    <div className='flex items-center justify-between gap-2 mb-1'>
                       <p className='font-semibold text-white truncate text-sm'>{employee.name}</p>
+                      {lastMessages[employee.id] && (
+                        <span className='flex-shrink-0 text-xs text-gray-400'>
+                          {formatMessageTime(lastMessages[employee.id].time)}
+                        </span>
+                      )}
+                    </div>
+                    <div className='flex items-center justify-between gap-2'>
+                      {lastMessages[employee.id] ? (
+                        <p className='text-xs text-gray-400 truncate flex-1'>
+                          {lastMessages[employee.id].text}
+                        </p>
+                      ) : (
+                        <p className='text-xs text-gray-500 truncate flex-1'>لا توجد رسائل</p>
+                      )}
                       {unreadCounts[employee.id] > 0 && (
                         <span className='flex-shrink-0 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse'>
                           {unreadCounts[employee.id]}
                         </span>
                       )}
                     </div>
-                    <p className='text-xs text-gray-400 truncate'>{employee.role || employee.department || 'موظف'}</p>
                   </div>
                 </button>
               ))

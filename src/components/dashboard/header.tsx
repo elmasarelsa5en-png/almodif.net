@@ -63,6 +63,7 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
     urgent: 0,
     actionRequired: 0
   });
+  const [totalUnreadChats, setTotalUnreadChats] = useState(0);
   const [logo, setLogo] = useState<string | null>(null);
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const [showSearch, setShowSearch] = useState(false);
@@ -158,6 +159,47 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
     
     window.addEventListener('profile-updated', handleProfileUpdate);
     return () => window.removeEventListener('profile-updated', handleProfileUpdate);
+  }, [user]);
+
+  // حساب عدد الرسائل غير المقروءة في المحادثات
+  useEffect(() => {
+    if (!user) return;
+
+    const countUnreadChats = async () => {
+      try {
+        const { db } = await import('@/lib/firebase');
+        const { collection, query, where, getDocs } = await import('firebase/firestore');
+        
+        const currentUserId = user.username || user.email;
+        if (!currentUserId) return;
+
+        const chatsRef = collection(db, 'chats');
+        const q = query(chatsRef, where('participants', 'array-contains', currentUserId));
+        const querySnapshot = await getDocs(q);
+
+        let totalUnread = 0;
+        for (const chatDoc of querySnapshot.docs) {
+          const messagesRef = collection(db, 'chats', chatDoc.id, 'messages');
+          const unreadQuery = query(
+            messagesRef,
+            where('senderId', '!=', currentUserId),
+            where('read', '==', false)
+          );
+          const unreadMessages = await getDocs(unreadQuery);
+          totalUnread += unreadMessages.size;
+        }
+
+        setTotalUnreadChats(totalUnread);
+      } catch (error) {
+        console.error('Error counting unread chats:', error);
+      }
+    };
+
+    countUnreadChats();
+
+    // تحديث كل 10 ثواني
+    const interval = setInterval(countUnreadChats, 10000);
+    return () => clearInterval(interval);
   }, [user]);
 
   // التحقق من صلاحية الموافقة (مدير أو استقبال)
@@ -576,11 +618,16 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push('/crm/whatsapp')}
-            className="hidden lg:flex text-white hover:text-blue-200 hover:bg-white/10 border border-white/20 hover:border-white/40 transition-all duration-200 p-2 w-9 h-9"
-            title="المحادثات"
+            onClick={() => router.push('/dashboard/chat')}
+            className="hidden lg:flex text-white hover:text-blue-200 hover:bg-white/10 border border-white/20 hover:border-white/40 transition-all duration-200 p-2 w-9 h-9 relative"
+            title="المحادثات الداخلية"
           >
             <MessageSquare className="w-4 h-4" />
+            {totalUnreadChats > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
+                {totalUnreadChats > 99 ? '99+' : totalUnreadChats}
+              </span>
+            )}
           </Button>
 
           {/* Language Toggle - Icon Only */}
