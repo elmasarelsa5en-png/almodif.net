@@ -607,16 +607,16 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                 <div className="space-y-2">
                   <Label className="text-purple-200 font-semibold">نوع الزيارة</Label>
                   <Select value={visitType} onValueChange={setVisitType}>
-                <div className="space-y-2">
-                  <Label className="text-purple-200 font-semibold">نوع الزيارة</Label>
-                  <Select value={visitType} onValueChange={setVisitType}>
                     <SelectTrigger className="bg-white/10 border-purple-500/30 text-white">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent 
                       className="bg-slate-800 border-purple-500/30 z-[100]"
                     >
-                      {VISIT_TYPES.map(type => (pan>
+                      {VISIT_TYPES.map(type => (
+                        <SelectItem key={type.value} value={type.value} className="text-white">
+                          <span className="flex items-center gap-2">
+                            <span>{type.icon}</span>
                             <span>{type.label}</span>
                           </span>
                         </SelectItem>
