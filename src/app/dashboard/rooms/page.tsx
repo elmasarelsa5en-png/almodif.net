@@ -742,66 +742,6 @@ export default function RoomsPage() {
       )}
 
       <div className="relative z-10 max-w-[1800px] mx-auto space-y-8 p-4 lg:p-8">
-        {/* Header Section - تصميم احترافي جداً */}
-        <div className="bg-gradient-to-r from-slate-800/90 via-blue-900/90 to-indigo-900/90 backdrop-blur-xl rounded-3xl p-6 lg:p-8 shadow-2xl border border-white/10">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-            {/* العنوان */}
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-xl">
-                <BedDouble className="w-8 h-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl lg:text-4xl font-black bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent mb-1">
-                  إدارة الشقق - متشغولة
-                </h1>
-                <p className="text-blue-200/70 text-sm font-medium">
-                  {activeFilter !== 'All' 
-                    ? `عرض: ${ROOM_STATUS_CONFIG[activeFilter as RoomStatus]?.label}` 
-                    : 'عرض جميع الشقق'}
-                  {' • '}
-                  {filteredRooms.length} شقة
-                </p>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-wrap gap-3">
-              <HasPermission permission="add_guest">
-                <Button
-                  onClick={() => setIsAddGuestOpen(true)}
-                  className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 font-bold px-6 py-6 rounded-xl hover:scale-105"
-                >
-                  <UserPlus className="w-5 h-5 ml-2" />
-                  إضافة نزيل
-                </Button>
-              </HasPermission>
-
-              <HasPermission permission="add_rooms_from_image">
-                <Button
-                  onClick={() => setIsAddRoomsFromImageOpen(true)}
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 font-bold px-6 py-6 rounded-xl hover:scale-105"
-                >
-                  <Image className="w-5 h-5 ml-2" />
-                  إضافة من صورة
-                </Button>
-              </HasPermission>
-            </div>
-          </div>
-
-          {/* Search Bar */}
-          <div className="mt-6">
-            <div className="relative max-w-2xl">
-              <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-blue-300/60" />
-              <Input
-                placeholder="🔍 ابحث برقم الشقة أو اسم النزيل..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full h-14 bg-white/10 border-2 border-white/20 text-white text-lg placeholder:text-blue-200/50 pl-16 rounded-xl focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 transition-all"
-              />
-            </div>
-          </div>
-        </div>
-
         {/* Filter Section - تصميم أنيق */}
         <div className="bg-gradient-to-r from-slate-800/80 via-blue-900/80 to-purple-900/80 backdrop-blur-xl rounded-2xl p-6 shadow-xl border border-white/10">
           <div className="flex items-center gap-3 mb-4">
@@ -931,7 +871,7 @@ export default function RoomsPage() {
         </div>
 
         {/* شبكة الشقق */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
           {filteredRooms
             .sort((a, b) => a.number.localeCompare(b.number))
             .map(room => (
