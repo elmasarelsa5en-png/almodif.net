@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/auth-context';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -22,11 +23,16 @@ import {
   Shirt,
   Bell,
   Menu as MenuIcon,
-  QrCode
+  QrCode,
+  Code2
 } from 'lucide-react';
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { user } = useAuth();
+
+  // التحقق من أن المستخدم هو akram
+  const isDeveloper = user?.email === 'akram@almodif.net' || user?.username === 'akram';
 
   const quickActions = [
     {
@@ -174,6 +180,40 @@ export default function SettingsPage() {
           إدارة إعدادات النظام والتخصيصات
         </p>
       </div>
+
+      {/* Developer Settings - يظهر فقط لـ akram */}
+      {isDeveloper && (
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <Code2 className="h-5 w-5 text-purple-600" />
+            <h2 className="text-2xl font-bold">إعدادات المطور</h2>
+            <Badge variant="destructive" className="mr-2">Exclusive</Badge>
+          </div>
+          
+          <Card 
+            className="hover:shadow-xl transition-all duration-300 cursor-pointer group border-purple-500/30 bg-gradient-to-br from-purple-500/5 to-blue-500/5"
+            onClick={() => router.push('/dashboard/settings/developer')}
+          >
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <div className="p-3 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 text-white">
+                  <Code2 className="h-6 w-6" />
+                </div>
+                <Badge variant="default" className="text-xs bg-gradient-to-r from-purple-600 to-pink-600">
+                  👨‍💻 Developer
+                </Badge>
+              </div>
+              <CardTitle className="mt-4 flex items-center justify-between group-hover:text-purple-600 transition-colors text-xl">
+                إعدادات المطور - Developer Settings
+                <ChevronRight className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </CardTitle>
+              <CardDescription className="text-base">
+                🎯 إدارة صور السلايدر في الصفحة الرئيسية • 📱 التحكم في إظهار/إخفاء أقسام القائمة الجانبية لكل فندق • 🔧 أدوات تطوير خاصة
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </div>
+      )}
 
       <div>
         <div className="flex items-center gap-2 mb-4">

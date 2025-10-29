@@ -6,6 +6,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { useLanguage } from '@/contexts/language-context';
 import { cn } from '@/lib/utils';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import { 
   LayoutDashboard,
   BedDouble,
@@ -223,6 +225,8 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const { t } = useLanguage();
   const [logo, setLogo] = useState<string | null>(null);
+  const [visibleItems, setVisibleItems] = useState<Set<string>>(new Set());
+  const [loadingSettings, setLoadingSettings] = useState(true);
   
   // في وضع الويب: دائماً مفتوحة، في الموبايل: تستخدم الحالة الخارجية
   const [isDesktop, setIsDesktop] = useState(false);
@@ -249,6 +253,61 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
+
+  // تحميل إعدادات القائمة الجانبية من Firebase
+  useEffect(() => {
+    const loadSidebarSettings = async () => {
+      try {
+        const settingsDoc = await getDoc(doc(db, 'developerSettings', 'sidebarVisibility'));
+        
+        if (settingsDoc.exists()) {
+          const data = settingsDoc.data();
+          const hotels = data.hotels || [];
+          
+          // البحث عن إعدادات الفندق الحالي (سنستخدم hotel1 كافتراضي حالياً)
+          // في المستقبل: يمكن قراءة hotelId من user data
+          const currentHotelId = 'hotel1'; // (user as any)?.hotelId || 'hotel1';
+          const hotelSettings = hotels.find((h: any) => h.hotelId === currentHotelId);
+          
+          if (hotelSettings) {
+            // إنشاء Set من الأقسام المفعلة فقط
+            const enabledItems = new Set<string>(
+              hotelSettings.items
+                .filter((item: any) => item.enabled)
+                .map((item: any) => String(item.id))
+            );
+            setVisibleItems(enabledItems);
+          } else {
+            // افتراضياً: عرض كل الأقسام
+            setVisibleItems(new Set(navigationItems.map(item => {
+              // استخراج ID من href
+              const id = item.href.split('/').pop() || item.href;
+              return id === '' ? 'dashboard' : id;
+            })));
+          }
+        } else {
+          // لا توجد إعدادات: عرض كل شيء
+          setVisibleItems(new Set(navigationItems.map(item => {
+            const id = item.href.split('/').pop() || item.href;
+            return id === '' ? 'dashboard' : id;
+          })));
+        }
+      } catch (error) {
+        console.error('Error loading sidebar settings:', error);
+        // في حالة الخطأ: عرض كل شيء
+        setVisibleItems(new Set(navigationItems.map(item => {
+          const id = item.href.split('/').pop() || item.href;
+          return id === '' ? 'dashboard' : id;
+        })));
+      } finally {
+        setLoadingSettings(false);
+      }
+    };
+
+    if (user) {
+      loadSidebarSettings();
+    }
+  }, [user]);
 
   // تحميل اللوجو من localStorage
   useEffect(() => {
@@ -280,7 +339,20 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
     router.push('/login');
   };
 
-  const filteredItems = navigationItems.filter(item => hasPermission(item.permission));
+  // فلترة العناصر حسب الصلاحيات والإعدادات
+  const filteredItems = navigationItems.filter(item => {
+    if (!hasPermission(item.permission)) return false;
+    
+    // استخراج ID من href
+    const id = item.href.split('/').pop() || item.href;
+    const itemId = id === '' ? 'dashboard' : id;
+    
+    // إذا لم يتم تحميل الإعدادات بعد، عرض كل شيء
+    if (loadingSettings) return true;
+    
+    // التحقق من أن القسم مفعل
+    return visibleItems.has(itemId);
+  });
 
   // Toggle section expansion
   const toggleSection = (href: string) => {
