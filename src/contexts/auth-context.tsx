@@ -8,6 +8,7 @@ interface User {
   role: string;
   name: string;
   email?: string;
+  id?: string;
   loginTime: string;
   isEmployee?: boolean;
   employeeId?: string;

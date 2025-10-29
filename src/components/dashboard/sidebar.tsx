@@ -238,6 +238,13 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
   }, []);
   
   const isCollapsed = isDesktop ? false : (externalCollapsed !== undefined ? externalCollapsed : internalCollapsed);
+  const handleMenuClick = () => {
+    if (!isDesktop && onToggle) {
+      onToggle();
+    } else if (!isDesktop) {
+      setInternalCollapsed(true);
+    }
+  };
   const toggleCollapse = onToggle || (() => setInternalCollapsed(!internalCollapsed));
   const pathname = usePathname();
   const router = useRouter();
@@ -296,7 +303,7 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
       {!isCollapsed && (
         <div 
           className="fixed inset-0 bg-black/50 z-20 md:hidden"
-          onClick={() => !isDesktop && setIsCollapsed(true)}
+          onClick={handleMenuClick}
         />
       )}
       
@@ -364,7 +371,7 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
             return (
               <div key={item.href}>
                 {/* Main Item - Always clickable */}
-                <Link href={item.href} onClick={() => !isDesktop && setIsCollapsed(true)}>
+                <Link href={item.href} onClick={handleMenuClick}>
                   <div className={cn(
                     "flex items-center gap-2 px-2.5 py-2 rounded-lg transition-all duration-200 group relative",
                     isActive 
@@ -429,7 +436,7 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
                       const isSubActive = pathname === subItem.href || pathname.startsWith(subItem.href);
 
                       return (
-                        <Link key={subItem.href} href={subItem.href} onClick={() => !isDesktop && setIsCollapsed(true)}>
+                        <Link key={subItem.href} href={subItem.href} onClick={handleMenuClick}>
                           <div className={cn(
                             "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group relative text-sm",
                             isSubActive 

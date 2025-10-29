@@ -12,7 +12,7 @@ export const initializeMessaging = async () => {
   try {
     // استيراد ديناميكي لتجنب مشاكل SSR
     const { getMessaging } = await import('firebase/messaging');
-    const { app } = await import('./firebase');
+    const app = (await import('./firebase')).default;
     
     messaging = getMessaging(app);
     console.log('✅ Firebase Messaging initialized');
