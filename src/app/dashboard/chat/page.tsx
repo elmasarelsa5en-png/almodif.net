@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/auth-context';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { collection, query, where, orderBy, onSnapshot, addDoc, updateDoc, doc, getDocs, serverTimestamp, setDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit, onSnapshot, addDoc, updateDoc, doc, getDocs, serverTimestamp, setDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { cn } from '@/lib/utils';
 import { 
@@ -376,7 +376,7 @@ export default function ChatPage() {
     return () => clearInterval(interval);
   }, [user, employees]);
 
-  // جلب آخر رسالة لكل موظف
+  // جلب آخر رسالة لكل موظف (Real-time)
   useEffect(() => {
     if (!user || employees.length === 0) {
       return;
@@ -387,7 +387,9 @@ export default function ChatPage() {
       return;
     }
 
-    const fetchLastMessages = async () => {
+    const unsubscribes: (() => void)[] = [];
+
+    const setupLastMessageListeners = async () => {
       const lastMsgs: Record<string, { text: string; time: Date; type: string }> = {};
 
       for (const employee of employees) {
@@ -399,51 +401,66 @@ export default function ChatPage() {
           for (const chatDoc of querySnapshot.docs) {
             const chatData = chatDoc.data();
             if (chatData.participants.includes(employee.id)) {
-              // جلب آخر رسالة من هذه المحادثة
+              console.log('📨 Setting up last message listener for:', employee.name, 'chat:', chatDoc.id);
+              
+              // استخدام real-time listener لآخر رسالة
               const messagesRef = collection(db, 'chats', chatDoc.id, 'messages');
               const lastMessageQuery = query(
                 messagesRef,
-                orderBy('timestamp', 'desc')
+                orderBy('timestamp', 'desc'),
+                limit(1) // نجيب آخر رسالة بس
               );
-              const lastMessageSnap = await getDocs(lastMessageQuery);
               
-              if (!lastMessageSnap.empty) {
-                const lastMsg = lastMessageSnap.docs[0].data();
-                let displayText = '';
-                
-                if (lastMsg.type === 'text') {
-                  displayText = lastMsg.text || '';
-                } else if (lastMsg.type === 'image') {
-                  displayText = '📷 صورة';
-                } else if (lastMsg.type === 'audio') {
-                  displayText = '🎤 رسالة صوتية';
-                } else if (lastMsg.type === 'file') {
-                  displayText = `📎 ${lastMsg.fileName || 'ملف'}`;
-                }
+              const unsubscribe = onSnapshot(lastMessageQuery, (snapshot) => {
+                if (!snapshot.empty) {
+                  const lastMsg = snapshot.docs[0].data();
+                  let displayText = '';
+                  
+                  if (lastMsg.type === 'text') {
+                    displayText = lastMsg.text || '';
+                  } else if (lastMsg.type === 'image') {
+                    displayText = '📷 صورة';
+                  } else if (lastMsg.type === 'audio') {
+                    displayText = '🎤 رسالة صوتية';
+                  } else if (lastMsg.type === 'file') {
+                    displayText = `📎 ${lastMsg.fileName || 'ملف'}`;
+                  }
 
-                lastMsgs[employee.id] = {
-                  text: displayText,
-                  time: lastMsg.timestamp?.toDate() || new Date(),
-                  type: lastMsg.type
-                };
-              }
+                  // تحديث آخر رسالة لهذا الموظف
+                  setLastMessages(prev => ({
+                    ...prev,
+                    [employee.id]: {
+                      text: displayText,
+                      time: lastMsg.timestamp?.toDate() || new Date(),
+                      type: lastMsg.type
+                    }
+                  }));
+                  
+                  console.log('✅ Updated last message for', employee.name, ':', displayText);
+                } else {
+                  console.log('⚠️ No messages found for', employee.name);
+                }
+              }, (error) => {
+                console.error('❌ Error in last message listener for', employee.id, error);
+              });
+              
+              unsubscribes.push(unsubscribe);
               break;
             }
           }
         } catch (error) {
-          console.error('Error fetching last message for', employee.id, error);
+          console.error('Error setting up last message listener for', employee.id, error);
         }
       }
-
-      setLastMessages(lastMsgs);
     };
 
-    fetchLastMessages();
+    setupLastMessageListeners();
 
-    // تحديث كل 10 ثواني
-    const interval = setInterval(fetchLastMessages, 10000);
-    return () => clearInterval(interval);
-  }, [user, employees]);
+    return () => {
+      console.log('🧹 Cleaning up last message listeners');
+      unsubscribes.forEach(unsub => unsub());
+    };
+  }, [user, employees.length]);
 
   const getOrCreateChat = async (employeeId: string) => {
     try {
