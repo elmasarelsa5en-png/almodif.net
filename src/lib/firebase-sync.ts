@@ -153,17 +153,18 @@ export const saveRoomToFirebase = async (room: Room): Promise<void> => {
     // إضافة الحقول الاختيارية فقط إذا كانت موجودة وليست undefined
     if (room.price !== undefined) firebaseData.price = room.price;
     
-    // بيانات النزيل - فقط إذا موجودة
-    if (room.guestName) firebaseData.guestName = room.guestName;
-    if (room.guestPhone) firebaseData.guestPhone = room.guestPhone;
-    if (room.guestNationality) firebaseData.guestNationality = room.guestNationality;
-    if (room.guestIdType) firebaseData.guestIdType = room.guestIdType;
-    if (room.guestIdNumber) firebaseData.guestIdNumber = room.guestIdNumber;
-    if (room.guestIdExpiry) firebaseData.guestIdExpiry = room.guestIdExpiry;
-    if (room.guestEmail) firebaseData.guestEmail = room.guestEmail;
-    if (room.guestWorkPhone) firebaseData.guestWorkPhone = room.guestWorkPhone;
-    if (room.guestAddress) firebaseData.guestAddress = room.guestAddress;
-    if (room.guestNotes) firebaseData.guestNotes = room.guestNotes;
+    // بيانات النزيل - نحفظها حتى لو فارغة (لأن الـ undefined يعني مش موجودة أصلاً)
+    // الحقول تتمسح بس لما تكون الحالة Available أو Maintenance (من updateRoomStatus)
+    if (room.guestName !== undefined) firebaseData.guestName = room.guestName;
+    if (room.guestPhone !== undefined) firebaseData.guestPhone = room.guestPhone;
+    if (room.guestNationality !== undefined) firebaseData.guestNationality = room.guestNationality;
+    if (room.guestIdType !== undefined) firebaseData.guestIdType = room.guestIdType;
+    if (room.guestIdNumber !== undefined) firebaseData.guestIdNumber = room.guestIdNumber;
+    if (room.guestIdExpiry !== undefined) firebaseData.guestIdExpiry = room.guestIdExpiry;
+    if (room.guestEmail !== undefined) firebaseData.guestEmail = room.guestEmail;
+    if (room.guestWorkPhone !== undefined) firebaseData.guestWorkPhone = room.guestWorkPhone;
+    if (room.guestAddress !== undefined) firebaseData.guestAddress = room.guestAddress;
+    if (room.guestNotes !== undefined) firebaseData.guestNotes = room.guestNotes;
     
     // تفاصيل الحجز
     if (room.bookingDetails) {
