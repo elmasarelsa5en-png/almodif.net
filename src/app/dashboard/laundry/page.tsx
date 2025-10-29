@@ -123,9 +123,11 @@ export default function LaundryPage() {
   const loadRooms = async () => {
     try {
       const roomsData = await getRoomsFromFirebase();
+      console.log('✅ تم تحميل الغرف في صفحة المغسلة:', roomsData.length, 'غرفة');
+      console.log('الغرف المشغولة:', roomsData.filter(r => r.status === 'occupied' || r.guestName).length);
       setRooms(roomsData);
     } catch (error) {
-      console.error('خطأ في تحميل الغرف:', error);
+      console.error('❌ خطأ في تحميل الغرف:', error);
     }
   };
 
@@ -511,25 +513,44 @@ export default function LaundryPage() {
                 animate={{ opacity: 1, x: 0 }}
               >
                 <Select value={selectedRoom} onValueChange={setSelectedRoom}>
-                  <SelectTrigger className="w-48 bg-black/30 backdrop-blur-xl border border-cyan-400/30 text-white rounded-2xl px-4 py-3">
+                  <SelectTrigger className="w-48 bg-black/30 backdrop-blur-xl border border-cyan-400/30 text-white rounded-2xl px-4 py-3" dir="rtl">
                     <div className="flex items-center gap-2">
                       <Home className="h-4 w-4 text-cyan-400" />
                       <SelectValue placeholder="اختر رقم الغرفة" />
                     </div>
                   </SelectTrigger>
-                  <SelectContent className="bg-black/90 backdrop-blur-2xl border border-cyan-400/20 rounded-2xl">
-                    {rooms.filter(r => r.status === 'occupied').map(room => (
-                      <SelectItem 
-                        key={room.id} 
-                        value={room.number} 
-                        className="text-white focus:bg-cyan-500/20 focus:text-cyan-300 rounded-xl m-1"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Home className="h-4 w-4" />
-                          غرفة {room.number} - {room.guestName || 'بدون نزيل'}
-                        </div>
-                      </SelectItem>
-                    ))}
+                  <SelectContent className="bg-black/90 backdrop-blur-2xl border border-cyan-400/20 rounded-2xl" dir="rtl">
+                    {rooms.length === 0 ? (
+                      <div className="text-white text-center p-4">
+                        <Clock className="h-8 w-8 mx-auto mb-2 text-cyan-400 animate-spin" />
+                        <p>جاري تحميل الغرف...</p>
+                      </div>
+                    ) : (
+                      rooms
+                        .filter(r => r.status === 'occupied' || r.guestName)
+                        .map(room => (
+                          <SelectItem 
+                            key={room.id} 
+                            value={room.number} 
+                            className="text-white focus:bg-cyan-500/20 focus:text-cyan-300 rounded-xl m-1"
+                            dir="rtl"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Home className="h-4 w-4" />
+                              <span>غرفة {room.number}</span>
+                              {room.guestName && (
+                                <span className="text-cyan-300">- {room.guestName}</span>
+                              )}
+                            </div>
+                          </SelectItem>
+                        ))
+                    )}
+                    {rooms.length > 0 && rooms.filter(r => r.status === 'occupied' || r.guestName).length === 0 && (
+                      <div className="text-white text-center p-4">
+                        <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-yellow-400" />
+                        <p>لا توجد غرف مشغولة حالياً</p>
+                      </div>
+                    )}
                   </SelectContent>
                 </Select>
                 
@@ -872,25 +893,34 @@ export default function LaundryPage() {
                 <span className="text-red-400">*</span>
               </label>
               <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
-                <SelectTrigger className="w-full bg-black/40 backdrop-blur-xl border border-cyan-400/30 text-white rounded-2xl px-4 py-3">
+                <SelectTrigger className="w-full bg-black/40 backdrop-blur-xl border border-cyan-400/30 text-white rounded-2xl px-4 py-3" dir="rtl">
                   <div className="flex items-center gap-2">
                     <UserCircle className="h-4 w-4 text-cyan-400" />
                     <SelectValue placeholder="اختر موظف المغسلة" />
                   </div>
                 </SelectTrigger>
-                <SelectContent className="bg-black/90 backdrop-blur-2xl border border-cyan-400/20 rounded-2xl">
-                  {employees.map(emp => (
-                    <SelectItem 
-                      key={emp.id} 
-                      value={emp.id} 
-                      className="text-white focus:bg-cyan-500/20 focus:text-cyan-300 rounded-xl m-1"
-                    >
-                      <div className="flex items-center gap-2">
-                        <UserCircle className="h-4 w-4" />
-                        {emp.name} - {emp.department}
-                      </div>
-                    </SelectItem>
-                  ))}
+                <SelectContent className="bg-black/90 backdrop-blur-2xl border border-cyan-400/20 rounded-2xl" dir="rtl">
+                  {employees.length === 0 ? (
+                    <div className="text-white text-center p-4">
+                      <Clock className="h-8 w-8 mx-auto mb-2 text-cyan-400 animate-spin" />
+                      <p>جاري تحميل الموظفين...</p>
+                    </div>
+                  ) : (
+                    employees.map(emp => (
+                      <SelectItem 
+                        key={emp.id} 
+                        value={emp.id} 
+                        className="text-white focus:bg-cyan-500/20 focus:text-cyan-300 rounded-xl m-1"
+                        dir="rtl"
+                      >
+                        <div className="flex items-center gap-2">
+                          <UserCircle className="h-4 w-4" />
+                          <span>{emp.name}</span>
+                          <span className="text-cyan-300 text-sm">- {emp.department}</span>
+                        </div>
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
               {!selectedEmployee && (
