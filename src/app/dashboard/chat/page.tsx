@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Send, Search, Phone, Video, MoreVertical, Smile, Paperclip,
   CheckCheck, Check, Circle, Loader2, MessageSquare, Users, AlertCircle,
+  Image as ImageIcon, Mic, MicOff, X, Play, Pause, Download
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +13,13 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import { collection, query, where, orderBy, onSnapshot, addDoc, updateDoc, doc, getDocs, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { cn } from '@/lib/utils';
+import { 
+  uploadChatImage, 
+  uploadChatAudio, 
+  AudioRecorder, 
+  validateFile 
+} from '@/lib/chat-file-manager';
+import { setupPushNotifications } from '@/lib/push-notifications';
 
 interface Employee {
   id: string;
@@ -28,7 +36,12 @@ interface Message {
   id: string;
   chatId: string;
   senderId: string;
-  text: string;
+  text?: string;
+  type: 'text' | 'image' | 'audio' | 'file';
+  fileUrl?: string;
+  fileName?: string;
+  fileSize?: number;
+  duration?: number;
   timestamp: Date;
   read: boolean;
 }
@@ -44,9 +57,16 @@ export default function ChatPage() {
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [unreadChats, setUnreadChats] = useState<Set<string>>(new Set());
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingDuration, setRecordingDuration] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const unsubscribeRef = useRef<(() => void) | null>(null);
   const allChatsUnsubscribeRef = useRef<(() => void) | null>(null);
+  const audioRecorderRef = useRef<AudioRecorder>(new AudioRecorder());
+  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const loadEmployees = async () => {
@@ -95,6 +115,19 @@ export default function ChatPage() {
 
     if (user) {
       loadEmployees();
+    }
+  }, [user]);
+
+  // تهيئة Push Notifications
+  useEffect(() => {
+    if (user) {
+      const userId = user.username || user.email;
+      if (userId) {
+        console.log('🔔 Initializing push notifications for:', userId);
+        setupPushNotifications(userId).catch(err => {
+          console.error('❌ Failed to setup push notifications:', err);
+        });
+      }
     }
   }, [user]);
 
@@ -229,6 +262,11 @@ export default function ChatPage() {
             chatId: data.chatId,
             senderId: data.senderId,
             text: data.text,
+            type: data.type || 'text',
+            fileUrl: data.fileUrl,
+            fileName: data.fileName,
+            fileSize: data.fileSize,
+            duration: data.duration,
             timestamp: data.timestamp?.toDate() || new Date(),
             read: data.read || false,
           });
@@ -315,6 +353,7 @@ export default function ChatPage() {
         chatId: currentChatId,
         senderId: currentUserId,
         text: messageText.trim(),
+        type: 'text',
         timestamp: serverTimestamp(),
         read: false,
       });
@@ -345,6 +384,169 @@ export default function ChatPage() {
     } finally {
       setIsSending(false);
     }
+  };
+
+  // رفع صورة
+  const handleImageUpload = async (file: File) => {
+    if (!currentChatId || !selectedEmployee) {
+      setErrorMessage('الرجاء اختيار محادثة أولاً');
+      return;
+    }
+
+    try {
+      const validation = validateFile(file, 'image');
+      if (!validation.valid) {
+        setErrorMessage(validation.error || 'ملف غير صالح');
+        setTimeout(() => setErrorMessage(''), 3000);
+        return;
+      }
+
+      setIsUploading(true);
+      setUploadProgress(0);
+      setErrorMessage('');
+
+      console.log('📤 Uploading image...');
+      const imageUrl = await uploadChatImage(
+        file,
+        currentChatId,
+        (progress) => {
+          setUploadProgress(progress);
+          console.log(`📊 Upload progress: ${progress}%`);
+        }
+      );
+
+      console.log('✅ Image uploaded, sending message...');
+      const currentUserId = user?.username || user?.email;
+
+      await addDoc(collection(db, 'messages'), {
+        chatId: currentChatId,
+        senderId: currentUserId,
+        type: 'image',
+        fileUrl: imageUrl,
+        fileName: file.name,
+        fileSize: file.size,
+        timestamp: serverTimestamp(),
+        read: false,
+      });
+
+      const chatRef = doc(db, 'chats', currentChatId);
+      await updateDoc(chatRef, {
+        lastMessage: '📷 صورة',
+        lastMessageTime: serverTimestamp(),
+      });
+
+      console.log('✅ Image message sent successfully');
+    } catch (error: any) {
+      console.error('❌ Error uploading image:', error);
+      setErrorMessage('فشل رفع الصورة: ' + (error?.message || 'خطأ غير معروف'));
+      setTimeout(() => setErrorMessage(''), 5000);
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+    }
+  };
+
+  // بدء تسجيل الصوت
+  const startRecording = async () => {
+    try {
+      console.log('🎤 Starting audio recording...');
+      await audioRecorderRef.current.startRecording();
+      setIsRecording(true);
+      setRecordingDuration(0);
+
+      // عداد الوقت
+      recordingIntervalRef.current = setInterval(() => {
+        setRecordingDuration(prev => prev + 1);
+      }, 1000);
+    } catch (error: any) {
+      console.error('❌ Error starting recording:', error);
+      setErrorMessage('فشل بدء التسجيل. تأكد من السماح بالوصول للميكروفون');
+      setTimeout(() => setErrorMessage(''), 5000);
+    }
+  };
+
+  // إيقاف وحفظ التسجيل
+  const stopRecording = async () => {
+    if (!currentChatId || !selectedEmployee) {
+      setErrorMessage('الرجاء اختيار محادثة أولاً');
+      return;
+    }
+
+    try {
+      console.log('🎤 Stopping recording...');
+      
+      // إيقاف العداد
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+        recordingIntervalRef.current = null;
+      }
+
+      const { blob, duration } = await audioRecorderRef.current.stopRecording();
+      setIsRecording(false);
+      setIsUploading(true);
+      setUploadProgress(0);
+
+      console.log('📤 Uploading audio...', { duration, size: blob.size });
+      
+      const audioUrl = await uploadChatAudio(
+        blob,
+        currentChatId,
+        duration,
+        (progress) => {
+          setUploadProgress(progress);
+          console.log(`📊 Audio upload progress: ${progress}%`);
+        }
+      );
+
+      console.log('✅ Audio uploaded, sending message...');
+      const currentUserId = user?.username || user?.email;
+
+      await addDoc(collection(db, 'messages'), {
+        chatId: currentChatId,
+        senderId: currentUserId,
+        type: 'audio',
+        fileUrl: audioUrl,
+        duration,
+        timestamp: serverTimestamp(),
+        read: false,
+      });
+
+      const chatRef = doc(db, 'chats', currentChatId);
+      await updateDoc(chatRef, {
+        lastMessage: '🎤 رسالة صوتية',
+        lastMessageTime: serverTimestamp(),
+      });
+
+      console.log('✅ Audio message sent successfully');
+      setRecordingDuration(0);
+    } catch (error: any) {
+      console.error('❌ Error saving recording:', error);
+      setErrorMessage('فشل حفظ التسجيل: ' + (error?.message || 'خطأ غير معروف'));
+      setTimeout(() => setErrorMessage(''), 5000);
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+      setIsRecording(false);
+    }
+  };
+
+  // إلغاء التسجيل
+  const cancelRecording = () => {
+    if (recordingIntervalRef.current) {
+      clearInterval(recordingIntervalRef.current);
+      recordingIntervalRef.current = null;
+    }
+    audioRecorderRef.current.cancelRecording();
+    setIsRecording(false);
+    setRecordingDuration(0);
+    console.log('🎤 Recording cancelled');
+  };
+
+  // تنسيق مدة التسجيل
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   const filteredEmployees = employees.filter(emp => 
@@ -464,7 +666,61 @@ export default function ChatPage() {
                     return (
                       <div key={message.id} className={cn('flex animate-in fade-in slide-in-from-bottom-2 duration-300', isCurrentUser ? 'justify-start' : 'justify-end')}>
                         <div className={cn('max-w-[70%] rounded-2xl px-4 py-3 shadow-xl', isCurrentUser ? 'bg-gradient-to-br from-purple-600 to-blue-600 text-white rounded-br-sm' : 'bg-slate-700/90 backdrop-blur-sm text-white rounded-bl-sm')}>
-                          <p className='text-sm leading-relaxed whitespace-pre-wrap break-words'>{message.text}</p>
+                          
+                          {/* رسالة نصية */}
+                          {message.type === 'text' && message.text && (
+                            <p className='text-sm leading-relaxed whitespace-pre-wrap break-words'>{message.text}</p>
+                          )}
+                          
+                          {/* صورة */}
+                          {message.type === 'image' && message.fileUrl && (
+                            <div className='space-y-2'>
+                              <img
+                                src={message.fileUrl}
+                                alt={message.fileName || 'صورة'}
+                                className='max-w-xs rounded-lg cursor-pointer hover:opacity-90 transition-opacity'
+                                onClick={() => window.open(message.fileUrl, '_blank')}
+                                loading='lazy'
+                              />
+                              {message.fileName && (
+                                <p className='text-xs opacity-70'>{message.fileName}</p>
+                              )}
+                            </div>
+                          )}
+                          
+                          {/* رسالة صوتية */}
+                          {message.type === 'audio' && message.fileUrl && (
+                            <div className='space-y-2'>
+                              <audio controls className='w-64' preload='metadata'>
+                                <source src={message.fileUrl} type='audio/webm' />
+                                <source src={message.fileUrl} type='audio/mpeg' />
+                                متصفحك لا يدعم تشغيل الصوت
+                              </audio>
+                              {message.duration && (
+                                <p className='text-xs opacity-70'>🎤 {formatDuration(Math.floor(message.duration))}</p>
+                              )}
+                            </div>
+                          )}
+                          
+                          {/* ملف */}
+                          {message.type === 'file' && message.fileUrl && (
+                            <a
+                              href={message.fileUrl}
+                              target='_blank'
+                              rel='noopener noreferrer'
+                              className='flex items-center gap-2 hover:opacity-80 transition-opacity'
+                            >
+                              <Paperclip className='w-4 h-4' />
+                              <div>
+                                <p className='text-sm font-medium'>{message.fileName || 'ملف'}</p>
+                                {message.fileSize && (
+                                  <p className='text-xs opacity-70'>{(message.fileSize / 1024).toFixed(0)} KB</p>
+                                )}
+                              </div>
+                              <Download className='w-4 h-4 ml-auto' />
+                            </a>
+                          )}
+                          
                           <div className='flex items-center gap-1.5 mt-2 justify-end'>
                             <span className='text-xs opacity-70'>{message.timestamp.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</span>
                             {isCurrentUser && (message.read ? <CheckCheck className='w-3.5 h-3.5 text-blue-200' /> : <Check className='w-3.5 h-3.5 opacity-70' />)}
@@ -485,23 +741,127 @@ export default function ChatPage() {
                   </div>
                 )}
                 
+                {/* شريط التقدم عند الرفع */}
+                {isUploading && (
+                  <div className='mb-3 p-3 bg-purple-500/20 border border-purple-500/50 rounded-lg'>
+                    <div className='flex items-center justify-between mb-2'>
+                      <span className='text-sm text-purple-200'>جاري الرفع...</span>
+                      <span className='text-sm text-purple-200 font-bold'>{uploadProgress.toFixed(0)}%</span>
+                    </div>
+                    <div className='bg-slate-700 rounded-full h-2 overflow-hidden'>
+                      <div
+                        className='bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-300'
+                        style={{ width: `${uploadProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+                
+                {/* واجهة التسجيل */}
+                {isRecording && (
+                  <div className='mb-3 p-3 bg-red-500/20 border border-red-500/50 rounded-lg flex items-center justify-between animate-pulse'>
+                    <div className='flex items-center gap-2'>
+                      <div className='w-3 h-3 bg-red-500 rounded-full animate-pulse' />
+                      <span className='text-sm text-red-200 font-medium'>جاري التسجيل...</span>
+                      <span className='text-sm text-red-200'>{formatDuration(recordingDuration)}</span>
+                    </div>
+                    <div className='flex items-center gap-2'>
+                      <Button
+                        size='sm'
+                        onClick={stopRecording}
+                        className='bg-green-600 hover:bg-green-700 text-white rounded-full'
+                        disabled={isUploading}
+                      >
+                        <Check className='w-4 h-4 ml-1' />
+                        حفظ
+                      </Button>
+                      <Button
+                        size='sm'
+                        variant='outline'
+                        onClick={cancelRecording}
+                        className='border-red-500 text-red-200 hover:bg-red-500/20 rounded-full'
+                      >
+                        <X className='w-4 h-4 ml-1' />
+                        إلغاء
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                
                 <div className='flex items-center gap-2'>
-                  <Button variant='ghost' size='sm' className='text-gray-400 hover:text-white hover:bg-slate-700/50 rounded-full w-9 h-9 p-0'>
+                  {/* زر Emoji (معطل مؤقتاً) */}
+                  <Button 
+                    variant='ghost' 
+                    size='sm' 
+                    className='text-gray-400 hover:text-white hover:bg-slate-700/50 rounded-full w-9 h-9 p-0'
+                    disabled={isUploading || isRecording}
+                    title='Emoji (قريباً)'
+                  >
                     <Smile className='w-5 h-5' />
                   </Button>
-                  <Button variant='ghost' size='sm' className='text-gray-400 hover:text-white hover:bg-slate-700/50 rounded-full w-9 h-9 p-0'>
-                    <Paperclip className='w-5 h-5' />
+                  
+                  {/* زر رفع الصور */}
+                  <input
+                    ref={fileInputRef}
+                    type='file'
+                    accept='image/*'
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) {
+                        handleImageUpload(e.target.files[0]);
+                        e.target.value = ''; // إعادة تعيين
+                      }
+                    }}
+                    className='hidden'
+                    id='image-upload-input'
+                  />
+                  <Button
+                    variant='ghost'
+                    size='sm'
+                    onClick={() => fileInputRef.current?.click()}
+                    className='text-gray-400 hover:text-white hover:bg-slate-700/50 rounded-full w-9 h-9 p-0'
+                    disabled={isUploading || isRecording}
+                    title='رفع صورة'
+                  >
+                    <ImageIcon className='w-5 h-5' />
                   </Button>
                   
+                  {/* زر تسجيل الصوت */}
+                  <Button
+                    variant='ghost'
+                    size='sm'
+                    onClick={isRecording ? stopRecording : startRecording}
+                    className={cn(
+                      'text-gray-400 hover:text-white hover:bg-slate-700/50 rounded-full w-9 h-9 p-0 transition-all',
+                      isRecording && 'bg-red-500 text-white animate-pulse'
+                    )}
+                    disabled={isUploading}
+                    title={isRecording ? 'إيقاف التسجيل' : 'تسجيل صوتي'}
+                  >
+                    {isRecording ? <MicOff className='w-5 h-5' /> : <Mic className='w-5 h-5' />}
+                  </Button>
+                  
+                  {/* حقل النص */}
                   <Input
-                    placeholder='اكتب رسالتك...'
+                    placeholder={isRecording ? 'جاري التسجيل...' : 'اكتب رسالتك...'}
                     value={messageText}
                     onChange={(e) => setMessageText(e.target.value)}
-                    onKeyPress={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                    onKeyPress={(e) => { 
+                      if (e.key === 'Enter' && !e.shiftKey && !isRecording && !isUploading) { 
+                        e.preventDefault(); 
+                        sendMessage(); 
+                      } 
+                    }}
                     className='flex-1 bg-slate-700/50 border-slate-600 text-white placeholder:text-gray-400 focus:ring-2 focus:ring-purple-500 rounded-full px-4'
+                    disabled={isRecording || isUploading}
                   />
                   
-                  <Button onClick={sendMessage} disabled={!messageText.trim() || isSending} className='bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 rounded-full w-11 h-11 p-0 shadow-lg disabled:opacity-50'>
+                  {/* زر الإرسال */}
+                  <Button 
+                    onClick={sendMessage} 
+                    disabled={!messageText.trim() || isSending || isRecording || isUploading} 
+                    className='bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 rounded-full w-11 h-11 p-0 shadow-lg disabled:opacity-50 transition-all'
+                    title='إرسال'
+                  >
                     {isSending ? <Loader2 className='w-5 h-5 animate-spin' /> : <Send className='w-5 h-5' />}
                   </Button>
                 </div>
