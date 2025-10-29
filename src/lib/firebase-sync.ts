@@ -98,8 +98,13 @@ export const getRoomsFromFirebase = async (): Promise<Room[]> => {
  */
 export const saveRoomToFirebase = async (room: Room): Promise<void> => {
   try {
+    // إزالة أي قيم undefined قبل الحفظ في Firebase
+    const cleanRoom = Object.fromEntries(
+      Object.entries(room).filter(([_, value]) => value !== undefined)
+    );
+    
     await setDoc(doc(db, ROOMS_COLLECTION, room.id), {
-      ...room,
+      ...cleanRoom,
       lastUpdated: Timestamp.now()
     });
     

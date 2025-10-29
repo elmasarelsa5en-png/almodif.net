@@ -267,13 +267,37 @@ export const updateRoomStatus = (
         newValue: newStatus
       };
 
-      return {
+      // إذا الغرفة أصبحت متاحة أو تحت الصيانة، نحذف جميع بيانات الحجز
+      const shouldClearBooking = newStatus === 'Available' || newStatus === 'Maintenance';
+      
+      const updatedRoom: Room = {
         ...room,
         status: newStatus,
-        guestName: newStatus === 'Occupied' || newStatus === 'Reserved' ? guestName || room.guestName : undefined,
         events: [newEvent, ...room.events],
         lastUpdated: new Date().toISOString()
       };
+
+      // حذف بيانات الحجز إذا لزم الأمر
+      if (shouldClearBooking) {
+        // @ts-ignore - نحتاج حذف الحقول الاختيارية
+        delete updatedRoom.guestName;
+        delete updatedRoom.guestPhone;
+        delete updatedRoom.guestNationality;
+        delete updatedRoom.guestIdType;
+        delete updatedRoom.guestIdNumber;
+        delete updatedRoom.guestIdExpiry;
+        delete updatedRoom.guestEmail;
+        delete updatedRoom.guestWorkPhone;
+        delete updatedRoom.guestAddress;
+        delete updatedRoom.guestNotes;
+        delete updatedRoom.balance;
+        delete updatedRoom.bookingDetails;
+      } else if (newStatus === 'Occupied' || newStatus === 'Reserved') {
+        // إذا الغرفة محجوزة أو مشغولة، نحدث اسم النزيل
+        updatedRoom.guestName = guestName || room.guestName;
+      }
+
+      return updatedRoom;
     }
     return room;
   });
