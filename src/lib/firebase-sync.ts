@@ -98,60 +98,89 @@ export const getRoomsFromFirebase = async (): Promise<Room[]> => {
  */
 /**
  * تنظيف الـ object من القيم undefined بشكل عميق (deep cleaning)
+ * نسخة محسنة - v4.0
  */
-const cleanUndefinedValues = (obj: any): any => {
+const removeUndefinedFields = (obj: any): any => {
   if (obj === null || obj === undefined) {
     return null;
   }
   
   if (Array.isArray(obj)) {
-    return obj.map(item => cleanUndefinedValues(item));
+    return obj.map(item => removeUndefinedFields(item)).filter(item => item !== undefined);
   }
   
-  if (typeof obj === 'object') {
-    const cleaned: any = {};
-    for (const [key, value] of Object.entries(obj)) {
+  if (typeof obj === 'object' && obj.constructor === Object) {
+    const result: any = {};
+    Object.keys(obj).forEach(key => {
+      const value = obj[key];
       if (value !== undefined) {
-        cleaned[key] = cleanUndefinedValues(value);
+        const cleanedValue = removeUndefinedFields(value);
+        if (cleanedValue !== undefined) {
+          result[key] = cleanedValue;
+        }
       }
-    }
-    return cleaned;
+    });
+    return result;
   }
   
   return obj;
 };
 
 /**
- * حفظ غرفة في Firebase
+ * حفظ غرفة في Firebase - v4.0 (معاد كتابتها بالكامل)
  */
 export const saveRoomToFirebase = async (room: Room): Promise<void> => {
   try {
-    console.log('💾 saveRoomToFirebase v3.0 - قبل التنظيف:', {
+    console.log('💾 [v4.0] saveRoomToFirebase - البداية:', {
       roomNumber: room.number,
       status: room.status,
-      hasGuestName: 'guestName' in room,
-      guestNameValue: (room as any).guestName
+      hasGuestName: room.hasOwnProperty('guestName'),
+      guestNameValue: room.guestName
     });
     
-    // تنظيف عميق لإزالة جميع القيم undefined
-    const cleanRoom = cleanUndefinedValues(room);
-    
-    console.log('🧹 بعد التنظيف:', {
-      roomNumber: cleanRoom.number,
-      status: cleanRoom.status,
-      hasGuestName: 'guestName' in cleanRoom,
-      guestNameValue: (cleanRoom as any).guestName,
-      allKeys: Object.keys(cleanRoom)
-    });
-    
-    await setDoc(doc(db, ROOMS_COLLECTION, room.id), {
-      ...cleanRoom,
+    // بناء object جديد تماماً بدون undefined
+    const firebaseData: any = {
+      id: room.id,
+      number: room.number,
+      floor: room.floor,
+      type: room.type,
+      status: room.status,
+      balance: room.balance || 0,
+      events: room.events || [],
       lastUpdated: Timestamp.now()
+    };
+    
+    // إضافة الحقول الاختيارية فقط إذا كانت موجودة وليست undefined
+    if (room.price !== undefined) firebaseData.price = room.price;
+    
+    // بيانات النزيل - فقط إذا موجودة
+    if (room.guestName) firebaseData.guestName = room.guestName;
+    if (room.guestPhone) firebaseData.guestPhone = room.guestPhone;
+    if (room.guestNationality) firebaseData.guestNationality = room.guestNationality;
+    if (room.guestIdType) firebaseData.guestIdType = room.guestIdType;
+    if (room.guestIdNumber) firebaseData.guestIdNumber = room.guestIdNumber;
+    if (room.guestIdExpiry) firebaseData.guestIdExpiry = room.guestIdExpiry;
+    if (room.guestEmail) firebaseData.guestEmail = room.guestEmail;
+    if (room.guestWorkPhone) firebaseData.guestWorkPhone = room.guestWorkPhone;
+    if (room.guestAddress) firebaseData.guestAddress = room.guestAddress;
+    if (room.guestNotes) firebaseData.guestNotes = room.guestNotes;
+    
+    // تفاصيل الحجز
+    if (room.bookingDetails) {
+      firebaseData.bookingDetails = removeUndefinedFields(room.bookingDetails);
+    }
+    
+    console.log('🧹 [v4.0] البيانات النظيفة:', {
+      keys: Object.keys(firebaseData),
+      hasGuestName: firebaseData.hasOwnProperty('guestName'),
+      guestNameInData: firebaseData.guestName
     });
     
-    console.log(`✅ تم حفظ الغرفة ${room.number} في Firebase`);
+    await setDoc(doc(db, ROOMS_COLLECTION, room.id), firebaseData);
+    
+    console.log(`✅ [v4.0] تم حفظ الغرفة ${room.number} في Firebase بنجاح`);
   } catch (error) {
-    console.error('❌ خطأ في حفظ الغرفة في Firebase:', error);
+    console.error('❌ [v4.0] خطأ في حفظ الغرفة في Firebase:', error);
     throw error;
   }
 };

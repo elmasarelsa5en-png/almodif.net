@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نسخ احتياطي للبيانات</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            color: #333;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .status {
+            background: #f0f4ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            max-height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💾 نسخ احتياطي للبيانات</h1>
+        
+        <div class="status" id="status">
+            اضغط على الأزرار لحفظ البيانات
+        </div>
+        
+        <button onclick="backupRooms()">📋 حفظ بيانات الغرف</button>
+        <button onclick="backupEmployees()">👥 حفظ بيانات الموظفين</button>
+        <button onclick="backupAll()">💾 حفظ كل البيانات</button>
+        
+        <div id="output"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBudVF7qmjLB_2kQUM9zs7kN6F84xT1jWc",
+            authDomain: "almudif-25e1e.firebaseapp.com",
+            projectId: "almudif-25e1e",
+            storageBucket: "almudif-25e1e.firebasestorage.app",
+            messagingSenderId: "684474487188",
+            appId: "1:684474487188:web:fd32ff4f34c1e20c45c878"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.backupRooms = async function() {
+            try {
+                const snapshot = await getDocs(collection(db, 'hotel_rooms'));
+                const rooms = [];
+                snapshot.forEach(doc => {
+                    rooms.push({ id: doc.id, ...doc.data() });
+                });
+                
+                const dataStr = JSON.stringify(rooms, null, 2);
+                downloadFile('rooms-backup-' + Date.now() + '.json', dataStr);
+                
+                document.getElementById('status').innerHTML = `✅ تم حفظ ${rooms.length} غرفة`;
+                document.getElementById('output').innerHTML = `<pre>${dataStr}</pre>`;
+            } catch (error) {
+                document.getElementById('status').innerHTML = `❌ خطأ: ${error.message}`;
+            }
+        };
+
+        window.backupEmployees = async function() {
+            try {
+                const snapshot = await getDocs(collection(db, 'employees'));
+                const employees = [];
+                snapshot.forEach(doc => {
+                    employees.push({ id: doc.id, ...doc.data() });
+                });
+                
+                const dataStr = JSON.stringify(employees, null, 2);
+                downloadFile('employees-backup-' + Date.now() + '.json', dataStr);
+                
+                document.getElementById('status').innerHTML = `✅ تم حفظ ${employees.length} موظف`;
+                document.getElementById('output').innerHTML = `<pre>${dataStr}</pre>`;
+            } catch (error) {
+                document.getElementById('status').innerHTML = `❌ خطأ: ${error.message}`;
+            }
+        };
+
+        window.backupAll = async function() {
+            try {
+                const roomsSnapshot = await getDocs(collection(db, 'hotel_rooms'));
+                const rooms = [];
+                roomsSnapshot.forEach(doc => {
+                    rooms.push({ id: doc.id, ...doc.data() });
+                });
+                
+                const employeesSnapshot = await getDocs(collection(db, 'employees'));
+                const employees = [];
+                employeesSnapshot.forEach(doc => {
+                    employees.push({ id: doc.id, ...doc.data() });
+                });
+                
+                const allData = {
+                    rooms,
+                    employees,
+                    backupDate: new Date().toISOString()
+                };
+                
+                const dataStr = JSON.stringify(allData, null, 2);
+                downloadFile('full-backup-' + Date.now() + '.json', dataStr);
+                
+                document.getElementById('status').innerHTML = `✅ تم حفظ ${rooms.length} غرفة و ${employees.length} موظف`;
+                document.getElementById('output').innerHTML = `<pre>${dataStr}</pre>`;
+            } catch (error) {
+                document.getElementById('status').innerHTML = `❌ خطأ: ${error.message}`;
+            }
+        };
+
+        function downloadFile(filename, text) {
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+            element.setAttribute('download', filename);
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+    </script>
+</body>
+</html>

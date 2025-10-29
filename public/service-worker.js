@@ -1,4 +1,4 @@
-const CACHE_NAME = 'almudif-smart-cache-v4'; // ✅ تحديث v4 - إصلاح undefined نهائياً
+const CACHE_NAME = 'almudif-smart-cache-v5'; // ✅ v5 - إعادة كتابة كاملة للدوال
 const urlsToCache = [
   '/',
   '/dashboard',
