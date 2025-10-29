@@ -269,9 +269,9 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
               <Button
                 variant="outline"
                 onClick={() => setShowStatusChange(!showStatusChange)}
-                className="bg-purple-600/20 border-purple-500/50 text-purple-300 hover:bg-purple-600/30"
+                className="bg-gradient-to-r from-purple-600/30 to-pink-600/30 border-2 border-purple-500/50 text-purple-200 hover:from-purple-600/50 hover:to-pink-600/50 hover:border-purple-400 transition-all duration-200 shadow-lg shadow-purple-500/20"
               >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                 </svg>
                 تغيير الحالة
@@ -291,67 +291,91 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                 </h3>
                 
                 <div className="grid grid-cols-3 gap-3">
+                  {/* متاحة */}
                   <Button
                     onClick={() => {
                       onStatusChange(room.id, 'Available');
                       setShowStatusChange(false);
                       handleClose();
                     }}
-                    className="bg-green-600 hover:bg-green-700 text-white"
+                    className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg shadow-green-500/30 transition-all duration-200 hover:scale-105"
                   >
+                    <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
                     متاحة
                   </Button>
                   
+                  {/* محجوزة */}
                   <Button
                     onClick={() => {
-                      onStatusChange(room.id, 'Cleaning');
+                      onStatusChange(room.id, 'Reserved');
                       setShowStatusChange(false);
                       handleClose();
                     }}
-                    className="bg-orange-600 hover:bg-orange-700 text-white"
+                    className="bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white shadow-lg shadow-yellow-500/30 transition-all duration-200 hover:scale-105"
                   >
-                    تحت التنظيف
+                    <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    محجوزة
                   </Button>
                   
+                  {/* صيانة */}
                   <Button
                     onClick={() => {
                       onStatusChange(room.id, 'Maintenance');
                       setShowStatusChange(false);
                       handleClose();
                     }}
-                    className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                    className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white shadow-lg shadow-orange-500/30 transition-all duration-200 hover:scale-105"
                   >
+                    <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
                     صيانة
                   </Button>
                   
+                  {/* تحتاج تنظيف */}
                   <Button
                     onClick={() => {
-                      onStatusChange(room.id, 'OutOfOrder');
+                      onStatusChange(room.id, 'NeedsCleaning');
                       setShowStatusChange(false);
                       handleClose();
                     }}
-                    className="bg-red-600 hover:bg-red-700 text-white"
+                    className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg shadow-blue-500/30 transition-all duration-200 hover:scale-105"
                   >
-                    خارج الخدمة
+                    <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    تحتاج تنظيف
                   </Button>
                   
+                  {/* تنظيف معلق */}
                   <Button
                     onClick={() => {
-                      // خروج اليوم = تحويل لـ PendingCleaning
                       onStatusChange(room.id, 'PendingCleaning');
                       setShowStatusChange(false);
                       handleClose();
                     }}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white shadow-lg shadow-purple-500/30 transition-all duration-200 hover:scale-105"
                   >
+                    <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
                     خروج اليوم
                   </Button>
                   
+                  {/* إلغاء */}
                   <Button
                     onClick={() => setShowStatusChange(false)}
                     variant="outline"
-                    className="border-purple-500/50 text-purple-300"
+                    className="border-2 border-purple-500/50 text-purple-300 hover:bg-purple-500/20 transition-all duration-200"
                   >
+                    <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                     إلغاء
                   </Button>
                 </div>
