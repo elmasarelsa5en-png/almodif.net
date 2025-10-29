@@ -15,11 +15,22 @@ import {
   Save,
   Plus,
   GripVertical,
-  AlertCircle
+  AlertCircle,
+  Wand2,
+  Cloud,
+  Globe,
+  ServerCog,
+  Sparkles,
+  Volume2,
+  Bell,
+  FileText,
+  ChevronRight
 } from 'lucide-react';
 import { ref, uploadBytes, getDownloadURL, deleteObject, listAll, getMetadata } from 'firebase/storage';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { storage, db } from '@/lib/firebase';
+import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 interface SliderImage {
   id: string;
@@ -300,6 +311,175 @@ export default function DeveloperSettingsPage() {
             </div>
           </div>
         </div>
+
+        {/* قائمة الإعدادات التقنية - بطاقات سريعة */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+            <Settings2 className="w-6 h-6" />
+            الإعدادات التقنية والأدوات
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* معالج Firebase */}
+            <Card 
+              className="cursor-pointer hover:scale-105 transition-all duration-300 bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-orange-500/20 border-purple-500/30 hover:border-purple-400/50 backdrop-blur-xl"
+              onClick={() => router.push('/dashboard/settings/firebase-setup')}
+            >
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <Wand2 className="w-8 h-8 text-purple-400 mb-2" />
+                  <Badge className="bg-purple-500 text-white">✨ معالج</Badge>
+                </div>
+                <CardTitle className="text-white">معالج إعداد Firebase</CardTitle>
+                <CardDescription className="text-gray-300">
+                  إعداد احترافي خطوة بخطوة مع اختبار الاتصال
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            {/* مزامنة البيانات */}
+            <Card 
+              className="cursor-pointer hover:scale-105 transition-all duration-300 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border-cyan-500/30 hover:border-cyan-400/50 backdrop-blur-xl"
+              onClick={() => router.push('/dashboard/settings/sync')}
+            >
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <Cloud className="w-8 h-8 text-cyan-400 mb-2" />
+                  <Badge className="bg-cyan-500 text-white">⭐ مهم</Badge>
+                </div>
+                <CardTitle className="text-white">مزامنة البيانات</CardTitle>
+                <CardDescription className="text-gray-300">
+                  المزامنة بين الأجهزة عبر Firebase
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            {/* الموقع الإلكتروني */}
+            <Card 
+              className="cursor-pointer hover:scale-105 transition-all duration-300 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border-indigo-500/30 hover:border-indigo-400/50 backdrop-blur-xl"
+              onClick={() => router.push('/dashboard/settings/website')}
+            >
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <Globe className="w-8 h-8 text-indigo-400 mb-2" />
+                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                </div>
+                <CardTitle className="text-white">الموقع الإلكتروني</CardTitle>
+                <CardDescription className="text-gray-300">
+                  إنشاء وإدارة موقع الفندق للحجز أونلاين
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            {/* سيرفر WhatsApp */}
+            <Card 
+              className="cursor-pointer hover:scale-105 transition-all duration-300 bg-gradient-to-br from-teal-500/20 to-green-500/20 border-teal-500/30 hover:border-teal-400/50 backdrop-blur-xl"
+              onClick={() => router.push('/whatsapp-bot')}
+            >
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <ServerCog className="w-8 h-8 text-teal-400 mb-2" />
+                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                </div>
+                <CardTitle className="text-white">سيرفر WhatsApp</CardTitle>
+                <CardDescription className="text-gray-300">
+                  إدارة الاتصال بـ WhatsApp وإعدادات البوت
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            {/* مساعد الذكاء الاصطناعي */}
+            <Card 
+              className="cursor-pointer hover:scale-105 transition-all duration-300 bg-gradient-to-br from-yellow-500/20 to-amber-500/20 border-yellow-500/30 hover:border-yellow-400/50 backdrop-blur-xl"
+              onClick={() => router.push('/crm/whatsapp')}
+            >
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <Sparkles className="w-8 h-8 text-yellow-400 mb-2" />
+                  <Badge className="bg-yellow-500 text-white">AI</Badge>
+                </div>
+                <CardTitle className="text-white">مساعد الذكاء الاصطناعي</CardTitle>
+                <CardDescription className="text-gray-300">
+                  إعدادات وتدريب مساعد الشات بوت
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            {/* إعدادات الأصوات */}
+            <Card 
+              className="cursor-pointer hover:scale-105 transition-all duration-300 bg-gradient-to-br from-orange-500/20 to-red-500/20 border-orange-500/30 hover:border-orange-400/50 backdrop-blur-xl"
+              onClick={() => router.push('/dashboard/settings/sound-settings')}
+            >
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <Volume2 className="w-8 h-8 text-orange-400 mb-2" />
+                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                </div>
+                <CardTitle className="text-white">إعدادات الأصوات</CardTitle>
+                <CardDescription className="text-gray-300">
+                  تخصيص التنبيهات الصوتية للنظام
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            {/* نغمات الإشعارات */}
+            <Card 
+              className="cursor-pointer hover:scale-105 transition-all duration-300 bg-gradient-to-br from-orange-500/20 via-red-500/20 to-pink-500/20 border-red-500/30 hover:border-red-400/50 backdrop-blur-xl"
+              onClick={() => router.push('/dashboard/settings/notification-sound')}
+            >
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <Bell className="w-8 h-8 text-red-400 mb-2" />
+                  <Badge className="bg-red-500 text-white">🔔</Badge>
+                </div>
+                <CardTitle className="text-white">نغمات الإشعارات</CardTitle>
+                <CardDescription className="text-gray-300">
+                  نغمة طويلة للطلبات الجديدة
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            {/* إعدادات الإشعارات */}
+            <Card 
+              className="cursor-pointer hover:scale-105 transition-all duration-300 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border-yellow-500/30 hover:border-yellow-400/50 backdrop-blur-xl"
+              onClick={() => router.push('/dashboard/settings/notifications')}
+            >
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <Bell className="w-8 h-8 text-yellow-400 mb-2" />
+                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                </div>
+                <CardTitle className="text-white">إعدادات الإشعارات</CardTitle>
+                <CardDescription className="text-gray-300">
+                  تخصيص الإشعارات الذكية وأذونات التنبيهات
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            {/* سجل التدقيق */}
+            <Card 
+              className="cursor-pointer hover:scale-105 transition-all duration-300 bg-gradient-to-br from-gray-500/20 to-slate-500/20 border-gray-500/30 hover:border-gray-400/50 backdrop-blur-xl"
+              onClick={() => router.push('/dashboard/audit-logs')}
+            >
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <FileText className="w-8 h-8 text-gray-400 mb-2" />
+                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                </div>
+                <CardTitle className="text-white">سجل التدقيق</CardTitle>
+                <CardDescription className="text-gray-300">
+                  جميع العمليات المسجلة في النظام
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
+        </div>
+
+        {/* قسم إدارة المحتوى */}
+        <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+          <Layout className="w-6 h-6" />
+          إدارة المحتوى والواجهة
+        </h2>
 
         {/* Tabs */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

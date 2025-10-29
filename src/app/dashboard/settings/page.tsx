@@ -35,91 +35,6 @@ export default function SettingsPage() {
   // التحقق من أن المستخدم هو akram
   const isDeveloper = user?.email === 'akram@almodif.net' || user?.username === 'akram';
 
-  // إعدادات المطور - فقط لـ akram
-  const developerSettings = [
-    {
-      id: 'firebase-setup',
-      title: 'معالج إعداد Firebase',
-      description: 'إعداد احترافي خطوة بخطوة مع اختبار الاتصال',
-      icon: Wand2,
-      color: 'from-purple-500 via-pink-500 to-orange-500',
-      href: '/dashboard/settings/firebase-setup',
-      badge: '✨ معالج'
-    },
-    {
-      id: 'sync',
-      title: 'مزامنة البيانات',
-      description: 'المزامنة بين الأجهزة عبر Firebase - حل مشكلة عدم ظهور البيانات',
-      icon: Cloud,
-      color: 'from-cyan-500 to-blue-500',
-      href: '/dashboard/settings/sync',
-      badge: '⭐ مهم'
-    },
-    {
-      id: 'website',
-      title: 'الموقع الإلكتروني',
-      description: 'إنشاء وإدارة موقع الفندق للحجز أونلاين',
-      icon: Globe,
-      color: 'from-indigo-500 to-purple-500',
-      href: '/dashboard/settings/website',
-      badge: null
-    },
-    {
-      id: 'whatsapp-server',
-      title: 'سيرفر WhatsApp',
-      description: 'إدارة الاتصال بـ WhatsApp وإعدادات البوت',
-      icon: ServerCog,
-      color: 'from-teal-500 to-green-500',
-      href: '/whatsapp-bot',
-      badge: null
-    },
-    {
-      id: 'ai-assistant',
-      title: 'مساعد الذكاء الاصطناعي',
-      description: 'إعدادات وتدريب مساعد الشات بوت',
-      icon: Sparkles,
-      color: 'from-yellow-500 to-amber-500',
-      href: '/crm/whatsapp',
-      badge: 'AI'
-    },
-    {
-      id: 'sounds',
-      title: 'إعدادات الأصوات',
-      description: 'تخصيص التنبيهات الصوتية للنظام',
-      icon: Volume2,
-      color: 'from-orange-500 to-red-500',
-      href: '/dashboard/settings/sound-settings',
-      badge: null
-    },
-    {
-      id: 'notification-sound',
-      title: 'نغمات الإشعارات',
-      description: 'اختر نغمة طويلة للطلبات الجديدة تسمعها في كل مكان',
-      icon: Bell,
-      color: 'from-orange-500 via-red-500 to-pink-500',
-      href: '/dashboard/settings/notification-sound',
-      badge: '🔔'
-    },
-    {
-      id: 'notifications',
-      title: 'إعدادات الإشعارات',
-      description: 'تخصيص الإشعارات الذكية وأذونات التنبيهات',
-      icon: Bell,
-      color: 'from-yellow-500 to-orange-500',
-      href: '/dashboard/settings/notifications',
-      badge: null
-    },
-    {
-      id: 'audit-logs',
-      title: 'سجل التدقيق',
-      description: 'جميع العمليات المسجلة في النظام (لا تُمسح أبداً)',
-      icon: FileText,
-      color: 'from-gray-500 to-slate-500',
-      href: '/dashboard/audit-logs',
-      badge: null
-    }
-  ];
-
   // إعدادات المنشأة - للفندق
   const hotelSettings = [
     {
@@ -198,59 +113,37 @@ export default function SettingsPage() {
           
           {/* بطاقة إعدادات المطور الرئيسية */}
           <Card 
-            className="hover:shadow-xl transition-all duration-300 cursor-pointer group border-purple-500/30 bg-gradient-to-br from-purple-500/5 to-blue-500/5 mb-6"
+            className="hover:shadow-xl transition-all duration-300 cursor-pointer group border-purple-500/30 bg-gradient-to-br from-purple-500/5 to-blue-500/5 mb-8"
             onClick={() => router.push('/dashboard/settings/developer')}
           >
             <CardHeader>
               <div className="flex items-start justify-between">
-                <div className="p-3 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 text-white">
-                  <Code2 className="h-6 w-6" />
+                <div className="p-4 rounded-xl bg-gradient-to-br from-purple-600 via-pink-600 to-blue-600 text-white shadow-lg">
+                  <Code2 className="h-8 w-8" />
                 </div>
-                <Badge variant="default" className="text-xs bg-gradient-to-r from-purple-600 to-pink-600">
-                  👨‍💻 Developer
+                <Badge variant="default" className="text-sm bg-gradient-to-r from-purple-600 to-pink-600 px-3 py-1">
+                  ⚡ Full Access
                 </Badge>
               </div>
-              <CardTitle className="mt-4 flex items-center justify-between group-hover:text-purple-600 transition-colors text-xl">
-                إعدادات المطور المتقدمة
-                <ChevronRight className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <CardTitle className="mt-4 flex items-center justify-between group-hover:text-purple-600 transition-colors text-2xl">
+                إعدادات المطور الكاملة
+                <ChevronRight className="h-6 w-6 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
               </CardTitle>
-              <CardDescription className="text-base">
-                🎯 إدارة صور السلايدر في الصفحة الرئيسية • 📱 التحكم في إظهار/إخفاء أقسام القائمة الجانبية لكل فندق • 🔧 أدوات تطوير خاصة
+              <CardDescription className="text-base mt-3 space-y-2">
+                <p className="font-semibold text-purple-900 dark:text-purple-200">🎯 الوصول الكامل لجميع الأدوات التقنية:</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-1 mt-2 text-sm">
+                  <p>• 🖼️ إدارة صور الصفحة الرئيسية</p>
+                  <p>• 📱 التحكم في أقسام Dashboard</p>
+                  <p>• 🔥 إعداد Firebase والمزامنة</p>
+                  <p>• 🌐 إدارة الموقع الإلكتروني</p>
+                  <p>• 💬 سيرفر WhatsApp والبوت</p>
+                  <p>• 🤖 مساعد الذكاء الاصطناعي</p>
+                  <p>• 🔔 الأصوات والإشعارات</p>
+                  <p>• 📋 سجل التدقيق والأمان</p>
+                </div>
               </CardDescription>
             </CardHeader>
           </Card>
-
-          {/* قائمة إعدادات المطور التفصيلية */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {developerSettings.map((action) => {
-              const Icon = action.icon;
-              return (
-                <Card 
-                  key={action.id}
-                  className="hover:shadow-lg transition-all duration-300 cursor-pointer group"
-                  onClick={() => router.push(action.href)}
-                >
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className={`p-3 rounded-lg bg-gradient-to-br ${action.color} text-white`}>
-                        <Icon className="h-6 w-6" />
-                      </div>
-                      {action.badge && (
-                        <Badge variant="secondary" className="text-xs">
-                          {action.badge}
-                        </Badge>
-                      )}
-                    </div>
-                    <CardTitle className="mt-4 flex items-center justify-between group-hover:text-primary transition-colors">
-                      {action.title}
-                      <ChevronRight className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </CardTitle>
-                    <CardDescription>{action.description}</CardDescription>
-                  </CardHeader>
-                </Card>
-              );
-            })}
-          </div>
         </div>
       )}
 
