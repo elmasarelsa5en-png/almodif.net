@@ -49,19 +49,32 @@ export default function ChatPage() {
   useEffect(() => {
     const loadEmployees = async () => {
       try {
-        console.log(' Loading employees...');
+        console.log('📥 Loading employees...');
         const employeesRef = collection(db, 'employees');
         const employeesSnap = await getDocs(employeesRef);
         
         const employeesList: Employee[] = [];
         employeesSnap.forEach((doc) => {
           const data = doc.data();
-          if (doc.id !== user?.username && doc.id !== user?.email) {
+          const employeeUsername = data.username || doc.id;
+          const employeeEmail = data.email;
+          
+          // استخدام username أو email كـ ID للمحادثة
+          const employeeId = employeeUsername || employeeEmail || doc.id;
+          
+          console.log('👤 Employee loaded:', {
+            docId: doc.id,
+            username: employeeUsername,
+            email: employeeEmail,
+            willUseAsId: employeeId
+          });
+          
+          if (employeeId !== user?.username && employeeId !== user?.email) {
             employeesList.push({
-              id: doc.id,
-              username: data.username || doc.id,
-              name: data.name || data.username || doc.id,
-              email: data.email,
+              id: employeeId, // ✅ استخدام username/email كـ ID
+              username: employeeUsername,
+              name: data.name || employeeUsername || doc.id,
+              email: employeeEmail,
               avatar: data.avatar,
               role: data.role,
               department: data.department,
@@ -70,10 +83,11 @@ export default function ChatPage() {
           }
         });
 
-        console.log(' Loaded employees:', employeesList.length);
+        console.log('✅ Loaded employees:', employeesList.length);
+        console.log('📋 Employees list:', employeesList);
         setEmployees(employeesList);
       } catch (error) {
-        console.error(' Error loading employees:', error);
+        console.error('❌ Error loading employees:', error);
       }
     };
 
@@ -85,23 +99,33 @@ export default function ChatPage() {
   const getOrCreateChat = async (employeeId: string) => {
     try {
       const currentUserId = user?.username || user?.email;
-      if (!currentUserId) return null;
+      if (!currentUserId) {
+        console.error('❌ No current user ID');
+        return null;
+      }
 
-      console.log(' Looking for chat between:', currentUserId, 'and', employeeId);
+      console.log('🔍 Looking for chat between:', currentUserId, 'and', employeeId);
+      console.log('📋 Current user:', user);
 
       const chatsRef = collection(db, 'chats');
       const q = query(chatsRef, where('participants', 'array-contains', currentUserId));
       const querySnapshot = await getDocs(q);
       
+      console.log('📊 Found', querySnapshot.size, 'chats for current user');
+      
       for (const docSnap of querySnapshot.docs) {
         const data = docSnap.data();
+        console.log('🔎 Checking chat:', docSnap.id, 'participants:', data.participants);
+        
         if (data.participants.includes(employeeId)) {
-          console.log(' Found existing chat:', docSnap.id);
+          console.log('✅ Found existing chat:', docSnap.id);
           return docSnap.id;
         }
       }
 
-      console.log(' Creating new chat...');
+      console.log('🆕 Creating new chat...');
+      console.log('👥 Participants will be:', [currentUserId, employeeId]);
+      
       const newChatRef = await addDoc(collection(db, 'chats'), {
         participants: [currentUserId, employeeId],
         createdAt: serverTimestamp(),
@@ -109,10 +133,10 @@ export default function ChatPage() {
         lastMessage: '',
       });
 
-      console.log(' Chat created:', newChatRef.id);
+      console.log('✅ Chat created:', newChatRef.id);
       return newChatRef.id;
     } catch (error) {
-      console.error(' Error in getOrCreateChat:', error);
+      console.error('❌ Error in getOrCreateChat:', error);
       return null;
     }
   };
@@ -140,7 +164,10 @@ export default function ChatPage() {
 
       const unsubscribe = onSnapshot(q, (snapshot) => {
         console.log('📨 Messages snapshot received:', snapshot.size, 'messages');
+        
+        const previousMessageCount = messages.length;
         const messagesList: Message[] = [];
+        
         snapshot.forEach((doc) => {
           const data = doc.data();
           messagesList.push({
@@ -152,8 +179,27 @@ export default function ChatPage() {
             read: data.read || false,
           });
         });
+        
         console.log('💬 Setting messages state:', messagesList.length);
         setMessages(messagesList);
+        
+        // تشغيل صوت إذا كانت هناك رسائل جديدة من شخص آخر
+        if (messagesList.length > previousMessageCount && previousMessageCount > 0) {
+          const lastMessage = messagesList[messagesList.length - 1];
+          const currentUserId = user?.username || user?.email;
+          
+          if (lastMessage.senderId !== currentUserId) {
+            console.log('🔔 New message from another user, playing sound...');
+            try {
+              const audio = new Audio('/sounds/notification.mp3');
+              audio.volume = 0.5;
+              audio.play().catch(err => console.log('🔇 Sound play failed:', err));
+            } catch (error) {
+              console.log('🔇 Sound error:', error);
+            }
+          }
+        }
+        
         setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
       }, (error) => {
         console.error('❌ Error in messages listener:', error);
@@ -244,6 +290,13 @@ export default function ChatPage() {
 
   return (
     <ProtectedRoute>
+      {/* إخفاء أيقونة المساعد الذكي في صفحة المحادثات */}
+      <style jsx global>{`
+        #ai-assistant-button {
+          display: none !important;
+        }
+      `}</style>
+      
       <div className='h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex overflow-hidden' dir='rtl'>
         
         <div className='w-80 bg-slate-800/50 backdrop-blur-xl border-l border-white/10 flex flex-col'>
