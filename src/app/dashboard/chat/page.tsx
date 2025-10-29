@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Send, Search, Phone, Video, MoreVertical, Smile, Paperclip,
-  CheckCheck, Check, Circle, Loader2, MessageSquare, Users,
+  CheckCheck, Check, Circle, Loader2, MessageSquare, Users, AlertCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,6 +42,7 @@ export default function ChatPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -148,29 +149,62 @@ export default function ChatPage() {
   };
 
   const sendMessage = async () => {
-    if (!messageText.trim() || !currentChatId || !selectedEmployee) return;
+    if (!messageText.trim() || !currentChatId || !selectedEmployee) {
+      console.warn('⚠️ Cannot send message:', { 
+        hasText: !!messageText.trim(), 
+        hasChatId: !!currentChatId, 
+        hasEmployee: !!selectedEmployee 
+      });
+      return;
+    }
 
     setIsSending(true);
+    setErrorMessage('');
+    console.log('📤 Sending message...', {
+      chatId: currentChatId,
+      text: messageText.trim(),
+      sender: user?.username || user?.email
+    });
+
     try {
       const currentUserId = user?.username || user?.email;
       
-      await addDoc(collection(db, 'messages'), {
+      if (!currentUserId) {
+        throw new Error('User ID not found');
+      }
+
+      console.log('💾 Adding message to Firestore...');
+      const messageRef = await addDoc(collection(db, 'messages'), {
         chatId: currentChatId,
         senderId: currentUserId,
         text: messageText.trim(),
         timestamp: serverTimestamp(),
         read: false,
       });
+      console.log('✅ Message added with ID:', messageRef.id);
 
+      console.log('📝 Updating chat document...');
       const chatRef = doc(db, 'chats', currentChatId);
       await updateDoc(chatRef, {
         lastMessage: messageText.trim(),
         lastMessageTime: serverTimestamp(),
       });
+      console.log('✅ Chat updated successfully');
 
       setMessageText('');
-    } catch (error) {
-      console.error(' Error sending message:', error);
+    } catch (error: any) {
+      console.error('❌ Error sending message:', error);
+      console.error('Error details:', {
+        code: error?.code,
+        message: error?.message,
+        name: error?.name,
+      });
+      
+      const errorMsg = `فشل إرسال الرسالة: ${error?.message || 'خطأ غير معروف'}`;
+      setErrorMessage(errorMsg);
+      
+      // إزالة رسالة الخطأ بعد 5 ثواني
+      setTimeout(() => setErrorMessage(''), 5000);
     } finally {
       setIsSending(false);
     }
@@ -307,6 +341,13 @@ export default function ChatPage() {
               </div>
 
               <div className='bg-slate-800/70 backdrop-blur-xl border-t border-white/10 p-4 shadow-lg'>
+                {errorMessage && (
+                  <div className='mb-3 p-3 bg-red-500/20 border border-red-500/50 rounded-lg flex items-center gap-2 text-red-200 animate-in fade-in slide-in-from-bottom-2'>
+                    <AlertCircle className='w-5 h-5 flex-shrink-0' />
+                    <p className='text-sm'>{errorMessage}</p>
+                  </div>
+                )}
+                
                 <div className='flex items-center gap-2'>
                   <Button variant='ghost' size='sm' className='text-gray-400 hover:text-white hover:bg-slate-700/50 rounded-full w-9 h-9 p-0'>
                     <Smile className='w-5 h-5' />
