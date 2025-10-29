@@ -459,7 +459,7 @@ export default function LaundryPage() {
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
 
             {/* Premium Customer Type Selection */}
-            <div className="flex gap-4">
+            <div className="flex items-center gap-4 flex-wrap">
               {[
                 { 
                   type: 'guest' as CustomerType, 
@@ -497,6 +497,31 @@ export default function LaundryPage() {
                   )}
                 </motion.button>
               ))}
+              
+              {/* Cart Button on Same Row */}
+              <motion.button
+                onClick={() => setIsCheckoutOpen(true)}
+                disabled={cart.length === 0}
+                className="relative bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white font-bold px-6 py-3 rounded-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <div className="flex items-center gap-2">
+                  <ShoppingCart className="h-4 w-4" />
+                  <span className="text-sm">السلة ({cart.length})</span>
+                </div>
+                
+                {cart.length > 0 && (
+                  <>
+                    <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center animate-pulse">
+                      {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                    </div>
+                    <div className="absolute -bottom-1 -left-1">
+                      <Sparkles className="h-3 w-3 text-yellow-400" />
+                    </div>
+                  </>
+                )}
+              </motion.button>
             </div>
 
             {/* Premium Room Selection */}
