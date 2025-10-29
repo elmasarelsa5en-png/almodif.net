@@ -32,6 +32,15 @@ service firebase.storage {
                    && request.resource.size < 2 * 1024 * 1024 // حد أقصى 2 MB
                    && request.resource.contentType.matches('image/.*');
     }
+    
+    // قواعد لصور السلايدر (للمطورين)
+    match /slider-images/{fileName} {
+      allow read: if true; // يمكن لأي شخص القراءة
+      allow write: if request.auth != null // يجب تسجيل الدخول
+                   && request.resource.size < 5 * 1024 * 1024 // حد أقصى 5 MB
+                   && request.resource.contentType.matches('image/.*'); // صور فقط
+      allow delete: if request.auth != null; // يمكن للمطورين الحذف
+    }
 
     // منع الوصول لأي مسارات أخرى
     match /{allPaths=**} {

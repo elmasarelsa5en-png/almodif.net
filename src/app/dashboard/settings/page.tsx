@@ -24,7 +24,8 @@ import {
   Bell,
   Menu as MenuIcon,
   QrCode,
-  Code2
+  Code2,
+  Building2
 } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -34,7 +35,8 @@ export default function SettingsPage() {
   // التحقق من أن المستخدم هو akram
   const isDeveloper = user?.email === 'akram@almodif.net' || user?.username === 'akram';
 
-  const quickActions = [
+  // إعدادات المطور - فقط لـ akram
+  const developerSettings = [
     {
       id: 'firebase-setup',
       title: 'معالج إعداد Firebase',
@@ -54,6 +56,73 @@ export default function SettingsPage() {
       badge: '⭐ مهم'
     },
     {
+      id: 'website',
+      title: 'الموقع الإلكتروني',
+      description: 'إنشاء وإدارة موقع الفندق للحجز أونلاين',
+      icon: Globe,
+      color: 'from-indigo-500 to-purple-500',
+      href: '/dashboard/settings/website',
+      badge: null
+    },
+    {
+      id: 'whatsapp-server',
+      title: 'سيرفر WhatsApp',
+      description: 'إدارة الاتصال بـ WhatsApp وإعدادات البوت',
+      icon: ServerCog,
+      color: 'from-teal-500 to-green-500',
+      href: '/whatsapp-bot',
+      badge: null
+    },
+    {
+      id: 'ai-assistant',
+      title: 'مساعد الذكاء الاصطناعي',
+      description: 'إعدادات وتدريب مساعد الشات بوت',
+      icon: Sparkles,
+      color: 'from-yellow-500 to-amber-500',
+      href: '/crm/whatsapp',
+      badge: 'AI'
+    },
+    {
+      id: 'sounds',
+      title: 'إعدادات الأصوات',
+      description: 'تخصيص التنبيهات الصوتية للنظام',
+      icon: Volume2,
+      color: 'from-orange-500 to-red-500',
+      href: '/dashboard/settings/sound-settings',
+      badge: null
+    },
+    {
+      id: 'notification-sound',
+      title: 'نغمات الإشعارات',
+      description: 'اختر نغمة طويلة للطلبات الجديدة تسمعها في كل مكان',
+      icon: Bell,
+      color: 'from-orange-500 via-red-500 to-pink-500',
+      href: '/dashboard/settings/notification-sound',
+      badge: '🔔'
+    },
+    {
+      id: 'notifications',
+      title: 'إعدادات الإشعارات',
+      description: 'تخصيص الإشعارات الذكية وأذونات التنبيهات',
+      icon: Bell,
+      color: 'from-yellow-500 to-orange-500',
+      href: '/dashboard/settings/notifications',
+      badge: null
+    },
+    {
+      id: 'audit-logs',
+      title: 'سجل التدقيق',
+      description: 'جميع العمليات المسجلة في النظام (لا تُمسح أبداً)',
+      icon: FileText,
+      color: 'from-gray-500 to-slate-500',
+      href: '/dashboard/audit-logs',
+      badge: null
+    }
+  ];
+
+  // إعدادات المنشأة - للفندق
+  const hotelSettings = [
+    {
       id: 'menu-items',
       title: 'قوائم الأصناف',
       description: 'إدارة أصناف الكوفي والمطعم والمغسلة - رفع Excel والصور',
@@ -70,24 +139,6 @@ export default function SettingsPage() {
       color: 'from-pink-500 via-rose-500 to-red-500',
       href: '/dashboard/settings/guest-menu-settings',
       badge: '⭐ جديد'
-    },
-    {
-      id: 'notification-sound',
-      title: 'نغمات الإشعارات',
-      description: 'اختر نغمة طويلة للطلبات الجديدة تسمعها في كل مكان',
-      icon: Volume2,
-      color: 'from-orange-500 via-red-500 to-pink-500',
-      href: '/dashboard/settings/notification-sound',
-      badge: '🔔 جديد'
-    },
-    {
-      id: 'website',
-      title: 'الموقع الإلكتروني',
-      description: 'إنشاء وإدارة موقع الفندق للحجز أونلاين',
-      icon: Globe,
-      color: 'from-indigo-500 to-purple-500',
-      href: '/dashboard/settings/website',
-      badge: null
     },
     {
       id: 'request-types',
@@ -124,51 +175,6 @@ export default function SettingsPage() {
       color: 'from-purple-500 to-pink-500',
       href: '/dashboard/settings/hr',
       badge: null
-    },
-    {
-      id: 'sounds',
-      title: 'إعدادات الأصوات',
-      description: 'تخصيص التنبيهات الصوتية للنظام',
-      icon: Volume2,
-      color: 'from-orange-500 to-red-500',
-      href: '/dashboard/settings/sound-settings',
-      badge: null
-    },
-    {
-      id: 'notifications',
-      title: 'إعدادات الإشعارات',
-      description: 'تخصيص الإشعارات الذكية وأذونات التنبيهات',
-      icon: Bell,
-      color: 'from-yellow-500 to-orange-500',
-      href: '/dashboard/settings/notifications',
-      badge: null
-    },
-    {
-      id: 'ai-assistant',
-      title: 'مساعد الذكاء الاصطناعي',
-      description: 'إعدادات وتدريب مساعد الشات بوت',
-      icon: Sparkles,
-      color: 'from-yellow-500 to-amber-500',
-      href: '/crm/whatsapp',
-      badge: 'AI'
-    },
-    {
-      id: 'whatsapp-server',
-      title: 'سيرفر WhatsApp',
-      description: 'إدارة الاتصال بـ WhatsApp وإعدادات البوت',
-      icon: ServerCog,
-      color: 'from-teal-500 to-green-500',
-      href: '/whatsapp-bot',
-      badge: null
-    },
-    {
-      id: 'audit-logs',
-      title: 'سجل التدقيق',
-      description: 'جميع العمليات المسجلة في النظام (لا تُمسح أبداً)',
-      icon: FileText,
-      color: 'from-gray-500 to-slate-500',
-      href: '/dashboard/audit-logs',
-      badge: null
     }
   ];
 
@@ -190,8 +196,9 @@ export default function SettingsPage() {
             <Badge variant="destructive" className="mr-2">Exclusive</Badge>
           </div>
           
+          {/* بطاقة إعدادات المطور الرئيسية */}
           <Card 
-            className="hover:shadow-xl transition-all duration-300 cursor-pointer group border-purple-500/30 bg-gradient-to-br from-purple-500/5 to-blue-500/5"
+            className="hover:shadow-xl transition-all duration-300 cursor-pointer group border-purple-500/30 bg-gradient-to-br from-purple-500/5 to-blue-500/5 mb-6"
             onClick={() => router.push('/dashboard/settings/developer')}
           >
             <CardHeader>
@@ -204,7 +211,7 @@ export default function SettingsPage() {
                 </Badge>
               </div>
               <CardTitle className="mt-4 flex items-center justify-between group-hover:text-purple-600 transition-colors text-xl">
-                إعدادات المطور - Developer Settings
+                إعدادات المطور المتقدمة
                 <ChevronRight className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity" />
               </CardTitle>
               <CardDescription className="text-base">
@@ -212,17 +219,51 @@ export default function SettingsPage() {
               </CardDescription>
             </CardHeader>
           </Card>
+
+          {/* قائمة إعدادات المطور التفصيلية */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {developerSettings.map((action) => {
+              const Icon = action.icon;
+              return (
+                <Card 
+                  key={action.id}
+                  className="hover:shadow-lg transition-all duration-300 cursor-pointer group"
+                  onClick={() => router.push(action.href)}
+                >
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className={`p-3 rounded-lg bg-gradient-to-br ${action.color} text-white`}>
+                        <Icon className="h-6 w-6" />
+                      </div>
+                      {action.badge && (
+                        <Badge variant="secondary" className="text-xs">
+                          {action.badge}
+                        </Badge>
+                      )}
+                    </div>
+                    <CardTitle className="mt-4 flex items-center justify-between group-hover:text-primary transition-colors">
+                      {action.title}
+                      <ChevronRight className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </CardTitle>
+                    <CardDescription>{action.description}</CardDescription>
+                  </CardHeader>
+                </Card>
+              );
+            })}
+          </div>
         </div>
       )}
 
+      {/* Hotel Settings - إعدادات المنشأة */}
       <div>
         <div className="flex items-center gap-2 mb-4">
-          <Settings className="h-5 w-5 text-primary" />
-          <h2 className="text-2xl font-bold">مركز الإعدادات</h2>
+          <Building2 className="h-5 w-5 text-blue-600" />
+          <h2 className="text-2xl font-bold">إعدادات المنشأة</h2>
+          <Badge variant="default" className="mr-2">🏨 Hotel</Badge>
         </div>
         
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {quickActions.map((action) => {
+          {hotelSettings.map((action) => {
             const Icon = action.icon;
             return (
               <Card 
@@ -260,7 +301,7 @@ export default function SettingsPage() {
             ملاحظة مهمة
           </CardTitle>
           <CardDescription className="text-base leading-relaxed">
-            جميع الإعدادات يتم حفظها محلياً في المتصفح. للاحتفاظ بالبيانات، تأكد من عمل نسخة احتياطية دورية.
+            جميع الإعدادات يتم حفظها في Firebase. تأكد من الاتصال بالإنترنت لحفظ التغييرات.
           </CardDescription>
         </CardHeader>
       </Card>

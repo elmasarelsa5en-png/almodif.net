@@ -103,6 +103,11 @@ service cloud.firestore {
     match /typing-status/{chatId} {
       allow read, write: if true;
     }
+    
+    // إعدادات المطور - للمطورين فقط
+    match /developerSettings/{settingId} {
+      allow read, write: if true;
+    }
 
     // قاعدة عامة للمستندات غير المحددة - محظورة
     match /{document=**} {
