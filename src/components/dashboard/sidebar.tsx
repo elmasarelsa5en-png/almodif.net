@@ -57,35 +57,35 @@ const navigationItems: NavigationItem[] = [
     labelKey: 'dashboard',
     descKey: 'dashboardDesc',
     href: '/dashboard',
-    permission: 'view:dashboard',
+    permission: 'view_dashboard',
   },
   {
     icon: BedDouble,
     labelKey: 'roomsManagement',
     descKey: 'roomsManagementDesc',
     href: '/dashboard/rooms',
-    permission: 'view:rooms',
+    permission: 'view_rooms',
   },
   {
     icon: Calendar,
     labelKey: 'bookings',
     descKey: 'bookingsDesc',
     href: '/dashboard/bookings',
-    permission: 'view:bookings',
+    permission: 'view_bookings',
     subItems: [
       {
         icon: Globe,
         labelKey: 'bookingPlatforms',
         descKey: 'bookingPlatformsDesc',
         href: '/dashboard/booking-platforms',
-        permission: 'view:bookings',
+        permission: 'view_bookings',
       },
       {
         icon: Link2,
         labelKey: 'nezalIntegration',
         descKey: 'nezalIntegrationDesc',
         href: '/dashboard/nezal-integration',
-        permission: 'view:bookings',
+        permission: 'view_bookings',
       }
     ]
   },
@@ -94,91 +94,91 @@ const navigationItems: NavigationItem[] = [
     labelKey: 'guestRequests',
     descKey: 'guestRequestsDesc',
     href: '/dashboard/requests',
-    permission: 'view:guest_requests',
+    permission: 'view_requests',
   },
   {
     icon: Shirt,
     labelKey: 'laundry',
     descKey: 'laundryDesc',
     href: '/dashboard/laundry',
-    permission: 'manage:laundry',
+    permission: 'view_laundry',
   },
   {
     icon: Coffee,
     labelKey: 'coffeeShop',
     descKey: 'coffeeShopDesc',
     href: '/dashboard/coffee-shop',
-    permission: 'manage:coffee_shop',
+    permission: 'view_coffee',
   },
   {
     icon: Utensils,
     labelKey: 'restaurant',
     descKey: 'restaurantDesc',
     href: '/dashboard/restaurant',
-    permission: 'manage:restaurant',
+    permission: 'view_restaurant',
   },
   {
     icon: Warehouse,
     labelKey: 'inventory',
     descKey: 'inventoryDesc',
     href: '/dashboard/inventory',
-    permission: 'view:inventory',
+    permission: 'view_dashboard',
   },
   {
     icon: Link2,
     labelKey: 'paymentLinks',
     descKey: 'paymentLinksDesc',
     href: '/dashboard/payment-links',
-    permission: 'view:payment_links',
+    permission: 'view_payments',
   },
   {
     icon: Calculator,
     labelKey: 'accounting',
     descKey: 'accountingDesc',
     href: '/dashboard/accounting',
-    permission: 'view:accounting',
+    permission: 'view_payments',
     subItems: [
       {
         icon: AreaChart,
         labelKey: 'financialDashboard',
         descKey: 'financialDashboardDesc',
         href: '/dashboard/accounting/dashboard',
-        permission: 'view:accounting',
+        permission: 'view_payments',
       },
       {
         icon: FileText,
         labelKey: 'invoiceManagement',
         descKey: 'invoiceManagementDesc',
         href: '/dashboard/accounting/invoices',
-        permission: 'manage:invoices',
+        permission: 'view_invoices',
       },
       {
         icon: TrendingDown,
         labelKey: 'expensesAndCosts',
         descKey: 'expensesAndCostsDesc',
         href: '/dashboard/accounting/expenses',
-        permission: 'manage:expenses',
+        permission: 'view_payments',
       },
       {
         icon: Eye,
         labelKey: 'financialReports',
         descKey: 'financialReportsDesc',
         href: '/dashboard/accounting/reports',
-        permission: 'view:financial_reports',
+        permission: 'view_financial_reports',
       },
       {
         icon: TrendingUp,
         labelKey: 'cashFlow',
         descKey: 'cashFlowDesc',
         href: '/dashboard/accounting/cash-flow',
-        permission: 'view:cash_flow',
+        permission: 'view_financial_reports',
       },
       {
         icon: Upload,
         labelKey: 'importSummary',
         descKey: 'importSummaryDesc',
         href: '/dashboard/accounting/import-summary',
-        permission: 'view:import_summary',
+        permission: 'view_financial_reports',
       }
     ]
   },
@@ -187,28 +187,28 @@ const navigationItems: NavigationItem[] = [
     labelKey: 'internalChat',
     descKey: 'internalChatDesc',
     href: '/dashboard/chat',
-    permission: 'view:internal_chat',
+    permission: 'access_chat',
   },
   {
     icon: Settings,
     labelKey: 'settings',
     descKey: 'settingsDesc',
     href: '/dashboard/settings',
-    permission: 'manage:settings',
+    permission: 'view_settings',
     subItems: [
       {
         icon: List,
         labelKey: 'menuItems',
         descKey: 'menuItemsDesc',
         href: '/dashboard/settings/menu-items',
-        permission: 'manage:menu_items',
+        permission: 'manage_menu_items',
       },
       {
         icon: Users,
         labelKey: 'hrManagement',
         descKey: 'hrManagementDesc',
         href: '/dashboard/settings/hr',
-        permission: 'manage:employees',
+        permission: 'manage_permissions',
       }
     ]
   },
@@ -373,11 +373,16 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
     return () => clearInterval(interval);
   }, [user]);
 
-  // دالة للتحقق من الصلاحيات (مؤقتة - ستتم إضافة منطق حقيقي لاحقاً)
+  // دالة للتحقق من الصلاحيات
   const hasPermission = (permission?: string) => {
     if (!permission) return true;
-    // جميع المستخدمين لديهم كل الصلاحيات مؤقتاً
-    return true;
+    
+    // المدير لديه كل الصلاحيات
+    if (user?.role === 'admin') return true;
+    
+    // التحقق من صلاحيات المستخدم
+    const userPermissions = user?.permissions || [];
+    return userPermissions.includes(permission);
   };
 
   const handleLogout = () => {

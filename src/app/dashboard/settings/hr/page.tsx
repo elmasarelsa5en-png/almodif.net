@@ -221,11 +221,10 @@ export default function HRSettingsPage() {
         logAction.updateEmployee(formData.name, editingEmployee.id, changes);
 
         // تحديث صلاحيات المستخدم الحالي إذا كان هو نفسه
-        const { useAuth } = await import('@/contexts/auth-context');
         const currentUser = localStorage.getItem('hotel_user');
         if (currentUser) {
           const userData = JSON.parse(currentUser);
-          if (userData.employeeId === editingEmployee.id) {
+          if (userData.employeeId === editingEmployee.id || userData.username === editingEmployee.username) {
             // تحديث الصلاحيات في localStorage
             userData.permissions = formData.permissions;
             userData.role = formData.role;
