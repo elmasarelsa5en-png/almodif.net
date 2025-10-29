@@ -740,10 +740,7 @@ export default function RoomsPage() {
           </div>
         </div>
       )}
-        <div className="absolute bottom-20 right-20 w-40 h-40 bg-purple-500/20 rounded-full blur-xl"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-indigo-500/10 rounded-full blur-2xl"></div>
-      </div>
-      
+
       <div className="relative z-10 max-w-[1800px] mx-auto space-y-8 p-4 lg:p-8">
         {/* Header Section - تصميم احترافي جداً */}
         <div className="bg-gradient-to-r from-slate-800/90 via-blue-900/90 to-indigo-900/90 backdrop-blur-xl rounded-3xl p-6 lg:p-8 shadow-2xl border border-white/10">
@@ -1316,7 +1313,7 @@ export default function RoomsPage() {
 
       {/* حافظة بيانات النزيل العائمة */}
       <GuestDataClipboard position="bottom-left" />
-    </div>
+      </div>
     </PermissionGuard>
   )
 }
