@@ -180,8 +180,13 @@ export default function NewRequestPage() {
       const { getRoomsFromFirebase } = await import('@/lib/firebase-sync');
       const roomsData = await getRoomsFromFirebase();
       
-      // تحميل كل الغرف (مش بس المشغولة)
-      const allRooms = roomsData
+      // فلترة الغرف المشغولة فقط (التي فيها نزلاء) - لأن الطلب يكون من غرفة مشغولة
+      const occupiedRooms = roomsData
+        .filter((room: any) => 
+          room.status === 'Occupied' || 
+          room.status === 'CheckoutToday' ||
+          (room.guestName && room.guestName.trim() !== '')
+        )
         .map((room: any) => ({
           id: room.id,
           number: room.number,
@@ -190,8 +195,8 @@ export default function NewRequestPage() {
           status: room.status
         }));
       
-      console.log('📦 Loaded rooms:', allRooms.length, 'total rooms found');
-      setRooms(allRooms);
+      console.log('📦 Loaded rooms:', occupiedRooms.length, 'occupied rooms with guests');
+      setRooms(occupiedRooms);
 
       // تحميل الموظفين من Firebase
       const employeesData = await getEmployees();
@@ -206,15 +211,21 @@ export default function NewRequestPage() {
       // Fallback: محاولة التحميل من localStorage
       try {
         const roomsData = JSON.parse(localStorage.getItem('hotel_rooms_data') || '[]');
-        const allRooms = roomsData.map((room: any) => ({
-          id: room.id,
-          number: room.number,
-          guestName: room.guestName || '',
-          phone: room.phone || room.guestPhone || '',
-          status: room.status
-        }));
-        console.log('📦 Fallback: Loaded rooms from localStorage:', allRooms.length);
-        setRooms(allRooms);
+        const occupiedRooms = roomsData
+          .filter((room: any) => 
+            room.status === 'Occupied' || 
+            room.status === 'CheckoutToday' ||
+            (room.guestName && room.guestName.trim() !== '')
+          )
+          .map((room: any) => ({
+            id: room.id,
+            number: room.number,
+            guestName: room.guestName || '',
+            phone: room.phone || room.guestPhone || '',
+            status: room.status
+          }));
+        console.log('📦 Fallback: Loaded rooms from localStorage:', occupiedRooms.length);
+        setRooms(occupiedRooms);
       } catch (fallbackError) {
         console.error('Fallback error:', fallbackError);
       }
