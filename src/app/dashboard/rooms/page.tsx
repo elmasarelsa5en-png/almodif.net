@@ -572,6 +572,17 @@ export default function RoomsPage() {
     const isCheckoutToday = room.status === 'CheckoutToday';
     const isLate = isCheckoutToday && room.bookingDetails?.checkOut?.date && isLateCheckout(room.bookingDetails.checkOut.date);
 
+    // Debug: طباعة بيانات الغرفة للتحقق
+    if (room.status === 'Occupied' || room.status === 'CheckoutToday') {
+      console.log('🏨 بيانات الغرفة:', {
+        number: room.number,
+        status: room.status,
+        hasGuestName: !!room.guestName,
+        guestName: room.guestName,
+        guestNameLength: room.guestName?.length
+      });
+    }
+
     return (
       <div
         className={`relative group cursor-pointer transition-all duration-500 hover:scale-110 hover:rotate-1 hover:shadow-2xl hover:shadow-blue-500/30 rounded-2xl overflow-hidden ${
@@ -620,7 +631,7 @@ export default function RoomsPage() {
             </div>
             
             {/* اسم العميل - بشكل بارز للغرف المشغولة */}
-            {room.guestName && (
+            {room.guestName && room.guestName.trim() !== '' && (
               <div className={`text-center ${
                 isCheckoutToday 
                   ? 'bg-gradient-to-r from-red-600/90 to-blue-600/90' 
