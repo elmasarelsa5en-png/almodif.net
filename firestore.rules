@@ -90,6 +90,11 @@ service cloud.firestore {
     // قواعد للمحادثات الداخلية
     match /chats/{chatId} {
       allow read, write: if true;
+      
+      // الرسائل داخل المحادثة (subcollection)
+      match /messages/{messageId} {
+        allow read, write: if true;
+      }
     }
     
     match /messages/{messageId} {
