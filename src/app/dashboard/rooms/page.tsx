@@ -882,78 +882,78 @@ export default function RoomsPage() {
           </div>
         </div>
 
-        {/* Stats Cards - إحصائيات احترافية */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        {/* Stats Cards - إحصائيات مدمجة */}
+        <div className="flex items-center flex-wrap gap-3">
           {/* متاحة */}
-          <div className="bg-gradient-to-br from-green-600 to-emerald-700 rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer border-2 border-green-400/30"
+          <div className="bg-gradient-to-br from-green-600 to-emerald-700 rounded-xl px-4 py-2 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer border border-green-400/30 flex items-center gap-3 min-w-fit"
                onClick={() => setActiveFilter('Available')}>
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                <CheckCircle2 className="w-7 h-7 text-white" />
-              </div>
-              <span className="text-3xl font-black text-white">{stats.available}</span>
+            <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <CheckCircle2 className="w-5 h-5 text-white" />
             </div>
-            <p className="text-green-50 font-bold text-sm">متاحة</p>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-black text-white">{stats.available}</span>
+              <p className="text-green-50 font-bold text-sm whitespace-nowrap">متاحة</p>
+            </div>
           </div>
 
           {/* مشغولة */}
-          <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer border-2 border-cyan-400/30"
+          <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl px-4 py-2 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer border border-cyan-400/30 flex items-center gap-3 min-w-fit"
                onClick={() => setActiveFilter('Occupied')}>
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                <BedDouble className="w-7 h-7 text-white" />
-              </div>
-              <span className="text-3xl font-black text-white">{stats.occupied}</span>
+            <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <BedDouble className="w-5 h-5 text-white" />
             </div>
-            <p className="text-cyan-50 font-bold text-sm">مشغولة</p>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-black text-white">{stats.occupied}</span>
+              <p className="text-cyan-50 font-bold text-sm whitespace-nowrap">مشغولة</p>
+            </div>
           </div>
 
           {/* خروج اليوم */}
-          <div className="bg-gradient-to-br from-red-500 via-red-600 to-blue-600 rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer border-2 border-purple-400/30"
+          <div className="bg-gradient-to-br from-red-500 via-red-600 to-blue-600 rounded-xl px-4 py-2 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer border border-purple-400/30 flex items-center gap-3 min-w-fit"
                onClick={() => setActiveFilter('CheckoutToday')}>
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                <Clock className="w-7 h-7 text-white" />
-              </div>
-              <span className="text-3xl font-black text-white">{rooms.filter(r => r.status === 'CheckoutToday').length}</span>
+            <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Clock className="w-5 h-5 text-white" />
             </div>
-            <p className="text-white font-bold text-sm">خروج اليوم</p>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-black text-white">{rooms.filter(r => r.status === 'CheckoutToday').length}</span>
+              <p className="text-white font-bold text-sm whitespace-nowrap">خروج اليوم</p>
+            </div>
           </div>
 
           {/* تحتاج تنظيف */}
-          <div className="bg-gradient-to-br from-orange-600 to-orange-700 rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer border-2 border-orange-400/30"
+          <div className="bg-gradient-to-br from-orange-600 to-orange-700 rounded-xl px-4 py-2 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer border border-orange-400/30 flex items-center gap-3 min-w-fit"
                onClick={() => setActiveFilter('NeedsCleaning')}>
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                <Trash2 className="w-7 h-7 text-white" />
-              </div>
-              <span className="text-3xl font-black text-white">{stats.needsCleaning}</span>
+            <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Trash2 className="w-5 h-5 text-white" />
             </div>
-            <p className="text-orange-50 font-bold text-sm">تحتاج تنظيف</p>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-black text-white">{stats.needsCleaning}</span>
+              <p className="text-orange-50 font-bold text-sm whitespace-nowrap">تحتاج تنظيف</p>
+            </div>
           </div>
 
           {/* صيانة */}
-          <div className="bg-gradient-to-br from-gray-600 to-gray-700 rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer border-2 border-gray-400/30"
+          <div className="bg-gradient-to-br from-gray-600 to-gray-700 rounded-xl px-4 py-2 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer border border-gray-400/30 flex items-center gap-3 min-w-fit"
                onClick={() => setActiveFilter('Maintenance')}>
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                <Hammer className="w-7 h-7 text-white" />
-              </div>
-              <span className="text-3xl font-black text-white">{stats.maintenance}</span>
+            <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Hammer className="w-5 h-5 text-white" />
             </div>
-            <p className="text-gray-50 font-bold text-sm">تحت الصيانة</p>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-black text-white">{stats.maintenance}</span>
+              <p className="text-gray-50 font-bold text-sm whitespace-nowrap">تحت الصيانة</p>
+            </div>
           </div>
 
           {/* محجوزة */}
-          <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer border-2 border-purple-400/30"
+          <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl px-4 py-2 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer border border-purple-400/30 flex items-center gap-3 min-w-fit"
                onClick={() => setActiveFilter('Reserved')}>
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                <Calendar className="w-7 h-7 text-white" />
-              </div>
-              <span className="text-3xl font-black text-white">{stats.reserved}</span>
+            <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Calendar className="w-5 h-5 text-white" />
             </div>
-            <p className="text-purple-50 font-bold text-sm">محجوزة</p>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-black text-white">{stats.reserved}</span>
+              <p className="text-purple-50 font-bold text-sm whitespace-nowrap">محجوزة</p>
+            </div>
           </div>
         </div>
 
