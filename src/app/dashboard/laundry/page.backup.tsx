@@ -468,6 +468,12 @@ export default function LaundryPage() {
                   gradient: 'from-blue-500 to-cyan-500'
                 },
                 { 
+                  type: 'staff' as CustomerType, 
+                  label: 'موظف الفندق', 
+                  icon: BadgeIcon,
+                  gradient: 'from-emerald-500 to-teal-500'
+                },
+                { 
                   type: 'external' as CustomerType, 
                   label: 'عميل خارجي', 
                   icon: UserCircle,
