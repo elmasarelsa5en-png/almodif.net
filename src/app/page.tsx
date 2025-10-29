@@ -193,22 +193,6 @@ export default function HomePage() {
                 {language === 'ar' ? '🇺🇸 English' : '🇸🇦 العربية'}
               </Button>
               <Button 
-                variant="outline"
-                className="border-green-400/30 text-green-300 bg-green-900/30 hover:bg-green-800/50 backdrop-blur-sm"
-                onClick={() => router.push('/guest-login')}
-              >
-                <Menu className="w-4 h-4 ml-2" />
-                المنيو الإلكتروني
-              </Button>
-              <Button 
-                variant="outline"
-                className="border-purple-400/30 text-purple-300 bg-purple-900/30 hover:bg-purple-800/50 backdrop-blur-sm"
-                onClick={() => router.push('/employee-login')}
-              >
-                <UserCircle className="w-4 h-4 ml-2" />
-                دخول الموظفين
-              </Button>
-              <Button 
                 className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-xl"
                 onClick={() => router.push('/login')}
               >
