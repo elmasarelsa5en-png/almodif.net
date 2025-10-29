@@ -29,7 +29,6 @@ import { useRouter } from 'next/navigation';
 import * as NotificationService from '@/lib/notification-service';
 import type { SmartNotification, NotificationType, NotificationPriority } from '@/lib/notification-service';
 import { playNotificationSound as playSound, NotificationSoundType } from '@/lib/notification-sounds';
-import EmployeeNotifications from '@/components/EmployeeNotifications';
 
 interface Notification {
   id: string;
@@ -653,14 +652,6 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
             <Settings className="w-4 h-4" />
           </Button>
 
-          {/* Employee Notifications - For assigned tasks/requests */}
-          {user && (user.id || user.username) && (
-            <EmployeeNotifications 
-              employeeId={user.id || user.username} 
-              employeeName={user.name || user.username}
-            />
-          )}
-
           {/* Notifications - Icon Only with Badge */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -845,14 +836,12 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
                 </div>
                 <div className="hidden md:block text-right">
                   <p className="text-sm font-semibold text-white truncate max-w-[100px] leading-tight">{user?.name || user?.username}</p>
-                  <p className="text-xs text-purple-200 truncate leading-tight">{user?.role}</p>
                 </div>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 bg-gray-800 shadow-xl z-50">
               <DropdownMenuLabel className="text-gray-900">
                 <div className="font-semibold">{user?.name || user?.username}</div>
-                <div className="text-xs text-gray-500 font-normal">{user?.role}</div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
