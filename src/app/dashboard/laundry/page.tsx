@@ -89,6 +89,7 @@ export default function LaundryPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [isCartVisible, setIsCartVisible] = useState(true);
 
   // تحميل الغرف من Firebase
   useEffect(() => {
@@ -728,23 +729,33 @@ export default function LaundryPage() {
           </div>
 
           {/* Sticky Cart Sidebar - Right Side */}
-          <div className="hidden lg:block w-96">
+          <div className={`hidden lg:block transition-all duration-300 ${isCartVisible ? 'w-96' : 'w-16'}`}>
             <div className="sticky top-24">
-              <div className="bg-black/40 backdrop-blur-xl rounded-2xl border border-emerald-400/30 shadow-2xl overflow-hidden">
-                {/* Cart Header */}
-                <div className="bg-gradient-to-r from-emerald-500 to-green-500 p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <ShoppingCart className="h-5 w-5 text-white" />
-                      <h3 className="text-white font-bold">السلة</h3>
-                    </div>
-                    {cart.length > 0 && (
-                      <div className="bg-white text-emerald-600 font-bold px-3 py-1 rounded-full text-sm">
-                        {cart.reduce((sum, item) => sum + item.quantity, 0)} عنصر
+              {isCartVisible ? (
+                <div className="bg-black/40 backdrop-blur-xl rounded-2xl border border-emerald-400/30 shadow-2xl overflow-hidden">
+                  {/* Cart Header */}
+                  <div className="bg-gradient-to-r from-emerald-500 to-green-500 p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <ShoppingCart className="h-5 w-5 text-white" />
+                        <h3 className="text-white font-bold">السلة</h3>
                       </div>
-                    )}
+                      <div className="flex items-center gap-2">
+                        {cart.length > 0 && (
+                          <div className="bg-white text-emerald-600 font-bold px-3 py-1 rounded-full text-sm">
+                            {cart.reduce((sum, item) => sum + item.quantity, 0)} عنصر
+                          </div>
+                        )}
+                        <button
+                          onClick={() => setIsCartVisible(false)}
+                          className="text-white hover:bg-white/20 p-1 rounded-lg transition-all"
+                          title="إخفاء السلة"
+                        >
+                          <X className="h-5 w-5" />
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
 
                 {/* Cart Items */}
                 <div className="p-4 max-h-[400px] overflow-y-auto">
@@ -815,6 +826,23 @@ export default function LaundryPage() {
                   </div>
                 )}
               </div>
+              ) : (
+                /* Collapsed Cart Button */
+                <button
+                  onClick={() => setIsCartVisible(true)}
+                  className="bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white p-3 rounded-2xl shadow-xl transition-all hover:scale-105"
+                  title="إظهار السلة"
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    <ShoppingCart className="h-6 w-6" />
+                    {cart.length > 0 && (
+                      <div className="bg-red-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">
+                        {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                      </div>
+                    )}
+                  </div>
+                </button>
+              )}
             </div>
           </div>
         </div>
