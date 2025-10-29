@@ -1316,44 +1316,6 @@ export default function RoomsPage() {
 
       {/* حافظة بيانات النزيل العائمة */}
       <GuestDataClipboard position="bottom-left" />
-
-      {/* Animation Keyframes */}
-      <style jsx global>{`
-        @keyframes shine {
-          from {
-            transform: translateX(-100%) translateY(-100%) rotate(45deg);
-          }
-          to {
-            transform: translateX(100%) translateY(100%) rotate(45deg);
-          }
-        }
-
-        @keyframes spin-slow {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-
-        @keyframes pulse-glow {
-          0%, 100% {
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
-          }
-          50% {
-            box-shadow: 0 0 40px rgba(59, 130, 246, 0.8), 0 0 60px rgba(139, 92, 246, 0.6);
-          }
-        }
-
-        .animate-shine {
-          animation: shine 3s ease-in-out infinite;
-        }
-
-        .animate-spin-slow {
-          animation: spin-slow 3s linear infinite;
-        }
-
-        .animate-pulse-glow {
-          animation: pulse-glow 2s ease-in-out infinite;
-        }
-      `}</style>
     </div>
     </PermissionGuard>
   )
