@@ -561,33 +561,13 @@ export default function LaundryPage() {
                 )}
               </motion.div>
             )}
-
-            {/* Premium Cart Button - Fixed */}
-            <motion.button
-              onClick={() => setIsCheckoutOpen(true)}
-              disabled={cart.length === 0}
-              className="fixed bottom-6 left-6 z-50 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white font-bold px-6 py-3 rounded-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-2xl shadow-emerald-500/50"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <div className="flex items-center gap-2">
-                <ShoppingCart className="h-5 w-5" />
-                <span className="text-lg">السلة ({cart.length})</span>
-              </div>
-              
-              {cart.length > 0 && (
-                <>
-                  <div className="absolute -top-2 -right-2 bg-gradient-to-r from-red-500 to-pink-500 text-white text-sm font-bold w-7 h-7 rounded-full flex items-center justify-center animate-pulse shadow-lg">
-                    {cart.reduce((sum, item) => sum + item.quantity, 0)}
-                  </div>
-                  <div className="absolute -bottom-1 -left-1">
-                    <Sparkles className="h-5 w-5 text-yellow-400 animate-spin" />
-                  </div>
-                </>
-              )}
-            </motion.button>
           </div>
         </motion.div>
+
+        {/* Main Content with Sidebar Cart */}
+        <div className="flex gap-6">
+          {/* Services Grid - Left Side */}
+          <div className="flex-1">
 
         {/* Premium Search & Filter Section */}
         <motion.div 
@@ -720,6 +700,116 @@ export default function LaundryPage() {
             ))}
           </motion.div>
         </AnimatePresence>
+          </div>
+
+          {/* Sticky Cart Sidebar - Right Side */}
+          <div className="hidden lg:block w-96">
+            <div className="sticky top-24">
+              <div className="bg-black/40 backdrop-blur-xl rounded-2xl border border-emerald-400/30 shadow-2xl overflow-hidden">
+                {/* Cart Header */}
+                <div className="bg-gradient-to-r from-emerald-500 to-green-500 p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <ShoppingCart className="h-5 w-5 text-white" />
+                      <h3 className="text-white font-bold">السلة</h3>
+                    </div>
+                    {cart.length > 0 && (
+                      <div className="bg-white text-emerald-600 font-bold px-3 py-1 rounded-full text-sm">
+                        {cart.reduce((sum, item) => sum + item.quantity, 0)} عنصر
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Cart Items */}
+                <div className="p-4 max-h-[400px] overflow-y-auto">
+                  {cart.length === 0 ? (
+                    <div className="text-center py-12">
+                      <ShoppingCart className="h-16 w-16 mx-auto mb-4 text-white/30" />
+                      <p className="text-white/60">السلة فارغة</p>
+                      <p className="text-white/40 text-sm mt-1">أضف خدمات لبدء الطلب</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {cart.map((item, index) => (
+                        <div key={index} className="bg-white/5 rounded-xl p-3 border border-white/10">
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex-1">
+                              <h4 className="text-white font-semibold text-sm">{item.nameAr}</h4>
+                              <p className="text-cyan-300 text-xs">{item.price} ر.س</p>
+                            </div>
+                            <button
+                              onClick={() => removeFromCart(item.id)}
+                              className="text-red-400 hover:text-red-300 p-1"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white"
+                              >
+                                <Minus className="h-3 w-3" />
+                              </button>
+                              <span className="text-white font-semibold w-8 text-center">{item.quantity}</span>
+                              <button
+                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white"
+                              >
+                                <Plus className="h-3 w-3" />
+                              </button>
+                            </div>
+                            <div className="text-white font-bold">
+                              {item.price * item.quantity} ر.س
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Cart Footer */}
+                {cart.length > 0 && (
+                  <div className="border-t border-white/10 p-4 space-y-3">
+                    <div className="flex items-center justify-between text-white">
+                      <span>المجموع:</span>
+                      <span className="text-2xl font-bold text-emerald-400">{total} ر.س</span>
+                    </div>
+                    <button
+                      onClick={() => setIsCheckoutOpen(true)}
+                      className="w-full bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white font-bold py-3 rounded-xl transition-all shadow-lg"
+                    >
+                      <div className="flex items-center justify-center gap-2">
+                        <CheckCircle className="h-5 w-5" />
+                        <span>إتمام الطلب</span>
+                      </div>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Cart Button */}
+        <button
+          onClick={() => setIsCheckoutOpen(true)}
+          className="lg:hidden fixed bottom-6 left-6 right-6 bg-gradient-to-r from-emerald-500 to-green-500 text-white font-bold py-4 rounded-xl shadow-2xl z-50 disabled:opacity-50"
+          disabled={cart.length === 0}
+        >
+          <div className="flex items-center justify-center gap-2">
+            <ShoppingCart className="h-5 w-5" />
+            <span>السلة ({cart.length}) - {total} ر.س</span>
+          </div>
+          {cart.length > 0 && (
+            <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">
+              {cart.reduce((sum, item) => sum + item.quantity, 0)}
+            </div>
+          )}
+        </button>
 
         {/* Premium Checkout Dialog */}
         <Dialog open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
