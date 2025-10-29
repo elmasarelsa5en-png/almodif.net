@@ -189,10 +189,14 @@ export default function ChatPage() {
 
   // حساب عدد الرسائل غير المقروءة لكل موظف
   useEffect(() => {
-    if (!user || employees.length === 0) return;
+    if (!user || employees.length === 0) {
+      return;
+    }
 
     const currentUserId = user.username || user.email;
-    if (!currentUserId) return;
+    if (!currentUserId) {
+      return;
+    }
 
     const updateUnreadCounts = async () => {
       const counts: Record<string, number> = {};
@@ -206,7 +210,6 @@ export default function ChatPage() {
           for (const chatDoc of querySnapshot.docs) {
             const chatData = chatDoc.data();
             if (chatData.participants.includes(employee.id)) {
-              // حساب الرسائل غير المقروءة في هذه المحادثة
               const messagesRef = collection(db, 'chats', chatDoc.id, 'messages');
               const messagesQuery = query(
                 messagesRef,
@@ -228,12 +231,11 @@ export default function ChatPage() {
 
     updateUnreadCounts();
 
-    // إعادة الحساب كل 5 ثواني
     const interval = setInterval(updateUnreadCounts, 5000);
     return () => clearInterval(interval);
-  }, [user, employees, messages]);
+  }, [user, employees]);
 
-  const getOrCreateChat = async (employeeId: string) {
+  const getOrCreateChat = async (employeeId: string) => {
     try {
       const currentUserId = user?.username || user?.email;
       if (!currentUserId) {
@@ -842,8 +844,8 @@ export default function ChatPage() {
                             <span className='text-xs opacity-70'>{message.timestamp.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</span>
                             {isCurrentUser && (
                               message.read ? 
-                                <CheckCheck className='w-4 h-4 text-blue-300' title='تم القراءة' /> : 
-                                <Check className='w-4 h-4 opacity-60' title='تم الإرسال' />
+                                <CheckCheck className='w-4 h-4 text-blue-300' aria-label='تم القراءة' /> : 
+                                <Check className='w-4 h-4 opacity-60' aria-label='تم الإرسال' />
                             )}
                           </div>
                         </div>
