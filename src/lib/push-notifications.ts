@@ -53,7 +53,7 @@ export const getFCMToken = async (userId: string): Promise<string | null> => {
     }
 
     // VAPID Key من Firebase Console
-    const vapidKey = 'BKzV8QxQZ_Wj4vYmF3QxN9QZ5mF8yV9xR7kL3mN8pQ';
+    const vapidKey = 'BI62r8W2y-23vLzM3gezLH1j_q70LJadYdRO7VXBdHSQPfIsmKEnTAp-PPvB2YKc2uhfZImK_P7iq89h-YxssO4';
 
     console.log('🔑 Getting FCM token...');
     const token = await getToken(messaging, { vapidKey });
