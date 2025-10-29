@@ -107,8 +107,8 @@ export default function DashboardLayout({
         </main>
       </div>
 
-      {/* مساعد المضيف الذكي - يظهر في جميع صفحات الداشبورد */}
-      <SmartAssistant />
+      {/* مساعد المضيف الذكي - يظهر فقط في الصفحة الرئيسية للداشبورد */}
+      {pathname === '/dashboard' && <SmartAssistant />}
     </div>
   );
 }

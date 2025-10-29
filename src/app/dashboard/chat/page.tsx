@@ -43,8 +43,10 @@ export default function ChatPage() {
   const [isSending, setIsSending] = useState(false);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [unreadChats, setUnreadChats] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const unsubscribeRef = useRef<(() => void) | null>(null);
+  const allChatsUnsubscribeRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     const loadEmployees = async () => {
@@ -96,6 +98,56 @@ export default function ChatPage() {
     }
   }, [user]);
 
+  // مراقبة جميع المحادثات للمستخدم (للإشعارات)
+  useEffect(() => {
+    if (!user) return;
+
+    const setupAllChatsListener = async () => {
+      try {
+        const currentUserId = user.username || user.email;
+        if (!currentUserId) return;
+
+        console.log('👂 Setting up ALL chats listener for:', currentUserId);
+
+        const chatsRef = collection(db, 'chats');
+        const q = query(
+          chatsRef,
+          where('participants', 'array-contains', currentUserId)
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+          snapshot.docChanges().forEach((change) => {
+            if (change.type === 'modified') {
+              const chatData = change.doc.data();
+              const chatId = change.doc.id;
+              
+              console.log('🔄 Chat modified:', chatId, chatData.lastMessage);
+              
+              // إذا كانت المحادثة ليست المفتوحة حالياً، أضفها للـ unread
+              if (chatId !== currentChatId && chatData.lastMessage) {
+                console.log('💬 New message in background chat:', chatId);
+                setUnreadChats(prev => new Set(prev).add(chatId));
+              }
+            }
+          });
+        });
+
+        allChatsUnsubscribeRef.current = unsubscribe;
+      } catch (error) {
+        console.error('❌ Error setting up all chats listener:', error);
+      }
+    };
+
+    setupAllChatsListener();
+
+    return () => {
+      if (allChatsUnsubscribeRef.current) {
+        console.log('🧹 Cleaning up all chats listener');
+        allChatsUnsubscribeRef.current();
+      }
+    };
+  }, [user, currentChatId]);
+
   const getOrCreateChat = async (employeeId: string) => {
     try {
       const currentUserId = user?.username || user?.email;
@@ -142,7 +194,7 @@ export default function ChatPage() {
   };
 
   const selectEmployee = async (employee: Employee) => {
-    console.log('🎯 Selecting employee:', employee.name);
+    console.log('🎯 Selecting employee:', employee.name, 'ID:', employee.id);
     
     // إلغاء الـ listener القديم إذا كان موجود
     if (unsubscribeRef.current) {
@@ -162,10 +214,12 @@ export default function ChatPage() {
       const messagesRef = collection(db, 'messages');
       const q = query(messagesRef, where('chatId', '==', chatId), orderBy('timestamp', 'asc'));
 
+      let isFirstLoad = true;
+      let previousCount = 0;
+
       const unsubscribe = onSnapshot(q, (snapshot) => {
-        console.log('📨 Messages snapshot received:', snapshot.size, 'messages');
+        console.log('📨 Messages snapshot received:', snapshot.size, 'messages for chat:', chatId);
         
-        const previousMessageCount = messages.length;
         const messagesList: Message[] = [];
         
         snapshot.forEach((doc) => {
@@ -181,15 +235,23 @@ export default function ChatPage() {
         });
         
         console.log('💬 Setting messages state:', messagesList.length);
+        console.log('📋 Messages:', messagesList.map(m => ({ sender: m.senderId, text: m.text })));
+        
         setMessages(messagesList);
         
         // تشغيل صوت إذا كانت هناك رسائل جديدة من شخص آخر
-        if (messagesList.length > previousMessageCount && previousMessageCount > 0) {
+        if (!isFirstLoad && messagesList.length > previousCount) {
           const lastMessage = messagesList[messagesList.length - 1];
           const currentUserId = user?.username || user?.email;
           
+          console.log('🆕 New message detected!', {
+            from: lastMessage.senderId,
+            currentUser: currentUserId,
+            isFromOther: lastMessage.senderId !== currentUserId
+          });
+          
           if (lastMessage.senderId !== currentUserId) {
-            console.log('🔔 New message from another user, playing sound...');
+            console.log('🔔 Playing notification sound...');
             try {
               const audio = new Audio('/sounds/notification.mp3');
               audio.volume = 0.5;
@@ -199,6 +261,9 @@ export default function ChatPage() {
             }
           }
         }
+        
+        isFirstLoad = false;
+        previousCount = messagesList.length;
         
         setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
       }, (error) => {
@@ -290,13 +355,6 @@ export default function ChatPage() {
 
   return (
     <ProtectedRoute>
-      {/* إخفاء أيقونة المساعد الذكي في صفحة المحادثات */}
-      <style jsx global>{`
-        #ai-assistant-button {
-          display: none !important;
-        }
-      `}</style>
-      
       <div className='h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex overflow-hidden' dir='rtl'>
         
         <div className='w-80 bg-slate-800/50 backdrop-blur-xl border-l border-white/10 flex flex-col'>
