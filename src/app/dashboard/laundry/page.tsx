@@ -183,12 +183,31 @@ export default function LaundryPage() {
   const [selectedEmployee, setSelectedEmployee] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isLaundryStaff, setIsLaundryStaff] = useState(false);
+
+  // Load current user from localStorage
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      const user = JSON.parse(userData);
+      setCurrentUser(user);
+      setIsLaundryStaff(user.role === 'laundry_staff');
+      
+      // If laundry staff, auto-select themselves
+      if (user.role === 'laundry_staff' && user.employeeId) {
+        setSelectedEmployee(user.employeeId);
+      }
+    }
+  }, []);
 
   // Load rooms and employees
   useEffect(() => {
     loadRooms();
-    loadEmployees();
-  }, []);
+    if (!isLaundryStaff) {
+      loadEmployees();
+    }
+  }, [isLaundryStaff]);
 
   const loadRooms = async () => {
     try {
@@ -205,11 +224,12 @@ export default function LaundryPage() {
   const loadEmployees = async () => {
     try {
       const data = await getEmployees();
+      // Only load laundry_staff (not admin or manager)
       const laundryEmployees = data.filter(
-        emp => ['laundry_staff', 'admin', 'manager'].includes(emp.role || '')
+        emp => emp.role === 'laundry_staff'
       );
       setEmployees(laundryEmployees);
-      console.log('✅ تم تحميل الموظفين:', laundryEmployees.length);
+      console.log('✅ تم تحميل موظفي المغسلة:', laundryEmployees.length);
     } catch (error) {
       console.error('Error loading employees:', error);
     }
@@ -283,7 +303,8 @@ export default function LaundryPage() {
       return;
     }
 
-    if (!selectedEmployee) {
+    // Only check employee selection if user is NOT laundry staff
+    if (!isLaundryStaff && !selectedEmployee) {
       alert('الرجاء اختيار الموظف المسؤول');
       return;
     }
@@ -294,7 +315,11 @@ export default function LaundryPage() {
         `${item.nameAr} (${item.quantity}x) - ${item.price * item.quantity} ر.س`
       ).join('\n');
 
-      const selectedEmployeeName = employees.find(e => e.id === selectedEmployee)?.name || 'غير معروف';
+      // Get employee name
+      let selectedEmployeeName = currentUser?.username || 'غير معروف';
+      if (!isLaundryStaff && selectedEmployee) {
+        selectedEmployeeName = employees.find(e => e.id === selectedEmployee)?.name || 'غير معروف';
+      }
 
       await addRequest({
         room: customerType === 'guest' ? selectedRoom : 'عميل خارجي',
@@ -304,7 +329,7 @@ export default function LaundryPage() {
         description: `الطلب:\n${itemsDescription}\n\nالإجمالي: ${cartTotal} ر.س\n\nالموظف المسؤول: ${selectedEmployeeName}`,
         priority: 'medium',
         status: 'awaiting_employee_approval',
-        notes: `طلب من المغسلة - تم إدخاله بواسطة الموظف\nالموظف المسؤول: ${selectedEmployeeName}`,
+        notes: `طلب من المغسلة - تم إدخاله بواسطة ${currentUser?.username || 'موظف'}\nالموظف المسؤول: ${selectedEmployeeName}`,
         createdAt: new Date().toISOString()
       });
 
@@ -313,7 +338,9 @@ export default function LaundryPage() {
       setIsCartOpen(false);
       setSelectedRoom('');
       setGuestName('');
-      setSelectedEmployee('');
+      if (!isLaundryStaff) {
+        setSelectedEmployee('');
+      }
     } catch (error) {
       console.error('Error submitting order:', error);
       alert('حدث خطأ أثناء إرسال الطلب');
@@ -743,18 +770,30 @@ export default function LaundryPage() {
                       />
                     )}
 
-                    <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
-                      <SelectTrigger className="bg-white/10 border-cyan-400/50 text-white">
-                        <SelectValue placeholder="اختر الموظف المسؤول" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-gray-900 border-cyan-400/30">
-                        {employees.map(emp => (
-                          <SelectItem key={emp.id} value={emp.id} className="text-white hover:bg-cyan-500/20 focus:bg-cyan-500/30">
-                            {emp.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {/* Show employee selection only for admin/manager/reception */}
+                    {!isLaundryStaff && (
+                      <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
+                        <SelectTrigger className="bg-white/10 border-cyan-400/50 text-white">
+                          <SelectValue placeholder="اختر الموظف المسؤول" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-900 border-cyan-400/30">
+                          {employees.map(emp => (
+                            <SelectItem key={emp.id} value={emp.id} className="text-white hover:bg-cyan-500/20 focus:bg-cyan-500/30">
+                              {emp.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+
+                    {/* Show info message for laundry staff */}
+                    {isLaundryStaff && (
+                      <div className="bg-cyan-500/10 border border-cyan-400/30 rounded-lg p-3">
+                        <p className="text-cyan-300 text-sm text-center">
+                          سيتم إرسال الطلب باسمك كموظف مسؤول
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   <div className="mt-6 pt-4 border-t border-cyan-400/20">
