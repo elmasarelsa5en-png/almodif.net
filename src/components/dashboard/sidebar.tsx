@@ -289,23 +289,25 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
             // افتراضياً: عرض كل الأقسام
             setVisibleItems(new Set(navigationItems.map(item => {
               // استخراج ID من href
-              const id = item.href.split('/').pop() || item.href;
-              return id === '' ? 'dashboard' : id;
+              const pathParts = item.href.split('/').filter(p => p);
+              return pathParts.length > 1 ? pathParts.slice(1).join('-') : (pathParts[0] === 'dashboard' ? 'dashboard' : pathParts[0]);
             })));
           }
         } else {
           // لا توجد إعدادات: عرض كل شيء
           setVisibleItems(new Set(navigationItems.map(item => {
-            const id = item.href.split('/').pop() || item.href;
-            return id === '' ? 'dashboard' : id;
+            const pathParts = item.href.split('/').filter(p => p);
+            return pathParts.length > 1 ? pathParts.slice(1).join('-') : (pathParts[0] === 'dashboard' ? 'dashboard' : pathParts[0]);
+          })));
+        }
           })));
         }
       } catch (error) {
         console.error('Error loading sidebar settings:', error);
         // في حالة الخطأ: عرض كل شيء
         setVisibleItems(new Set(navigationItems.map(item => {
-          const id = item.href.split('/').pop() || item.href;
-          return id === '' ? 'dashboard' : id;
+          const pathParts = item.href.split('/').filter(p => p);
+          return pathParts.length > 1 ? pathParts.slice(1).join('-') : (pathParts[0] === 'dashboard' ? 'dashboard' : pathParts[0]);
         })));
       } finally {
         setLoadingSettings(false);
@@ -401,9 +403,10 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
   const filteredItems = navigationItems.filter(item => {
     if (!hasPermission(item.permission)) return false;
     
-    // استخراج ID من href
-    const id = item.href.split('/').pop() || item.href;
-    const itemId = id === '' ? 'dashboard' : id;
+    // استخراج ID من href - نأخذ الجزء الأخير بعد /dashboard/
+    const pathParts = item.href.split('/').filter(p => p);
+    // للـ /dashboard/crm-whatsapp يجب أن يكون crm-whatsapp وليس whatsapp فقط
+    const itemId = pathParts.length > 1 ? pathParts.slice(1).join('-') : (pathParts[0] === 'dashboard' ? 'dashboard' : pathParts[0]);
     
     // إذا لم يتم تحميل الإعدادات بعد، عرض كل شيء
     if (loadingSettings) return true;
