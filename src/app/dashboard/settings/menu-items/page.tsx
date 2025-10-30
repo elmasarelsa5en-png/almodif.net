@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import * as XLSX from 'xlsx';
-import Tesseract from 'tesseract.js';
 import {
   ArrowLeft,
   Plus,
@@ -13,9 +12,7 @@ import {
   Coffee,
   Utensils,
   Shirt,
-  Image as ImageIcon,
   FileSpreadsheet,
-  Camera,
   Check,
   X,
   Loader2,
@@ -23,6 +20,10 @@ import {
   Filter,
   AlertCircle,
   CheckCircle,
+  Download,
+  RefreshCw,
+  ImageIcon,
+  Camera,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -44,20 +45,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import BulkImportModal from '@/components/bulk-import-modal';
-
-interface MenuItem {
-  id: string;
-  name: string;
-  nameAr: string;
-  price: number;
-  category: 'coffee' | 'restaurant' | 'laundry';
-  subCategory?: string;
-  description?: string;
-  image?: string;
-  available: boolean;
-  createdAt: string;
-}
+import { 
+  getMenuItems, 
+  addMenuItem, 
+  updateMenuItem, 
+  deleteMenuItem,
+  bulkAddMenuItems,
+  subscribeToMenuItems,
+  type MenuItem 
+} from '@/lib/firebase-data';
 
 const CATEGORIES = [
   { value: 'coffee', label: 'كوفي شوب', icon: Coffee, color: 'amber' },
@@ -93,9 +89,16 @@ export default function MenuItemsPage() {
     available: true,
   });
 
-  // Load items from localStorage
+  // Load items from Firebase
   useEffect(() => {
     loadItems();
+    
+    // Subscribe to real-time updates
+    const unsubscribe = subscribeToMenuItems((updatedItems) => {
+      setItems(updatedItems);
+    });
+    
+    return () => unsubscribe();
   }, []);
 
   // Filter items
@@ -117,26 +120,20 @@ export default function MenuItemsPage() {
     setFilteredItems(filtered);
   }, [items, categoryFilter, searchTerm]);
 
-  const loadItems = () => {
+  const loadItems = async () => {
     try {
-      // تحميل من localStorage
-      const coffeeItems = JSON.parse(localStorage.getItem('coffee_menu') || '[]');
-      const restaurantItems = JSON.parse(localStorage.getItem('restaurant_menu') || '[]');
-      const laundryItems = JSON.parse(localStorage.getItem('laundry_services') || '[]');
-
-      const allItems: MenuItem[] = [
-        ...coffeeItems.map((item: any) => ({ ...item, category: 'coffee' as const })),
-        ...restaurantItems.map((item: any) => ({ ...item, category: 'restaurant' as const })),
-        ...laundryItems.map((item: any) => ({ ...item, category: 'laundry' as const })),
-      ];
-
+      setLoading(true);
+      const allItems = await getMenuItems();
       setItems(allItems);
+      console.log('✅ تم تحميل الأصناف:', allItems.length);
     } catch (error) {
       console.error('Error loading items:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.nameAr || !formData.price) {
       alert('الرجاء إدخال اسم الصنف والسعر');
       return;
@@ -145,8 +142,7 @@ export default function MenuItemsPage() {
     setLoading(true);
 
     try {
-      const newItem: MenuItem = {
-        id: editingItem?.id || `item-${Date.now()}`,
+      const itemData: Omit<MenuItem, 'id'> = {
         name: formData.name || formData.nameAr,
         nameAr: formData.nameAr,
         price: parseFloat(formData.price),
@@ -158,28 +154,18 @@ export default function MenuItemsPage() {
         createdAt: editingItem?.createdAt || new Date().toISOString(),
       };
 
-      // حفظ في localStorage حسب الفئة
-      const storageKey = {
-        coffee: 'coffee_menu',
-        restaurant: 'restaurant_menu',
-        laundry: 'laundry_services',
-      }[formData.category];
-
-      const existingItems = JSON.parse(localStorage.getItem(storageKey) || '[]');
-
       if (editingItem) {
         // تحديث
-        const updatedItems = existingItems.map((item: any) =>
-          item.id === editingItem.id ? newItem : item
-        );
-        localStorage.setItem(storageKey, JSON.stringify(updatedItems));
+        await updateMenuItem(editingItem.id, itemData);
+        alert('✅ تم تحديث الصنف بنجاح');
       } else {
         // إضافة جديد
-        localStorage.setItem(storageKey, JSON.stringify([...existingItems, newItem]));
+        await addMenuItem(itemData);
+        alert('✅ تم إضافة الصنف بنجاح');
       }
 
       // إعادة تحميل القائمة
-      loadItems();
+      await loadItems();
 
       // إغلاق النافذة
       setIsDialogOpen(false);
@@ -192,22 +178,21 @@ export default function MenuItemsPage() {
     }
   };
 
-  const handleDelete = (item: MenuItem) => {
+  const handleDelete = async (item: MenuItem) => {
     if (!confirm(`هل أنت متأكد من حذف "${item.nameAr}"؟`)) return;
 
-    const storageKey = {
-      coffee: 'coffee_menu',
-      restaurant: 'restaurant_menu',
-      laundry: 'laundry_services',
-    }[item.category];
-
-    const existingItems = JSON.parse(localStorage.getItem(storageKey) || '[]');
-    const updatedItems = existingItems.filter((i: any) => i.id !== item.id);
-    localStorage.setItem(storageKey, JSON.stringify(updatedItems));
-
-    loadItems();
+    setLoading(true);
+    try {
+      await deleteMenuItem(item.id);
+      alert('✅ تم حذف الصنف بنجاح');
+      await loadItems();
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      alert('حدث خطأ أثناء الحذف');
+    } finally {
+      setLoading(false);
+    }
   };
-
   const handleEdit = (item: MenuItem) => {
     setEditingItem(item);
     setFormData({
@@ -649,13 +634,6 @@ export default function MenuItemsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* مودال الاستيراد المجمع */}
-      <BulkImportModal
-        isOpen={isBulkImportOpen}
-        onClose={() => setIsBulkImportOpen(false)}
-        onItemsImported={handleBulkImport}
-      />
     </div>
   );
 }

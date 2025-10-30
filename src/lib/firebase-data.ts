@@ -29,6 +29,7 @@ export const COLLECTIONS = {
   SOUND_SETTINGS: 'sound-settings',
   REQUEST_TYPES: 'request-types',
   NOTIFICATIONS: 'notifications',
+  MENU_ITEMS: 'menu-items',
 };
 
 // ==================== EMPLOYEES ====================
@@ -446,6 +447,163 @@ export const markAllNotificationsAsRead = async (employeeId: string): Promise<bo
   } catch (error) {
     console.error('Error marking all notifications as read:', error);
     return false;
+  }
+};
+
+// ==================== MENU ITEMS ====================
+
+export interface MenuItem {
+  id: string;
+  name: string;
+  nameAr: string;
+  price: number;
+  category: 'coffee' | 'restaurant' | 'laundry';
+  subCategory?: string;
+  description?: string;
+  descriptionAr?: string;
+  image?: string;
+  available: boolean;
+  featured?: boolean;
+  rating?: number;
+  preparationTime?: number; // for restaurant
+  processingTime?: number; // for laundry
+  services?: string[]; // for laundry
+  ingredients?: string[]; // for restaurant
+  calories?: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+// Get all menu items
+export const getMenuItems = async (): Promise<MenuItem[]> => {
+  try {
+    const querySnapshot = await getDocs(collection(db, COLLECTIONS.MENU_ITEMS));
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    } as MenuItem));
+  } catch (error) {
+    console.error('Error getting menu items:', error);
+    return [];
+  }
+};
+
+// Get menu items by category
+export const getMenuItemsByCategory = async (category: 'coffee' | 'restaurant' | 'laundry'): Promise<MenuItem[]> => {
+  try {
+    const q = query(
+      collection(db, COLLECTIONS.MENU_ITEMS),
+      where('category', '==', category)
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    } as MenuItem));
+  } catch (error) {
+    console.error('Error getting menu items by category:', error);
+    return [];
+  }
+};
+
+// Get single menu item
+export const getMenuItem = async (id: string): Promise<MenuItem | null> => {
+  try {
+    const docRef = doc(db, COLLECTIONS.MENU_ITEMS, id);
+    const docSnap = await getDoc(docRef);
+    
+    if (docSnap.exists()) {
+      return { id: docSnap.id, ...docSnap.data() } as MenuItem;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error getting menu item:', error);
+    return null;
+  }
+};
+
+// Add new menu item
+export const addMenuItem = async (item: Omit<MenuItem, 'id'>): Promise<string | null> => {
+  try {
+    const docRef = doc(collection(db, COLLECTIONS.MENU_ITEMS));
+    await setDoc(docRef, {
+      ...item,
+      createdAt: item.createdAt || new Date().toISOString(),
+    });
+    console.log('✅ Menu item added:', docRef.id);
+    return docRef.id;
+  } catch (error) {
+    console.error('Error adding menu item:', error);
+    return null;
+  }
+};
+
+// Update menu item
+export const updateMenuItem = async (id: string, data: Partial<MenuItem>): Promise<boolean> => {
+  try {
+    const docRef = doc(db, COLLECTIONS.MENU_ITEMS, id);
+    await updateDoc(docRef, {
+      ...data,
+      updatedAt: new Date().toISOString(),
+    });
+    console.log('✅ Menu item updated:', id);
+    return true;
+  } catch (error) {
+    console.error('Error updating menu item:', error);
+    return false;
+  }
+};
+
+// Delete menu item
+export const deleteMenuItem = async (id: string): Promise<boolean> => {
+  try {
+    await deleteDoc(doc(db, COLLECTIONS.MENU_ITEMS, id));
+    console.log('✅ Menu item deleted:', id);
+    return true;
+  } catch (error) {
+    console.error('Error deleting menu item:', error);
+    return false;
+  }
+};
+
+// Subscribe to menu items changes
+export const subscribeToMenuItems = (callback: (items: MenuItem[]) => void) => {
+  return onSnapshot(
+    collection(db, COLLECTIONS.MENU_ITEMS),
+    (snapshot) => {
+      const items = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      } as MenuItem));
+      callback(items);
+    },
+    (error) => {
+      console.error('Error listening to menu items:', error);
+    }
+  );
+};
+
+// Bulk import menu items
+export const bulkAddMenuItems = async (items: Omit<MenuItem, 'id'>[]): Promise<number> => {
+  try {
+    const batch = writeBatch(db);
+    let count = 0;
+    
+    items.forEach(item => {
+      const docRef = doc(collection(db, COLLECTIONS.MENU_ITEMS));
+      batch.set(docRef, {
+        ...item,
+        createdAt: item.createdAt || new Date().toISOString(),
+      });
+      count++;
+    });
+    
+    await batch.commit();
+    console.log(`✅ تم إضافة ${count} صنف بنجاح`);
+    return count;
+  } catch (error) {
+    console.error('Error bulk adding menu items:', error);
+    return 0;
   }
 };
 

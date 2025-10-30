@@ -56,6 +56,16 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
   const { language, setLanguage: setLang, t } = useLanguage();
   const router = useRouter();
   const [isDarkMode, setIsDarkMode] = useState(true);
+  
+  // التحقق من صلاحية الوصول للإعدادات (المطور akram لديه صلاحية دائماً)
+  const canAccessSettings = () => {
+    // المطور akram لديه صلاحية دائماً
+    if (user?.username === 'akram' || user?.email === 'akram@almodif.net') {
+      return true;
+    }
+    // التحقق من الصلاحية
+    return user?.permissions?.includes('view_settings') || user?.role === 'admin' || user?.role === 'مدير';
+  };
   const [notifications, setNotifications] = useState<SmartNotification[]>([]);
   const [notificationStats, setNotificationStats] = useState({
     total: 0,
@@ -642,15 +652,17 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
           </Button>
 
           {/* Settings - Icon Only */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push('/dashboard/settings')}
-            className="text-white hover:text-blue-200 hover:bg-white/10 border border-white/20 hover:border-white/40 transition-all duration-200 p-2 w-9 h-9 hover:scale-110 transition-transform"
-            title="مركز الإعدادات"
-          >
-            <Settings className="w-4 h-4" />
-          </Button>
+          {canAccessSettings() && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push('/dashboard/settings')}
+              className="text-white hover:text-blue-200 hover:bg-white/10 border border-white/20 hover:border-white/40 transition-all duration-200 p-2 w-9 h-9 hover:scale-110 transition-transform"
+              title="مركز الإعدادات"
+            >
+              <Settings className="w-4 h-4" />
+            </Button>
+          )}
 
           {/* Notifications - Icon Only with Badge */}
           <DropdownMenu>
