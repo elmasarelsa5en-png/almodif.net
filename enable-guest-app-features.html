@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تفعيل ميزات تطبيق النزيل</title>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    h1 {
+      color: #667eea;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 30px;
+    }
+    .feature {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 20px;
+      margin: 15px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 2px solid #e9ecef;
+    }
+    .feature.enabled {
+      background: #d4edda;
+      border-color: #c3e6cb;
+    }
+    .feature-info {
+      flex: 1;
+    }
+    .feature-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 5px;
+    }
+    .feature-desc {
+      font-size: 14px;
+      color: #666;
+    }
+    .toggle {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 34px;
+    }
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 34px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    input:checked + .slider {
+      background-color: #667eea;
+    }
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      width: 100%;
+      margin: 20px 0 10px 0;
+      transition: transform 0.2s;
+    }
+    button:hover {
+      transform: translateY(-2px);
+    }
+    .status {
+      padding: 15px;
+      border-radius: 10px;
+      margin: 15px 0;
+      text-align: center;
+      font-weight: bold;
+    }
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+    }
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    .status.info {
+      background: #d1ecf1;
+      color: #0c5460;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⚙️ تفعيل ميزات تطبيق النزيل</h1>
+    <p class="subtitle">قم بتفعيل أو تعطيل ميزات تطبيق النزيل</p>
+
+    <div id="status" class="status info" style="display: none;"></div>
+
+    <div class="feature" id="feature-booking">
+      <div class="feature-info">
+        <div class="feature-title">🏠 حجز الغرف والشقق</div>
+        <div class="feature-desc">السماح للنزلاء بحجز الغرف من التطبيق</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="enableBooking" onchange="updateSetting()">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="feature" id="feature-qrmenu">
+      <div class="feature-info">
+        <div class="feature-title">🍽️ قوائم الطعام والمشروبات</div>
+        <div class="feature-desc">عرض قوائم المطعم والكوفي شوب (QR Menu)</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="enableQRMenu" onchange="updateSetting()">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="feature" id="feature-requests">
+      <div class="feature-info">
+        <div class="feature-title">🛎️ الطلبات والخدمات</div>
+        <div class="feature-desc">المغسلة، خدمة الغرف، تمديد الإقامة</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="enableRequests" onchange="updateSetting()">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <button onclick="saveSettings()">💾 حفظ الإعدادات</button>
+    <button onclick="enableAll()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+      ✅ تفعيل جميع الميزات
+    </button>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCelygg7SjT7KY7U7E0EPuvMzfFvJpb7mM",
+      authDomain: "almodif-6d2e7.firebaseapp.com",
+      projectId: "almodif-6d2e7",
+      storageBucket: "almodif-6d2e7.firebasestorage.app",
+      messagingSenderId: "133600889138",
+      appId: "1:133600889138:web:f60ac0e42e0edd5da9f8fe"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    function showStatus(message, type = 'info') {
+      const statusDiv = document.getElementById('status');
+      statusDiv.textContent = message;
+      statusDiv.className = `status ${type}`;
+      statusDiv.style.display = 'block';
+      
+      if (type === 'success') {
+        setTimeout(() => {
+          statusDiv.style.display = 'none';
+        }, 3000);
+      }
+    }
+
+    function updateFeatureUI() {
+      const booking = document.getElementById('enableBooking').checked;
+      const qrMenu = document.getElementById('enableQRMenu').checked;
+      const requests = document.getElementById('enableRequests').checked;
+
+      document.getElementById('feature-booking').className = 'feature' + (booking ? ' enabled' : '');
+      document.getElementById('feature-qrmenu').className = 'feature' + (qrMenu ? ' enabled' : '');
+      document.getElementById('feature-requests').className = 'feature' + (requests ? ' enabled' : '');
+    }
+
+    function updateSetting() {
+      updateFeatureUI();
+    }
+
+    async function loadSettings() {
+      showStatus('⏳ جاري تحميل الإعدادات...', 'info');
+      
+      try {
+        const doc = await db.collection('settings').doc('guest-app').get();
+        
+        if (doc.exists) {
+          const data = doc.data();
+          document.getElementById('enableBooking').checked = data.enableBooking !== false;
+          document.getElementById('enableQRMenu').checked = data.enableQRMenu !== false;
+          document.getElementById('enableRequests').checked = data.enableRequests !== false;
+          updateFeatureUI();
+          showStatus('✅ تم تحميل الإعدادات الحالية', 'success');
+        } else {
+          // إذا لم توجد إعدادات، نفعل كل شيء افتراضياً
+          document.getElementById('enableBooking').checked = true;
+          document.getElementById('enableQRMenu').checked = true;
+          document.getElementById('enableRequests').checked = true;
+          updateFeatureUI();
+          showStatus('⚠️ لا توجد إعدادات محفوظة - سيتم استخدام الإعدادات الافتراضية', 'info');
+        }
+      } catch (error) {
+        showStatus('❌ خطأ في تحميل الإعدادات: ' + error.message, 'error');
+      }
+    }
+
+    async function saveSettings() {
+      showStatus('⏳ جاري حفظ الإعدادات...', 'info');
+      
+      const settings = {
+        enableBooking: document.getElementById('enableBooking').checked,
+        enableQRMenu: document.getElementById('enableQRMenu').checked,
+        enableRequests: document.getElementById('enableRequests').checked,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+
+      try {
+        await db.collection('settings').doc('guest-app').set(settings, { merge: true });
+        showStatus('✅ تم حفظ الإعدادات بنجاح!', 'success');
+        updateFeatureUI();
+      } catch (error) {
+        showStatus('❌ خطأ في الحفظ: ' + error.message, 'error');
+      }
+    }
+
+    async function enableAll() {
+      document.getElementById('enableBooking').checked = true;
+      document.getElementById('enableQRMenu').checked = true;
+      document.getElementById('enableRequests').checked = true;
+      updateFeatureUI();
+      await saveSettings();
+    }
+
+    // تحميل الإعدادات عند فتح الصفحة
+    window.onload = () => {
+      showStatus('✅ تم الاتصال بـ Firebase', 'success');
+      loadSettings();
+    };
+  </script>
+</body>
+</html>
