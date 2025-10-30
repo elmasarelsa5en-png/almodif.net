@@ -29,6 +29,15 @@ interface Room {
   description?: string;
 }
 
+interface Companion {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  nationalId: string;
+  relationship: string;
+}
+
 export default function BookingPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -36,11 +45,13 @@ export default function BookingPage() {
   const [submitting, setSubmitting] = useState(false);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [companions, setCompanions] = useState<Companion[]>([]);
   const [bookingData, setBookingData] = useState({
     guestName: '',
     phone: '',
     email: '',
     nationalId: '',
+    idCopyNumber: '',
     checkIn: '',
     checkOut: '',
     guests: 1,
@@ -113,6 +124,28 @@ export default function BookingPage() {
     setBookingData(prev => ({ ...prev, [field]: value }));
   };
 
+  const addCompanion = () => {
+    const newCompanion: Companion = {
+      id: Date.now().toString(),
+      name: '',
+      phone: '',
+      email: '',
+      nationalId: '',
+      relationship: ''
+    };
+    setCompanions([...companions, newCompanion]);
+  };
+
+  const updateCompanion = (id: string, field: keyof Companion, value: string) => {
+    setCompanions(companions.map(comp => 
+      comp.id === id ? { ...comp, [field]: value } : comp
+    ));
+  };
+
+  const removeCompanion = (id: string) => {
+    setCompanions(companions.filter(comp => comp.id !== id));
+  };
+
   const calculateNights = () => {
     if (!bookingData.checkIn || !bookingData.checkOut) return 0;
     const checkIn = new Date(bookingData.checkIn);
@@ -140,6 +173,8 @@ export default function BookingPage() {
         guestPhone: bookingData.phone,
         guestEmail: bookingData.email,
         guestNationalId: bookingData.nationalId,
+        idCopyNumber: bookingData.idCopyNumber,
+        companions: companions,
         checkInDate: Timestamp.fromDate(new Date(bookingData.checkIn)),
         checkOutDate: Timestamp.fromDate(new Date(bookingData.checkOut)),
         numberOfGuests: bookingData.guests,
@@ -440,17 +475,21 @@ export default function BookingPage() {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="max-w-4xl mx-auto"
+              className="max-w-6xl mx-auto space-y-6"
             >
+              {/* Main Guest Info */}
               <Card className="bg-white/10 backdrop-blur-xl border-white/20">
                 <CardContent className="p-8">
-                  <h2 className="text-2xl font-bold text-white mb-6">معلومات الحجز</h2>
+                  <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                    <User className="w-6 h-6" />
+                    بيانات النزيل الأساسي
+                  </h2>
                   
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <Label className="text-white mb-2 flex items-center gap-2">
                         <User className="w-4 h-4" />
-                        الاسم الكامل
+                        الاسم الكامل *
                       </Label>
                       <Input
                         value={bookingData.guestName}
@@ -463,7 +502,7 @@ export default function BookingPage() {
                     <div>
                       <Label className="text-white mb-2 flex items-center gap-2">
                         <Phone className="w-4 h-4" />
-                        رقم الجوال
+                        رقم الجوال *
                       </Label>
                       <Input
                         value={bookingData.phone}
@@ -492,7 +531,7 @@ export default function BookingPage() {
                     <div>
                       <Label className="text-white mb-2 flex items-center gap-2">
                         <CreditCard className="w-4 h-4" />
-                        رقم الهوية / الإقامة
+                        رقم الهوية / الإقامة *
                       </Label>
                       <Input
                         value={bookingData.nationalId}
@@ -505,8 +544,22 @@ export default function BookingPage() {
 
                     <div>
                       <Label className="text-white mb-2 flex items-center gap-2">
+                        <CreditCard className="w-4 h-4" />
+                        رقم نسخة البطاقة
+                      </Label>
+                      <Input
+                        value={bookingData.idCopyNumber}
+                        onChange={(e) => handleInputChange('idCopyNumber', e.target.value)}
+                        className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
+                        placeholder="رقم نسخة الهوية"
+                        dir="ltr"
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-white mb-2 flex items-center gap-2">
                         <Calendar className="w-4 h-4" />
-                        تاريخ الدخول
+                        تاريخ الدخول *
                       </Label>
                       <Input
                         type="date"
@@ -521,7 +574,7 @@ export default function BookingPage() {
                     <div>
                       <Label className="text-white mb-2 flex items-center gap-2">
                         <Calendar className="w-4 h-4" />
-                        تاريخ الخروج
+                        تاريخ الخروج *
                       </Label>
                       <Input
                         type="date"
@@ -536,7 +589,7 @@ export default function BookingPage() {
                     <div>
                       <Label className="text-white mb-2 flex items-center gap-2">
                         <Users className="w-4 h-4" />
-                        عدد النزلاء
+                        عدد النزلاء *
                       </Label>
                       <Input
                         type="number"
@@ -558,16 +611,158 @@ export default function BookingPage() {
                       />
                     </div>
                   </div>
-
-                  <Button
-                    onClick={() => setStep(3)}
-                    disabled={!bookingData.guestName || !bookingData.phone || !bookingData.checkIn || !bookingData.checkOut}
-                    className="w-full mt-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-6 text-lg"
-                  >
-                    التالي - مراجعة الحجز
-                  </Button>
                 </CardContent>
               </Card>
+
+              {/* Companions Section */}
+              <Card className="bg-white/10 backdrop-blur-xl border-white/20">
+                <CardContent className="p-8">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                      <Users className="w-6 h-6" />
+                      المرافقين ({companions.length})
+                    </h2>
+                    <Button
+                      onClick={addCompanion}
+                      className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white"
+                    >
+                      <Users className="w-4 h-4 ml-2" />
+                      إضافة مرافق
+                    </Button>
+                  </div>
+
+                  {companions.length === 0 ? (
+                    <div className="text-center py-8 text-blue-200">
+                      <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                      <p>لا يوجد مرافقين حتى الآن</p>
+                      <p className="text-sm text-blue-300/70 mt-1">اضغط على "إضافة مرافق" لإضافة مرافق جديد</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      <AnimatePresence>
+                        {companions.map((companion, index) => (
+                          <motion.div
+                            key={companion.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="bg-white/5 border border-white/10 rounded-xl p-6"
+                          >
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className="text-lg font-bold text-white">مرافق {index + 1}</h3>
+                              <Button
+                                onClick={() => removeCompanion(companion.id)}
+                                variant="outline"
+                                size="sm"
+                                className="border-red-500/50 text-red-400 hover:bg-red-500/20"
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </div>
+
+                            <div className="grid md:grid-cols-2 gap-4">
+                              <div>
+                                <Label className="text-white mb-2 flex items-center gap-2">
+                                  <User className="w-4 h-4" />
+                                  الاسم الكامل
+                                </Label>
+                                <Input
+                                  value={companion.name}
+                                  onChange={(e) => updateCompanion(companion.id, 'name', e.target.value)}
+                                  className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
+                                  placeholder="أدخل الاسم الكامل"
+                                />
+                              </div>
+
+                              <div>
+                                <Label className="text-white mb-2 flex items-center gap-2">
+                                  <Users className="w-4 h-4" />
+                                  صلة القرابة
+                                </Label>
+                                <select
+                                  value={companion.relationship}
+                                  onChange={(e) => updateCompanion(companion.id, 'relationship', e.target.value)}
+                                  className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white"
+                                >
+                                  <option value="" className="bg-slate-800">اختر صلة القرابة</option>
+                                  <option value="زوج/زوجة" className="bg-slate-800">زوج/زوجة</option>
+                                  <option value="ابن/ابنة" className="bg-slate-800">ابن/ابنة</option>
+                                  <option value="أخ/أخت" className="bg-slate-800">أخ/أخت</option>
+                                  <option value="أب/أم" className="bg-slate-800">أب/أم</option>
+                                  <option value="صديق" className="bg-slate-800">صديق</option>
+                                  <option value="قريب" className="bg-slate-800">قريب</option>
+                                  <option value="أخرى" className="bg-slate-800">أخرى</option>
+                                </select>
+                              </div>
+
+                              <div>
+                                <Label className="text-white mb-2 flex items-center gap-2">
+                                  <Phone className="w-4 h-4" />
+                                  رقم الجوال
+                                </Label>
+                                <Input
+                                  value={companion.phone}
+                                  onChange={(e) => updateCompanion(companion.id, 'phone', e.target.value)}
+                                  className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
+                                  placeholder="05xxxxxxxx"
+                                  dir="ltr"
+                                />
+                              </div>
+
+                              <div>
+                                <Label className="text-white mb-2 flex items-center gap-2">
+                                  <Mail className="w-4 h-4" />
+                                  البريد الإلكتروني
+                                </Label>
+                                <Input
+                                  type="email"
+                                  value={companion.email}
+                                  onChange={(e) => updateCompanion(companion.id, 'email', e.target.value)}
+                                  className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
+                                  placeholder="example@email.com"
+                                  dir="ltr"
+                                />
+                              </div>
+
+                              <div className="md:col-span-2">
+                                <Label className="text-white mb-2 flex items-center gap-2">
+                                  <CreditCard className="w-4 h-4" />
+                                  رقم الهوية / الإقامة
+                                </Label>
+                                <Input
+                                  value={companion.nationalId}
+                                  onChange={(e) => updateCompanion(companion.id, 'nationalId', e.target.value)}
+                                  className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
+                                  placeholder="1xxxxxxxxx"
+                                  dir="ltr"
+                                />
+                              </div>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Navigation Buttons */}
+              <div className="flex gap-4">
+                <Button
+                  onClick={() => setStep(1)}
+                  variant="outline"
+                  className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20"
+                >
+                  رجوع
+                </Button>
+                <Button
+                  onClick={() => setStep(3)}
+                  disabled={!bookingData.guestName || !bookingData.phone || !bookingData.nationalId || !bookingData.checkIn || !bookingData.checkOut}
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-6 text-lg"
+                >
+                  التالي - مراجعة الحجز
+                </Button>
+              </div>
             </motion.div>
           )}
 
