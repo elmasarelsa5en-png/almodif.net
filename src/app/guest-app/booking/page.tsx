@@ -269,71 +269,159 @@ export default function BookingPage() {
                   </CardContent>
                 </Card>
               ) : (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid md:grid-cols-2 gap-8">
                   {rooms.map((room, index) => (
                     <motion.div
                       key={room.id}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
+                      onClick={() => handleRoomSelect(room)}
+                      className="cursor-pointer"
                     >
-                      <Card className="bg-white/10 backdrop-blur-xl border-white/20 hover:border-white/40 transition-all cursor-pointer group hover:scale-105">
+                      <Card className="bg-white/10 backdrop-blur-xl border-white/20 hover:border-blue-400/50 transition-all overflow-hidden group hover:shadow-2xl hover:shadow-blue-500/20">
                         <CardContent className="p-0">
-                          {/* Room Image */}
-                          <div className="relative h-48 bg-gradient-to-br from-blue-500 to-purple-600 rounded-t-lg overflow-hidden">
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              {room.type === 'شقة' ? (
-                                <Building2 className="w-20 h-20 text-white/40" />
-                              ) : (
-                                <Bed className="w-20 h-20 text-white/40" />
-                              )}
+                          {/* Room Images Carousel */}
+                          <div className="relative h-80 bg-gradient-to-br from-blue-500 to-purple-600 overflow-hidden">
+                            {room.images && room.images.length > 0 ? (
+                              <div className="relative h-full">
+                                <img 
+                                  src={room.images[0]} 
+                                  alt={room.number}
+                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                />
+                                {room.images.length > 1 && (
+                                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+                                    {room.images.slice(0, 4).map((_, i) => (
+                                      <div key={i} className="w-2 h-2 rounded-full bg-white/50 backdrop-blur-sm" />
+                                    ))}
+                                  </div>
+                                )}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                              </div>
+                            ) : (
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                {room.type === 'شقة' || room.type === 'فيلا' ? (
+                                  <Building2 className="w-24 h-24 text-white/30" />
+                                ) : (
+                                  <Bed className="w-24 h-24 text-white/30" />
+                                )}
+                              </div>
+                            )}
+                            
+                            {/* Room Type Badge */}
+                            <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm px-4 py-2 rounded-xl shadow-lg">
+                              <span className="text-purple-600 font-bold text-lg">{room.type}</span>
                             </div>
-                            <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full">
-                              <span className="text-purple-600 font-bold">{room.number}</span>
+                            
+                            {/* Room Number */}
+                            <div className="absolute top-4 left-4 bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-2 rounded-xl shadow-lg">
+                              <span className="text-white font-bold">{room.number}</span>
+                            </div>
+
+                            {/* Featured Badge */}
+                            <div className="absolute bottom-4 right-4">
+                              <div className="flex items-center gap-2 bg-yellow-500/90 backdrop-blur-sm px-3 py-1.5 rounded-lg">
+                                <Star className="w-4 h-4 text-white fill-white" />
+                                <span className="text-white font-bold text-sm">مميزة</span>
+                              </div>
                             </div>
                           </div>
 
-                          <div className="p-6">
-                            <div className="flex items-center justify-between mb-3">
-                              <h3 className="text-xl font-bold text-white">{room.type}</h3>
-                              <div className="flex items-center gap-1 text-yellow-400">
-                                <Star className="w-4 h-4 fill-current" />
-                                <Star className="w-4 h-4 fill-current" />
-                                <Star className="w-4 h-4 fill-current" />
-                                <Star className="w-4 h-4 fill-current" />
-                                <Star className="w-4 h-4 fill-current" />
+                          <div className="p-6 space-y-4">
+                            {/* Description */}
+                            {room.description && (
+                              <p className="text-blue-100 text-sm leading-relaxed line-clamp-2">
+                                {room.description}
+                              </p>
+                            )}
+
+                            {/* Room Info Grid */}
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="flex items-center gap-2 bg-white/5 rounded-lg p-3">
+                                <Users className="w-5 h-5 text-blue-400" />
+                                <div>
+                                  <div className="text-xs text-blue-200/70">السعة</div>
+                                  <div className="text-white font-bold">{room.capacity} أشخاص</div>
+                                </div>
                               </div>
-                            </div>
+                              
+                              <div className="flex items-center gap-2 bg-white/5 rounded-lg p-3">
+                                <Bed className="w-5 h-5 text-purple-400" />
+                                <div>
+                                  <div className="text-xs text-blue-200/70">الأسرّة</div>
+                                  <div className="text-white font-bold">{room.capacity > 2 ? 'متعددة' : 'مزدوج'}</div>
+                                </div>
+                              </div>
 
-                            <div className="flex items-center gap-2 text-blue-200 mb-4">
-                              <Users className="w-4 h-4" />
-                              <span className="text-sm">يستوعب {room.capacity} أشخاص</span>
-                            </div>
-
-                            {/* Amenities */}
-                            <div className="grid grid-cols-3 gap-2 mb-4">
-                              {room.amenities.slice(0, 6).map((amenity, i) => {
-                                const Icon = amenityIcons[amenity] || Star;
-                                return (
-                                  <div key={i} className="flex flex-col items-center gap-1 bg-white/5 rounded-lg p-2">
-                                    <Icon className="w-4 h-4 text-blue-300" />
-                                    <span className="text-xs text-blue-200/80">{amenity}</span>
+                              {room.amenities && room.amenities.includes('واي فاي مجاني') && (
+                                <div className="flex items-center gap-2 bg-white/5 rounded-lg p-3">
+                                  <Wifi className="w-5 h-5 text-green-400" />
+                                  <div>
+                                    <div className="text-xs text-blue-200/70">الإنترنت</div>
+                                    <div className="text-white font-bold">واي فاي</div>
                                   </div>
-                                );
-                              })}
+                                </div>
+                              )}
+
+                              {room.amenities && room.amenities.includes('تلفزيون') && (
+                                <div className="flex items-center gap-2 bg-white/5 rounded-lg p-3">
+                                  <Tv className="w-5 h-5 text-cyan-400" />
+                                  <div>
+                                    <div className="text-xs text-blue-200/70">الترفيه</div>
+                                    <div className="text-white font-bold">تلفزيون</div>
+                                  </div>
+                                </div>
+                              )}
                             </div>
 
+                            {/* Amenities Pills */}
+                            {room.amenities && room.amenities.length > 0 && (
+                              <div className="flex flex-wrap gap-2">
+                                {room.amenities.slice(0, 6).map((amenity, i) => {
+                                  const Icon = amenityIcons[amenity] || Star;
+                                  return (
+                                    <div key={i} className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/20">
+                                      <Icon className="w-3.5 h-3.5 text-blue-300" />
+                                      <span className="text-xs text-blue-100 font-medium">{amenity}</span>
+                                    </div>
+                                  );
+                                })}
+                                {room.amenities.length > 6 && (
+                                  <div className="flex items-center gap-1.5 bg-purple-500/20 backdrop-blur-sm px-3 py-1.5 rounded-full border border-purple-400/30">
+                                    <span className="text-xs text-purple-200 font-bold">+{room.amenities.length - 6} المزيد</span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Price and Book Button */}
                             <div className="flex items-end justify-between pt-4 border-t border-white/20">
-                              <div>
-                                <span className="text-3xl font-bold text-white">{room.price}</span>
-                                <span className="text-blue-200 text-sm mr-2">ر.س / ليلة</span>
+                              <div className="flex flex-col">
+                                <span className="text-blue-200/70 text-sm mb-1">السعر يبدأ من</span>
+                                <div className="flex items-baseline gap-2">
+                                  <span className="text-4xl font-bold text-white">{room.price}</span>
+                                  <span className="text-blue-200 font-medium">ر.س</span>
+                                </div>
+                                <span className="text-blue-300/60 text-xs mt-1">لليلة الواحدة</span>
                               </div>
                               <Button
-                                onClick={() => handleRoomSelect(room)}
-                                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRoomSelect(room);
+                                }}
+                                size="lg"
+                                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all"
                               >
+                                <Check className="w-5 h-5 ml-2" />
                                 احجز الآن
                               </Button>
+                            </div>
+
+                            {/* Availability Status */}
+                            <div className="flex items-center justify-center gap-2 bg-green-500/10 border border-green-500/30 rounded-lg p-2">
+                              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                              <span className="text-green-300 text-sm font-medium">متاحة للحجز الآن</span>
                             </div>
                           </div>
                         </CardContent>
