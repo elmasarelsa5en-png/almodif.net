@@ -112,7 +112,7 @@ export default function POSPage() {
         }];
       }
     });
-    playNotificationSound('notification');
+    playNotificationSound('general');
   };
 
   const updateCartQuantity = (itemId: string, newQuantity: number) => {
@@ -147,7 +147,7 @@ export default function POSPage() {
     setCustomerName('');
     setRoomNumber('');
     setOrderDialogOpen(false);
-    playNotificationSound('success');
+    playNotificationSound('approval');
   };
 
   const currentService = SERVICES.find(s => s.id === selectedService);

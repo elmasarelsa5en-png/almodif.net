@@ -6,7 +6,7 @@ import {
   ArrowRight, Calendar, Users, Bed, Wifi, Tv, 
   Coffee, Car, AirVent, Waves, Star, MapPin,
   Phone, Mail, User, CreditCard, Check, Loader2,
-  Home, Building2, Hotel
+  Home, Building2, Hotel, X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -336,7 +336,7 @@ export default function BookingPage() {
                               </div>
                             ) : (
                               <div className="absolute inset-0 flex items-center justify-center">
-                                {room.type === 'شقة' || room.type === 'فيلا' ? (
+                                {room.type === 'شقة' ? (
                                   <Building2 className="w-24 h-24 text-white/30" />
                                 ) : (
                                   <Bed className="w-24 h-24 text-white/30" />
