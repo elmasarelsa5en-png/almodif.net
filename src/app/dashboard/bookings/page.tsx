@@ -707,44 +707,35 @@ export default function BookingsPage() {
                             <span className="text-blue-300 text-sm">{formatDate(booking.checkOutDate)}</span>
                           </td>
                           <td className="px-6 py-4">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  className="text-white bg-blue-600 hover:bg-blue-700 border-blue-500 px-4"
-                                >
-                                  الإجراءات
-                                  <ChevronDown className="w-4 h-4 mr-1" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent 
-                                align="end" 
-                                className="bg-slate-800 border-slate-600 shadow-xl min-w-[180px] mt-2"
+                            <div className="flex items-center gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleViewDetails(booking)}
+                                className="text-white bg-blue-600 hover:bg-blue-700 border-blue-500"
+                                title="عرض التفاصيل"
                               >
-                                <DropdownMenuItem 
-                                  onClick={() => handleViewDetails(booking)}
-                                  className="text-white hover:bg-slate-700 cursor-pointer focus:bg-slate-700 focus:text-white"
-                                >
-                                  <Eye className="w-4 h-4 ml-2" />
-                                  عرض التفاصيل
-                                </DropdownMenuItem>
-                                <DropdownMenuItem 
-                                  onClick={() => handleEditBooking(booking)}
-                                  className="text-white hover:bg-slate-700 cursor-pointer focus:bg-slate-700 focus:text-white"
-                                >
-                                  <Edit className="w-4 h-4 ml-2" />
-                                  تعديل
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => handleDeleteBooking(booking.id)}
-                                  className="text-red-400 hover:bg-red-900/20 cursor-pointer focus:bg-red-900/20 focus:text-red-400"
-                                >
-                                  <Trash2 className="w-4 h-4 ml-2" />
-                                  حذف
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleEditBooking(booking)}
+                                className="text-white bg-green-600 hover:bg-green-700 border-green-500"
+                                title="تعديل"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleDeleteBooking(booking.id)}
+                                className="text-white bg-red-600 hover:bg-red-700 border-red-500"
+                                title="حذف"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
                           </td>
                         </tr>
                       ))}
