@@ -21,10 +21,10 @@ interface GuestData {
   nationalIdCopy?: string;
   dateOfBirth: string;
   nationality: string;
-  roomNumber: string;
+  roomNumber?: string; // ✅ Optional - يتم تحديده من قبل الإدارة
   password: string;
-  checkInDate: string;
-  status: 'checked-in' | 'checked-out';
+  checkInDate?: string;
+  status: 'pending' | 'checked-in' | 'checked-out'; // ✅ إضافة حالة pending
 }
 
 export default function GuestLoginPage() {
@@ -48,10 +48,8 @@ export default function GuestLoginPage() {
     nationalIdCopy: '',
     dateOfBirth: '',
     nationality: 'السعودية',
-    roomNumber: '',
     password: '',
-    checkInDate: new Date().toISOString().split('T')[0],
-    status: 'checked-in',
+    status: 'pending', // ✅ بانتظار تخصيص غرفة من الإدارة
   });
 
   // التحقق من الجلسة الموجودة
@@ -76,20 +74,42 @@ export default function GuestLoginPage() {
       const q = query(
         guestsRef,
         where('nationalId', '==', loginData.nationalId),
-        where('password', '==', loginData.password),
-        where('status', '==', 'checked-in')
+        where('password', '==', loginData.password)
       );
       
       const querySnapshot = await getDocs(q);
       
       if (querySnapshot.empty) {
-        setError('رقم الهوية أو كلمة المرور غير صحيحة، أو لا يوجد حجز نشط');
+        setError('رقم الهوية أو كلمة المرور غير صحيحة');
         setLoading(false);
         return;
       }
 
       const guestDoc = querySnapshot.docs[0];
       const guestData = { id: guestDoc.id, ...guestDoc.data() } as GuestData & { id: string };
+
+      // ✅ التحقق من حالة الحساب
+      if (guestData.status === 'checked-out') {
+        setError('تم إنهاء إقامتك. للحجز مجدداً تواصل مع الاستقبال');
+        setLoading(false);
+        return;
+      }
+
+      if (guestData.status === 'pending') {
+        setError('حسابك بانتظار تخصيص غرفة من قبل الإدارة. يرجى التواصل مع الاستقبال');
+        setLoading(false);
+        return;
+      }
+
+      // ✅ جلب رقم الغرفة من قاعدة بيانات الغرف
+      const roomsRef = collection(db, 'rooms');
+      const roomQuery = query(roomsRef, where('guestNationalId', '==', loginData.nationalId));
+      const roomSnapshot = await getDocs(roomQuery);
+
+      if (!roomSnapshot.empty) {
+        const roomData = roomSnapshot.docs[0].data();
+        guestData.roomNumber = roomData.number || roomData.roomNumber;
+      }
 
       // حفظ الجلسة
       localStorage.setItem('guest_session', JSON.stringify(guestData));
@@ -112,9 +132,9 @@ export default function GuestLoginPage() {
     setLoading(true);
 
     try {
-      // التحقق من البيانات
+      // ✅ التحقق من البيانات الأساسية فقط (بدون رقم غرفة)
       if (!registerData.name || !registerData.phone || !registerData.nationalId || 
-          !registerData.roomNumber || !registerData.password) {
+          !registerData.password || !registerData.dateOfBirth) {
         setError('الرجاء إدخال جميع البيانات المطلوبة');
         setLoading(false);
         return;
@@ -124,47 +144,30 @@ export default function GuestLoginPage() {
       const guestsRef = collection(db, 'guests');
       const existingQuery = query(
         guestsRef,
-        where('nationalId', '==', registerData.nationalId),
-        where('status', '==', 'checked-in')
+        where('nationalId', '==', registerData.nationalId)
       );
       const existingDocs = await getDocs(existingQuery);
 
       if (!existingDocs.empty) {
-        setError('يوجد حجز نشط بنفس رقم الهوية');
+        setError('يوجد حساب مسجل بنفس رقم الهوية. يمكنك تسجيل الدخول');
         setLoading(false);
         return;
       }
 
-      // إضافة النزيل إلى Firebase
-      const newGuest = await addDoc(guestsRef, {
+      // ✅ إضافة النزيل إلى Firebase بحالة "pending"
+      await addDoc(guestsRef, {
         ...registerData,
+        status: 'pending', // ✅ بانتظار تخصيص غرفة
         createdAt: new Date().toISOString(),
       });
 
-      // تحديث الغرفة في rooms collection
-      const roomsRef = collection(db, 'rooms');
-      const roomQuery = query(roomsRef, where('roomNumber', '==', registerData.roomNumber));
-      const roomSnapshot = await getDocs(roomQuery);
-
-      if (!roomSnapshot.empty) {
-        const roomDoc = roomSnapshot.docs[0];
-        await updateDoc(doc(db, 'rooms', roomDoc.id), {
-          status: 'occupied',
-          guestName: registerData.name,
-          guestPhone: registerData.phone,
-          guestNationality: registerData.nationalId,
-          checkInDate: registerData.checkInDate,
-        });
-      }
-
-      // حفظ الجلسة
-      const guestData = { id: newGuest.id, ...registerData };
-      localStorage.setItem('guest_session', JSON.stringify(guestData));
-
-      setSuccess('تم التسجيل بنجاح! جاري التحويل...');
+      setSuccess('تم التسجيل بنجاح! سيتم تخصيص غرفة لك من قبل الإدارة. تواصل مع الاستقبال.');
+      
+      // ✅ لا نحفظ الجلسة لأن الحساب pending
       setTimeout(() => {
-        router.push('/guest-app');
-      }, 1500);
+        setMode('login');
+        setSuccess('');
+      }, 3000);
     } catch (error) {
       console.error('Registration error:', error);
       setError('حدث خطأ أثناء التسجيل');
@@ -360,21 +363,6 @@ export default function GuestLoginPage() {
                 </div>
 
                 <div>
-                  <Label className="text-amber-100 mb-2 block">رقم الغرفة/الشقة *</Label>
-                  <div className="relative">
-                    <Hotel className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                    <Input
-                      type="text"
-                      value={registerData.roomNumber}
-                      onChange={(e) => setRegisterData({ ...registerData, roomNumber: e.target.value })}
-                      placeholder="208"
-                      className="pr-10 bg-slate-700/50 border-slate-600 text-white"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
                   <Label className="text-amber-100 mb-2 block">كلمة المرور *</Label>
                   <div className="relative">
                     <KeyRound className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
@@ -389,6 +377,11 @@ export default function GuestLoginPage() {
                     />
                   </div>
                   <p className="text-xs text-slate-400 mt-1">يجب أن تكون 6 أحرف على الأقل</p>
+                </div>
+
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 text-amber-300 text-sm">
+                  <p className="font-semibold mb-1">📌 ملاحظة مهمة:</p>
+                  <p>بعد التسجيل، سيتم تخصيص غرفة لك من قبل الإدارة. يرجى التواصل مع الاستقبال لإكمال إجراءات الحجز.</p>
                 </div>
 
                 <Button
