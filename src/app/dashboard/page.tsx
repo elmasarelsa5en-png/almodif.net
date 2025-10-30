@@ -542,26 +542,6 @@ const Dashboard: React.FC = () => {
                   <Bell className="w-4 h-4 inline mr-2" />
                   اختبار الإشعارات
                 </motion.button>
-
-                <motion.button
-                  className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-3 rounded-full font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-green-500/25"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => window.open('/guest-menu', '_blank')}
-                >
-                  <Coffee className="w-4 h-4 inline mr-2" />
-                  المنيو الإلكتروني
-                </motion.button>
-
-                <motion.button
-                  className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-6 py-3 rounded-full font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-blue-500/25"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => window.open('/guest-login', '_blank')}
-                >
-                  <Users className="w-4 h-4 inline mr-2" />
-                  دخول النزلاء
-                </motion.button>
               </div>
             </div>
           </motion.div>
