@@ -20,13 +20,13 @@ async function updateAkramGuest() {
   try {
     console.log('🔄 جاري البحث عن حساب akram...');
 
-    // البحث عن حساب akram
+    // البحث عن حساب akram بأي من الأرقام
     const guestsRef = collection(db, 'guests');
-    const q = query(guestsRef, where('nationalId', '==', '2529104505'));
-    const querySnapshot = await getDocs(q);
+    let q = query(guestsRef, where('name', '==', 'akram'));
+    let querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {
-      console.log('❌ لم يتم العثور على حساب بهذا الرقم الوطني');
+      console.log('❌ لم يتم العثور على حساب باسم akram');
       console.log('💡 يمكنك تشغيل: node add-akram-guest.js لإنشاء الحساب');
       process.exit(1);
     }
@@ -34,6 +34,9 @@ async function updateAkramGuest() {
     // تحديث الحساب الأول المطابق
     const guestDoc = querySnapshot.docs[0];
     await updateDoc(doc(db, 'guests', guestDoc.id), {
+      nationalId: '2529104503', // ✅ الرقم الجديد
+      name: 'اكرم',
+      password: 'Aazxc',
       status: 'checked-in',
       roomNumber: '101',
       verified: true,
@@ -47,13 +50,13 @@ async function updateAkramGuest() {
     console.log('📄 معرف المستند:', guestDoc.id);
     console.log('');
     console.log('📋 بيانات الدخول:');
-    console.log('   الاسم: akram');
-    console.log('   رقم الهوية: 2529104505');
+    console.log('   الاسم: اكرم');
+    console.log('   رقم الهوية: 2529104503');
     console.log('   كلمة المرور: Aazxc');
     console.log('   الحالة: checked-in ✅');
     console.log('   رقم الغرفة: 101');
     console.log('');
-    console.log('🎉 يمكنك الآن الدخول إلى تطبيق النزيل!');
+    console.log('🎉 يمكنك الآن الدخول إلى تطبيق الضيف!');
 
   } catch (error) {
     console.error('❌ خطأ في تحديث حساب akram:', error);
