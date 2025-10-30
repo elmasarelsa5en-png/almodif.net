@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useRouter } from 'next/navigation';
 import { getRoomsFromFirebase } from '@/lib/firebase-sync';
-import { getEmployees, addRequest, type Employee } from '@/lib/firebase-data';
+import { getEmployees, addRequest, type Employee, getMenuItemsByCategory, subscribeToMenuItems, type MenuItem } from '@/lib/firebase-data';
 import type { Room } from '@/lib/rooms-data';
 
 // Professional TypeScript interfaces
@@ -21,15 +21,16 @@ interface LaundryItem {
   id: string;
   name: string;
   nameAr: string;
-  category: 'washing' | 'ironing' | 'dry-cleaning' | 'express' | 'special' | 'extra';
+  category: string;
+  subCategory?: string;
   price: number;
   image: string;
   description: string;
-  rating: number;
-  processingTime: number;
+  rating?: number;
+  processingTime?: number;
   available: boolean;
   featured?: boolean;
-  services: string[];
+  services?: string[];
 }
 
 interface CartItem extends LaundryItem {
@@ -185,6 +186,33 @@ export default function LaundryPage() {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isLaundryStaff, setIsLaundryStaff] = useState(false);
+  const [menuItems, setMenuItems] = useState<LaundryItem[]>([]);
+  const [menuLoading, setMenuLoading] = useState(true);
+
+  // Load menu items from Firebase
+  useEffect(() => {
+    const loadMenuItems = async () => {
+      try {
+        setMenuLoading(true);
+        const items = await getMenuItemsByCategory('laundry');
+        setMenuItems(items as LaundryItem[]);
+      } catch (error) {
+        console.error('Error loading laundry menu:', error);
+      } finally {
+        setMenuLoading(false);
+      }
+    };
+
+    loadMenuItems();
+
+    // Subscribe to real-time updates
+    const unsubscribe = subscribeToMenuItems((allItems) => {
+      const laundryItems = allItems.filter(item => item.category === 'laundry');
+      setMenuItems(laundryItems as LaundryItem[]);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // Load current user from localStorage
   useEffect(() => {
@@ -248,9 +276,9 @@ export default function LaundryPage() {
 
   // Professional memoized computations
   const filteredMenu = useMemo(() => {
-    if (selectedCategory === 'all') return LAUNDRY_SERVICES;
-    return LAUNDRY_SERVICES.filter(item => item.category === selectedCategory);
-  }, [selectedCategory]);
+    if (selectedCategory === 'all') return menuItems;
+    return menuItems.filter(item => item.subCategory === selectedCategory);
+  }, [selectedCategory, menuItems]);
 
   const cartTotal = useMemo(() => {
     return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -548,14 +576,28 @@ export default function LaundryPage() {
 
           {/* Menu Grid */}
           <div className="lg:col-span-3">
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              className="grid md:grid-cols-2 xl:grid-cols-3 gap-6"
-            >
-              <AnimatePresence>
-                {filteredMenu.map((item) => (
+            {menuLoading ? (
+              <div className="flex items-center justify-center h-96">
+                <div className="text-center">
+                  <Loader2 className="h-12 w-12 text-cyan-400 animate-spin mx-auto mb-4" />
+                  <p className="text-cyan-200 text-lg">جاري تحميل القائمة...</p>
+                </div>
+              </div>
+            ) : menuItems.length === 0 ? (
+              <div className="text-center py-20">
+                <Shirt className="h-20 w-20 text-cyan-400/50 mx-auto mb-4" />
+                <p className="text-cyan-200 text-xl mb-2">لا توجد خدمات في القائمة</p>
+                <p className="text-cyan-300/60">يمكنك إضافة خدمات من صفحة الإعدادات</p>
+              </div>
+            ) : (
+              <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                className="grid md:grid-cols-2 xl:grid-cols-3 gap-6"
+              >
+                <AnimatePresence>
+                  {filteredMenu.map((item) => (
                   <motion.div
                     key={item.id}
                     variants={itemVariants}
@@ -674,6 +716,7 @@ export default function LaundryPage() {
                 ))}
               </AnimatePresence>
             </motion.div>
+            )}
           </div>
         </div>
       </div>

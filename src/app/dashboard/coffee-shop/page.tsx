@@ -5,28 +5,30 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Coffee, ArrowLeft, Sparkles, Star, Plus, ShoppingCart, 
   CreditCard, Clock, Heart, Award, Zap, Crown, Timer,
-  Flame, Snowflake, Cookie, Croissant, ChefHat
+  Flame, Snowflake, Cookie, Croissant, ChefHat, Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
+import { getMenuItemsByCategory, subscribeToMenuItems, type MenuItem } from '@/lib/firebase-data';
 
 // Professional TypeScript interfaces
 interface CoffeeItem {
   id: string;
   name: string;
   nameAr: string;
-  category: 'hot-coffee' | 'cold-coffee' | 'tea' | 'dessert' | 'pastry';
+  category: string;
+  subCategory?: string;
   price: number;
   image: string;
   description: string;
-  rating: number;
-  preparationTime: number;
+  rating?: number;
+  preparationTime?: number;
   available: boolean;
   featured?: boolean;
   calories?: number;
-  ingredients: string[];
+  ingredients?: string[];
 }
 
 interface CartItem extends CoffeeItem {
@@ -52,7 +54,7 @@ const itemVariants = {
     opacity: 1, 
     y: 0, 
     scale: 1,
-    transition: { duration: 0.5, ease: "easeOut" }
+    transition: { duration: 0.5 }
   }
 };
 
@@ -145,19 +147,46 @@ const COFFEE_MENU: CoffeeItem[] = [
     calories: 450,
     ingredients: ['مسكاربون', 'قهوة', 'كاكاو', 'بسكويت سافوياردي', 'مارسالا']
   }
-];
+};
 
 export default function CoffeeShopPage() {
   const router = useRouter();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [menuItems, setMenuItems] = useState<CoffeeItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Load menu items from Firebase
+  useEffect(() => {
+    const loadMenuItems = async () => {
+      try {
+        setLoading(true);
+        const items = await getMenuItemsByCategory('coffee');
+        setMenuItems(items as CoffeeItem[]);
+      } catch (error) {
+        console.error('Error loading coffee menu:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadMenuItems();
+
+    // Subscribe to real-time updates
+    const unsubscribe = subscribeToMenuItems((allItems) => {
+      const coffeeItems = allItems.filter(item => item.category === 'coffee');
+      setMenuItems(coffeeItems as CoffeeItem[]);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // Professional memoized computations
   const filteredMenu = useMemo(() => {
-    if (selectedCategory === 'all') return COFFEE_MENU;
-    return COFFEE_MENU.filter(item => item.category === selectedCategory);
-  }, [selectedCategory]);
+    if (selectedCategory === 'all') return menuItems;
+    return menuItems.filter(item => item.subCategory === selectedCategory);
+  }, [selectedCategory, menuItems]);
 
   const cartTotal = useMemo(() => {
     return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -392,14 +421,28 @@ export default function CoffeeShopPage() {
 
           {/* Menu Grid */}
           <div className="lg:col-span-3">
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              className="grid md:grid-cols-2 xl:grid-cols-3 gap-6"
-            >
-              <AnimatePresence>
-                {filteredMenu.map((item) => (
+            {loading ? (
+              <div className="flex items-center justify-center h-96">
+                <div className="text-center">
+                  <Loader2 className="h-12 w-12 text-amber-400 animate-spin mx-auto mb-4" />
+                  <p className="text-amber-200 text-lg">جاري تحميل القائمة...</p>
+                </div>
+              </div>
+            ) : menuItems.length === 0 ? (
+              <div className="text-center py-20">
+                <Coffee className="h-20 w-20 text-amber-400/50 mx-auto mb-4" />
+                <p className="text-amber-200 text-xl mb-2">لا توجد عناصر في القائمة</p>
+                <p className="text-amber-300/60">يمكنك إضافة عناصر من صفحة الإعدادات</p>
+              </div>
+            ) : (
+              <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                className="grid md:grid-cols-2 xl:grid-cols-3 gap-6"
+              >
+                <AnimatePresence>
+                  {filteredMenu.map((item) => (
                   <motion.div
                     key={item.id}
                     variants={itemVariants}
@@ -522,6 +565,7 @@ export default function CoffeeShopPage() {
                 ))}
               </AnimatePresence>
             </motion.div>
+            )}
           </div>
         </div>
       </div>
