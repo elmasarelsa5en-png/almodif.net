@@ -283,6 +283,7 @@ export default function LaundryPage() {
 
   // Professional memoized computations
   const filteredMenu = useMemo(() => {
+    if (!menuItems || !Array.isArray(menuItems)) return [];
     if (selectedCategory === 'all') return menuItems;
     return menuItems.filter(item => item.subCategory === selectedCategory);
   }, [selectedCategory, menuItems]);
@@ -625,7 +626,7 @@ export default function LaundryPage() {
                 className="grid md:grid-cols-2 xl:grid-cols-3 gap-6"
               >
                 <AnimatePresence>
-                  {filteredMenu.map((item) => (
+                  {filteredMenu && filteredMenu.length > 0 && filteredMenu.map((item) => (
                   <motion.div
                     key={item.id}
                     variants={itemVariants}

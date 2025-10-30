@@ -194,6 +194,7 @@ export default function RestaurantPage() {
 
   // Professional memoized computations
   const filteredMenu = useMemo(() => {
+    if (!menuItems || !Array.isArray(menuItems)) return [];
     if (selectedCategory === 'all') return menuItems;
     return menuItems.filter(item => item.subCategory === selectedCategory);
   }, [selectedCategory, menuItems]);
@@ -446,7 +447,6 @@ export default function RestaurantPage() {
                 <p className="text-orange-200 text-xl mb-2">لا توجد عناصر في القائمة</p>
                 <p className="text-orange-300/60">يمكنك إضافة عناصر من صفحة الإعدادات</p>
               </div>
-            ) : (
               <motion.div
                 variants={containerVariants}
                 initial="hidden"
@@ -454,6 +454,7 @@ export default function RestaurantPage() {
                 className="grid md:grid-cols-2 xl:grid-cols-3 gap-6"
               >
                 <AnimatePresence>
+                  {filteredMenu && filteredMenu.length > 0 && filteredMenu.map((item) => (
                   {filteredMenu.map((item) => (
                   <motion.div
                     key={item.id}
