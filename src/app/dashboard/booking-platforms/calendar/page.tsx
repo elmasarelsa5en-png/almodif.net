@@ -56,6 +56,7 @@ interface DayPrice {
 }
 
 const platforms = [
+  { id: 'website', name: 'الموقع الإلكتروني', icon: Globe, color: 'from-cyan-500 to-cyan-600' },
   { id: 'booking', name: 'Booking.com', icon: Globe, color: 'from-blue-500 to-blue-600' },
   { id: 'almosafer', name: 'المسافر', icon: Building2, color: 'from-green-500 to-green-600' },
   { id: 'agoda', name: 'Agoda', icon: MapPin, color: 'from-purple-500 to-purple-600' },
