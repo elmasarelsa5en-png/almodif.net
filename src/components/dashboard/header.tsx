@@ -830,7 +830,7 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="flex items-center gap-2 hover:bg-white/10 border border-white/20 hover:border-white/40 transition-all duration-200 px-2 py-1.5 rounded-lg"
+                className="relative z-50 flex items-center gap-2 hover:bg-white/10 border border-white/20 hover:border-white/40 transition-all duration-200 px-2 py-1.5 rounded-lg"
                 title="الملف الشخصي"
               >
                 <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center shadow-lg overflow-hidden ring-2 ring-white/30">
@@ -851,24 +851,24 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
                 </div>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 bg-gray-800 shadow-xl z-50">
-              <DropdownMenuLabel className="text-gray-900">
+            <DropdownMenuContent align="end" className="w-48 bg-white shadow-xl border border-gray-200 z-[100]">
+              <DropdownMenuLabel className="text-gray-900 font-semibold">
                 <div className="font-semibold">{user?.name || user?.username}</div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
                 onClick={() => router.push('/dashboard/profile')} 
-                className="cursor-pointer hover:bg-gray-50"
+                className="cursor-pointer hover:bg-gray-100 text-gray-900"
               >
                 <User className="h-4 w-4 ml-2" />
-                <span className="text-gray-900">الملف الشخصي</span>
+                <span>الملف الشخصي</span>
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => router.push('/dashboard/settings/notifications')} 
-                className="cursor-pointer hover:bg-gray-50"
+                className="cursor-pointer hover:bg-gray-100 text-gray-900"
               >
                 <Bell className="h-4 w-4 ml-2" />
-                <span className="text-gray-900">إعدادات الإشعارات</span>
+                <span>إعدادات الإشعارات</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
@@ -876,7 +876,7 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
                   localStorage.clear();
                   router.push('/login');
                 }}
-                className="cursor-pointer text-red-600 hover:bg-red-50"
+                className="cursor-pointer text-red-600 hover:bg-red-50 font-medium"
               >
                 <LogOut className="h-4 w-4 ml-2" />
                 <span className="font-medium">تسجيل الخروج</span>
