@@ -69,7 +69,7 @@ export default function GuestAppHomePage() {
       icon: Utensils,
       color: 'from-amber-500 to-orange-600',
       description: 'تصفح قائمة الطعام واطلب',
-      route: '/guest-menu/restaurant'
+      route: '/guest-app/restaurant'
     },
     {
       id: 'coffee',
@@ -78,7 +78,7 @@ export default function GuestAppHomePage() {
       icon: Coffee,
       color: 'from-yellow-600 to-amber-700',
       description: 'قهوة طازجة ومشروبات',
-      route: '/guest-menu/coffee-shop'
+      route: '/guest-app/coffee-shop'
     },
     {
       id: 'laundry',
@@ -87,7 +87,7 @@ export default function GuestAppHomePage() {
       icon: Shirt,
       color: 'from-cyan-500 to-blue-600',
       description: 'غسيل وكي الملابس',
-      route: '/guest-menu/laundry'
+      route: '/guest-app/laundry'
     },
     {
       id: 'room-service',
@@ -96,7 +96,7 @@ export default function GuestAppHomePage() {
       icon: Bell,
       color: 'from-purple-500 to-purple-600',
       description: 'اطلب أي شيء لغرفتك',
-      route: '/guest-menu/room-service'
+      route: '/guest-app/room-service'
     },
     {
       id: 'extend',
