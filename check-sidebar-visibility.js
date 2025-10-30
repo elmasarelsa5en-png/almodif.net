@@ -34,7 +34,11 @@ async function checkSidebarVisibility() {
         'settings': true,
         'chat': true,
         'hr': true,
-        'reports': true
+        'reports': true,
+        'accounting': true,
+        'inventory': true,
+        'payment-links': true,
+        'booking-platforms': true
       };
 
       await setDoc(settingsRef, defaultSettings);

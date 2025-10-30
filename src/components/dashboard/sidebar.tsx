@@ -37,7 +37,18 @@ import {
   Globe, // أيقونة منصات الحجز
   Link2, // أيقونة روابط الدفع
   CreditCard, // أيقونة بطاقات الدفع
-  List // أيقونة قوائم الأصناف
+  List, // أيقونة قوائم الأصناف
+  BarChart3, // تقرير شهري
+  DollarSign, // خزنة النقد
+  Package, // العمولات
+  Receipt, // سندات القبض
+  UserCheck, // إحصائيات الموظفين
+  Lock, // الحجوزات المفتوحة
+  Wrench, // تغيير الشقق
+  PieChart, // الضرائب والرسوم
+  Building, // حالة الغرف
+  X, // التناقض
+  Building2 // البنك
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -195,6 +206,176 @@ const navigationItems: NavigationItem[] = [
     descKey: 'socialMediaDesc',
     href: '/dashboard/crm-whatsapp',
     permission: 'view_dashboard',
+  },
+  {
+    icon: FileText,
+    labelKey: 'reports',
+    descKey: 'reportsDesc',
+    href: '/dashboard/reports',
+    permission: 'view_dashboard',
+    subItems: [
+      {
+        icon: TrendingUp,
+        labelKey: 'cashMovementReport',
+        descKey: 'cashMovementReportDesc',
+        href: '/dashboard/reports/cash-movement',
+        permission: 'view_financial_reports',
+      },
+      {
+        icon: BarChart3,
+        labelKey: 'monthlyTotalReport',
+        descKey: 'monthlyTotalReportDesc',
+        href: '/dashboard/reports/monthly-total',
+        permission: 'view_financial_reports',
+      },
+      {
+        icon: Calendar,
+        labelKey: 'dailyMovementReport',
+        descKey: 'dailyMovementReportDesc',
+        href: '/dashboard/reports/daily-movement',
+        permission: 'view_financial_reports',
+      },
+      {
+        icon: TrendingDown,
+        labelKey: 'occupancyRateReport',
+        descKey: 'occupancyRateReportDesc',
+        href: '/dashboard/reports/occupancy-rate',
+        permission: 'view_dashboard',
+      },
+      {
+        icon: DollarSign,
+        labelKey: 'cashVaultReport',
+        descKey: 'cashVaultReportDesc',
+        href: '/dashboard/reports/cash-vault',
+        permission: 'view_financial_reports',
+      },
+      {
+        icon: Package,
+        labelKey: 'commissionsReport',
+        descKey: 'commissionsReportDesc',
+        href: '/dashboard/reports/commissions',
+        permission: 'view_financial_reports',
+      },
+      {
+        icon: Receipt,
+        labelKey: 'receiptsReport',
+        descKey: 'receiptsReportDesc',
+        href: '/dashboard/reports/receipts',
+        permission: 'view_financial_reports',
+      },
+      {
+        icon: Users,
+        labelKey: 'employeeReservationsReport',
+        descKey: 'employeeReservationsReportDesc',
+        href: '/dashboard/reports/employee-reservations',
+        permission: 'view_dashboard',
+      },
+      {
+        icon: UserCheck,
+        labelKey: 'employeeStatisticsReport',
+        descKey: 'employeeStatisticsReportDesc',
+        href: '/dashboard/reports/employee-statistics',
+        permission: 'manage_permissions',
+      },
+      {
+        icon: CreditCard,
+        labelKey: 'servicesReport',
+        descKey: 'servicesReportDesc',
+        href: '/dashboard/reports/services',
+        permission: 'view_financial_reports',
+      },
+      {
+        icon: Lock,
+        labelKey: 'openReservationsReport',
+        descKey: 'openReservationsReportDesc',
+        href: '/dashboard/reports/open-reservations',
+        permission: 'view_dashboard',
+      },
+      {
+        icon: MessageSquare,
+        labelKey: 'messagesSummaryReport',
+        descKey: 'messagesSummaryReportDesc',
+        href: '/dashboard/reports/messages-summary',
+        permission: 'access_chat',
+      },
+      {
+        icon: Wrench,
+        labelKey: 'apartmentChangeReport',
+        descKey: 'apartmentChangeReportDesc',
+        href: '/dashboard/reports/apartment-change',
+        permission: 'view_dashboard',
+      },
+      {
+        icon: BarChart3,
+        labelKey: 'monthlyReportByMonth',
+        descKey: 'monthlyReportByMonthDesc',
+        href: '/dashboard/reports/monthly-by-month',
+        permission: 'view_financial_reports',
+      },
+      {
+        icon: PieChart,
+        labelKey: 'taxesAndFeesReport',
+        descKey: 'taxesAndFeesReportDesc',
+        href: '/dashboard/reports/taxes-and-fees',
+        permission: 'view_financial_reports',
+      },
+      {
+        icon: Settings,
+        labelKey: 'evaluations',
+        descKey: 'evaluationsDesc',
+        href: '/dashboard/reports/evaluations',
+        permission: 'view_dashboard',
+      },
+      {
+        icon: UserCheck,
+        labelKey: 'tourismAuthorityReport',
+        descKey: 'tourismAuthorityReportDesc',
+        href: '/dashboard/reports/tourism-authority',
+        permission: 'view_dashboard',
+      },
+      {
+        icon: Building,
+        labelKey: 'roomStatusByType',
+        descKey: 'roomStatusByTypeDesc',
+        href: '/dashboard/reports/room-status-by-type',
+        permission: 'view_dashboard',
+      },
+      {
+        icon: X,
+        labelKey: 'roomDiscrepancy',
+        descKey: 'roomDiscrepancyDesc',
+        href: '/dashboard/reports/room-discrepancy',
+        permission: 'view_dashboard',
+      },
+      {
+        icon: FileText,
+        labelKey: 'customReport',
+        descKey: 'customReportDesc',
+        href: '/dashboard/reports/custom',
+        permission: 'view_financial_reports',
+      },
+      {
+        icon: Receipt,
+        labelKey: 'invoicesReport',
+        descKey: 'invoicesReportDesc',
+        href: '/dashboard/reports/invoices',
+        permission: 'view_invoices',
+      },
+      {
+        icon: Building2,
+        labelKey: 'bankReport',
+        descKey: 'bankReportDesc',
+        href: '/dashboard/reports/bank',
+        permission: 'view_financial_reports',
+      },
+      {
+        icon: Users,
+        labelKey: 'guestsReport',
+        descKey: 'guestsReportDesc',
+        href: '/dashboard/reports/guests',
+        permission: 'view_dashboard',
+      },
+    ]
   },
   {
     icon: Settings,
