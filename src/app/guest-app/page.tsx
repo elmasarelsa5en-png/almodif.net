@@ -50,8 +50,11 @@ export default function GuestAppHomePage() {
   });
   const [showDownloadPrompt, setShowDownloadPrompt] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
+    
     // جلب إعدادات الفندق من Firebase
     const loadSettings = async () => {
       if (!db) {
@@ -86,9 +89,11 @@ export default function GuestAppHomePage() {
     loadSettings();
 
     // التحقق من نوع الجهاز
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    if (isMobile) {
-      setShowDownloadPrompt(true);
+    if (typeof window !== 'undefined') {
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile) {
+        setShowDownloadPrompt(true);
+      }
     }
   }, []);
 
@@ -195,27 +200,34 @@ export default function GuestAppHomePage() {
       {/* طبقة الخلفية المتحركة */}
       <div className="absolute inset-0 overflow-hidden">
         {/* جزيئات ذهبية متحركة */}
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-2 h-2 bg-amber-400/30 rounded-full"
-            initial={{
-              x: Math.random() * window.innerWidth,
-              y: Math.random() * window.innerHeight,
-            }}
-            animate={{
-              x: Math.random() * window.innerWidth,
-              y: Math.random() * window.innerHeight,
-              scale: [1, 1.5, 1],
-              opacity: [0.3, 0.6, 0.3],
-            }}
-            transition={{
-              duration: Math.random() * 10 + 10,
-              repeat: Infinity,
-              ease: "linear",
-            }}
-          />
-        ))}
+        {isMounted && [...Array(20)].map((_, i) => {
+          const startX = Math.random() * 100;
+          const startY = Math.random() * 100;
+          const endX = Math.random() * 100;
+          const endY = Math.random() * 100;
+          
+          return (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 bg-amber-400/30 rounded-full"
+              initial={{
+                x: `${startX}vw`,
+                y: `${startY}vh`,
+              }}
+              animate={{
+                x: `${endX}vw`,
+                y: `${endY}vh`,
+                scale: [1, 1.5, 1],
+                opacity: [0.3, 0.6, 0.3],
+              }}
+              transition={{
+                duration: Math.random() * 10 + 10,
+                repeat: Infinity,
+                ease: "linear",
+              }}
+            />
+          );
+        })}
         
         {/* موجات ذهبية متحركة */}
         <motion.div
