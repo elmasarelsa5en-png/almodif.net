@@ -602,11 +602,13 @@ export default function ChatPage() {
             isFromOther: lastMessage.senderId !== currentUserId
           });
           
+          // تشغيل الصوت فقط إذا كانت الرسالة من شخص آخر
+          // وإذا كانت المحادثة مفتوحة
           if (lastMessage.senderId !== currentUserId) {
-            console.log('🔔 Playing notification sound...');
+            console.log('🔔 Playing notification sound for incoming message...');
             try {
               const audio = new Audio('/sounds/notification.mp3');
-              audio.volume = 0.5;
+              audio.volume = 0.3; // تقليل الصوت
               audio.play().catch(err => console.log('🔇 Sound play failed:', err));
             } catch (error) {
               console.log('🔇 Sound error:', error);
