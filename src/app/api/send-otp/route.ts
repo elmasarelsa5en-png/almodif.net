@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
 
     if (!phone || !code) {
       return NextResponse.json(
-        { error: 'Missing phone or code' },
+        { success: false, message: 'رقم الجوال أو الكود مفقود' },
         { status: 400 }
       );
     }
@@ -25,19 +25,32 @@ export async function POST(request: NextRequest) {
 
     if (!whatsappResponse.ok) {
       return NextResponse.json(
-        { error: result.error || 'Failed to send OTP' },
+        { success: false, message: result.error || 'فشل إرسال الرسالة' },
         { status: whatsappResponse.status }
       );
     }
 
     return NextResponse.json({
       success: true,
-      message: 'OTP sent successfully',
+      message: 'تم الإرسال بنجاح',
     });
   } catch (error: any) {
     console.error('Error in send-otp API:', error);
+    
+    // التحقق من نوع الخطأ
+    if (error.message?.includes('ECONNREFUSED') || error.code === 'ECONNREFUSED') {
+      return NextResponse.json(
+        { 
+          success: false, 
+          message: 'خدمة الواتساب غير متاحة. شغّل start-whatsapp-service.bat',
+          details: 'WhatsApp service is not running on port 3002'
+        },
+        { status: 503 }
+      );
+    }
+
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { success: false, message: 'خطأ في الخادم', details: error.message },
       { status: 500 }
     );
   }

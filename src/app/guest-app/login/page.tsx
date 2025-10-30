@@ -177,16 +177,22 @@ export default function GuestLoginPage() {
         })
       });
 
+      const responseData = await otpResponse.json();
+
       if (!otpResponse.ok) {
-        throw new Error('فشل إرسال رمز التحقق');
+        throw new Error(responseData.message || 'فشل إرسال رمز التحقق');
       }
 
-      setSuccess('تم إرسال رمز التحقق على الواتساب!');
+      setSuccess('✅ تم إرسال رمز التحقق على الواتساب!');
       setMode('verify-otp');
       setLoading(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Registration error:', error);
-      setError('حدث خطأ أثناء التسجيل. تأكد من تشغيل خدمة الواتساب');
+      if (error.message.includes('fetch') || error.message.includes('Failed to fetch')) {
+        setError('❌ خدمة الواتساب غير متاحة. شغّل start-whatsapp-service.bat أولاً');
+      } else {
+        setError(error.message || 'حدث خطأ أثناء التسجيل');
+      }
       setLoading(false);
     }
   };
@@ -289,18 +295,25 @@ export default function GuestLoginPage() {
         })
       });
 
+      const responseData = await otpResponse.json();
+
       if (!otpResponse.ok) {
-        throw new Error('فشل إرسال كلمة المرور');
+        throw new Error(responseData.message || 'فشل إرسال كلمة المرور');
       }
 
       setSuccess('✅ تم إرسال كلمة المرور على الواتساب!');
       setTimeout(() => {
         setMode('login');
         setSuccess('');
+        setForgotPasswordData({ name: '', nationalId: '' });
       }, 3000);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Forgot password error:', error);
-      setError('حدث خطأ. تأكد من تشغيل خدمة الواتساب');
+      if (error.message.includes('fetch')) {
+        setError('❌ خدمة الواتساب غير متاحة. تأكد من تشغيل start-whatsapp-service.bat');
+      } else {
+        setError(error.message || 'حدث خطأ أثناء إرسال كلمة المرور');
+      }
     } finally {
       setLoading(false);
     }
