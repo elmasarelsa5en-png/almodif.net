@@ -553,9 +553,11 @@ export default function RestaurantPage() {
                                 {item.calories} سعرة
                               </Badge>
                             )}
-                            <Badge variant="outline" className="text-amber-300 border-amber-400">
-                              {item.ingredients.length} مكونات
-                            </Badge>
+                            {item.ingredients && item.ingredients.length > 0 && (
+                              <Badge variant="outline" className="text-amber-300 border-amber-400">
+                                {item.ingredients.length} مكونات
+                              </Badge>
+                            )}
                           </div>
 
                           {/* Add to cart button */}

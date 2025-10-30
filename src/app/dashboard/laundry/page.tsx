@@ -718,10 +718,11 @@ export default function LaundryPage() {
 
                           {/* Calories and services */}
                           <div className="flex items-center gap-4 text-xs">
-                            
-                            <Badge variant="outline" className="text-cyan-300 border-cyan-400">
-                              {item.services.length} مكونات
-                            </Badge>
+                            {item.services && item.services.length > 0 && (
+                              <Badge variant="outline" className="text-cyan-300 border-cyan-400">
+                                {item.services.length} مكونات
+                              </Badge>
+                            )}
                           </div>
 
                           {/* Add to cart button */}
