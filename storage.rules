@@ -32,6 +32,24 @@ service firebase.storage {
       allow write, delete: if true; // السماح بالرفع والحذف (المصادقة تتم عبر النظام الداخلي)
     }
 
+    // قواعد لصور الغرف (كتالوج الغرف)
+    match /rooms/{fileName} {
+      allow read: if true; // يمكن لأي شخص القراءة
+      allow write, delete: if true; // السماح بالرفع والحذف
+    }
+
+    // قواعد لصور القوائم (menu items)
+    match /menu-items/{fileName} {
+      allow read: if true;
+      allow write, delete: if true;
+    }
+
+    // قواعد لشعارات الفنادق (hotel logos)
+    match /hotel-logos/{fileName} {
+      allow read: if true;
+      allow write, delete: if true;
+    }
+
     // منع الوصول لأي مسارات أخرى
     match /{allPaths=**} {
       allow read, write: if false;

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ملء بيانات القوائم - تلقائي</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+        .status {
+            font-size: 3em;
+            margin: 30px 0;
+        }
+        .message {
+            font-size: 1.2em;
+            color: #333;
+            margin: 20px 0;
+        }
+        .success {
+            color: #10b981;
+            font-weight: bold;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        .stats {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .stat-item {
+            margin: 10px 0;
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍽️ ملء بيانات القوائم</h1>
+        <div class="status" id="status">⏳</div>
+        <div class="message" id="message">جاري التحميل...</div>
+        <div class="stats" id="stats" style="display: none;"></div>
+        <div id="actions" style="display: none;">
+            <a href="http://localhost:3001/guest-app" class="btn">🚀 افتح تطبيق النزيل</a>
+            <a href="http://localhost:3001/guest-app/menu/restaurant" class="btn">🍽️ المطعم</a>
+            <a href="http://localhost:3001/guest-app/menu/coffee-shop" class="btn">☕ الكوفي</a>
+        </div>
+    </div>
+
+    <script>
+        // البيانات
+        const COFFEE_MENU = [
+            { id: '1', name: 'Espresso', nameAr: 'إسبريسو', price: 12, category: 'coffee', subCategory: 'قهوة ساخنة', image: '☕', available: true },
+            { id: '2', name: 'Cappuccino', nameAr: 'كابتشينو', price: 15, category: 'coffee', subCategory: 'قهوة ساخنة', image: '☕', available: true },
+            { id: '3', name: 'Latte', nameAr: 'لاتيه', price: 16, category: 'coffee', subCategory: 'قهوة ساخنة', image: '☕', available: true },
+            { id: '4', name: 'Americano', nameAr: 'أمريكانو', price: 13, category: 'coffee', subCategory: 'قهوة ساخنة', image: '☕', available: true },
+            { id: '5', name: 'Turkish Coffee', nameAr: 'قهوة تركية', price: 14, category: 'coffee', subCategory: 'قهوة ساخنة', image: '☕', available: true },
+            { id: '6', name: 'Iced Coffee', nameAr: 'قهوة مثلجة', price: 17, category: 'coffee', subCategory: 'مشروبات باردة', image: '🧊', available: true },
+            { id: '7', name: 'Frappe', nameAr: 'فرابيه', price: 18, category: 'coffee', subCategory: 'مشروبات باردة', image: '🥤', available: true },
+            { id: '8', name: 'Smoothie', nameAr: 'سموثي', price: 20, category: 'coffee', subCategory: 'مشروبات باردة', image: '🥤', available: true },
+            { id: '9', name: 'Orange Juice', nameAr: 'عصير برتقال', price: 14, category: 'coffee', subCategory: 'عصائر طازجة', image: '🍊', available: true },
+            { id: '10', name: 'Lemonade', nameAr: 'ليموناضة', price: 12, category: 'coffee', subCategory: 'مشروبات باردة', image: '🍋', available: true },
+            { id: '11', name: 'Hot Chocolate', nameAr: 'شوكولاتة ساخنة', price: 15, category: 'coffee', subCategory: 'مشروبات ساخنة', image: '🍫', available: true },
+            { id: '12', name: 'Tea', nameAr: 'شاي', price: 8, category: 'coffee', subCategory: 'مشروبات ساخنة', image: '🍵', available: true },
+            { id: '13', name: 'Croissant', nameAr: 'كرواسون', price: 10, category: 'coffee', subCategory: 'معجنات', image: '🥐', available: true },
+            { id: '14', name: 'Muffin', nameAr: 'مافن', price: 12, category: 'coffee', subCategory: 'معجنات', image: '🧁', available: true },
+            { id: '15', name: 'Cheesecake', nameAr: 'تشيز كيك', price: 22, category: 'coffee', subCategory: 'حلويات', image: '🍰', available: true }
+        ];
+
+        const RESTAURANT_MENU = [
+            { id: '1', name: 'Grilled Chicken', nameAr: 'دجاج مشوي', price: 45, category: 'restaurant', subCategory: 'أطباق رئيسية', image: '🍗', available: true },
+            { id: '2', name: 'Beef Steak', nameAr: 'ستيك لحم', price: 65, category: 'restaurant', subCategory: 'أطباق رئيسية', image: '🥩', available: true },
+            { id: '3', name: 'Salmon', nameAr: 'سلمون', price: 70, category: 'restaurant', subCategory: 'أطباق رئيسية', image: '🐟', available: true },
+            { id: '4', name: 'Pasta Carbonara', nameAr: 'باستا كاربونارا', price: 38, category: 'restaurant', subCategory: 'أطباق رئيسية', image: '🍝', available: true },
+            { id: '5', name: 'Margherita Pizza', nameAr: 'بيتزا مارجريتا', price: 35, category: 'restaurant', subCategory: 'بيتزا', image: '🍕', available: true },
+            { id: '6', name: 'Caesar Salad', nameAr: 'سلطة سيزر', price: 25, category: 'restaurant', subCategory: 'سلطات', image: '🥗', available: true },
+            { id: '7', name: 'Greek Salad', nameAr: 'سلطة يونانية', price: 22, category: 'restaurant', subCategory: 'سلطات', image: '🥗', available: true },
+            { id: '8', name: 'French Fries', nameAr: 'بطاطس مقلية', price: 15, category: 'restaurant', subCategory: 'أطباق جانبية', image: '🍟', available: true },
+            { id: '9', name: 'Onion Rings', nameAr: 'حلقات البصل', price: 18, category: 'restaurant', subCategory: 'أطباق جانبية', image: '🧅', available: true },
+            { id: '10', name: 'Chicken Wings', nameAr: 'أجنحة دجاج', price: 28, category: 'restaurant', subCategory: 'مقبلات', image: '🍗', available: true },
+            { id: '11', name: 'Soup', nameAr: 'شوربة اليوم', price: 15, category: 'restaurant', subCategory: 'شوربات', image: '🍲', available: true },
+            { id: '12', name: 'Burger', nameAr: 'برجر', price: 32, category: 'restaurant', subCategory: 'أطباق رئيسية', image: '🍔', available: true },
+            { id: '13', name: 'Club Sandwich', nameAr: 'كلوب ساندويتش', price: 28, category: 'restaurant', subCategory: 'ساندويتشات', image: '🥪', available: true },
+            { id: '14', name: 'Tiramisu', nameAr: 'تيراميسو', price: 25, category: 'restaurant', subCategory: 'حلويات', image: '🍰', available: true },
+            { id: '15', name: 'Ice Cream', nameAr: 'آيس كريم', price: 18, category: 'restaurant', subCategory: 'حلويات', image: '🍨', available: true },
+            { id: '16', name: 'Shrimp Pasta', nameAr: 'باستا روبيان', price: 55, category: 'restaurant', subCategory: 'أطباق رئيسية', image: '🍤', available: true },
+            { id: '17', name: 'Tacos', nameAr: 'تاكو', price: 30, category: 'restaurant', subCategory: 'أطباق رئيسية', image: '🌮', available: true },
+            { id: '18', name: 'Sushi', nameAr: 'طبق سوشي', price: 75, category: 'restaurant', subCategory: 'أطباق رئيسية', image: '🍱', available: true },
+            { id: '19', name: 'Spring Rolls', nameAr: 'سبرنج رول', price: 20, category: 'restaurant', subCategory: 'مقبلات', image: '🥟', available: true },
+            { id: '20', name: 'Fruit Platter', nameAr: 'طبق فواكه', price: 35, category: 'restaurant', subCategory: 'حلويات', image: '🍇', available: true }
+        ];
+
+        const LAUNDRY_SERVICES = [
+            { id: '1', name: 'Shirt', nameAr: 'غسيل قميص', price: 15, category: 'laundry', subCategory: 'غسيل وكي', image: '👔', available: true },
+            { id: '2', name: 'Pants', nameAr: 'غسيل بنطال', price: 12, category: 'laundry', subCategory: 'غسيل وكي', image: '👖', available: true },
+            { id: '3', name: 'Dress', nameAr: 'غسيل فستان', price: 20, category: 'laundry', subCategory: 'غسيل وكي', image: '👗', available: true },
+            { id: '4', name: 'Suit', nameAr: 'تنظيف بدلة', price: 35, category: 'laundry', subCategory: 'تنظيف جاف', image: '🤵', available: true },
+            { id: '5', name: 'Jacket', nameAr: 'تنظيف جاكيت', price: 25, category: 'laundry', subCategory: 'تنظيف جاف', image: '🧥', available: true },
+            { id: '6', name: 'Curtain', nameAr: 'تنظيف ستارة', price: 40, category: 'laundry', subCategory: 'خدمات خاصة', image: '🪟', available: true },
+            { id: '7', name: 'Blanket', nameAr: 'غسيل بطانية', price: 30, category: 'laundry', subCategory: 'خدمات خاصة', image: '🛏️', available: true },
+            { id: '8', name: 'Towels', nameAr: 'طقم مناشف', price: 18, category: 'laundry', subCategory: 'غسيل وكي', image: '🧺', available: true },
+            { id: '9', name: 'Bedsheet', nameAr: 'طقم ملاءات', price: 22, category: 'laundry', subCategory: 'غسيل وكي', image: '🛏️', available: true },
+            { id: '10', name: 'Thobe', nameAr: 'ثوب/عباية', price: 18, category: 'laundry', subCategory: 'غسيل وكي', image: '👘', available: true },
+            { id: '11', name: 'Express', nameAr: 'خدمة سريعة', price: 50, category: 'laundry', subCategory: 'خدمات خاصة', image: '⚡', description: '4 ساعات', available: true },
+            { id: '12', name: 'Shoes', nameAr: 'تنظيف حذاء', price: 20, category: 'laundry', subCategory: 'خدمات خاصة', image: '👞', available: true },
+            { id: '13', name: 'Bag', nameAr: 'تنظيف حقيبة', price: 25, category: 'laundry', subCategory: 'خدمات خاصة', image: '👜', available: true }
+        ];
+
+        // ملء البيانات تلقائياً
+        function fillData() {
+            try {
+                localStorage.setItem('coffee_menu', JSON.stringify(COFFEE_MENU));
+                localStorage.setItem('restaurant_menu', JSON.stringify(RESTAURANT_MENU));
+                localStorage.setItem('laundry_services', JSON.stringify(LAUNDRY_SERVICES));
+
+                document.getElementById('status').textContent = '✅';
+                document.getElementById('message').innerHTML = '<span class="success">تم ملء البيانات بنجاح!</span>';
+                
+                const stats = document.getElementById('stats');
+                stats.style.display = 'block';
+                stats.innerHTML = `
+                    <div class="stat-item">☕ كوفي شوب: ${COFFEE_MENU.length} عنصر</div>
+                    <div class="stat-item">🍽️ مطعم: ${RESTAURANT_MENU.length} عنصر</div>
+                    <div class="stat-item">👔 مغسلة: ${LAUNDRY_SERVICES.length} خدمة</div>
+                    <div class="stat-item" style="border-top: 2px solid #667eea; padding-top: 10px; margin-top: 10px;">
+                        <strong>المجموع: ${COFFEE_MENU.length + RESTAURANT_MENU.length + LAUNDRY_SERVICES.length} عنصر</strong>
+                    </div>
+                `;
+
+                document.getElementById('actions').style.display = 'block';
+                
+                console.log('✅ تم ملء البيانات بنجاح!');
+                console.log('Coffee:', COFFEE_MENU.length);
+                console.log('Restaurant:', RESTAURANT_MENU.length);
+                console.log('Laundry:', LAUNDRY_SERVICES.length);
+            } catch (error) {
+                document.getElementById('status').textContent = '❌';
+                document.getElementById('message').textContent = 'حدث خطأ: ' + error.message;
+                console.error('Error:', error);
+            }
+        }
+
+        // تشغيل تلقائي عند التحميل
+        window.onload = function() {
+            setTimeout(fillData, 500);
+        };
+    </script>
+</body>
+</html>

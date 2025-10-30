@@ -463,7 +463,7 @@ export interface MenuItem {
   name: string;
   nameAr: string;
   price: number;
-  category: 'coffee' | 'restaurant' | 'laundry';
+  category: 'coffee' | 'restaurant' | 'laundry' | 'room-services' | 'reception';
   subCategory?: string;
   description?: string;
   descriptionAr?: string;
@@ -495,7 +495,7 @@ export const getMenuItems = async (): Promise<MenuItem[]> => {
 };
 
 // Get menu items by category
-export const getMenuItemsByCategory = async (category: 'coffee' | 'restaurant' | 'laundry'): Promise<MenuItem[]> => {
+export const getMenuItemsByCategory = async (category: 'coffee' | 'restaurant' | 'laundry' | 'room-services' | 'reception'): Promise<MenuItem[]> => {
   try {
     const q = query(
       collection(db, COLLECTIONS.MENU_ITEMS),

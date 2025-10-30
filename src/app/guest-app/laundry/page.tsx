@@ -7,12 +7,12 @@ export default function LaundryPage() {
   const router = useRouter();
   
   useEffect(() => {
-    router.push('/guest-app');
+    router.push('/guest-app/menu/laundry');
   }, [router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <div className="text-white text-xl">جاري التحويل...</div>
+      <div className="text-white text-xl">جاري تحميل قائمة المغسلة...</div>
     </div>
   );
 }

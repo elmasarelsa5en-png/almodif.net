@@ -24,6 +24,8 @@ import {
   RefreshCw,
   ImageIcon,
   Camera,
+  BedDouble,
+  HelpCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -59,12 +61,16 @@ const CATEGORIES = [
   { value: 'coffee', label: 'كوفي شوب', icon: Coffee, color: 'amber' },
   { value: 'restaurant', label: 'مطعم', icon: Utensils, color: 'orange' },
   { value: 'laundry', label: 'مغسلة', icon: Shirt, color: 'blue' },
+  { value: 'room-services', label: 'خدمات الغرف', icon: BedDouble, color: 'purple' },
+  { value: 'reception', label: 'خدمات الاستقبال', icon: HelpCircle, color: 'green' },
 ];
 
 const SUB_CATEGORIES = {
   coffee: ['مشروبات ساخنة', 'مشروبات باردة', 'حلويات', 'وجبات خفيفة'],
   restaurant: ['مقبلات', 'أطباق رئيسية', 'حلويات', 'مشروبات', 'سلطات'],
   laundry: ['ملابس', 'مفروشات', 'خدمات خاصة'],
+  'room-services': ['تنظيف الغرف', 'صيانة', 'مستلزمات', 'خدمة الغرف'],
+  reception: ['استعلامات', 'حجوزات', 'تسجيل وصول', 'تسجيل مغادرة', 'خدمات عامة'],
 };
 
 export default function MenuItemsPage() {
@@ -82,7 +88,7 @@ export default function MenuItemsPage() {
     name: '',
     nameAr: '',
     price: '',
-    category: 'coffee' as 'coffee' | 'restaurant' | 'laundry',
+    category: 'coffee' as 'coffee' | 'restaurant' | 'laundry' | 'room-services' | 'reception',
     subCategory: '',
     description: '',
     image: '',
@@ -229,6 +235,8 @@ export default function MenuItemsPage() {
         coffee: 'coffee_menu',
         restaurant: 'restaurant_menu',
         laundry: 'laundry_services',
+        'room-services': 'room_services_menu',
+        reception: 'reception_services_menu',
       }[item.category];
 
       const existingItems = JSON.parse(localStorage.getItem(storageKey) || '[]');

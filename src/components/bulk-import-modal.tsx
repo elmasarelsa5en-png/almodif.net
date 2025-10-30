@@ -24,7 +24,7 @@ interface MenuItem {
   name: string;
   nameAr: string;
   price: number;
-  category: 'coffee' | 'restaurant' | 'laundry';
+  category: 'coffee' | 'restaurant' | 'laundry' | 'room-services' | 'reception';
   subCategory?: string;
   description?: string;
   image?: string;
@@ -76,7 +76,7 @@ const BulkImportModal: React.FC<BulkImportModalProps> = ({
             id: Date.now() + Math.random().toString(36),
             name: row['الاسم الإنجليزي']?.toString() || row['الاسم العربي']?.toString() || '',
             nameAr: row['الاسم العربي']?.toString() || '',
-            category: row['الفئة']?.toString() as 'coffee' | 'restaurant' | 'laundry' || 'restaurant',
+            category: row['الفئة']?.toString() as 'coffee' | 'restaurant' | 'laundry' | 'room-services' | 'reception' || 'restaurant',
             subCategory: row['التصنيف الفرعي']?.toString() || '',
             price: parseFloat(row['السعر']) || 0,
             description: row['الوصف']?.toString() || '',
@@ -135,7 +135,7 @@ const BulkImportModal: React.FC<BulkImportModalProps> = ({
               id: Date.now() + Math.random().toString(36),
               name: parts[1] || parts[0] || '',
               nameAr: parts[0] || '',
-              category: parts[2] as 'coffee' | 'restaurant' | 'laundry' || 'restaurant',
+              category: parts[2] as 'coffee' | 'restaurant' | 'laundry' | 'room-services' | 'reception' || 'restaurant',
               price: parseFloat(parts[3]) || 0,
               subCategory: parts[4] || '',
               description: parts[5] || '',
