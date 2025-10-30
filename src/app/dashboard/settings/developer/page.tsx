@@ -70,6 +70,7 @@ export default function DeveloperSettingsPage() {
     { id: 'requests', name: 'الطلبات', icon: '🔔', enabled: true },
     { id: 'chat', name: 'المحادثات', icon: '💬', enabled: true },
     { id: 'guests', name: 'النزلاء', icon: '👥', enabled: true },
+    { id: 'crm-whatsapp', name: 'منصات التواصل', icon: '📱', enabled: true },
     { id: 'restaurant', name: 'المطعم', icon: '🍽️', enabled: true },
     { id: 'coffee-shop', name: 'الكافيه', icon: '☕', enabled: true },
     { id: 'laundry', name: 'المغسلة', icon: '👔', enabled: true },

@@ -190,6 +190,13 @@ const navigationItems: NavigationItem[] = [
     permission: 'access_chat',
   },
   {
+    icon: MessageSquare,
+    labelKey: 'socialMedia',
+    descKey: 'socialMediaDesc',
+    href: '/dashboard/crm-whatsapp',
+    permission: 'view_dashboard',
+  },
+  {
     icon: Settings,
     labelKey: 'settings',
     descKey: 'settingsDesc',
