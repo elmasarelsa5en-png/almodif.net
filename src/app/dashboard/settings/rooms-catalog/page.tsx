@@ -11,8 +11,9 @@ import {
   Bed, Home, Ruler, DollarSign, Users, Star, Check, AlertCircle, Cloud, CloudOff
 } from 'lucide-react';
 import { syncRoomsToFirebase } from '@/lib/rooms-manager';
-import { storage } from '@/lib/firebase';
+import { db, storage } from '@/lib/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
 
 interface RoomImage {
   id: string;
@@ -55,81 +56,72 @@ export default function RoomsCatalogPage() {
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
+  // جلب الغرف من Firebase مباشرة
   useEffect(() => {
-    // Load from localStorage
-    try {
-      const savedRooms = localStorage.getItem('hotelRooms');
-      if (savedRooms) {
-        const parsedRooms = JSON.parse(savedRooms);
-        
-        // تحقق من حجم البيانات
-        const dataSize = new Blob([savedRooms]).size;
-        const maxSize = 4 * 1024 * 1024; // 4MB
-        
-        if (dataSize > maxSize) {
-          console.warn('⚠️ حجم البيانات كبير جداً:', (dataSize / 1024 / 1024).toFixed(2), 'MB');
-          
-          // نظف الصور القديمة من localStorage
-          const cleanedRooms = parsedRooms.map((room: Room) => ({
-            ...room,
-            images: room.images.filter((img: RoomImage) => 
-              !img.url.startsWith('data:') // احتفظ بـ URLs فقط، احذف base64
-            )
-          }));
-          
-          localStorage.setItem('hotelRooms', JSON.stringify(cleanedRooms));
-          setRooms(cleanedRooms);
-          console.log('✅ تم تنظيف localStorage بنجاح');
-        } else {
-          setRooms(parsedRooms);
-        }
+    const loadRoomsFromFirebase = async () => {
+      if (!db) {
+        console.warn('⚠️ Firebase غير متصل');
+        setLoading(false);
+        return;
       }
-    } catch (error) {
-      console.error('❌ خطأ في قراءة البيانات:', error);
-      // في حالة الخطأ، احذف البيانات القديمة
-      localStorage.removeItem('hotelRooms');
-    }
+
+      try {
+        const roomsCollection = collection(db, 'rooms');
+        const querySnapshot = await getDocs(roomsCollection);
+        
+        const loadedRooms: Room[] = [];
+        querySnapshot.forEach((doc) => {
+          loadedRooms.push({ id: doc.id, ...doc.data() } as Room);
+        });
+
+        setRooms(loadedRooms);
+        console.log('✅ تم تحميل', loadedRooms.length, 'غرفة من Firebase');
+      } catch (error) {
+        console.error('❌ خطأ في تحميل الغرف:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadRoomsFromFirebase();
   }, []);
 
-  const saveRooms = (updatedRooms: Room[]) => {
+  // حفظ/تحديث غرفة في Firebase
+  const saveRoomToFirebase = async (room: Room) => {
+    if (!db) {
+      alert('❌ Firebase غير متصل. لا يمكن حفظ الغرفة.');
+      return false;
+    }
+
     try {
-      // تحقق من الحجم قبل الحفظ
-      const dataString = JSON.stringify(updatedRooms);
-      const dataSize = new Blob([dataString]).size;
-      const maxSize = 4 * 1024 * 1024; // 4MB
-      
-      if (dataSize > maxSize) {
-        console.warn('⚠️ البيانات كبيرة جداً. سيتم حفظ البيانات الأساسية فقط.');
-        
-        // احفظ بدون صور base64
-        const lighterRooms = updatedRooms.map(room => ({
-          ...room,
-          images: room.images.filter(img => !img.url.startsWith('data:'))
-        }));
-        
-        localStorage.setItem('hotelRooms', JSON.stringify(lighterRooms));
-        setRooms(updatedRooms); // استخدم النسخة الكاملة في الـ state
-        
-        alert('⚠️ تم حفظ البيانات الأساسية. يرجى رفع الصور على Firebase للحفظ الدائم.');
-      } else {
-        localStorage.setItem('hotelRooms', dataString);
-        setRooms(updatedRooms);
-      }
-    } catch (error: any) {
-      console.error('❌ خطأ في حفظ البيانات:', error);
-      
-      if (error.name === 'QuotaExceededError') {
-        alert('❌ مساحة التخزين ممتلئة! يرجى:\n1. حذف بعض الغرف\n2. أو رفع الصور على Firebase\n3. أو تنظيف المتصفح');
-        
-        // محاولة حفظ بدون صور
-        const minimalRooms = updatedRooms.map(room => ({
-          ...room,
-          images: []
-        }));
-        localStorage.setItem('hotelRooms', JSON.stringify(minimalRooms));
-        setRooms(updatedRooms);
-      }
+      const roomRef = doc(db, 'rooms', room.id);
+      await setDoc(roomRef, room);
+      console.log('✅ تم حفظ الغرفة في Firebase');
+      return true;
+    } catch (error) {
+      console.error('❌ خطأ في حفظ الغرفة:', error);
+      alert('❌ حدث خطأ في حفظ الغرفة');
+      return false;
+    }
+  };
+
+  // حذف غرفة من Firebase
+  const deleteRoomFromFirebase = async (roomId: string) => {
+    if (!db) {
+      alert('❌ Firebase غير متصل');
+      return false;
+    }
+
+    try {
+      const roomRef = doc(db, 'rooms', roomId);
+      await deleteDoc(roomRef);
+      console.log('✅ تم حذف الغرفة من Firebase');
+      return true;
+    } catch (error) {
+      console.error('❌ خطأ في حذف الغرفة:', error);
+      return false;
     }
   };
 
@@ -157,22 +149,30 @@ export default function RoomsCatalogPage() {
     setIsAddingNew(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!editingRoom) return;
 
-    if (isAddingNew) {
-      saveRooms([...rooms, editingRoom]);
-    } else {
-      saveRooms(rooms.map(r => r.id === editingRoom.id ? editingRoom : r));
-    }
+    const success = await saveRoomToFirebase(editingRoom);
+    
+    if (success) {
+      if (isAddingNew) {
+        setRooms([...rooms, editingRoom]);
+      } else {
+        setRooms(rooms.map(r => r.id === editingRoom.id ? editingRoom : r));
+      }
 
-    setEditingRoom(null);
-    setIsAddingNew(false);
+      setEditingRoom(null);
+      setIsAddingNew(false);
+    }
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('هل أنت متأكد من حذف هذه الغرفة؟')) {
-      saveRooms(rooms.filter(r => r.id !== id));
+      const success = await deleteRoomFromFirebase(id);
+      
+      if (success) {
+        setRooms(rooms.filter(r => r.id !== id));
+      }
     }
   };
 
@@ -288,24 +288,18 @@ export default function RoomsCatalogPage() {
     }
   };
 
-  const handleCleanStorage = () => {
-    if (confirm('⚠️ هل تريد تنظيف الصور من localStorage؟\n\nملاحظة: سيتم الاحتفاظ بالصور المرفوعة على Firebase فقط.')) {
-      try {
-        const cleanedRooms = rooms.map(room => ({
-          ...room,
-          images: room.images.filter(img => !img.url.startsWith('data:'))
-        }));
-        
-        localStorage.setItem('hotelRooms', JSON.stringify(cleanedRooms));
-        setRooms(cleanedRooms);
-        
-        const savedSize = new Blob([localStorage.getItem('hotelRooms') || '']).size;
-        alert(`✅ تم التنظيف بنجاح!\n\nالحجم الحالي: ${(savedSize / 1024).toFixed(2)} KB`);
-      } catch (error) {
-        alert('❌ حدث خطأ في التنظيف');
-      }
-    }
-  };
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6 max-w-7xl">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground text-lg">جاري تحميل الغرف من Firebase...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">
@@ -316,23 +310,16 @@ export default function RoomsCatalogPage() {
             كتالوج الغرف والشقق
           </h1>
           <p className="text-muted-foreground mt-2">
-            إدارة الغرف والشقق المتاحة في الفندق
+            إدارة الغرف والشقق المتاحة في الفندق (محفوظة في Firebase)
           </p>
         </div>
         
         <div className="flex items-center gap-2">
           {!editingRoom && (
             <>
-              <Button 
-                onClick={handleCleanStorage}
-                variant="outline"
-                className="border-orange-500 text-orange-600 hover:bg-orange-50"
-                title="تنظيف الصور من localStorage"
-              >
-                <Trash2 className="h-4 w-4 ml-2" />
-                تنظيف التخزين
-              </Button>
-              
+        <div className="flex items-center gap-2">
+          {!editingRoom && (
+            <>
               <Button 
                 onClick={handleSyncToFirebase}
                 disabled={isSyncing || rooms.length === 0}
