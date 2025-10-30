@@ -317,9 +317,6 @@ export default function RoomsCatalogPage() {
         <div className="flex items-center gap-2">
           {!editingRoom && (
             <>
-        <div className="flex items-center gap-2">
-          {!editingRoom && (
-            <>
               <Button 
                 onClick={handleSyncToFirebase}
                 disabled={isSyncing || rooms.length === 0}
