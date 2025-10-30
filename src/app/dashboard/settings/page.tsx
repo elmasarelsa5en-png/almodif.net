@@ -38,6 +38,15 @@ export default function SettingsPage() {
   // إعدادات المنشأة - للفندق
   const hotelSettings = [
     {
+      id: 'hotel-website',
+      title: 'إعدادات موقع الفندق',
+      description: 'كتالوج الغرف وإعدادات تطبيق النزلاء والموقع الإلكتروني',
+      icon: Globe,
+      color: 'from-blue-500 via-purple-500 to-pink-500',
+      href: '/dashboard/settings/hotel-website',
+      badge: '🌐 جديد'
+    },
+    {
       id: 'menu-items',
       title: 'قوائم الأصناف',
       description: 'إدارة أصناف الكوفي والمطعم والمغسلة - رفع Excel والصور',
@@ -45,15 +54,6 @@ export default function SettingsPage() {
       color: 'from-green-500 via-emerald-500 to-teal-500',
       href: '/dashboard/settings/menu-items',
       badge: '🔥 جديد'
-    },
-    {
-      id: 'guest-menu-settings',
-      title: 'إعدادات المنيو الإلكتروني',
-      description: 'تخصيص شعار الفندق ورسالة الترحيب في المنيو للنزلاء',
-      icon: QrCode,
-      color: 'from-pink-500 via-rose-500 to-red-500',
-      href: '/dashboard/settings/guest-menu-settings',
-      badge: '⭐ جديد'
     },
     {
       id: 'request-types',
@@ -72,15 +72,6 @@ export default function SettingsPage() {
       color: 'from-blue-500 to-cyan-500',
       href: '/dashboard/settings/rooms-management',
       badge: null
-    },
-    {
-      id: 'rooms-catalog',
-      title: 'كتالوج الشقق',
-      description: 'قاعدة بيانات الغرف للذكاء الاصطناعي',
-      icon: BookOpen,
-      color: 'from-green-500 to-emerald-500',
-      href: '/dashboard/settings/rooms-catalog',
-      badge: 'AI'
     },
     {
       id: 'hr',
