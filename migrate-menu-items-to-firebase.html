@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نقل الأصناف إلى Firebase</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        .section h2 {
+            color: #764ba2;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .log {
+            background: #2d3748;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+            white-space: pre-wrap;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .stat {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        .success {
+            color: #00ff00;
+        }
+        .error {
+            color: #ff6b6b;
+        }
+        .warning {
+            color: #ffd93d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 نقل الأصناف من localStorage إلى Firebase</h1>
+        
+        <div class="section">
+            <h2>📊 إحصائيات الأصناف المحلية</h2>
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-number" id="coffeeCount">0</div>
+                    <div class="stat-label">☕ كوفي شوب</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" id="restaurantCount">0</div>
+                    <div class="stat-label">🍽️ مطعم</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" id="laundryCount">0</div>
+                    <div class="stat-label">👔 مغسلة</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" id="roomCount">0</div>
+                    <div class="stat-label">🛏️ خدمات الغرف</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" id="receptionCount">0</div>
+                    <div class="stat-label">📞 الاستقبال</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <button id="scanBtn" onclick="scanLocalStorage()">🔍 فحص الأصناف المحلية</button>
+            <button id="migrateBtn" onclick="migrateToFirebase()" disabled>⬆️ نقل جميع الأصناف إلى Firebase</button>
+            <button id="clearFirebaseBtn" onclick="clearFirebase()" style="background: #dc2626;">🗑️ مسح Firebase أولاً (إعادة البدء)</button>
+        </div>
+
+        <div class="log" id="log"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyDGi6mCNhzdUXyY-ZhuVekj-VwcbeGHaEc",
+            authDomain: "almodif-5b71b.firebaseapp.com",
+            projectId: "almodif-5b71b",
+            storageBucket: "almodif-5b71b.firebasestorage.app",
+            messagingSenderId: "1092448061102",
+            appId: "1:1092448061102:web:d6da3f3c7cce7c4da0c1e9"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        window.db = db;
+
+        let localItems = [];
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString('ar-SA');
+            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
+            logDiv.innerHTML += `<span class="${type}">[${timestamp}] ${icon} ${message}</span>\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        window.scanLocalStorage = function() {
+            log('🔍 بدء فحص localStorage...', 'info');
+            localItems = [];
+
+            const categories = [
+                { key: 'coffee_menu', category: 'coffee', label: 'كوفي شوب', countId: 'coffeeCount' },
+                { key: 'restaurant_menu', category: 'restaurant', label: 'مطعم', countId: 'restaurantCount' },
+                { key: 'laundry_services', category: 'laundry', label: 'مغسلة', countId: 'laundryCount' },
+                { key: 'room_services_menu', category: 'room-services', label: 'خدمات الغرف', countId: 'roomCount' },
+                { key: 'reception_services_menu', category: 'reception', label: 'خدمات الاستقبال', countId: 'receptionCount' }
+            ];
+
+            let totalCount = 0;
+
+            categories.forEach(cat => {
+                const data = localStorage.getItem(cat.key);
+                if (data) {
+                    try {
+                        const items = JSON.parse(data);
+                        if (Array.isArray(items)) {
+                            items.forEach(item => {
+                                localItems.push({
+                                    ...item,
+                                    category: cat.category,
+                                    name: item.name || item.nameAr || '',
+                                    nameAr: item.nameAr || item.name || '',
+                                    price: parseFloat(item.price) || 0,
+                                    available: item.available !== false,
+                                    createdAt: item.createdAt || new Date().toISOString()
+                                });
+                            });
+                            document.getElementById(cat.countId).textContent = items.length;
+                            log(`📦 ${cat.label}: ${items.length} صنف`, 'success');
+                            totalCount += items.length;
+                        }
+                    } catch (e) {
+                        log(`❌ خطأ في قراءة ${cat.label}`, 'error');
+                    }
+                } else {
+                    document.getElementById(cat.countId).textContent = 0;
+                    log(`⚠️ ${cat.label}: لا توجد بيانات`, 'warning');
+                }
+            });
+
+            log(`\n📊 إجمالي الأصناف المحلية: ${totalCount}`, 'success');
+            
+            if (totalCount > 0) {
+                document.getElementById('migrateBtn').disabled = false;
+                log('✅ جاهز للنقل إلى Firebase!', 'success');
+            } else {
+                log('⚠️ لا توجد أصناف للنقل', 'warning');
+            }
+        };
+
+        window.clearFirebase = async function() {
+            if (!confirm('⚠️ هل أنت متأكد من حذف جميع الأصناف من Firebase؟\nهذا الإجراء لا يمكن التراجع عنه!')) {
+                return;
+            }
+
+            log('🗑️ بدء مسح Firebase...', 'warning');
+            
+            try {
+                const querySnapshot = await getDocs(collection(db, 'menu-items'));
+                log(`📊 تم العثور على ${querySnapshot.size} صنف في Firebase`, 'info');
+
+                let deleted = 0;
+                for (const docSnap of querySnapshot.docs) {
+                    await deleteDoc(doc(db, 'menu-items', docSnap.id));
+                    deleted++;
+                    log(`🗑️ تم حذف: ${docSnap.data().nameAr || docSnap.id}`, 'warning');
+                }
+
+                log(`✅ تم مسح ${deleted} صنف من Firebase`, 'success');
+                log('ℹ️ يمكنك الآن فحص الأصناف المحلية ونقلها', 'info');
+            } catch (error) {
+                log(`❌ خطأ في المسح: ${error.message}`, 'error');
+            }
+        };
+
+        window.migrateToFirebase = async function() {
+            if (localItems.length === 0) {
+                log('⚠️ لا توجد أصناف للنقل! قم بالفحص أولاً', 'warning');
+                return;
+            }
+
+            if (!confirm(`هل تريد نقل ${localItems.length} صنف إلى Firebase؟`)) {
+                return;
+            }
+
+            log(`\n⬆️ بدء النقل إلى Firebase...`, 'info');
+            document.getElementById('migrateBtn').disabled = true;
+
+            let success = 0;
+            let failed = 0;
+
+            for (const item of localItems) {
+                try {
+                    await addDoc(collection(db, 'menu-items'), {
+                        name: item.name,
+                        nameAr: item.nameAr,
+                        price: item.price,
+                        category: item.category,
+                        subCategory: item.subCategory || null,
+                        description: item.description || null,
+                        image: item.image || null,
+                        available: item.available,
+                        createdAt: item.createdAt,
+                        updatedAt: new Date().toISOString()
+                    });
+                    success++;
+                    log(`✅ تم نقل: ${item.nameAr} (${item.category})`, 'success');
+                } catch (error) {
+                    failed++;
+                    log(`❌ فشل نقل: ${item.nameAr} - ${error.message}`, 'error');
+                }
+            }
+
+            log(`\n📊 النتائج النهائية:`, 'info');
+            log(`✅ نجح: ${success} صنف`, 'success');
+            if (failed > 0) {
+                log(`❌ فشل: ${failed} صنف`, 'error');
+            }
+            log(`🎉 تم الانتهاء من النقل!`, 'success');
+            log(`ℹ️ الآن يمكنك زيارة صفحة الأصناف لرؤية البيانات`, 'info');
+
+            document.getElementById('migrateBtn').disabled = false;
+        };
+
+        // Auto scan on load
+        log('👋 مرحباً! اضغط على "فحص الأصناف المحلية" للبدء', 'info');
+    </script>
+</body>
+</html>
