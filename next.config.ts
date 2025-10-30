@@ -21,7 +21,7 @@ const nextConfig: NextConfig = {
     unoptimized: true, // للموبايل
     domains: ["localhost"],
   },
-  trailingSlash: true,
+  // trailingSlash: true, // ❌ معطل - يسبب مشاكل مع App Router
   onDemandEntries: {
     maxInactiveAge: 25 * 1000 * 60,
     pagesBufferLength: 5,
