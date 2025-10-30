@@ -74,6 +74,76 @@ const SUB_CATEGORIES = {
   reception: ['استعلامات', 'حجوزات', 'تسجيل وصول', 'تسجيل مغادرة', 'خدمات عامة'],
 };
 
+// الأصناف الافتراضية لإضافتها بسهولة
+const DEFAULT_MENU_ITEMS: Omit<MenuItem, 'id' | 'createdAt'>[] = [
+  // المطعم
+  { name: 'Grilled Chicken', nameAr: 'دجاج مشوي', category: 'restaurant', price: 45, image: '🍗', available: true, description: 'دجاج طازج مشوي مع البهارات الخاصة', subCategory: 'أطباق رئيسية' },
+  { name: 'Mixed Grill', nameAr: 'مشاوي مشكلة', category: 'restaurant', price: 65, image: '🍖', available: true, description: 'تشكيلة من أفضل المشاوي', subCategory: 'أطباق رئيسية' },
+  { name: 'Fish Fillet', nameAr: 'فيليه سمك', category: 'restaurant', price: 55, image: '🐟', available: true, description: 'سمك طازج محضر بطريقة صحية', subCategory: 'أطباق رئيسية' },
+  { name: 'Chicken Biryani', nameAr: 'برياني دجاج', category: 'restaurant', price: 40, image: '🍚', available: true, description: 'أرز برياني بالدجاج والبهارات', subCategory: 'أطباق رئيسية' },
+  { name: 'Caesar Salad', nameAr: 'سلطة سيزر', category: 'restaurant', price: 25, image: '🥗', available: true, description: 'سلطة طازجة مع صوص السيزر', subCategory: 'سلطات' },
+  { name: 'Margherita Pizza', nameAr: 'بيتزا مارجريتا', category: 'restaurant', price: 35, image: '🍕', available: true, description: 'بيتزا إيطالية كلاسيكية', subCategory: 'أطباق رئيسية' },
+  { name: 'Pasta Carbonara', nameAr: 'باستا كاربونارا', category: 'restaurant', price: 38, image: '🍝', available: true, description: 'باستا بالكريمة والجبن', subCategory: 'أطباق رئيسية' },
+  { name: 'Beef Burger', nameAr: 'برجر لحم', category: 'restaurant', price: 32, image: '🍔', available: true, description: 'برجر لحم بقري مع البطاطس', subCategory: 'أطباق رئيسية' },
+  { name: 'Club Sandwich', nameAr: 'ساندويش كلوب', category: 'restaurant', price: 28, image: '🥪', available: true, description: 'ساندويش بالدجاج والخضار', subCategory: 'وجبات خفيفة' },
+  { name: 'French Fries', nameAr: 'بطاطس مقلية', category: 'restaurant', price: 15, image: '🍟', available: true, description: 'بطاطس مقرمشة مع الصوصات', subCategory: 'مقبلات' },
+  { name: 'Onion Rings', nameAr: 'حلقات البصل', category: 'restaurant', price: 18, image: '🧅', available: true, description: 'حلقات بصل مقرمشة', subCategory: 'مقبلات' },
+  { name: 'Chocolate Cake', nameAr: 'كيك شوكولاتة', category: 'restaurant', price: 22, image: '🍰', available: true, description: 'كيك شوكولاتة فاخر', subCategory: 'حلويات' },
+  { name: 'Ice Cream', nameAr: 'آيس كريم', category: 'restaurant', price: 18, image: '🍨', available: true, description: 'آيس كريم بنكهات متنوعة', subCategory: 'حلويات' },
+
+  // الكوفي شوب
+  { name: 'Espresso', nameAr: 'إسبريسو', category: 'coffee', price: 12, image: '☕', available: true, description: 'قهوة إسبريسو إيطالية أصلية', subCategory: 'مشروبات ساخنة' },
+  { name: 'Cappuccino', nameAr: 'كابتشينو', category: 'coffee', price: 15, image: '☕', available: true, description: 'قهوة كابتشينو بالحليب الرغوي', subCategory: 'مشروبات ساخنة' },
+  { name: 'Latte', nameAr: 'لاتيه', category: 'coffee', price: 16, image: '🥤', available: true, description: 'قهوة لاتيه الكريمية', subCategory: 'مشروبات ساخنة' },
+  { name: 'Turkish Coffee', nameAr: 'قهوة تركية', category: 'coffee', price: 10, image: '☕', available: true, description: 'قهوة تركية تقليدية', subCategory: 'مشروبات ساخنة' },
+  { name: 'Arabic Coffee', nameAr: 'قهوة عربية', category: 'coffee', price: 8, image: '☕', available: true, description: 'قهوة عربية بالهيل', subCategory: 'مشروبات ساخنة' },
+  { name: 'Hot Chocolate', nameAr: 'شوكولاتة ساخنة', category: 'coffee', price: 14, image: '☕', available: true, description: 'شوكولاتة ساخنة كريمية', subCategory: 'مشروبات ساخنة' },
+  { name: 'Tea', nameAr: 'شاي', category: 'coffee', price: 8, image: '🍵', available: true, description: 'شاي أسود أو أخضر', subCategory: 'مشروبات ساخنة' },
+  { name: 'Herbal Tea', nameAr: 'شاي أعشاب', category: 'coffee', price: 10, image: '🍵', available: true, description: 'شاي أعشاب طبيعي', subCategory: 'مشروبات ساخنة' },
+  { name: 'Iced Coffee', nameAr: 'قهوة مثلجة', category: 'coffee', price: 18, image: '🧊', available: true, description: 'قهوة باردة منعشة', subCategory: 'مشروبات باردة' },
+  { name: 'Iced Latte', nameAr: 'لاتيه مثلج', category: 'coffee', price: 20, image: '🧊', available: true, description: 'لاتيه بارد منعش', subCategory: 'مشروبات باردة' },
+  { name: 'Frappe', nameAr: 'فرابيه', category: 'coffee', price: 22, image: '🥤', available: true, description: 'قهوة مخفوقة بالثلج', subCategory: 'مشروبات باردة' },
+  { name: 'Orange Juice', nameAr: 'عصير برتقال', category: 'coffee', price: 12, image: '🍊', available: true, description: 'عصير برتقال طازج', subCategory: 'مشروبات باردة' },
+  { name: 'Lemon Mint', nameAr: 'ليمون بالنعناع', category: 'coffee', price: 10, image: '🍋', available: true, description: 'عصير ليمون منعش بالنعناع', subCategory: 'مشروبات باردة' },
+  { name: 'Mango Smoothie', nameAr: 'سموذي مانجو', category: 'coffee', price: 20, image: '🥭', available: true, description: 'سموذي مانجو طازج', subCategory: 'مشروبات باردة' },
+  { name: 'Strawberry Smoothie', nameAr: 'سموذي فراولة', category: 'coffee', price: 20, image: '🍓', available: true, description: 'سموذي فراولة لذيذ', subCategory: 'مشروبات باردة' },
+  { name: 'Croissant', nameAr: 'كرواسون', category: 'coffee', price: 8, image: '🥐', available: true, description: 'كرواسون فرنسي طازج', subCategory: 'وجبات خفيفة' },
+  { name: 'Muffin', nameAr: 'مافن', category: 'coffee', price: 10, image: '🧁', available: true, description: 'مافن بالشوكولاتة أو التوت', subCategory: 'وجبات خفيفة' },
+  { name: 'Donut', nameAr: 'دونات', category: 'coffee', price: 8, image: '🍩', available: true, description: 'دونات محلى بنكهات مختلفة', subCategory: 'حلويات' },
+  { name: 'Cheesecake', nameAr: 'تشيز كيك', category: 'coffee', price: 25, image: '🍰', available: true, description: 'تشيز كيك فاخر', subCategory: 'حلويات' },
+  { name: 'Brownie', nameAr: 'براوني', category: 'coffee', price: 15, image: '🍫', available: true, description: 'براوني شوكولاتة غني', subCategory: 'حلويات' },
+
+  // المغسلة
+  { name: 'Shirt', nameAr: 'قميص', category: 'laundry', price: 10, image: '👔', available: true, description: 'غسيل وكي قميص', subCategory: 'ملابس' },
+  { name: 'Pants', nameAr: 'بنطلون', category: 'laundry', price: 12, image: '👖', available: true, description: 'غسيل وكي بنطلون', subCategory: 'ملابس' },
+  { name: 'Dress', nameAr: 'فستان', category: 'laundry', price: 15, image: '👗', available: true, description: 'غسيل وكي فستان', subCategory: 'ملابس' },
+  { name: 'Suit', nameAr: 'بدلة', category: 'laundry', price: 25, image: '🤵', available: true, description: 'غسيل وكي بدلة احترافي', subCategory: 'ملابس' },
+  { name: 'Thobe', nameAr: 'ثوب', category: 'laundry', price: 15, image: '👘', available: true, description: 'غسيل وكي ثوب', subCategory: 'ملابس' },
+  { name: 'Abaya', nameAr: 'عباية', category: 'laundry', price: 15, image: '🧥', available: true, description: 'غسيل وكي عباية', subCategory: 'ملابس' },
+  { name: 'Jacket', nameAr: 'جاكيت', category: 'laundry', price: 18, image: '🧥', available: true, description: 'غسيل وكي جاكيت', subCategory: 'ملابس' },
+  { name: 'T-Shirt', nameAr: 'تيشيرت', category: 'laundry', price: 8, image: '👕', available: true, description: 'غسيل وكي تيشيرت', subCategory: 'ملابس' },
+  { name: 'Bedding', nameAr: 'ملاءات سرير', category: 'laundry', price: 20, image: '🛏️', available: true, description: 'غسيل ملاءات سرير', subCategory: 'مفروشات' },
+  { name: 'Towels', nameAr: 'مناشف', category: 'laundry', price: 15, image: '🧺', available: true, description: 'غسيل مناشف', subCategory: 'مفروشات' },
+  { name: 'Curtains', nameAr: 'ستائر', category: 'laundry', price: 30, image: '🪟', available: true, description: 'غسيل ستائر', subCategory: 'مفروشات' },
+  { name: 'Carpet', nameAr: 'سجادة', category: 'laundry', price: 50, image: '🧹', available: true, description: 'تنظيف سجادة', subCategory: 'مفروشات' },
+  { name: 'Dry Cleaning', nameAr: 'تنظيف جاف', category: 'laundry', price: 35, image: '✨', available: true, description: 'خدمة التنظيف الجاف', subCategory: 'خدمات خاصة' },
+  { name: 'Express Service', nameAr: 'خدمة سريعة', category: 'laundry', price: 20, image: '⚡', available: true, description: 'غسيل سريع خلال ساعتين', subCategory: 'خدمات خاصة' },
+
+  // خدمات الغرف
+  { name: 'Extra Towels', nameAr: 'مناشف إضافية', category: 'room-services', price: 0, image: '🧺', available: true, description: 'طلب مناشف إضافية', subCategory: 'مستلزمات' },
+  { name: 'Extra Pillows', nameAr: 'وسائد إضافية', category: 'room-services', price: 0, image: '🛏️', available: true, description: 'طلب وسائد إضافية', subCategory: 'مستلزمات' },
+  { name: 'Extra Blankets', nameAr: 'بطانيات إضافية', category: 'room-services', price: 0, image: '🛏️', available: true, description: 'طلب بطانيات إضافية', subCategory: 'مستلزمات' },
+  { name: 'Room Cleaning', nameAr: 'تنظيف الغرفة', category: 'room-services', price: 0, image: '🧹', available: true, description: 'طلب تنظيف الغرفة', subCategory: 'تنظيف الغرف' },
+  { name: 'Change Bedding', nameAr: 'تغيير الفراش', category: 'room-services', price: 0, image: '🛏️', available: true, description: 'تغيير ملاءات السرير', subCategory: 'تنظيف الغرف' },
+  { name: 'Mini Bar Refill', nameAr: 'تعبئة المشروبات', category: 'room-services', price: 0, image: '🥤', available: true, description: 'تعبئة ثلاجة الغرفة', subCategory: 'خدمة الغرف' },
+  { name: 'Wake Up Call', nameAr: 'خدمة الإيقاظ', category: 'room-services', price: 0, image: '⏰', available: true, description: 'طلب خدمة إيقاظ', subCategory: 'خدمة الغرف' },
+  { name: 'Iron & Board', nameAr: 'مكواة ولوح كي', category: 'room-services', price: 0, image: '🔌', available: true, description: 'طلب مكواة ولوح كي', subCategory: 'مستلزمات' },
+  { name: 'Hair Dryer', nameAr: 'مجفف شعر', category: 'room-services', price: 0, image: '💨', available: true, description: 'طلب مجفف شعر', subCategory: 'مستلزمات' },
+  { name: 'Room Maintenance', nameAr: 'صيانة الغرفة', category: 'room-services', price: 0, image: '🔧', available: true, description: 'طلب صيانة', subCategory: 'صيانة' },
+  { name: 'AC Repair', nameAr: 'إصلاح التكييف', category: 'room-services', price: 0, image: '❄️', available: true, description: 'صيانة التكييف', subCategory: 'صيانة' },
+  { name: 'TV Issues', nameAr: 'مشاكل التلفاز', category: 'room-services', price: 0, image: '📺', available: true, description: 'إصلاح التلفاز', subCategory: 'صيانة' },
+];
+
 export default function MenuItemsPage() {
   const router = useRouter();
   const [items, setItems] = useState<MenuItem[]>([]);
@@ -200,6 +270,42 @@ export default function MenuItemsPage() {
       setLoading(false);
     }
   };
+
+  const handleAddDefaultItems = async () => {
+    if (!confirm(`سيتم إضافة ${DEFAULT_MENU_ITEMS.length} صنف افتراضي. هل تريد المتابعة؟`)) return;
+
+    setLoading(true);
+    try {
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const item of DEFAULT_MENU_ITEMS) {
+        try {
+          await addMenuItem({
+            ...item,
+            createdAt: new Date().toISOString(),
+          });
+          successCount++;
+        } catch (error) {
+          console.error('Error adding item:', item.nameAr, error);
+          errorCount++;
+        }
+      }
+
+      await loadItems();
+      
+      if (errorCount === 0) {
+        alert(`✅ تم إضافة جميع الأصناف بنجاح! (${successCount} صنف)`);
+      } else {
+        alert(`تم إضافة ${successCount} صنف بنجاح\nفشل إضافة ${errorCount} صنف`);
+      }
+    } catch (error) {
+      console.error('Error adding default items:', error);
+      alert('حدث خطأ أثناء إضافة الأصناف');
+    } finally {
+      setLoading(false);
+    }
+  };
   const handleEdit = (item: MenuItem) => {
     setEditingItem(item);
     setFormData({
@@ -282,6 +388,19 @@ export default function MenuItemsPage() {
             </div>
           </div>
           <div className="flex gap-2">
+            <Button
+              onClick={handleAddDefaultItems}
+              variant="outline"
+              disabled={loading}
+              className="border-green-600 text-green-400 hover:bg-green-600/20"
+            >
+              {loading ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Download className="h-4 w-4 mr-2" />
+              )}
+              إضافة الأصناف الافتراضية
+            </Button>
             <Button
               onClick={() => setIsBulkImportOpen(true)}
               variant="outline"
