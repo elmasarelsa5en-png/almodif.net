@@ -1,22 +1,37 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Users, ArrowLeft, Plus, Search, Phone, Mail, MapPin, Calendar, RefreshCw, User } from 'lucide-react';
+import { Users, ArrowLeft, Plus, Search, Phone, Mail, MapPin, Calendar, RefreshCw, User, Shield, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { GuestService } from '@/lib/database';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+
+interface Guest {
+  id: string;
+  name: string;
+  nationalId: string;
+  phone: string;
+  roomNumber?: string;
+  checkIn?: any;
+  checkOut?: any;
+  password: string;
+  createdAt: any;
+  lastLogin?: any;
+  isActive?: boolean;
+}
 
 export default function GuestsPage() {
   const router = useRouter();
-  const [guests, setGuests] = useState([]);
-  const [filteredGuests, setFilteredGuests] = useState([]);
+  const [guests, setGuests] = useState<Guest[]>([]);
+  const [filteredGuests, setFilteredGuests] = useState<Guest[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Load guests data from Firestore
   useEffect(() => {
@@ -25,13 +40,20 @@ export default function GuestsPage() {
         setIsLoading(true);
         setError(null);
 
-        const guestsData = await GuestService.getAllGuests();
+        const q = query(collection(db, 'guests'), orderBy('createdAt', 'desc'));
+        const querySnapshot = await getDocs(q);
+        
+        const guestsData = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as Guest[];
+
         setGuests(guestsData);
         setFilteredGuests(guestsData);
 
       } catch (err) {
         console.error('Error loading guests:', err);
-        setError('فشل في تحميل بيانات العملاء');
+        setError('فشل في تحميل بيانات الضيوف');
       } finally {
         setIsLoading(false);
       }
@@ -47,17 +69,35 @@ export default function GuestsPage() {
     } else {
       const filtered = guests.filter(guest =>
         guest.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        guest.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         guest.phone?.includes(searchTerm) ||
-        guest.id?.toLowerCase().includes(searchTerm.toLowerCase())
+        guest.nationalId?.includes(searchTerm) ||
+        guest.roomNumber?.includes(searchTerm)
       );
       setFilteredGuests(filtered);
     }
   }, [guests, searchTerm]);
 
-  const formatDate = (date) => {
+  const formatDate = (date: any) => {
     if (!date) return 'غير محدد';
-    return new Date(date.seconds * 1000).toLocaleDateString('ar-SA');
+    if (date.seconds) {
+      return new Date(date.seconds * 1000).toLocaleDateString('ar-SA');
+    }
+    return new Date(date).toLocaleDateString('ar-SA');
+  };
+
+  const formatDateTime = (date: any) => {
+    if (!date) return 'لم يسجل دخول';
+    if (date.seconds) {
+      return new Date(date.seconds * 1000).toLocaleString('ar-SA');
+    }
+    return new Date(date).toLocaleString('ar-SA');
+  };
+
+  const getGuestStatus = (guest: Guest) => {
+    if (!guest.checkOut) return { label: 'مقيم حالياً', color: 'bg-green-500/20 text-green-400' };
+    const checkOutDate = guest.checkOut.seconds ? new Date(guest.checkOut.seconds * 1000) : new Date(guest.checkOut);
+    if (checkOutDate < new Date()) return { label: 'مغادر', color: 'bg-gray-500/20 text-gray-400' };
+    return { label: 'مقيم حالياً', color: 'bg-green-500/20 text-green-400' };
   };
 
   return (
@@ -88,20 +128,15 @@ export default function GuestsPage() {
                 </div>
                 <div>
                   <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
-                    إدارة العملاء
+                    إدارة الضيوف
                   </h1>
                   <p className="text-purple-200/80">
-                    متابعة وإدارة جميع عملاء الفندق
+                    متابعة جميع من يستخدم تطبيق الضيف
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
-                <Button className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700">
-                  <Plus className="w-4 h-4 ml-2" />
-                  عميل جديد
-                </Button>
-
                 <Button
                   variant="outline"
                   className="border-white/20 bg-white/10 text-white hover:bg-white/20"
@@ -115,12 +150,12 @@ export default function GuestsPage() {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-2xl">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white/70 text-sm">إجمالي العملاء</p>
+                    <p className="text-white/70 text-sm">إجمالي الضيوف</p>
                     <p className="text-3xl font-bold text-white">{guests.length}</p>
                   </div>
                   <Users className="w-8 h-8 text-purple-400" />
@@ -132,9 +167,9 @@ export default function GuestsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white/70 text-sm">عملاء نشطين</p>
+                    <p className="text-white/70 text-sm">مقيمين حالياً</p>
                     <p className="text-3xl font-bold text-white">
-                      {guests.filter(g => g.status === 'active').length}
+                      {guests.filter(g => getGuestStatus(g).label === 'مقيم حالياً').length}
                     </p>
                   </div>
                   <User className="w-8 h-8 text-green-400" />
@@ -146,12 +181,24 @@ export default function GuestsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white/70 text-sm">إجمالي الحجوزات</p>
+                    <p className="text-white/70 text-sm">لديهم حساب في التطبيق</p>
+                    <p className="text-3xl font-bold text-white">{guests.length}</p>
+                  </div>
+                  <Smartphone className="w-8 h-8 text-blue-400" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-2xl">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-white/70 text-sm">مغادرين</p>
                     <p className="text-3xl font-bold text-white">
-                      {guests.reduce((total, guest) => total + (guest.totalBookings || 0), 0)}
+                      {guests.filter(g => getGuestStatus(g).label === 'مغادر').length}
                     </p>
                   </div>
-                  <Calendar className="w-8 h-8 text-blue-400" />
+                  <Calendar className="w-8 h-8 text-gray-400" />
                 </div>
               </CardContent>
             </Card>
@@ -162,7 +209,7 @@ export default function GuestsPage() {
             <div className="relative">
               <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 w-5 h-5" />
               <Input
-                placeholder="البحث في العملاء..."
+                placeholder="البحث في الضيوف (الاسم، رقم الهوية، رقم الغرفة، الجوال)..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="bg-white/10 border-white/20 text-white placeholder:text-white/50 pr-10"
@@ -173,7 +220,7 @@ export default function GuestsPage() {
           {/* Guests List */}
           {isLoading ? (
             <div className="text-center py-12">
-              <div className="text-white text-xl">جاري تحميل العملاء...</div>
+              <div className="text-white text-xl">جاري تحميل الضيوف...</div>
             </div>
           ) : error ? (
             <div className="text-center py-12">
@@ -186,74 +233,83 @@ export default function GuestsPage() {
                   <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-2xl">
                     <CardContent className="text-center py-12">
                       <Users className="w-16 h-16 text-white/30 mx-auto mb-4" />
-                      <h3 className="text-white text-xl font-semibold mb-2">لا يوجد عملاء</h3>
-                      <p className="text-white/60">لم يتم العثور على عملاء تطابق معايير البحث</p>
+                      <h3 className="text-white text-xl font-semibold mb-2">لا يوجد ضيوف</h3>
+                      <p className="text-white/60">لم يتم العثور على ضيوف تطابق معايير البحث</p>
                     </CardContent>
                   </Card>
                 </div>
               ) : (
-                filteredGuests.map((guest) => (
-                  <Card key={guest.id} className="bg-white/10 backdrop-blur-md border-white/20 shadow-2xl hover:bg-white/15 transition-all duration-300">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-purple-500/20 rounded-full flex items-center justify-center">
-                            <User className="w-5 h-5 text-purple-400" />
+                filteredGuests.map((guest) => {
+                  const status = getGuestStatus(guest);
+                  return (
+                    <Card key={guest.id} className="bg-white/10 backdrop-blur-md border-white/20 shadow-2xl hover:bg-white/15 transition-all duration-300">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-purple-500/20 rounded-full flex items-center justify-center">
+                              <User className="w-5 h-5 text-purple-400" />
+                            </div>
+                            <div>
+                              <CardTitle className="text-white text-lg">{guest.name || 'غير محدد'}</CardTitle>
+                              <p className="text-white/70 text-sm flex items-center gap-1">
+                                <Smartphone className="w-3 h-3" />
+                                مسجل في التطبيق
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <CardTitle className="text-white text-lg">{guest.name || 'غير محدد'}</CardTitle>
-                            <p className="text-white/70 text-sm">عميل #{guest.id?.slice(-6) || 'غير محدد'}</p>
+                          <Badge className={`${status.color} border-0`}>
+                            {status.label}
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {guest.phone && (
+                          <div className="flex items-center gap-2 text-white/70 text-sm">
+                            <Phone className="w-4 h-4" />
+                            <span>{guest.phone}</span>
+                          </div>
+                        )}
+
+                        {guest.nationalId && (
+                          <div className="flex items-center gap-2 text-white/70 text-sm">
+                            <Shield className="w-4 h-4" />
+                            <span>رقم الهوية: {guest.nationalId}</span>
+                          </div>
+                        )}
+
+                        {guest.roomNumber && (
+                          <div className="flex items-center gap-2 text-white/70 text-sm">
+                            <MapPin className="w-4 h-4" />
+                            <span>الغرفة: {guest.roomNumber}</span>
+                          </div>
+                        )}
+
+                        <div className="pt-2 border-t border-white/10 space-y-1">
+                          {guest.checkIn && (
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-white/70">تاريخ الدخول:</span>
+                              <span className="text-white font-semibold">{formatDate(guest.checkIn)}</span>
+                            </div>
+                          )}
+                          {guest.checkOut && (
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-white/70">تاريخ المغادرة:</span>
+                              <span className="text-white font-semibold">{formatDate(guest.checkOut)}</span>
+                            </div>
+                          )}
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-white/70">آخر تسجيل دخول:</span>
+                            <span className="text-white text-xs">{formatDateTime(guest.lastLogin)}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-white/70">تاريخ التسجيل:</span>
+                            <span className="text-white text-xs">{formatDate(guest.createdAt)}</span>
                           </div>
                         </div>
-                        <Badge className={`${
-                          guest.status === 'active'
-                            ? 'bg-green-500/20 text-green-400'
-                            : 'bg-gray-500/20 text-gray-400'
-                        } border-0`}>
-                          {guest.status === 'active' ? 'نشط' : 'غير نشط'}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      {guest.email && (
-                        <div className="flex items-center gap-2 text-white/70 text-sm">
-                          <Mail className="w-4 h-4" />
-                          <span>{guest.email}</span>
-                        </div>
-                      )}
-
-                      {guest.phone && (
-                        <div className="flex items-center gap-2 text-white/70 text-sm">
-                          <Phone className="w-4 h-4" />
-                          <span>{guest.phone}</span>
-                        </div>
-                      )}
-
-                      {guest.address && (
-                        <div className="flex items-center gap-2 text-white/70 text-sm">
-                          <MapPin className="w-4 h-4" />
-                          <span>{guest.address}</span>
-                        </div>
-                      )}
-
-                      <div className="flex items-center gap-2 text-white/70 text-sm">
-                        <Calendar className="w-4 h-4" />
-                        <span>تاريخ التسجيل: {formatDate(guest.createdAt)}</span>
-                      </div>
-
-                      <div className="pt-2 border-t border-white/10">
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-white/70">إجمالي الحجوزات:</span>
-                          <span className="text-white font-semibold">{guest.totalBookings || 0}</span>
-                        </div>
-                        <div className="flex justify-between items-center text-sm mt-1">
-                          <span className="text-white/70">إجمالي الإنفاق:</span>
-                          <span className="text-white font-semibold">{guest.totalSpent || 0} ريال</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
+                      </CardContent>
+                    </Card>
+                  );
+                })
               )}
             </div>
           )}

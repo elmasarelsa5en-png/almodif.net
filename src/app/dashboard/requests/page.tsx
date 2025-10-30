@@ -320,7 +320,7 @@ export default function RequestsPage() {
                 </div>
                 <div>
                   <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
-                    طلبات النزلاء
+                    طلبات الضيف
                   </h1>
                   <p className="text-purple-200/80">
                     إدارة شاملة لجميع طلبات وشكاوى النزلاء

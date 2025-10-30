@@ -79,15 +79,15 @@ const navigationItems: NavigationItem[] = [
         descKey: 'bookingPlatformsDesc',
         href: '/dashboard/booking-platforms',
         permission: 'view_bookings',
-      },
-      {
-        icon: Link2,
-        labelKey: 'nezalIntegration',
-        descKey: 'nezalIntegrationDesc',
-        href: '/dashboard/nezal-integration',
-        permission: 'view_bookings',
       }
     ]
+  },
+  {
+    icon: Users,
+    labelKey: 'guests',
+    descKey: 'guestsDesc',
+    href: '/dashboard/guests',
+    permission: 'view_guests',
   },
   {
     icon: ConciergeBell,
