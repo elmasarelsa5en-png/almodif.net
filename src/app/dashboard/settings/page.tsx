@@ -25,7 +25,8 @@ import {
   Menu as MenuIcon,
   QrCode,
   Code2,
-  Building2
+  Building2,
+  MessageSquare
 } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -45,6 +46,15 @@ export default function SettingsPage() {
       color: 'from-blue-500 via-purple-500 to-pink-500',
       href: '/dashboard/settings/hotel-website',
       badge: '🌐 جديد'
+    },
+    {
+      id: 'social-media',
+      title: 'منصات التواصل الاجتماعي',
+      description: 'ربط وإدارة حسابات واتساب وماسنجر وانستجرام',
+      icon: MessageSquare,
+      color: 'from-cyan-500 via-blue-500 to-purple-500',
+      href: '/dashboard/settings/social-media',
+      badge: '📱 جديد'
     },
     {
       id: 'menu-items',

@@ -103,6 +103,7 @@ export default function UnifiedInboxPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
 
   // جلب الرسائل من Firebase
   useEffect(() => {
@@ -173,7 +174,7 @@ export default function UnifiedInboxPage() {
     if (!newMessage.trim() || !user) return;
 
     try {
-      await addDoc(collection(db, 'unified_messages'), {
+      const messageData: any = {
         senderId: user.username || user.email,
         senderName: user.name || 'موظف',
         platform: selectedPlatform === 'all' ? 'whatsapp' : selectedPlatform,
@@ -182,9 +183,22 @@ export default function UnifiedInboxPage() {
         isRead: true,
         type: 'text',
         isStaff: true
-      });
+      };
+
+      // إذا كان رد على رسالة
+      if (replyingTo) {
+        messageData.replyTo = {
+          id: replyingTo.id,
+          senderName: replyingTo.senderName,
+          content: replyingTo.content,
+          platform: replyingTo.platform
+        };
+      }
+
+      await addDoc(collection(db, 'unified_messages'), messageData);
 
       setNewMessage('');
+      setReplyingTo(null);
     } catch (error) {
       console.error('Error sending message:', error);
     }
@@ -201,32 +215,33 @@ export default function UnifiedInboxPage() {
   };
 
   return (
-    <div className="h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col" dir="rtl">
+    <div className="h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col overflow-hidden" dir="rtl">
       {/* Header */}
-      <div className="bg-gray-800/50 backdrop-blur-xl border-b border-gray-700/50 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+      <div className="bg-gray-800/50 backdrop-blur-xl border-b border-gray-700/50 px-3 md:px-6 py-3 md:py-4 flex-shrink-0">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 md:gap-4 min-w-0">
             <Button
               onClick={() => router.back()}
               variant="ghost"
-              className="text-white hover:bg-white/10"
+              size="sm"
+              className="text-white hover:bg-white/10 flex-shrink-0"
             >
-              <ArrowLeft className="w-5 h-5 ml-2" />
-              رجوع
+              <ArrowLeft className="w-4 h-4 md:w-5 md:h-5 ml-1 md:ml-2" />
+              <span className="hidden sm:inline">رجوع</span>
             </Button>
-            <div>
-              <h1 className="text-2xl font-bold text-white">صندوق الوارد الموحد</h1>
-              <p className="text-gray-400 text-sm">جميع رسائلك من كل المنصات</p>
+            <div className="min-w-0">
+              <h1 className="text-lg md:text-2xl font-bold text-white truncate">صندوق الوارد الموحد</h1>
+              <p className="text-gray-400 text-xs md:text-sm hidden md:block">جميع رسائلك من كل المنصات</p>
             </div>
           </div>
 
           {/* Stats */}
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="bg-white/5 text-white border-white/20">
-              {messages.length} رسالة
+          <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
+            <Badge variant="outline" className="bg-white/5 text-white border-white/20 text-xs">
+              {messages.length}
             </Badge>
-            <Badge variant="outline" className="bg-red-500/20 text-red-400 border-red-500/30">
-              {messages.filter(m => !m.isRead).length} غير مقروءة
+            <Badge variant="outline" className="bg-red-500/20 text-red-400 border-red-500/30 text-xs">
+              {messages.filter(m => !m.isRead).length}
             </Badge>
           </div>
         </div>
@@ -234,18 +249,25 @@ export default function UnifiedInboxPage() {
 
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar - Platform Filters */}
-        <div className="w-80 bg-gray-800/30 backdrop-blur-xl border-l border-gray-700/50 flex flex-col">
+        <div className="w-20 md:w-64 lg:w-80 bg-gray-800/30 backdrop-blur-xl border-l border-gray-700/50 flex flex-col overflow-hidden">
           {/* Search */}
-          <div className="p-4 border-b border-gray-700/50">
-            <div className="relative">
+          <div className="p-2 md:p-4 border-b border-gray-700/50 flex-shrink-0">
+            <div className="relative hidden md:block">
               <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
-                placeholder="بحث في الرسائل..."
+                placeholder="بحث..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-gray-900/50 border-gray-700 text-white pr-10 placeholder:text-gray-500"
+                className="bg-gray-900/50 border-gray-700 text-white pr-10 placeholder:text-gray-500 text-sm"
               />
             </div>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="md:hidden w-full text-white"
+            >
+              <Search className="w-4 h-4" />
+            </Button>
           </div>
 
           {/* Filter: All */}
@@ -347,42 +369,74 @@ export default function UnifiedInboxPage() {
                 return (
                   <div
                     key={message.id}
-                    className={`flex items-start gap-4 p-4 rounded-xl transition-all cursor-pointer ${
+                    className={`flex items-start gap-2 md:gap-4 p-3 md:p-4 rounded-xl transition-all ${
                       message.isRead
                         ? 'bg-gray-800/30 hover:bg-gray-800/50'
                         : 'bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 hover:border-cyan-500/50'
                     }`}
-                    onClick={() => !message.isRead && markAsRead(message.id)}
                   >
                     {/* Avatar with Platform Icon */}
-                    <div className="relative">
-                      <div className="w-12 h-12 bg-gradient-to-br from-gray-700 to-gray-800 rounded-full flex items-center justify-center text-white font-bold">
+                    <div className="relative flex-shrink-0">
+                      <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-gray-700 to-gray-800 rounded-full flex items-center justify-center text-white font-bold text-sm md:text-base">
                         {message.senderName.charAt(0).toUpperCase()}
                       </div>
-                      <div className={`absolute -bottom-1 -left-1 w-6 h-6 ${config.bgColor} rounded-full flex items-center justify-center border-2 border-gray-900`}>
-                        <Icon className={`w-3 h-3 ${config.color}`} />
+                      <div className={`absolute -bottom-1 -left-1 w-5 h-5 md:w-6 md:h-6 ${config.bgColor} rounded-full flex items-center justify-center border-2 border-gray-900`}>
+                        <Icon className={`w-2.5 h-2.5 md:w-3 md:h-3 ${config.color}`} />
                       </div>
                     </div>
 
                     {/* Message Content */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-white font-semibold">{message.senderName}</span>
+                      <div className="flex items-center gap-1 md:gap-2 mb-1 flex-wrap">
+                        <span className="text-white font-semibold text-sm md:text-base truncate">{message.senderName}</span>
                         <span className={`text-xs ${config.color}`}>• {config.name}</span>
-                        <span className="text-gray-500 text-xs">{formatTime(message.timestamp)}</span>
+                        <span className="text-gray-500 text-xs hidden sm:inline">{formatTime(message.timestamp)}</span>
                         {!message.isRead && (
                           <Badge className="bg-red-500/20 text-red-400 border-0 text-xs">جديد</Badge>
                         )}
                       </div>
-                      <p className="text-gray-300 text-sm">{message.content}</p>
+                      
+                      {/* Reply To */}
+                      {(message as any).replyTo && (
+                        <div className="bg-gray-700/30 border-r-2 border-cyan-500 pr-2 mb-2 py-1">
+                          <p className="text-xs text-gray-400">رداً على {(message as any).replyTo.senderName}</p>
+                          <p className="text-xs text-gray-500 truncate">{(message as any).replyTo.content}</p>
+                        </div>
+                      )}
+                      
+                      <p className="text-gray-300 text-xs md:text-sm break-words">{message.content}</p>
+                      
+                      {/* Reply Button */}
+                      <div className="mt-2 flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setReplyingTo(message)}
+                          className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 h-7 text-xs"
+                        >
+                          <Send className="w-3 h-3 ml-1" />
+                          رد
+                        </Button>
+                        {!message.isRead && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => markAsRead(message.id)}
+                            className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 h-7 text-xs"
+                          >
+                            <CheckCheck className="w-3 h-3 ml-1" />
+                            تحديد كمقروء
+                          </Button>
+                        )}
+                      </div>
                     </div>
 
                     {/* Read Status */}
-                    <div>
+                    <div className="flex-shrink-0 self-start pt-1">
                       {message.isRead ? (
-                        <CheckCheck className="w-4 h-4 text-blue-500" />
+                        <CheckCheck className="w-3 h-3 md:w-4 md:h-4 text-blue-500" />
                       ) : (
-                        <Check className="w-4 h-4 text-gray-500" />
+                        <Check className="w-3 h-3 md:w-4 md:h-4 text-gray-500" />
                       )}
                     </div>
                   </div>
@@ -392,36 +446,54 @@ export default function UnifiedInboxPage() {
           </div>
 
           {/* Message Input */}
-          <div className="bg-gray-800/50 backdrop-blur-xl border-t border-gray-700/50 p-4">
-            <div className="flex items-center gap-3">
+          <div className="bg-gray-800/50 backdrop-blur-xl border-t border-gray-700/50 p-2 md:p-4 flex-shrink-0">
+            {/* Reply Preview */}
+            {replyingTo && (
+              <div className="mb-2 bg-gray-700/30 border-r-2 border-cyan-500 pr-3 py-2 rounded flex items-center justify-between">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-cyan-400">رد على {replyingTo.senderName}</p>
+                  <p className="text-xs text-gray-400 truncate">{replyingTo.content}</p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setReplyingTo(null)}
+                  className="text-gray-400 hover:text-white h-7 w-7 p-0"
+                >
+                  ×
+                </Button>
+              </div>
+            )}
+            
+            <div className="flex items-center gap-2 md:gap-3">
               <Button
                 size="icon"
                 variant="ghost"
-                className="text-gray-400 hover:text-white hover:bg-gray-700"
+                className="text-gray-400 hover:text-white hover:bg-gray-700 hidden md:flex h-8 w-8 md:h-10 md:w-10"
               >
-                <Paperclip className="w-5 h-5" />
+                <Paperclip className="w-4 h-4 md:w-5 md:h-5" />
               </Button>
               <Button
                 size="icon"
                 variant="ghost"
-                className="text-gray-400 hover:text-white hover:bg-gray-700"
+                className="text-gray-400 hover:text-white hover:bg-gray-700 hidden md:flex h-8 w-8 md:h-10 md:w-10"
               >
-                <ImageIcon className="w-5 h-5" />
+                <ImageIcon className="w-4 h-4 md:w-5 md:h-5" />
               </Button>
               <Input
-                placeholder="اكتب رسالتك هنا..."
+                placeholder="اكتب رسالتك..."
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                className="flex-1 bg-gray-900/50 border-gray-700 text-white placeholder:text-gray-500"
+                onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+                className="flex-1 bg-gray-900/50 border-gray-700 text-white placeholder:text-gray-500 text-sm md:text-base"
               />
               <Button
                 onClick={handleSendMessage}
                 disabled={!newMessage.trim()}
-                className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white"
+                className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white h-8 md:h-10 px-3 md:px-4"
               >
-                <Send className="w-5 h-5 ml-2" />
-                إرسال
+                <Send className="w-4 h-4 md:w-5 md:h-5 ml-1 md:ml-2" />
+                <span className="hidden sm:inline">إرسال</span>
               </Button>
             </div>
           </div>
