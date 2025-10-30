@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { MessageSquare, MessageCircle, Send, Camera, Music, Plane, ArrowRight, CheckCircle } from 'lucide-react';
+import { MessageSquare, MessageCircle, Send, Camera, Music, Plane, ArrowRight, CheckCircle, Inbox } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -94,6 +94,19 @@ export default function SocialMediaPlatformsPage() {
           <p className="text-gray-400 text-lg">
             إدارة جميع محادثاتك من مكان واحد
           </p>
+          
+          {/* Unified Inbox Button */}
+          <div className="mt-6">
+            <Button
+              onClick={() => router.push('/dashboard/crm-whatsapp/unified-inbox')}
+              className="bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 hover:from-cyan-600 hover:via-blue-600 hover:to-purple-600 text-white font-bold px-8 py-6 text-lg shadow-2xl hover:shadow-cyan-500/50 transition-all duration-300 hover:scale-105"
+            >
+              <Inbox className="w-6 h-6 ml-3" />
+              صندوق الوارد الموحد
+              <span className="mr-3 text-xs bg-white/20 px-2 py-1 rounded-full">جديد</span>
+            </Button>
+            <p className="text-gray-500 text-sm mt-2">جميع رسائلك من كل المنصات في مكان واحد</p>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
