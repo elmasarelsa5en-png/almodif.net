@@ -332,7 +332,6 @@ export default function GuestAppHomePage() {
             </div>
           </>
         )}
-        </div>
 
         {/* Hotel Info */}
         {!loading && (hotelSettings.phone || hotelSettings.contactPhone || hotelSettings.contactEmail) && (
@@ -378,7 +377,7 @@ export default function GuestAppHomePage() {
             </Card>
           </motion.div>
         )}
-      </div>
+      </div> {/* End Main Content */}
 
       {/* Footer */}
       <motion.footer
