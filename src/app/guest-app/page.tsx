@@ -98,7 +98,7 @@ export default function GuestAppHomePage() {
       title: 'حجز غرفة / شقة',
       titleEn: 'Room Booking',
       icon: Home,
-      color: 'from-blue-500 to-blue-600',
+      color: 'from-amber-500 to-amber-600',
       description: 'احجز غرفتك أو شقتك بسهولة',
       route: '/guest-app/booking',
       enabled: hotelSettings.enableBooking !== false
@@ -108,7 +108,7 @@ export default function GuestAppHomePage() {
       title: 'طلب من المطعم',
       titleEn: 'Restaurant Order',
       icon: Utensils,
-      color: 'from-amber-500 to-orange-600',
+      color: 'from-amber-600 to-orange-600',
       description: 'تصفح قائمة الطعام واطلب',
       route: '/guest-app/restaurant',
       enabled: hotelSettings.enableQRMenu !== false
@@ -128,7 +128,7 @@ export default function GuestAppHomePage() {
       title: 'خدمة المغسلة',
       titleEn: 'Laundry Service',
       icon: Shirt,
-      color: 'from-cyan-500 to-blue-600',
+      color: 'from-slate-600 to-slate-700',
       description: 'غسيل وكي الملابس',
       route: '/guest-app/laundry',
       enabled: hotelSettings.enableRequests !== false
@@ -138,7 +138,7 @@ export default function GuestAppHomePage() {
       title: 'خدمة الغرف',
       titleEn: 'Room Service',
       icon: Bell,
-      color: 'from-purple-500 to-purple-600',
+      color: 'from-amber-700 to-orange-700',
       description: 'اطلب أي شيء لغرفتك',
       route: '/guest-app/room-service',
       enabled: hotelSettings.enableRequests !== false
@@ -148,7 +148,7 @@ export default function GuestAppHomePage() {
       title: 'تمديد الإقامة',
       titleEn: 'Extend Stay',
       icon: Calendar,
-      color: 'from-green-500 to-emerald-600',
+      color: 'from-slate-700 to-slate-800',
       description: 'مدد إقامتك بسهولة',
       route: '/guest-app/extend-stay',
       enabled: hotelSettings.enableRequests !== false
@@ -158,7 +158,7 @@ export default function GuestAppHomePage() {
       title: 'التواصل معنا',
       titleEn: 'Contact Us',
       icon: Phone,
-      color: 'from-pink-500 to-rose-600',
+      color: 'from-amber-600 to-amber-700',
       description: 'تواصل مع الاستقبال',
       route: '/guest-app/contact',
       enabled: true // دائماً متاح
@@ -191,15 +191,30 @@ export default function GuestAppHomePage() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900" dir="rtl">
-      {/* خلفية متحركة */}
-      <AnimatedBackground />
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900" dir="rtl">
+      {/* خلفية بنمط الطوب - مستوحاة من الصورة */}
+      <div className="absolute inset-0 opacity-5" style={{
+        backgroundImage: `repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 35px,
+          rgba(212, 175, 55, 0.3) 35px,
+          rgba(212, 175, 55, 0.3) 37px
+        ),
+        repeating-linear-gradient(
+          90deg,
+          transparent,
+          transparent 70px,
+          rgba(212, 175, 55, 0.3) 70px,
+          rgba(212, 175, 55, 0.3) 72px
+        )`
+      }}></div>
 
       {/* Header */}
       <motion.header 
         initial={{ opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative z-10 bg-white/10 backdrop-blur-xl border-b border-white/20 shadow-2xl"
+        className="relative z-10 bg-gradient-to-r from-slate-800/95 via-slate-700/95 to-slate-800/95 backdrop-blur-xl border-b border-amber-500/30 shadow-2xl"
       >
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
@@ -208,22 +223,22 @@ export default function GuestAppHomePage() {
                 <img 
                   src={hotelSettings.logo} 
                   alt={hotelSettings.hotelName}
-                  className="h-16 w-auto object-contain"
+                  className="h-16 w-auto object-contain drop-shadow-2xl"
                 />
               ) : (
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl">
-                  <Hotel className="w-10 h-10 text-white" />
+                <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl flex items-center justify-center shadow-2xl border-2 border-amber-300/50">
+                  <Hotel className="w-10 h-10 text-slate-900" />
                 </div>
               )}
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-2">
+                <h1 className="text-2xl md:text-3xl font-bold text-amber-100 flex items-center gap-2 drop-shadow-lg">
                   {hotelSettings.hotelName}
-                  <Sparkles className="w-6 h-6 text-yellow-300 animate-pulse" />
+                  <Sparkles className="w-6 h-6 text-amber-400 animate-pulse" />
                 </h1>
                 {hotelSettings.rating && (
                   <div className="flex items-center gap-1 mt-1">
                     {[...Array(hotelSettings.rating)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
                     ))}
                   </div>
                 )}
@@ -232,7 +247,7 @@ export default function GuestAppHomePage() {
 
             <Button
               onClick={generateQRCode}
-              className="bg-white/20 hover:bg-white/30 text-white backdrop-blur-sm"
+              className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-100 backdrop-blur-sm border border-amber-400/30"
             >
               <QrCode className="w-5 h-5 mr-2" />
               QR Code
@@ -300,29 +315,21 @@ export default function GuestAppHomePage() {
                 >
                   <Card 
                     onClick={() => handleServiceClick(service)}
-                    className="bg-white/10 backdrop-blur-xl border-white/20 hover:border-white/40 transition-all duration-300 cursor-pointer group hover:scale-105 hover:shadow-2xl"
-                    style={{
-                      borderColor: hotelSettings.primaryColor ? `${hotelSettings.primaryColor}33` : undefined
-                    }}
+                    className="bg-slate-800/80 backdrop-blur-xl border-amber-500/30 hover:border-amber-400/60 transition-all duration-300 cursor-pointer group hover:scale-105 hover:shadow-2xl hover:shadow-amber-500/20"
                   >
                     <CardContent className="p-6">
                       <div 
-                        className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-xl`}
-                        style={{
-                          background: hotelSettings.primaryColor 
-                            ? `linear-gradient(to bottom right, ${hotelSettings.primaryColor}, ${hotelSettings.secondaryColor || hotelSettings.primaryColor})`
-                            : undefined
-                        }}
+                        className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${service.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-xl border-2 border-amber-400/30`}
                       >
-                        <service.icon className="w-8 h-8 text-white" />
+                        <service.icon className="w-8 h-8 text-white drop-shadow-lg" />
                       </div>
-                      <h3 className="text-xl font-bold text-white mb-2">
+                      <h3 className="text-xl font-bold text-amber-100 mb-2">
                         {service.title}
                       </h3>
-                      <p className="text-sm text-blue-200/80 mb-3">
+                      <p className="text-sm text-amber-200/70 mb-3">
                         {service.description}
                       </p>
-                      <p className="text-xs text-blue-300/60 font-medium">
+                      <p className="text-xs text-amber-300/50 font-medium">
                         {service.titleEn}
                       </p>
                     </CardContent>
