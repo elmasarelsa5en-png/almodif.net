@@ -447,6 +447,7 @@ export default function RestaurantPage() {
                 <p className="text-orange-200 text-xl mb-2">لا توجد عناصر في القائمة</p>
                 <p className="text-orange-300/60">يمكنك إضافة عناصر من صفحة الإعدادات</p>
               </div>
+            ) : (
               <motion.div
                 variants={containerVariants}
                 initial="hidden"
@@ -455,7 +456,6 @@ export default function RestaurantPage() {
               >
                 <AnimatePresence>
                   {filteredMenu && filteredMenu.length > 0 && filteredMenu.map((item) => (
-                  {filteredMenu.map((item) => (
                   <motion.div
                     key={item.id}
                     variants={itemVariants}
@@ -576,9 +576,9 @@ export default function RestaurantPage() {
                       </CardContent>
                     </Card>
                   </motion.div>
-                ))}
-              </AnimatePresence>
-            </motion.div>
+                  ))}
+                </AnimatePresence>
+              </motion.div>
             )}
           </div>
         </div>
