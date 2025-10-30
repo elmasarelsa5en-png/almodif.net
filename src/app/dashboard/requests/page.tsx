@@ -152,6 +152,11 @@ export default function RequestsPage() {
 
   // Filter requests
   useEffect(() => {
+    if (!requests || !Array.isArray(requests)) {
+      setFilteredRequests([]);
+      return;
+    }
+    
     let filtered = requests;
 
     if (statusFilter !== 'all') {
@@ -473,9 +478,9 @@ export default function RequestsPage() {
                           <div>
                             <div className="flex items-center gap-2 mb-1">
                               <span className="text-2xl font-bold text-white">غرفة {request.room}</span>
-                              {request.priority && (
-                                <Badge className={`${PRIORITY_CONFIG[request.priority || 'medium'].color} bg-transparent border`}>
-                                  {PRIORITY_CONFIG[request.priority || 'medium'].label}
+                              {request.priority && PRIORITY_CONFIG[request.priority as keyof typeof PRIORITY_CONFIG] && (
+                                <Badge className={`${PRIORITY_CONFIG[request.priority as keyof typeof PRIORITY_CONFIG].color} bg-transparent border`}>
+                                  {PRIORITY_CONFIG[request.priority as keyof typeof PRIORITY_CONFIG].label}
                                 </Badge>
                               )}
                             </div>
