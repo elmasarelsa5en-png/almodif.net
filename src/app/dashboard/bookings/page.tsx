@@ -18,6 +18,7 @@ import {
   Users,
   DollarSign,
   Clock,
+  Bell,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -45,6 +46,8 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/language-context';
 import * as BookingService from '@/lib/bookings';
+import { db } from '@/lib/firebase';
+import { collection, query, orderBy, onSnapshot, Timestamp } from 'firebase/firestore';
 
 type ViewMode = 'list' | 'calendar';
 type BookingStatus = 'غير مؤكدة' | 'قائمة' | 'جاهز_دخول' | 'جاهز_خروج' | 'قادمة' | 'مكتملة' | 'ملغية';
@@ -62,6 +65,135 @@ export default function BookingsPage() {
   const [selectedSource, setSelectedSource] = useState<string>('الكل');
   const [showNewBookingDialog, setShowNewBookingDialog] = useState(false);
   const [showAdvancedFilter, setShowAdvancedFilter] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [newBookingsCount, setNewBookingsCount] = useState(0);
+
+  // 🔥 جلب الحجوزات من Firebase في الوقت الفعلي
+  useEffect(() => {
+    if (!db) {
+      console.log('⚠️ Firebase غير متصل - استخدام البيانات المحلية');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const bookingsRef = collection(db, 'bookings');
+      const q = query(bookingsRef, orderBy('createdAt', 'desc'));
+
+      // الاشتراك في التحديثات الفورية
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const bookingsData = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            bookingNumber: doc.id.slice(0, 8).toUpperCase(),
+            guestName: data.guestName || '',
+            roomName: data.roomType || `غرفة ${data.roomNumber}`,
+            roomNumber: data.roomNumber || '',
+            status: mapStatus(data.status),
+            source: mapSource(data.source),
+            checkInDate: data.checkInDate?.toDate?.() || new Date(),
+            checkOutDate: data.checkOutDate?.toDate?.() || new Date(),
+            numberOfGuests: data.numberOfGuests || 1,
+            basePrice: data.pricePerNight || 0,
+            totalPrice: data.totalAmount || 0,
+            paidAmount: data.paidAmount || 0,
+            remainingBalance: (data.totalAmount || 0) - (data.paidAmount || 0),
+            guestPhone: data.guestPhone || '',
+            guestEmail: data.guestEmail || '',
+            guestNationalId: data.guestNationalId || '',
+            idCopyNumber: data.idCopyNumber || '',
+            companions: data.companions || [],
+            notes: data.notes || '',
+            createdAt: data.createdAt?.toDate?.() || new Date(),
+            isNew: isNewBooking(data.createdAt),
+          };
+        });
+
+        // حساب الحجوزات الجديدة (آخر 5 دقائق)
+        const newCount = bookingsData.filter(b => b.isNew).length;
+        setNewBookingsCount(newCount);
+
+        // إشعار صوتي للحجوزات الجديدة
+        if (newCount > 0 && bookings.length > 0) {
+          showNotification('🔔 حجز جديد!', `لديك ${newCount} حجز جديد`);
+          playNotificationSound();
+        }
+
+        setBookings(bookingsData);
+        setLoading(false);
+        console.log('✅ تم جلب الحجوزات:', bookingsData.length);
+      }, (error) => {
+        console.error('❌ خطأ في جلب الحجوزات:', error);
+        setLoading(false);
+      });
+
+      return () => unsubscribe();
+    } catch (error) {
+      console.error('❌ خطأ في الاتصال بـ Firebase:', error);
+      setLoading(false);
+    }
+  }, []);
+
+  // تحويل الحالة من الإنجليزية للعربية
+  const mapStatus = (status: string): BookingStatus => {
+    const statusMap: Record<string, BookingStatus> = {
+      'pending': 'غير مؤكدة',
+      'confirmed': 'قائمة',
+      'checked-in': 'جاهز_دخول',
+      'checked-out': 'جاهز_خروج',
+      'upcoming': 'قادمة',
+      'completed': 'مكتملة',
+      'cancelled': 'ملغية',
+    };
+    return statusMap[status] || 'غير مؤكدة';
+  };
+
+  // تحويل المصدر
+  const mapSource = (source: string): string => {
+    const sourceMap: Record<string, string> = {
+      'guest-app': 'تطبيق النزلاء',
+      'direct': 'حجز_مباشر',
+      'booking.com': 'Booking.com',
+      'airbnb': 'Airbnb',
+      'agoda': 'Agoda',
+      'website': 'الموقع الإلكتروني',
+    };
+    return sourceMap[source] || source;
+  };
+
+  // التحقق إذا كان الحجز جديد (آخر 5 دقائق)
+  const isNewBooking = (createdAt: any): boolean => {
+    if (!createdAt || !createdAt.toDate) return false;
+    const bookingTime = createdAt.toDate().getTime();
+    const now = new Date().getTime();
+    const fiveMinutes = 5 * 60 * 1000;
+    return (now - bookingTime) < fiveMinutes;
+  };
+
+  // إظهار إشعار المتصفح
+  const showNotification = (title: string, body: string) => {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification(title, { body, icon: '/icon-192.png' });
+    } else if ('Notification' in window && Notification.permission !== 'denied') {
+      Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+          new Notification(title, { body, icon: '/icon-192.png' });
+        }
+      });
+    }
+  };
+
+  // تشغيل صوت الإشعار
+  const playNotificationSound = () => {
+    try {
+      const audio = new Audio('/sounds/notification.mp3');
+      audio.volume = 0.5;
+      audio.play().catch(e => console.log('⚠️ لم يتمكن من تشغيل الصوت:', e));
+    } catch (error) {
+      console.log('⚠️ خطأ في تشغيل الصوت:', error);
+    }
+  };
 
   // Calculate stats from bookings
   const stats = {
@@ -267,11 +399,24 @@ export default function BookingsPage() {
                   <Calendar className="w-7 h-7 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
+                  <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent flex items-center gap-3">
                     إدارة الحجوزات
+                    {newBookingsCount > 0 && (
+                      <span className="relative">
+                        <Bell className="w-8 h-8 text-yellow-400 animate-bounce" />
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
+                          {newBookingsCount}
+                        </span>
+                      </span>
+                    )}
                   </h1>
                   <p className="text-blue-200/80 text-sm md:text-base">
                     إدارة شاملة لجميع حجوزات الفندق والعملاء
+                    {newBookingsCount > 0 && (
+                      <span className="text-yellow-400 font-bold mr-2">
+                        • {newBookingsCount} حجز جديد!
+                      </span>
+                    )}
                   </p>
                 </div>
               </div>
@@ -422,10 +567,13 @@ export default function BookingsPage() {
                         className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-white"
                       >
                         <option value="الكل">جميع المصادر</option>
-                        <option value="حجز_مباشر">حجز مباشر</option>
-                        <option value="موقع_الكتروني">موقع إلكتروني</option>
-                        <option value="وكيل_سفر">وكيل سفر</option>
-                        <option value="تطبيق_الهاتف">تطبيق الهاتف</option>
+                        <option value="تطبيق النزلاء">📱 تطبيق النزلاء</option>
+                        <option value="حجز_مباشر">📞 حجز مباشر</option>
+                        <option value="الموقع الإلكتروني">💻 الموقع الإلكتروني</option>
+                        <option value="Booking.com">🏢 Booking.com</option>
+                        <option value="Airbnb">🏠 Airbnb</option>
+                        <option value="Agoda">✈️ Agoda</option>
+                        <option value="وكيل_سفر">🎫 وكيل سفر</option>
                       </select>
                     </div>
 
@@ -498,9 +646,19 @@ export default function BookingsPage() {
                     </thead>
                     <tbody className="divide-y divide-white/10">
                       {filteredBookings.map((booking) => (
-                        <tr key={booking.id} className="hover:bg-white/5 transition-colors">
+                        <tr key={booking.id} className={cn(
+                          "hover:bg-white/5 transition-colors",
+                          booking.isNew && "bg-yellow-500/10 border-r-4 border-yellow-400"
+                        )}>
                           <td className="px-6 py-4">
-                            <span className="text-xs text-blue-300">{booking.source === 'حجز_مباشر' ? '📞' : booking.source === 'موقع_الكتروني' ? '💻' : '🏢'}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-blue-300">{booking.source === 'حجز_مباشر' ? '📞' : booking.source === 'تطبيق النزلاء' ? '📱' : booking.source === 'موقع_الكتروني' ? '💻' : '🏢'}</span>
+                              {booking.isNew && (
+                                <span className="bg-yellow-400 text-black text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">
+                                  NEW
+                                </span>
+                              )}
+                            </div>
                           </td>
                           <td className="px-6 py-4">
                             <span className="text-white font-medium">{booking.bookingNumber}</span>
