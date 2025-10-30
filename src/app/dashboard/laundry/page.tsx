@@ -354,6 +354,7 @@ export default function LaundryPage() {
       let selectedEmployeeName = currentUser?.username || 'غير معروف';
       let createdByEmployee = currentUser?.username || 'موظف';
       
+      // إذا لم يكن من فريق المغسلة واختار موظف مسؤول
       if (!isLaundryStaff && selectedEmployee) {
         selectedEmployeeName = employees.find(e => e.id === selectedEmployee)?.name || 'غير معروف';
       }
@@ -365,6 +366,14 @@ export default function LaundryPage() {
         roomDisplay = room ? `غرفة ${room.number}` : selectedRoom;
       }
 
+      // بناء الملاحظات بناءً على الحالة
+      let notesText = `تم إدخاله بواسطة: ${createdByEmployee}`;
+      
+      // إذا كان هناك موظف مسؤول مختلف، أضفه
+      if (!isLaundryStaff && selectedEmployee && selectedEmployeeName !== createdByEmployee) {
+        notesText += `\nالموظف المسؤول: ${selectedEmployeeName}`;
+      }
+
       await addRequest({
         room: roomDisplay,
         guest: guestName || 'عميل خارجي',
@@ -373,7 +382,7 @@ export default function LaundryPage() {
         description: `الطلب:\n${itemsDescription}\n\nالإجمالي: ${cartTotal} ر.س`,
         priority: 'medium',
         status: 'awaiting_employee_approval',
-        notes: `تم إدخاله بواسطة: ${createdByEmployee}\nالموظف المسؤول: ${selectedEmployeeName}`,
+        notes: notesText,
         assignedTo: !isLaundryStaff && selectedEmployee ? selectedEmployee : undefined,
         createdBy: currentUser?.username || 'موظف',
         createdAt: new Date().toISOString()
