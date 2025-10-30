@@ -36,6 +36,20 @@ export default function GuestLoginPage() {
     setTimeout(() => setShowContent(true), 800);
   }, []);
 
+  // دخول مباشر كضيف بدون تحقق
+  const handleGuestLogin = () => {
+    const guestData = {
+      name: 'ضيف',
+      phone: '',
+      roomNumber: 'معاينة',
+      loginTime: new Date().toISOString(),
+      isGuest: true // علامة لمعرفة أنه ضيف
+    };
+
+    localStorage.setItem('guest_session', JSON.stringify(guestData));
+    router.push('/guest-menu-unified');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -296,12 +310,51 @@ export default function GuestLoginPage() {
                   </div>
                 )}
               </Button>
+
+              {/* فاصل "أو" */}
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-white/20" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-4 bg-transparent text-white/80 font-medium">أو</span>
+                </div>
+              </div>
+
+              {/* زر الدخول المباشر كضيف */}
+              <Button
+                type="button"
+                onClick={handleGuestLogin}
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold py-4 text-lg shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 relative overflow-hidden group"
+              >
+                {/* تأثير الوميض */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
+                
+                <div className="flex items-center justify-center gap-2 relative z-10">
+                  <Sparkles className="h-6 w-6 animate-pulse" />
+                  دخول مباشر للمنيو
+                  <Sparkles className="h-6 w-6 animate-pulse" />
+                </div>
+              </Button>
             </form>
 
             <div className={`mt-6 text-center transition-all duration-1000 delay-700 ${
               showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             }`}>
-              <p className="text-blue-200/80 text-sm mb-2">
+              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 space-y-2">
+                <p className="text-white font-semibold text-sm flex items-center justify-center gap-2">
+                  <Sparkles className="h-4 w-4 text-yellow-300" />
+                  طريقتان للدخول
+                  <Sparkles className="h-4 w-4 text-yellow-300" />
+                </p>
+                <div className="text-blue-200/80 text-xs space-y-1">
+                  <p>✅ <span className="font-medium">دخول مباشر:</span> شاهد المنيو مباشرة بدون تسجيل</p>
+                  <p>🔐 <span className="font-medium">تحقق ودخول:</span> إذا كان لديك حجز في الفندق</p>
+                </div>
+              </div>
+              
+              <p className="text-blue-200/80 text-sm mt-4 mb-2">
                 إذا كانت لديك مشكلة في تسجيل الدخول
               </p>
               <p className="text-blue-100 text-sm font-medium">
