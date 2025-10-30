@@ -276,14 +276,37 @@ export function updateBooking(id: string, updates: Partial<Booking>): Booking | 
 /**
  * Delete booking
  */
-export function deleteBooking(id: string): boolean {
-  const bookings = getBookings();
-  const filtered = bookings.filter(b => b.id !== id);
+export async function deleteBooking(id: string): Promise<boolean> {
+  try {
+    // حذف من Firebase
+    const { db } = await import('@/lib/firebase');
+    const { doc, deleteDoc } = await import('firebase/firestore');
+    
+    const bookingRef = doc(db, 'bookings', id);
+    await deleteDoc(bookingRef);
+    
+    console.log('✅ Booking deleted from Firebase:', id);
+    
+    // حذف من localStorage
+    const bookings = getBookings();
+    const filtered = bookings.filter(b => b.id !== id);
 
-  if (filtered.length === bookings.length) return false;
+    if (filtered.length === bookings.length) return false;
 
-  localStorage.setItem('bookings', JSON.stringify(filtered));
-  return true;
+    localStorage.setItem('bookings', JSON.stringify(filtered));
+    return true;
+  } catch (error) {
+    console.error('❌ Error deleting booking:', error);
+    
+    // حتى لو فشل Firebase، نحذف من localStorage
+    const bookings = getBookings();
+    const filtered = bookings.filter(b => b.id !== id);
+
+    if (filtered.length === bookings.length) return false;
+
+    localStorage.setItem('bookings', JSON.stringify(filtered));
+    return true;
+  }
 }
 
 /**

@@ -325,9 +325,9 @@ export default function BookingsPage() {
   };
 
   // Delete booking
-  const handleDeleteBooking = (id: string) => {
+  const handleDeleteBooking = async (id: string) => {
     if (confirm('هل أنت متأكد من حذف هذا الحجز؟')) {
-      BookingService.deleteBooking(id);
+      await BookingService.deleteBooking(id);
       setBookings(BookingService.getBookings());
     }
   };
