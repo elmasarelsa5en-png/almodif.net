@@ -1,32 +1,34 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Utensils, ArrowLeft, Star, Plus, ShoppingCart, 
   CreditCard, Clock, Crown, Timer,
-  Flame, Snowflake, Cookie, Croissant, ChefHat, User, Phone, Home, CheckCircle
+  Flame, Snowflake, Cookie, Croissant, ChefHat, User, Phone, Home, CheckCircle, Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { getMenuItemsByCategory, subscribeToMenuItems, type MenuItem } from '@/lib/firebase-data';
 
 interface RestaurantItem {
   id: string;
   name: string;
   nameAr: string;
-  category: 'appetizers' | 'main-courses' | 'grilled' | 'seafood' | 'desserts' | 'beverages';
+  category: 'appetizers' | 'main-courses' | 'grilled' | 'seafood' | 'desserts' | 'beverages' | string;
+  subCategory?: string;
   price: number;
   image: string;
   description: string;
-  rating: number;
-  preparationTime: number;
+  rating?: number;
+  preparationTime?: number;
   available: boolean;
   featured?: boolean;
   calories?: number;
-  ingredients: string[];
+  ingredients?: string[];
   spicy?: boolean;
   vegetarian?: boolean;
 }
@@ -138,6 +140,8 @@ export default function GuestRestaurantPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [guestData, setGuestData] = useState<GuestData | null>(null);
+  const [menuItems, setMenuItems] = useState<RestaurantItem[]>(RESTAURANT_MENU);
+  const [isLoading, setIsLoading] = useState(true);
 
   React.useEffect(() => {
     const savedGuestData = localStorage.getItem('guest_session');
@@ -148,10 +152,38 @@ export default function GuestRestaurantPage() {
     setGuestData(JSON.parse(savedGuestData));
   }, [router]);
 
+  // Load menu items from Firebase
+  useEffect(() => {
+    const loadMenuItems = async () => {
+      try {
+        const items = await getMenuItemsByCategory('restaurant');
+        if (items.length > 0) {
+          setMenuItems(items as RestaurantItem[]);
+        }
+      } catch (error) {
+        console.error('Error loading restaurant menu:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadMenuItems();
+
+    // Real-time subscription
+    const unsubscribe = subscribeToMenuItems((allItems) => {
+      const restaurantItems = allItems.filter(item => item.category === 'restaurant');
+      if (restaurantItems.length > 0) {
+        setMenuItems(restaurantItems as RestaurantItem[]);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   const filteredMenu = useMemo(() => {
-    if (selectedCategory === 'all') return RESTAURANT_MENU;
-    return RESTAURANT_MENU.filter(item => item.category === selectedCategory);
-  }, [selectedCategory]);
+    if (selectedCategory === 'all') return menuItems;
+    return menuItems.filter(item => (item.subCategory || item.category) === selectedCategory);
+  }, [selectedCategory, menuItems]);
 
   const cartTotal = useMemo(() => {
     return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -324,8 +356,19 @@ export default function GuestRestaurantPage() {
           </div>
 
           <div className="lg:col-span-3">
-            <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filteredMenu.map((item) => (
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center py-20">
+                <Loader2 className="h-12 w-12 animate-spin text-amber-400 mb-4" />
+                <p className="text-amber-200 text-lg">جاري تحميل القائمة...</p>
+              </div>
+            ) : filteredMenu.length === 0 ? (
+              <div className="text-center py-20">
+                <Utensils className="h-16 w-16 text-amber-400 mx-auto mb-4 opacity-50" />
+                <p className="text-amber-200 text-lg">لا توجد أصناف متاحة حالياً</p>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {filteredMenu.map((item) => (
                 <Card key={item.id} className="bg-white/5 backdrop-blur-xl border-amber-400/20">
                   <div className="relative h-48 bg-gradient-to-br from-amber-100 via-orange-50 to-yellow-100 flex items-center justify-center">
                     <div className="text-6xl">{item.image}</div>
@@ -355,7 +398,8 @@ export default function GuestRestaurantPage() {
                   </CardContent>
                 </Card>
               ))}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

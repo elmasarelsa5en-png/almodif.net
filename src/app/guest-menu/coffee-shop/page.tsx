@@ -1,33 +1,35 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Coffee, ArrowLeft, Star, Plus, ShoppingCart, 
   CreditCard, Clock, Crown, Timer,
-  Flame, Snowflake, Cookie, Croissant, ChefHat, User, Phone, Home, CheckCircle
+  Flame, Snowflake, Cookie, Croissant, ChefHat, User, Phone, Home, CheckCircle, Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { getMenuItemsByCategory, subscribeToMenuItems, type MenuItem } from '@/lib/firebase-data';
 
 // نفس الأنواع من صفحة الكوفي شوب للموظفين
 interface CoffeeItem {
   id: string;
   name: string;
   nameAr: string;
-  category: 'hot-coffee' | 'cold-coffee' | 'tea' | 'dessert' | 'pastry';
+  category: 'hot-coffee' | 'cold-coffee' | 'tea' | 'dessert' | 'pastry' | string;
+  subCategory?: string;
   price: number;
   image: string;
   description: string;
-  rating: number;
-  preparationTime: number;
+  rating?: number;
+  preparationTime?: number;
   available: boolean;
   featured?: boolean;
   calories?: number;
-  ingredients: string[];
+  ingredients?: string[];
 }
 
 interface CartItem extends CoffeeItem {
@@ -137,6 +139,8 @@ export default function GuestCoffeeShopPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [guestData, setGuestData] = useState<GuestData | null>(null);
+  const [menuItems, setMenuItems] = useState<CoffeeItem[]>(COFFEE_MENU);
+  const [isLoading, setIsLoading] = useState(true);
 
   // التحقق من بيانات النزيل
   React.useEffect(() => {
@@ -148,10 +152,38 @@ export default function GuestCoffeeShopPage() {
     setGuestData(JSON.parse(savedGuestData));
   }, [router]);
 
+  // Load menu items from Firebase
+  useEffect(() => {
+    const loadMenuItems = async () => {
+      try {
+        const items = await getMenuItemsByCategory('coffee');
+        if (items.length > 0) {
+          setMenuItems(items as CoffeeItem[]);
+        }
+      } catch (error) {
+        console.error('Error loading coffee menu:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadMenuItems();
+
+    // Real-time subscription
+    const unsubscribe = subscribeToMenuItems((allItems) => {
+      const coffeeItems = allItems.filter(item => item.category === 'coffee');
+      if (coffeeItems.length > 0) {
+        setMenuItems(coffeeItems as CoffeeItem[]);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   const filteredMenu = useMemo(() => {
-    if (selectedCategory === 'all') return COFFEE_MENU;
-    return COFFEE_MENU.filter(item => item.category === selectedCategory);
-  }, [selectedCategory]);
+    if (selectedCategory === 'all') return menuItems;
+    return menuItems.filter(item => (item.subCategory || item.category) === selectedCategory);
+  }, [selectedCategory, menuItems]);
 
   const cartTotal = useMemo(() => {
     return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -343,8 +375,19 @@ export default function GuestCoffeeShopPage() {
 
           {/* Menu Grid */}
           <div className="lg:col-span-3">
-            <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filteredMenu.map((item) => (
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center py-20">
+                <Loader2 className="h-12 w-12 animate-spin text-amber-400 mb-4" />
+                <p className="text-amber-200 text-lg">جاري تحميل القائمة...</p>
+              </div>
+            ) : filteredMenu.length === 0 ? (
+              <div className="text-center py-20">
+                <Coffee className="h-16 w-16 text-amber-400 mx-auto mb-4 opacity-50" />
+                <p className="text-amber-200 text-lg">لا توجد أصناف متاحة حالياً</p>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {filteredMenu.map((item) => (
                 <Card key={item.id} className="bg-white/5 backdrop-blur-xl border-amber-400/20 hover:border-amber-400/40 transition-all">
                   <div className="relative h-48 bg-gradient-to-br from-amber-100 via-orange-50 to-yellow-100 flex items-center justify-center">
                     <div className="text-6xl">{item.image}</div>
@@ -378,7 +421,8 @@ export default function GuestCoffeeShopPage() {
                   </CardContent>
                 </Card>
               ))}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

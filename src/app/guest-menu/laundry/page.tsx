@@ -1,26 +1,31 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Shirt, ArrowLeft, Star, Plus, ShoppingCart, 
   Clock, User, Home, CheckCircle, Droplets, Wind, Sparkles,
-  Filter
+  Filter, Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { getMenuItemsByCategory, subscribeToMenuItems, type MenuItem } from '@/lib/firebase-data';
 
 interface LaundryItem {
   id: string;
   name: string;
   nameAr: string;
-  category: 'washing' | 'ironing' | 'dry-cleaning' | 'special';
+  category: 'washing' | 'ironing' | 'dry-cleaning' | 'special' | string;
+  subCategory?: string;
   price: number;
-  duration: string;
+  duration?: string;
+  processingTime?: number;
   available: boolean;
+  image?: string;
+  description?: string;
 }
 
 interface CartItem extends LaundryItem {
@@ -159,6 +164,8 @@ export default function GuestLaundryPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [guestData, setGuestData] = useState<GuestData | null>(null);
+  const [menuItems, setMenuItems] = useState<LaundryItem[]>(LAUNDRY_SERVICES);
+  const [isLoading, setIsLoading] = useState(true);
 
   React.useEffect(() => {
     const savedGuestData = localStorage.getItem('guest_session');
@@ -169,6 +176,34 @@ export default function GuestLaundryPage() {
     setGuestData(JSON.parse(savedGuestData));
   }, [router]);
 
+  // Load menu items from Firebase
+  useEffect(() => {
+    const loadMenuItems = async () => {
+      try {
+        const items = await getMenuItemsByCategory('laundry');
+        if (items.length > 0) {
+          setMenuItems(items as LaundryItem[]);
+        }
+      } catch (error) {
+        console.error('Error loading laundry menu:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadMenuItems();
+
+    // Real-time subscription
+    const unsubscribe = subscribeToMenuItems((allItems) => {
+      const laundryItems = allItems.filter(item => item.category === 'laundry');
+      if (laundryItems.length > 0) {
+        setMenuItems(laundryItems as LaundryItem[]);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   // مراقبة تغييرات السلة
   React.useEffect(() => {
     console.log('🛒 تحديث السلة:', cart.length, 'أصناف');
@@ -176,9 +211,9 @@ export default function GuestLaundryPage() {
   }, [cart]);
 
   const filteredServices = useMemo(() => {
-    if (selectedCategory === 'all') return LAUNDRY_SERVICES;
-    return LAUNDRY_SERVICES.filter(item => item.category === selectedCategory);
-  }, [selectedCategory]);
+    if (selectedCategory === 'all') return menuItems;
+    return menuItems.filter(item => (item.subCategory || item.category) === selectedCategory);
+  }, [selectedCategory, menuItems]);
 
   const cartTotal = useMemo(() => {
     return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -411,8 +446,19 @@ export default function GuestLaundryPage() {
           </div>
 
           <div className="lg:col-span-3">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-              {filteredServices.map((service) => (
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center py-20">
+                <Loader2 className="h-12 w-12 animate-spin text-cyan-400 mb-4" />
+                <p className="text-cyan-200 text-lg">جاري تحميل الخدمات...</p>
+              </div>
+            ) : filteredServices.length === 0 ? (
+              <div className="text-center py-20">
+                <Shirt className="h-16 w-16 text-cyan-400 mx-auto mb-4 opacity-50" />
+                <p className="text-cyan-200 text-lg">لا توجد خدمات متاحة حالياً</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                {filteredServices.map((service) => (
                 <Card key={service.id} className="bg-white/5 backdrop-blur-xl border-cyan-400/20">
                   <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 aspect-square">
                     <img 
@@ -463,7 +509,8 @@ export default function GuestLaundryPage() {
                   </CardContent>
                 </Card>
               ))}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
