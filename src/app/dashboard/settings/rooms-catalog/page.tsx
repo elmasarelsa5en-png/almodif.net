@@ -11,6 +11,8 @@ import {
   Bed, Home, Ruler, DollarSign, Users, Star, Check, AlertCircle, Cloud, CloudOff
 } from 'lucide-react';
 import { syncRoomsToFirebase } from '@/lib/rooms-manager';
+import { storage } from '@/lib/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 interface RoomImage {
   id: string;
@@ -56,15 +58,79 @@ export default function RoomsCatalogPage() {
 
   useEffect(() => {
     // Load from localStorage
-    const savedRooms = localStorage.getItem('hotelRooms');
-    if (savedRooms) {
-      setRooms(JSON.parse(savedRooms));
+    try {
+      const savedRooms = localStorage.getItem('hotelRooms');
+      if (savedRooms) {
+        const parsedRooms = JSON.parse(savedRooms);
+        
+        // تحقق من حجم البيانات
+        const dataSize = new Blob([savedRooms]).size;
+        const maxSize = 4 * 1024 * 1024; // 4MB
+        
+        if (dataSize > maxSize) {
+          console.warn('⚠️ حجم البيانات كبير جداً:', (dataSize / 1024 / 1024).toFixed(2), 'MB');
+          
+          // نظف الصور القديمة من localStorage
+          const cleanedRooms = parsedRooms.map((room: Room) => ({
+            ...room,
+            images: room.images.filter((img: RoomImage) => 
+              !img.url.startsWith('data:') // احتفظ بـ URLs فقط، احذف base64
+            )
+          }));
+          
+          localStorage.setItem('hotelRooms', JSON.stringify(cleanedRooms));
+          setRooms(cleanedRooms);
+          console.log('✅ تم تنظيف localStorage بنجاح');
+        } else {
+          setRooms(parsedRooms);
+        }
+      }
+    } catch (error) {
+      console.error('❌ خطأ في قراءة البيانات:', error);
+      // في حالة الخطأ، احذف البيانات القديمة
+      localStorage.removeItem('hotelRooms');
     }
   }, []);
 
   const saveRooms = (updatedRooms: Room[]) => {
-    localStorage.setItem('hotelRooms', JSON.stringify(updatedRooms));
-    setRooms(updatedRooms);
+    try {
+      // تحقق من الحجم قبل الحفظ
+      const dataString = JSON.stringify(updatedRooms);
+      const dataSize = new Blob([dataString]).size;
+      const maxSize = 4 * 1024 * 1024; // 4MB
+      
+      if (dataSize > maxSize) {
+        console.warn('⚠️ البيانات كبيرة جداً. سيتم حفظ البيانات الأساسية فقط.');
+        
+        // احفظ بدون صور base64
+        const lighterRooms = updatedRooms.map(room => ({
+          ...room,
+          images: room.images.filter(img => !img.url.startsWith('data:'))
+        }));
+        
+        localStorage.setItem('hotelRooms', JSON.stringify(lighterRooms));
+        setRooms(updatedRooms); // استخدم النسخة الكاملة في الـ state
+        
+        alert('⚠️ تم حفظ البيانات الأساسية. يرجى رفع الصور على Firebase للحفظ الدائم.');
+      } else {
+        localStorage.setItem('hotelRooms', dataString);
+        setRooms(updatedRooms);
+      }
+    } catch (error: any) {
+      console.error('❌ خطأ في حفظ البيانات:', error);
+      
+      if (error.name === 'QuotaExceededError') {
+        alert('❌ مساحة التخزين ممتلئة! يرجى:\n1. حذف بعض الغرف\n2. أو رفع الصور على Firebase\n3. أو تنظيف المتصفح');
+        
+        // محاولة حفظ بدون صور
+        const minimalRooms = updatedRooms.map(room => ({
+          ...room,
+          images: []
+        }));
+        localStorage.setItem('hotelRooms', JSON.stringify(minimalRooms));
+        setRooms(updatedRooms);
+      }
+    }
   };
 
   const handleAddNew = () => {
@@ -110,24 +176,91 @@ export default function RoomsCatalogPage() {
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!editingRoom) return;
     
     const files = Array.from(e.target.files || []);
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const newImage: RoomImage = {
-          id: Date.now().toString() + Math.random(),
-          url: event.target?.result as string,
+    
+    // إذا Firebase غير متاح، استخدم base64 مضغوط
+    if (!storage) {
+      console.warn('⚠️ Firebase غير متاح - استخدام base64 مضغوط');
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const img = new Image();
+          img.onload = () => {
+            // ضغط الصورة
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 800;
+            const MAX_HEIGHT = 600;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+              if (width > MAX_WIDTH) {
+                height *= MAX_WIDTH / width;
+                width = MAX_WIDTH;
+              }
+            } else {
+              if (height > MAX_HEIGHT) {
+                width *= MAX_HEIGHT / height;
+                height = MAX_HEIGHT;
+              }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx?.drawImage(img, 0, 0, width, height);
+
+            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+            
+            const newImage: RoomImage = {
+              id: Date.now().toString() + Math.random(),
+              url: compressedBase64,
+            };
+            setEditingRoom({
+              ...editingRoom,
+              images: [...editingRoom.images, newImage]
+            });
+          };
+          img.src = event.target?.result as string;
         };
+        reader.readAsDataURL(file);
+      });
+      return;
+    }
+
+    // رفع على Firebase Storage
+    try {
+      for (const file of files) {
+        const timestamp = Date.now();
+        const randomId = Math.random().toString(36).substring(7);
+        const fileName = `rooms/${editingRoom.id || 'temp'}_${timestamp}_${randomId}.jpg`;
+        const storageRef = ref(storage, fileName);
+
+        // رفع الصورة
+        await uploadBytes(storageRef, file);
+        
+        // الحصول على URL
+        const downloadURL = await getDownloadURL(storageRef);
+        
+        const newImage: RoomImage = {
+          id: timestamp.toString() + randomId,
+          url: downloadURL,
+        };
+
         setEditingRoom({
           ...editingRoom,
           images: [...editingRoom.images, newImage]
         });
-      };
-      reader.readAsDataURL(file);
-    });
+      }
+
+      console.log('✅ تم رفع الصور بنجاح على Firebase Storage');
+    } catch (error) {
+      console.error('❌ خطأ في رفع الصور:', error);
+      alert('حدث خطأ في رفع الصور. جرب مرة أخرى.');
+    }
   };
 
   const commonAmenities = [
@@ -155,6 +288,25 @@ export default function RoomsCatalogPage() {
     }
   };
 
+  const handleCleanStorage = () => {
+    if (confirm('⚠️ هل تريد تنظيف الصور من localStorage؟\n\nملاحظة: سيتم الاحتفاظ بالصور المرفوعة على Firebase فقط.')) {
+      try {
+        const cleanedRooms = rooms.map(room => ({
+          ...room,
+          images: room.images.filter(img => !img.url.startsWith('data:'))
+        }));
+        
+        localStorage.setItem('hotelRooms', JSON.stringify(cleanedRooms));
+        setRooms(cleanedRooms);
+        
+        const savedSize = new Blob([localStorage.getItem('hotelRooms') || '']).size;
+        alert(`✅ تم التنظيف بنجاح!\n\nالحجم الحالي: ${(savedSize / 1024).toFixed(2)} KB`);
+      } catch (error) {
+        alert('❌ حدث خطأ في التنظيف');
+      }
+    }
+  };
+
   return (
     <div className="container mx-auto p-6 max-w-7xl">
       <div className="flex items-center justify-between mb-6">
@@ -171,6 +323,16 @@ export default function RoomsCatalogPage() {
         <div className="flex items-center gap-2">
           {!editingRoom && (
             <>
+              <Button 
+                onClick={handleCleanStorage}
+                variant="outline"
+                className="border-orange-500 text-orange-600 hover:bg-orange-50"
+                title="تنظيف الصور من localStorage"
+              >
+                <Trash2 className="h-4 w-4 ml-2" />
+                تنظيف التخزين
+              </Button>
+              
               <Button 
                 onClick={handleSyncToFirebase}
                 disabled={isSyncing || rooms.length === 0}
