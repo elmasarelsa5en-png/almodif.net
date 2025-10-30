@@ -84,6 +84,12 @@ export default function BookingsPage() {
       const unsubscribe = onSnapshot(q, (snapshot) => {
         const bookingsData = snapshot.docs.map(doc => {
           const data = doc.data();
+          
+          // تحويل التواريخ إلى ISO strings لتجنب مشاكل serialization
+          const checkInDate = data.checkInDate?.toDate?.() || new Date();
+          const checkOutDate = data.checkOutDate?.toDate?.() || new Date();
+          const createdAt = data.createdAt?.toDate?.() || new Date();
+          
           return {
             id: doc.id,
             bookingNumber: doc.id.slice(0, 8).toUpperCase(),
@@ -92,8 +98,8 @@ export default function BookingsPage() {
             roomNumber: data.roomNumber || '',
             status: mapStatus(data.status),
             source: mapSource(data.source),
-            checkInDate: data.checkInDate?.toDate?.() || new Date(),
-            checkOutDate: data.checkOutDate?.toDate?.() || new Date(),
+            checkInDate: checkInDate.toISOString(),
+            checkOutDate: checkOutDate.toISOString(),
             numberOfGuests: data.numberOfGuests || 1,
             basePrice: data.pricePerNight || 0,
             totalPrice: data.totalAmount || 0,
@@ -105,7 +111,7 @@ export default function BookingsPage() {
             idCopyNumber: data.idCopyNumber || '',
             companions: data.companions || [],
             notes: data.notes || '',
-            createdAt: data.createdAt?.toDate?.() || new Date(),
+            createdAt: createdAt.toISOString(),
             isNew: isNewBooking(data.createdAt),
           };
         });
@@ -169,6 +175,20 @@ export default function BookingsPage() {
     const now = new Date().getTime();
     const fiveMinutes = 5 * 60 * 1000;
     return (now - bookingTime) < fiveMinutes;
+  };
+
+  // تنسيق التاريخ للعرض
+  const formatDate = (dateString: string): string => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('ar-SA', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch (error) {
+      return dateString;
+    }
   };
 
   // إظهار إشعار المتصفح
@@ -681,10 +701,10 @@ export default function BookingsPage() {
                             </Badge>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="text-blue-300 text-sm">{booking.checkInDate}</span>
+                            <span className="text-blue-300 text-sm">{formatDate(booking.checkInDate)}</span>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="text-blue-300 text-sm">{booking.checkOutDate}</span>
+                            <span className="text-blue-300 text-sm">{formatDate(booking.checkOutDate)}</span>
                           </td>
                           <td className="px-6 py-4">
                             <DropdownMenu>
@@ -958,14 +978,14 @@ export default function BookingsPage() {
                       <Calendar className="w-4 h-4 text-green-400" />
                       <p className="text-green-300 text-sm font-medium">تاريخ الدخول</p>
                     </div>
-                    <p className="text-white font-bold">{viewDetailsDialog.booking.checkInDate}</p>
+                    <p className="text-white font-bold">{formatDate(viewDetailsDialog.booking.checkInDate)}</p>
                   </div>
                   <div className="bg-red-500/10 rounded-lg p-4 border border-red-500/30">
                     <div className="flex items-center gap-2 mb-2">
                       <Calendar className="w-4 h-4 text-red-400" />
                       <p className="text-red-300 text-sm font-medium">تاريخ الخروج</p>
                     </div>
-                    <p className="text-white font-bold">{viewDetailsDialog.booking.checkOutDate}</p>
+                    <p className="text-white font-bold">{formatDate(viewDetailsDialog.booking.checkOutDate)}</p>
                   </div>
                 </div>
 
