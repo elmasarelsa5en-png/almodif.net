@@ -373,17 +373,6 @@ export default function GuestAppHomePage() {
                       </div>
                     </a>
                   )}
-                    >
-                      <Phone className="w-5 h-5" />
-                      <span>{hotelSettings.phone}</span>
-                    </a>
-                  )}
-                  {hotelSettings.address && (
-                    <div className="flex items-center gap-3 text-blue-200">
-                      <MapPin className="w-5 h-5" />
-                      <span>{hotelSettings.address}</span>
-                    </div>
-                  )}
                 </div>
               </CardContent>
             </Card>
