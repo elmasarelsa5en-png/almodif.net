@@ -30,9 +30,15 @@ interface GuestData {
 export default function GuestLoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [mode, setMode] = useState<'login' | 'register' | 'verify-otp' | 'forgot-password'>('login');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  
+  // ✅ OTP States
+  const [otpCode, setOtpCode] = useState('');
+  const [generatedOtp, setGeneratedOtp] = useState('');
+  const [otpExpiry, setOtpExpiry] = useState<Date | null>(null);
+  const [pendingGuestData, setPendingGuestData] = useState<GuestData | null>(null);
 
   // Login Form
   const [loginData, setLoginData] = useState({
@@ -132,7 +138,7 @@ export default function GuestLoginPage() {
     setLoading(true);
 
     try {
-      // ✅ التحقق من البيانات الأساسية فقط (بدون رقم غرفة)
+      // ✅ التحقق من البيانات الأساسية
       if (!registerData.name || !registerData.phone || !registerData.nationalId || 
           !registerData.password || !registerData.dateOfBirth) {
         setError('الرجاء إدخال جميع البيانات المطلوبة');
@@ -154,23 +160,147 @@ export default function GuestLoginPage() {
         return;
       }
 
-      // ✅ إضافة النزيل إلى Firebase بحالة "pending"
+      // ✅ إنشاء رمز OTP وإرساله
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      setGeneratedOtp(otp);
+      setOtpExpiry(new Date(Date.now() + 10 * 60 * 1000)); // 10 دقائق
+      setPendingGuestData(registerData);
+
+      // إرسال OTP عبر WhatsApp
+      const otpResponse = await fetch('/api/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: registerData.phone,
+          code: otp,
+          type: 'verification'
+        })
+      });
+
+      if (!otpResponse.ok) {
+        throw new Error('فشل إرسال رمز التحقق');
+      }
+
+      setSuccess('تم إرسال رمز التحقق على الواتساب!');
+      setMode('verify-otp');
+      setLoading(false);
+    } catch (error) {
+      console.error('Registration error:', error);
+      setError('حدث خطأ أثناء التسجيل. تأكد من تشغيل خدمة الواتساب');
+      setLoading(false);
+    }
+  };
+
+  // ✅ التحقق من OTP
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      // التحقق من صحة OTP
+      if (otpCode !== generatedOtp) {
+        setError('رمز التحقق غير صحيح');
+        setLoading(false);
+        return;
+      }
+
+      // التحقق من انتهاء الصلاحية
+      if (otpExpiry && new Date() > otpExpiry) {
+        setError('انتهت صلاحية رمز التحقق. يرجى المحاولة مرة أخرى');
+        setLoading(false);
+        return;
+      }
+
+      if (!pendingGuestData) {
+        setError('خطأ في البيانات');
+        setLoading(false);
+        return;
+      }
+
+      // ✅ حفظ البيانات في Firebase
+      const guestsRef = collection(db, 'guests');
       await addDoc(guestsRef, {
-        ...registerData,
-        status: 'pending', // ✅ بانتظار تخصيص غرفة
+        ...pendingGuestData,
+        status: 'pending',
+        verified: true,
         createdAt: new Date().toISOString(),
       });
 
-      setSuccess('تم التسجيل بنجاح! سيتم تخصيص غرفة لك من قبل الإدارة. تواصل مع الاستقبال.');
-      
-      // ✅ لا نحفظ الجلسة لأن الحساب pending
+      setSuccess('✅ تم التحقق بنجاح! سيتم تخصيص غرفة لك من قبل الإدارة.');
+      setTimeout(() => {
+        setMode('login');
+        setSuccess('');
+        setOtpCode('');
+        setPendingGuestData(null);
+      }, 3000);
+    } catch (error) {
+      console.error('Verification error:', error);
+      setError('حدث خطأ أثناء التحقق');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ نسيت كلمة المرور
+  const [forgotPasswordData, setForgotPasswordData] = useState({
+    name: '',
+    nationalId: ''
+  });
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      if (!forgotPasswordData.name || !forgotPasswordData.nationalId) {
+        setError('الرجاء إدخال الاسم ورقم الهوية');
+        setLoading(false);
+        return;
+      }
+
+      // البحث عن الحساب
+      const guestsRef = collection(db, 'guests');
+      const q = query(
+        guestsRef,
+        where('nationalId', '==', forgotPasswordData.nationalId),
+        where('name', '==', forgotPasswordData.name)
+      );
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        setError('لم يتم العثور على حساب بهذه البيانات');
+        setLoading(false);
+        return;
+      }
+
+      const guestDoc = querySnapshot.docs[0];
+      const guestData = guestDoc.data();
+
+      // إرسال كلمة المرور عبر WhatsApp
+      const otpResponse = await fetch('/api/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: guestData.phone,
+          code: guestData.password,
+          type: 'password'
+        })
+      });
+
+      if (!otpResponse.ok) {
+        throw new Error('فشل إرسال كلمة المرور');
+      }
+
+      setSuccess('✅ تم إرسال كلمة المرور على الواتساب!');
       setTimeout(() => {
         setMode('login');
         setSuccess('');
       }, 3000);
     } catch (error) {
-      console.error('Registration error:', error);
-      setError('حدث خطأ أثناء التسجيل');
+      console.error('Forgot password error:', error);
+      setError('حدث خطأ. تأكد من تشغيل خدمة الواتساب');
     } finally {
       setLoading(false);
     }
@@ -285,8 +415,144 @@ export default function GuestLoginPage() {
                     </>
                   )}
                 </Button>
+
+                {/* ✅ زر نسيت كلمة المرور */}
+                <Button
+                  type="button"
+                  onClick={() => setMode('forgot-password')}
+                  variant="ghost"
+                  className="w-full text-amber-300 hover:text-amber-200 hover:bg-slate-700/50"
+                >
+                  نسيت كلمة المرور؟
+                </Button>
+              </form>
+            ) : mode === 'verify-otp' ? (
+              // ✅ نموذج التحقق من OTP
+              <form onSubmit={handleVerifyOtp} className="space-y-4">
+                <div className="text-center mb-4">
+                  <p className="text-amber-200 text-lg mb-2">تم إرسال رمز التحقق</p>
+                  <p className="text-slate-300 text-sm">
+                    أدخل الرمز المكون من 6 أرقام المرسل على الواتساب
+                  </p>
+                </div>
+
+                <div>
+                  <Label className="text-amber-100 mb-2 block">رمز التحقق</Label>
+                  <Input
+                    type="text"
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    placeholder="123456"
+                    className="text-center text-2xl tracking-widest bg-slate-700/50 border-slate-600 text-white"
+                    maxLength={6}
+                    required
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={loading || otpCode.length !== 6}
+                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-6 text-lg"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      جاري التحقق...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-5 h-5 mr-2" />
+                      تأكيد
+                    </>
+                  )}
+                </Button>
+
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setMode('register');
+                    setOtpCode('');
+                    setError('');
+                  }}
+                  variant="ghost"
+                  className="w-full text-amber-300"
+                >
+                  العودة للتسجيل
+                </Button>
+              </form>
+            ) : mode === 'forgot-password' ? (
+              // ✅ نموذج نسيت كلمة المرور
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                <div className="text-center mb-4">
+                  <p className="text-amber-200 text-lg mb-2">استعادة كلمة المرور</p>
+                  <p className="text-slate-300 text-sm">
+                    أدخل اسمك ورقم الهوية لاستلام كلمة المرور على الواتساب
+                  </p>
+                </div>
+
+                <div>
+                  <Label className="text-amber-100 mb-2 block">الاسم الكامل</Label>
+                  <div className="relative">
+                    <User className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                    <Input
+                      type="text"
+                      value={forgotPasswordData.name}
+                      onChange={(e) => setForgotPasswordData({ ...forgotPasswordData, name: e.target.value })}
+                      placeholder="أحمد محمد"
+                      className="pr-10 bg-slate-700/50 border-slate-600 text-white"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-amber-100 mb-2 block">رقم الهوية الوطنية</Label>
+                  <div className="relative">
+                    <CreditCard className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                    <Input
+                      type="text"
+                      value={forgotPasswordData.nationalId}
+                      onChange={(e) => setForgotPasswordData({ ...forgotPasswordData, nationalId: e.target.value })}
+                      placeholder="1234567890"
+                      className="pr-10 bg-slate-700/50 border-slate-600 text-white"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white py-6 text-lg"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      جاري الإرسال...
+                    </>
+                  ) : (
+                    <>
+                      <KeyRound className="w-5 h-5 mr-2" />
+                      إرسال كلمة المرور
+                    </>
+                  )}
+                </Button>
+
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setMode('login');
+                    setForgotPasswordData({ name: '', nationalId: '' });
+                    setError('');
+                  }}
+                  variant="ghost"
+                  className="w-full text-amber-300"
+                >
+                  العودة لتسجيل الدخول
+                </Button>
               </form>
             ) : (
+              // نموذج التسجيل (كما هو)
               <form onSubmit={handleRegister} className="space-y-4">
                 <div>
                   <Label className="text-amber-100 mb-2 block">الاسم الكامل *</Label>

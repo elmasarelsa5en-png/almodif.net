@@ -230,6 +230,55 @@ app.post('/api/send', async (req, res) => {
   }
 });
 
+// ✅ إرسال رمز التحقق (OTP) عبر WhatsApp
+app.post('/api/send-otp', async (req, res) => {
+  if (!isReady) {
+    return res.status(503).json({ error: 'WhatsApp not connected' });
+  }
+
+  const { phone, code, type = 'verification' } = req.body;
+
+  if (!phone || !code) {
+    return res.status(400).json({ error: 'Missing phone or code' });
+  }
+
+  try {
+    // تنسيق رقم الهاتف (إزالة + و00 وإضافة @c.us)
+    let formattedPhone = phone.replace(/[^0-9]/g, '');
+    
+    // إذا كان الرقم يبدأ بـ 5، نضيف كود السعودية
+    if (formattedPhone.startsWith('5')) {
+      formattedPhone = '966' + formattedPhone;
+    }
+    
+    const chatId = formattedPhone + '@c.us';
+    
+    // الرسالة بناءً على النوع
+    let message = '';
+    if (type === 'verification') {
+      message = `🔐 *رمز التحقق من تطبيق المضيف*\n\nرمز التحقق الخاص بك هو:\n*${code}*\n\nصالح لمدة 10 دقائق.\nلا تشارك هذا الرمز مع أي شخص.`;
+    } else if (type === 'password') {
+      message = `🔑 *استعادة كلمة المرور - تطبيق المضيف*\n\nكلمة المرور الخاصة بك هي:\n*${code}*\n\nننصح بتغيير كلمة المرور بعد تسجيل الدخول.\n\nإذا لم تطلب هذه الرسالة، يرجى تجاهلها.`;
+    }
+    
+    // إرسال الرسالة
+    await client.sendMessage(chatId, message);
+    
+    console.log(`✅ OTP sent to ${phone}: ${code}`);
+    
+    res.json({ 
+      success: true,
+      message: 'OTP sent successfully'
+    });
+  } catch (error) {
+    console.error('Error sending OTP:', error);
+    res.status(500).json({ 
+      error: 'Failed to send OTP',
+      details: error.message 
+    });
+  }
+});
+
 // قطع الاتصال
 app.post('/api/disconnect', async (req, res) => {
   if (!client) {

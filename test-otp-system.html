@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار نظام OTP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 min-h-screen p-8">
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-slate-800 rounded-xl shadow-2xl p-8 mb-6">
+            <h1 class="text-3xl font-bold text-amber-400 mb-6 text-center">
+                🔐 اختبار نظام OTP
+            </h1>
+            
+            <!-- حالة الواتساب -->
+            <div class="bg-slate-700 rounded-lg p-4 mb-6">
+                <h2 class="text-xl font-bold text-white mb-3">✅ حالة خدمة الواتساب</h2>
+                <div id="whatsapp-status" class="text-gray-300">
+                    <p>جاري التحقق...</p>
+                </div>
+                <button onclick="checkWhatsAppStatus()" class="mt-3 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                    تحديث الحالة
+                </button>
+            </div>
+
+            <!-- نموذج إرسال OTP -->
+            <div class="bg-slate-700 rounded-lg p-4 mb-6">
+                <h2 class="text-xl font-bold text-white mb-3">📱 إرسال رمز التحقق</h2>
+                
+                <div class="mb-4">
+                    <label class="block text-amber-200 mb-2">رقم الجوال (مثال: 0501234567)</label>
+                    <input 
+                        type="text" 
+                        id="phone" 
+                        placeholder="0501234567"
+                        class="w-full bg-slate-600 border border-slate-500 text-white px-4 py-2 rounded"
+                    >
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-amber-200 mb-2">الكود (6 أرقام)</label>
+                    <input 
+                        type="text" 
+                        id="code" 
+                        placeholder="123456"
+                        maxlength="6"
+                        class="w-full bg-slate-600 border border-slate-500 text-white px-4 py-2 rounded text-center text-2xl tracking-widest"
+                    >
+                    <button onclick="generateRandomOTP()" class="mt-2 text-amber-300 hover:underline text-sm">
+                        توليد كود عشوائي
+                    </button>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-amber-200 mb-2">نوع الرسالة</label>
+                    <select id="type" class="w-full bg-slate-600 border border-slate-500 text-white px-4 py-2 rounded">
+                        <option value="verification">رمز تحقق (OTP)</option>
+                        <option value="password">كلمة مرور</option>
+                    </select>
+                </div>
+
+                <button onclick="sendOTP()" class="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded font-bold">
+                    إرسال على الواتساب
+                </button>
+            </div>
+
+            <!-- النتيجة -->
+            <div id="result" class="hidden">
+                <!-- سيتم ملؤها بالجافاسكريبت -->
+            </div>
+        </div>
+
+        <!-- رابط QR Code -->
+        <div class="text-center">
+            <a href="http://localhost:3002/api/qr" target="_blank" 
+               class="inline-block bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-lg font-bold">
+                🔗 فتح QR Code للربط
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // توليد OTP عشوائي
+        function generateRandomOTP() {
+            const otp = Math.floor(100000 + Math.random() * 900000).toString();
+            document.getElementById('code').value = otp;
+        }
+
+        // فحص حالة الواتساب
+        async function checkWhatsAppStatus() {
+            const statusDiv = document.getElementById('whatsapp-status');
+            statusDiv.innerHTML = '<p class="text-yellow-300">جاري التحقق...</p>';
+            
+            try {
+                const response = await fetch('http://localhost:3002/api/status');
+                const data = await response.json();
+                
+                if (data.status === 'authenticated') {
+                    statusDiv.innerHTML = `
+                        <div class="text-green-400">
+                            <p class="font-bold">✅ متصل بنجاح!</p>
+                            <p class="text-sm mt-1">الرقم: ${data.phoneNumber || 'غير متوفر'}</p>
+                        </div>
+                    `;
+                } else if (data.status === 'qr') {
+                    statusDiv.innerHTML = `
+                        <div class="text-yellow-300">
+                            <p class="font-bold">⚠️ في انتظار المسح</p>
+                            <p class="text-sm mt-1">افتح رابط QR Code وامسحه</p>
+                        </div>
+                    `;
+                } else {
+                    statusDiv.innerHTML = `
+                        <div class="text-orange-300">
+                            <p class="font-bold">🔄 ${data.status}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `
+                    <div class="text-red-400">
+                        <p class="font-bold">❌ الخدمة غير متاحة</p>
+                        <p class="text-sm mt-1">تأكد من تشغيل start-whatsapp-service.bat</p>
+                        <p class="text-xs mt-1 text-gray-400">${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // إرسال OTP
+        async function sendOTP() {
+            const phone = document.getElementById('phone').value;
+            const code = document.getElementById('code').value;
+            const type = document.getElementById('type').value;
+            const resultDiv = document.getElementById('result');
+
+            if (!phone || !code) {
+                alert('الرجاء إدخال رقم الجوال والكود');
+                return;
+            }
+
+            if (code.length !== 6) {
+                alert('الكود يجب أن يكون 6 أرقام');
+                return;
+            }
+
+            resultDiv.innerHTML = `
+                <div class="bg-blue-500/20 border border-blue-400 rounded-lg p-4">
+                    <p class="text-blue-300">⏳ جاري الإرسال...</p>
+                </div>
+            `;
+            resultDiv.classList.remove('hidden');
+
+            try {
+                const response = await fetch('/api/send-otp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ phone, code, type })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="bg-green-500/20 border border-green-400 rounded-lg p-4">
+                            <p class="text-green-300 font-bold">✅ تم الإرسال بنجاح!</p>
+                            <p class="text-green-200 text-sm mt-2">${data.message || 'تم إرسال الرسالة على الواتساب'}</p>
+                            <p class="text-gray-300 text-xs mt-2">الرقم: ${phone}</p>
+                            <p class="text-gray-300 text-xs">الكود: ${code}</p>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="bg-red-500/20 border border-red-400 rounded-lg p-4">
+                            <p class="text-red-300 font-bold">❌ فشل الإرسال</p>
+                            <p class="text-red-200 text-sm mt-2">${data.message || 'حدث خطأ أثناء الإرسال'}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="bg-red-500/20 border border-red-400 rounded-lg p-4">
+                        <p class="text-red-300 font-bold">❌ خطأ في الاتصال</p>
+                        <p class="text-red-200 text-sm mt-2">${error.message}</p>
+                        <p class="text-gray-300 text-xs mt-2">تأكد من تشغيل التطبيق والخدمة</p>
+                    </div>
+                `;
+            }
+        }
+
+        // فحص الحالة عند تحميل الصفحة
+        window.addEventListener('load', () => {
+            checkWhatsAppStatus();
+            // توليد OTP افتراضي
+            generateRandomOTP();
+        });
+    </script>
+</body>
+</html>
