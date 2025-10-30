@@ -284,6 +284,37 @@ export default function RoomsPage() {
     
     console.log('🔄 بدء تغيير حالة الغرفة:', selectedRoom.number, 'من', selectedRoom.status, 'إلى', newStatus);
     
+    // ✅ إذا كانت الحالة الجديدة "Available" والحالة القديمة "Occupied" = checkout
+    const isCheckout = selectedRoom.status === 'Occupied' && newStatus === 'Available';
+    
+    if (isCheckout && selectedRoom.guestIdNumber) {
+      try {
+        // ✅ تحديث حالة النزيل إلى checked-out
+        const { db } = await import('@/lib/firebase');
+        const { collection, query, where, getDocs, updateDoc, doc } = await import('firebase/firestore');
+        
+        const guestsRef = collection(db, 'guests');
+        const guestQuery = query(
+          guestsRef,
+          where('nationalId', '==', selectedRoom.guestIdNumber),
+          where('status', '==', 'checked-in')
+        );
+        const guestSnapshot = await getDocs(guestQuery);
+        
+        if (!guestSnapshot.empty) {
+          const guestDoc = guestSnapshot.docs[0];
+          await updateDoc(doc(db, 'guests', guestDoc.id), {
+            status: 'checked-out',
+            checkOutDate: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          });
+          console.log('✅ تم تحديث حالة النزيل إلى checked-out');
+        }
+      } catch (error) {
+        console.error('❌ خطأ في تحديث حالة النزيل:', error);
+      }
+    }
+    
     const updatedRooms = updateRoomStatus(
       rooms, 
       selectedRoom.id, 
@@ -316,7 +347,11 @@ export default function RoomsPage() {
         setGuestName('');
         
         // إظهار رسالة نجاح
-        alert('✅ تم تغيير حالة الشقة بنجاح');
+        if (isCheckout) {
+          alert('✅ تم إنهاء إقامة النزيل وتحديث حالة الغرفة بنجاح');
+        } else {
+          alert('✅ تم تغيير حالة الشقة بنجاح');
+        }
       }
     } catch (error) {
       console.error('❌ خطأ في حفظ التغييرات:', error);
@@ -404,44 +439,74 @@ export default function RoomsPage() {
       return;
     }
     
-    // تحديث بيانات الغرفة
-    const updatedRooms = rooms.map(r => {
-      if (r.id === room.id) {
-        return {
-          ...r,
-          status: 'Occupied' as RoomStatus,
-          guestName: guestData.fullName,
-          guestPhone: guestData.mobile,
-          guestNationality: guestData.nationality,
-          guestIdType: guestData.idType,
-          guestIdNumber: guestData.idNumber,
-          guestIdExpiry: guestData.expiryDate,
-          guestEmail: guestData.email,
-          guestWorkPhone: guestData.workPhone,
-          guestAddress: guestData.address,
-          guestNotes: guestData.notes,
-          events: [
-            ...r.events,
-            {
-              id: Date.now().toString(),
-              type: 'check_in' as const,
-              description: `تسجيل دخول: ${guestData.fullName}`,
-              timestamp: new Date().toISOString(),
-              user: user.name || user.username,
-              newValue: 'Occupied'
-            }
-          ]
-        };
+    try {
+      // ✅ 1. البحث عن النزيل في قاعدة بيانات guests
+      const { db } = await import('@/lib/firebase');
+      const { collection, query, where, getDocs, updateDoc, doc } = await import('firebase/firestore');
+      
+      const guestsRef = collection(db, 'guests');
+      const guestQuery = query(
+        guestsRef,
+        where('nationalId', '==', guestData.idNumber)
+      );
+      const guestSnapshot = await getDocs(guestQuery);
+      
+      // ✅ 2. تحديث حالة النزيل إلى checked-in إذا كان موجود
+      if (!guestSnapshot.empty) {
+        const guestDoc = guestSnapshot.docs[0];
+        await updateDoc(doc(db, 'guests', guestDoc.id), {
+          status: 'checked-in',
+          roomNumber: guestData.roomNumber,
+          checkInDate: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
+        console.log('✅ تم تحديث حالة النزيل إلى checked-in');
       }
-      return r;
-    });
+      
+      // ✅ 3. تحديث بيانات الغرفة
+      const updatedRooms = rooms.map(r => {
+        if (r.id === room.id) {
+          return {
+            ...r,
+            status: 'Occupied' as RoomStatus,
+            guestName: guestData.fullName,
+            guestPhone: guestData.mobile,
+            guestNationality: guestData.nationality,
+            guestIdType: guestData.idType,
+            guestIdNumber: guestData.idNumber,
+            guestIdExpiry: guestData.expiryDate,
+            guestEmail: guestData.email,
+            guestWorkPhone: guestData.workPhone,
+            guestAddress: guestData.address,
+            guestNotes: guestData.notes,
+            events: [
+              ...r.events,
+              {
+                id: Date.now().toString(),
+                type: 'check_in' as const,
+                description: `تسجيل دخول: ${guestData.fullName}`,
+                timestamp: new Date().toISOString(),
+                user: user.name || user.username,
+                newValue: 'Occupied'
+              }
+            ]
+          };
+        }
+        return r;
+      });
 
-    // حفظ في Firebase
-    await saveRoomToFirebase(updatedRooms.find(r => r.id === room.id)!);
+      // ✅ 4. حفظ في Firebase
+      await saveRoomToFirebase(updatedRooms.find(r => r.id === room.id)!);
 
-    setRooms(updatedRooms);
-    setFilteredRooms(updatedRooms);
-    setIsAddGuestOpen(false);
+      setRooms(updatedRooms);
+      setFilteredRooms(updatedRooms);
+      setIsAddGuestOpen(false);
+      
+      alert('✅ تم تسجيل دخول النزيل بنجاح!');
+    } catch (error) {
+      console.error('❌ خطأ في تسجيل دخول النزيل:', error);
+      alert('حدث خطأ أثناء تسجيل دخول النزيل');
+    }
   };
 
   // معالج اكتمال الحجز
