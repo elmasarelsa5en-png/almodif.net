@@ -572,9 +572,20 @@ export default function RequestsPage() {
                             <div className="space-y-2">
                               <div className="flex items-center gap-2 text-white/70 text-sm">
                                 <User className="w-4 h-4" />
-                                <span>الموظف المكلف:</span>
+                                <span>الموظف المسؤول:</span>
                               </div>
                               <p className="text-white ml-6">{request.assignedEmployee}</p>
+                            </div>
+                          )}
+
+                          {/* Created By Employee */}
+                          {request.createdBy && (
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2 text-white/70 text-sm">
+                                <User className="w-4 h-4" />
+                                <span>أنشأ بواسطة:</span>
+                              </div>
+                              <p className="text-white ml-6">{request.createdBy}</p>
                             </div>
                           )}
 

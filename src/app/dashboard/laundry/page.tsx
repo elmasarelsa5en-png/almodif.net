@@ -352,19 +352,30 @@ export default function LaundryPage() {
 
       // Get employee name
       let selectedEmployeeName = currentUser?.username || 'غير معروف';
+      let createdByEmployee = currentUser?.username || 'موظف';
+      
       if (!isLaundryStaff && selectedEmployee) {
         selectedEmployeeName = employees.find(e => e.id === selectedEmployee)?.name || 'غير معروف';
       }
 
+      // Get room name/number for display
+      let roomDisplay = 'عميل خارجي';
+      if (customerType === 'guest' && selectedRoom) {
+        const room = rooms.find(r => r.id === selectedRoom);
+        roomDisplay = room ? `غرفة ${room.number}` : selectedRoom;
+      }
+
       await addRequest({
-        room: customerType === 'guest' ? selectedRoom : 'عميل خارجي',
+        room: roomDisplay,
         guest: guestName || 'عميل خارجي',
-        phone: customerType === 'external' ? '' : undefined, // Only include phone if external
+        phone: customerType === 'external' ? '' : undefined,
         type: 'طلب من المغسلة',
-        description: `الطلب:\n${itemsDescription}\n\nالإجمالي: ${cartTotal} ر.س\n\nالموظف المسؤول: ${selectedEmployeeName}`,
+        description: `الطلب:\n${itemsDescription}\n\nالإجمالي: ${cartTotal} ر.س`,
         priority: 'medium',
         status: 'awaiting_employee_approval',
-        notes: `طلب من المغسلة - تم إدخاله بواسطة ${currentUser?.username || 'موظف'}\nالموظف المسؤول: ${selectedEmployeeName}`,
+        notes: `تم إدخاله بواسطة: ${createdByEmployee}\nالموظف المسؤول: ${selectedEmployeeName}`,
+        assignedTo: !isLaundryStaff && selectedEmployee ? selectedEmployee : undefined,
+        createdBy: currentUser?.username || 'موظف',
         createdAt: new Date().toISOString()
       });
 
@@ -800,10 +811,17 @@ export default function LaundryPage() {
                         <SelectTrigger className="bg-white/10 border-cyan-400/50 text-white">
                           <SelectValue placeholder="اختر الغرفة" />
                         </SelectTrigger>
-                        <SelectContent className="bg-gray-900 border-cyan-400/30">
+                        <SelectContent className="bg-gray-900 border-cyan-400/30 max-h-[300px]">
                           {rooms.map(room => (
-                            <SelectItem key={room.id} value={room.id} className="text-white hover:bg-cyan-500/20 focus:bg-cyan-500/30">
-                              غرفة {room.number} - {room.guestName}
+                            <SelectItem 
+                              key={room.id} 
+                              value={room.id} 
+                              className="text-white hover:bg-cyan-500/20 focus:bg-cyan-500/30"
+                            >
+                              <div className="flex items-center justify-between gap-2 w-full">
+                                <span className="font-bold">غرفة {room.number}</span>
+                                <span className="text-sm text-cyan-300 truncate max-w-[150px]">{room.guestName || 'بدون اسم'}</span>
+                              </div>
                             </SelectItem>
                           ))}
                         </SelectContent>
