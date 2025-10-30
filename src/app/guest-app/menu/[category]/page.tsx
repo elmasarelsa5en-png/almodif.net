@@ -62,9 +62,45 @@ const CATEGORY_CONFIG = {
     titleEn: 'Room Service',
     icon: UtensilsCrossed,
     color: 'from-green-500 to-emerald-600',
-    firebaseCategory: 'restaurant', // يستخدم نفس قائمة المطعم
+    firebaseCategory: 'room-services', // يستخدم نفس قائمة المطعم
     localStorageKey: 'restaurant_menu',
   },
+};
+
+// أصناف افتراضية للعرض
+const DEFAULT_MENU_ITEMS: Record<string, MenuItem[]> = {
+  restaurant: [
+    { id: '1', name: 'Grilled Chicken', nameAr: 'دجاج مشوي', category: 'restaurant', price: 45, image: '🍗', available: true, description: 'دجاج طازج مشوي مع البهارات الخاصة' },
+    { id: '2', name: 'Mixed Grill', nameAr: 'مشاوي مشكلة', category: 'restaurant', price: 65, image: '🍖', available: true, description: 'تشكيلة من أفضل المشاوي' },
+    { id: '3', name: 'Fish Fillet', nameAr: 'فيليه سمك', category: 'restaurant', price: 55, image: '🐟', available: true, description: 'سمك طازج محضر بطريقة صحية' },
+    { id: '4', name: 'Chicken Biryani', nameAr: 'برياني دجاج', category: 'restaurant', price: 40, image: '🍚', available: true, description: 'أرز برياني بالدجاج والبهارات' },
+    { id: '5', name: 'Caesar Salad', nameAr: 'سلطة سيزر', category: 'restaurant', price: 25, image: '🥗', available: true, description: 'سلطة طازجة مع صوص السيزر' },
+    { id: '6', name: 'Margherita Pizza', nameAr: 'بيتزا مارجريتا', category: 'restaurant', price: 35, image: '🍕', available: true, description: 'بيتزا إيطالية كلاسيكية' },
+  ],
+  coffee: [
+    { id: '11', name: 'Espresso', nameAr: 'إسبريسو', category: 'coffee', price: 12, image: '☕', available: true, subCategory: 'قهوة ساخنة' },
+    { id: '12', name: 'Cappuccino', nameAr: 'كابتشينو', category: 'coffee', price: 15, image: '☕', available: true, subCategory: 'قهوة ساخنة' },
+    { id: '13', name: 'Latte', nameAr: 'لاتيه', category: 'coffee', price: 16, image: '🥤', available: true, subCategory: 'قهوة ساخنة' },
+    { id: '14', name: 'Turkish Coffee', nameAr: 'قهوة تركية', category: 'coffee', price: 10, image: '☕', available: true, subCategory: 'قهوة ساخنة' },
+    { id: '15', name: 'Iced Coffee', nameAr: 'قهوة مثلجة', category: 'coffee', price: 18, image: '🧊', available: true, subCategory: 'قهوة باردة' },
+    { id: '16', name: 'Orange Juice', nameAr: 'عصير برتقال', category: 'coffee', price: 12, image: '🍊', available: true, subCategory: 'عصائر' },
+    { id: '17', name: 'Mango Smoothie', nameAr: 'سموذي مانجو', category: 'coffee', price: 20, image: '🥭', available: true, subCategory: 'عصائر' },
+    { id: '18', name: 'Croissant', nameAr: 'كرواسون', category: 'coffee', price: 8, image: '🥐', available: true, subCategory: 'معجنات' },
+  ],
+  laundry: [
+    { id: '21', name: 'Shirt', nameAr: 'قميص', category: 'laundry', price: 10, image: '👔', available: true, description: 'غسيل وكي' },
+    { id: '22', name: 'Pants', nameAr: 'بنطلون', category: 'laundry', price: 12, image: '👖', available: true, description: 'غسيل وكي' },
+    { id: '23', name: 'Dress', nameAr: 'فستان', category: 'laundry', price: 15, image: '👗', available: true, description: 'غسيل وكي' },
+    { id: '24', name: 'Suit', nameAr: 'بدلة', category: 'laundry', price: 25, image: '🤵', available: true, description: 'غسيل وكي احترافي' },
+    { id: '25', name: 'Bedding', nameAr: 'ملاءات سرير', category: 'laundry', price: 20, image: '🛏️', available: true, description: 'غسيل' },
+  ],
+  'room-services': [
+    { id: '31', name: 'Extra Towels', nameAr: 'مناشف إضافية', category: 'room-services', price: 0, image: '🧺', available: true },
+    { id: '32', name: 'Extra Pillows', nameAr: 'وسائد إضافية', category: 'room-services', price: 0, image: '🛏️', available: true },
+    { id: '33', name: 'Room Cleaning', nameAr: 'تنظيف الغرفة', category: 'room-services', price: 0, image: '🧹', available: true },
+    { id: '34', name: 'Mini Bar Refill', nameAr: 'تعبئة المشروبات', category: 'room-services', price: 0, image: '🥤', available: true },
+    { id: '35', name: 'Wake Up Call', nameAr: 'خدمة الإيقاظ', category: 'room-services', price: 0, image: '⏰', available: true },
+  ],
 };
 
 export default function GuestMenuPage() {
@@ -94,46 +130,48 @@ export default function GuestMenuPage() {
       
       setLoading(true);
       try {
+        let foundItems: MenuItem[] = [];
+        
         // نجرب localStorage أولاً (أسرع)
         const localData = localStorage.getItem(config.localStorageKey);
         if (localData) {
           const items = JSON.parse(localData) as MenuItem[];
-          const availableItems = items.filter(item => item.available !== false);
-          console.log(`✅ Loaded ${availableItems.length} items from localStorage for ${category}`);
-          setMenuItems(availableItems);
-          setLoading(false);
-          return;
+          foundItems = items.filter(item => item.available !== false);
+          console.log(`✅ Loaded ${foundItems.length} items from localStorage for ${category}`);
         }
 
         // إذا لم يوجد في localStorage، نجرب Firebase
-        console.log(`🔥 Trying Firebase for category: ${config.firebaseCategory}`);
-        const menuItemsRef = collection(db, 'menu-items');
-        const q = query(
-          menuItemsRef,
-          where('category', '==', config.firebaseCategory)
-        );
-        const querySnapshot = await getDocs(q);
-        
-        if (!querySnapshot.empty) {
-          const items = querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          } as MenuItem));
-          const availableItems = items.filter(item => item.available !== false);
-          console.log(`✅ Loaded ${availableItems.length} items from Firebase`);
-          setMenuItems(availableItems);
-        } else {
-          console.log('⚠️ No items found in Firebase or localStorage');
-          setMenuItems([]);
+        if (foundItems.length === 0 && db) {
+          console.log(`🔥 Trying Firebase for category: ${config.firebaseCategory}`);
+          const menuItemsRef = collection(db, 'menu-items');
+          const q = query(
+            menuItemsRef,
+            where('category', '==', config.firebaseCategory)
+          );
+          const querySnapshot = await getDocs(q);
+          
+          if (!querySnapshot.empty) {
+            foundItems = querySnapshot.docs.map(doc => ({
+              id: doc.id,
+              ...doc.data()
+            } as MenuItem));
+            foundItems = foundItems.filter(item => item.available !== false);
+            console.log(`✅ Loaded ${foundItems.length} items from Firebase`);
+          }
         }
+        
+        // إذا ما فيش حاجة، نستخدم البيانات الافتراضية
+        if (foundItems.length === 0) {
+          console.log(`⚠️ No items found, using default items for ${config.firebaseCategory}`);
+          foundItems = DEFAULT_MENU_ITEMS[config.firebaseCategory] || [];
+        }
+        
+        setMenuItems(foundItems);
       } catch (error) {
         console.error('❌ Error loading menu items:', error);
-        // fallback to localStorage على كل حال
-        const localData = localStorage.getItem(config.localStorageKey);
-        if (localData) {
-          const items = JSON.parse(localData) as MenuItem[];
-          setMenuItems(items.filter(item => item.available !== false));
-        }
+        // استخدام البيانات الافتراضية في حالة الخطأ
+        const defaultItems = DEFAULT_MENU_ITEMS[config.firebaseCategory] || [];
+        setMenuItems(defaultItems);
       } finally {
         setLoading(false);
       }
