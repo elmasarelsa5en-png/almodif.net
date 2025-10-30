@@ -124,6 +124,12 @@ service cloud.firestore {
     match /developerSettings/{settingId} {
       allow read, write: if true;
     }
+    
+    // قوائم الأصناف (Menu Items) - القهوة والمطعم والمغسلة
+    match /menu-items/{itemId} {
+      allow read: if true;  // الكل يقدر يقرأ
+      allow write: if true; // الكل يقدر يكتب (للتطوير)
+    }
 
     // قاعدة عامة للمستندات غير المحددة - محظورة
     match /{document=**} {
