@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   Globe, 
@@ -31,11 +31,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 interface PlatformBooking {
   id: string;
   bookingNumber: string;
-  platform: 'booking' | 'almosafer' | 'agoda' | 'airport';
+  platform: 'booking' | 'almosafer' | 'agoda' | 'airport' | 'website' | 'elmasarelsa5en';
   guestName: string;
   roomName: string;
   checkInDate: string;
@@ -51,68 +53,136 @@ export default function BookingPlatformsPage() {
   const router = useRouter();
   const [selectedPlatform, setSelectedPlatform] = useState<string>('الكل');
   const [searchTerm, setSearchTerm] = useState('');
+  const [platformBookings, setPlatformBookings] = useState<PlatformBooking[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // بيانات وهمية للمنصات
-  const platformBookings: PlatformBooking[] = [
-    {
-      id: '1',
-      bookingNumber: 'BKG-1001',
-      platform: 'booking',
-      guestName: 'John Smith',
-      roomName: '201',
-      checkInDate: '20-10-2025',
-      checkOutDate: '25-10-2025',
-      nights: 5,
-      totalPrice: 2500,
-      commission: 375,
-      status: 'مؤكد',
-      createdAt: '18-10-2025'
-    },
-    {
-      id: '2',
-      bookingNumber: 'ALM-5042',
-      platform: 'almosafer',
-      guestName: 'محمد أحمد',
-      roomName: '305',
-      checkInDate: '22-10-2025',
-      checkOutDate: '28-10-2025',
-      nights: 6,
-      totalPrice: 3600,
-      commission: 540,
-      status: 'مؤكد',
-      createdAt: '19-10-2025'
-    },
-    {
-      id: '3',
-      bookingNumber: 'AGD-7823',
-      platform: 'agoda',
-      guestName: 'Emma Watson',
-      roomName: '102',
-      checkInDate: '21-10-2025',
-      checkOutDate: '24-10-2025',
-      nights: 3,
-      totalPrice: 1800,
-      commission: 270,
-      status: 'مؤكد',
-      createdAt: '19-10-2025'
-    },
-    {
-      id: '4',
-      bookingNumber: 'APT-3401',
-      platform: 'airport',
-      guestName: 'عبدالله سعيد',
-      roomName: '401',
-      checkInDate: '19-10-2025',
-      checkOutDate: '20-10-2025',
-      nights: 1,
-      totalPrice: 500,
-      commission: 50,
-      status: 'مكتمل',
-      createdAt: '19-10-2025'
+  useEffect(() => {
+    loadBookingsFromFirebase();
+  }, []);
+
+  const loadBookingsFromFirebase = async () => {
+    try {
+      setLoading(true);
+      const bookingsRef = collection(db, 'bookings');
+      const q = query(bookingsRef, where('source', '==', 'guest-app'), orderBy('createdAt', 'desc'));
+      const snapshot = await getDocs(q);
+      
+      const websiteBookings: PlatformBooking[] = snapshot.docs.map(doc => {
+        const data = doc.data();
+        const checkIn = data.checkInDate?.toDate ? data.checkInDate.toDate() : new Date(data.checkInDate);
+        const checkOut = data.checkOutDate?.toDate ? data.checkOutDate.toDate() : new Date(data.checkOutDate);
+        
+        return {
+          id: doc.id,
+          bookingNumber: `WEB-${doc.id.substring(0, 6).toUpperCase()}`,
+          platform: 'website' as const,
+          guestName: data.guestName || 'ضيف',
+          roomName: data.roomNumber || data.roomId || '-',
+          checkInDate: checkIn.toLocaleDateString('ar-EG'),
+          checkOutDate: checkOut.toLocaleDateString('ar-EG'),
+          nights: data.totalNights || 1,
+          totalPrice: data.totalAmount || 0,
+          commission: 0, // لا عمولة للموقع الإلكتروني
+          status: data.status === 'confirmed' ? 'مؤكد' : data.status === 'cancelled' ? 'ملغي' : 'قيد الانتظار',
+          createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('ar-EG') : '-'
+        };
+      });
+
+      // بيانات وهمية للمنصات الأخرى
+      const otherPlatformBookings: PlatformBooking[] = [
+        {
+          id: '1',
+          bookingNumber: 'BKG-1001',
+          platform: 'booking',
+          guestName: 'John Smith',
+          roomName: '201',
+          checkInDate: '20-10-2025',
+          checkOutDate: '25-10-2025',
+          nights: 5,
+          totalPrice: 2500,
+          commission: 375,
+          status: 'مؤكد',
+          createdAt: '18-10-2025'
+        },
+        {
+          id: '2',
+          bookingNumber: 'ALM-5042',
+          platform: 'almosafer',
+          guestName: 'محمد أحمد',
+          roomName: '305',
+          checkInDate: '22-10-2025',
+          checkOutDate: '28-10-2025',
+          nights: 6,
+          totalPrice: 3600,
+          commission: 540,
+          status: 'مؤكد',
+          createdAt: '19-10-2025'
+        },
+        {
+          id: '3',
+          bookingNumber: 'AGD-7823',
+          platform: 'agoda',
+          guestName: 'Emma Watson',
+          roomName: '102',
+          checkInDate: '21-10-2025',
+          checkOutDate: '24-10-2025',
+          nights: 3,
+          totalPrice: 1800,
+          commission: 270,
+          status: 'مؤكد',
+          createdAt: '19-10-2025'
+        },
+        {
+          id: '4',
+          bookingNumber: 'APT-3401',
+          platform: 'airport',
+          guestName: 'عبدالله سعيد',
+          roomName: '401',
+          checkInDate: '19-10-2025',
+          checkOutDate: '20-10-2025',
+          nights: 1,
+          totalPrice: 500,
+          commission: 50,
+          status: 'مكتمل',
+          createdAt: '19-10-2025'
+        }
+      ];
+
+      setPlatformBookings([...websiteBookings, ...otherPlatformBookings]);
+    } catch (error) {
+      console.error('Error loading bookings:', error);
+      // في حالة الخطأ، استخدم البيانات الوهمية فقط
+      setPlatformBookings([
+        {
+          id: '1',
+          bookingNumber: 'BKG-1001',
+          platform: 'booking',
+          guestName: 'John Smith',
+          roomName: '201',
+          checkInDate: '20-10-2025',
+          checkOutDate: '25-10-2025',
+          nights: 5,
+          totalPrice: 2500,
+          commission: 375,
+          status: 'مؤكد',
+          createdAt: '18-10-2025'
+        }
+      ]);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   const platforms = [
+    {
+      name: 'الموقع الإلكتروني',
+      value: 'website',
+      icon: Globe,
+      color: 'from-cyan-500 to-blue-600',
+      count: platformBookings.filter(b => b.platform === 'website').length,
+      revenue: platformBookings.filter(b => b.platform === 'website').reduce((sum, b) => sum + b.totalPrice, 0),
+      description: 'حجوزات من تطبيق النزلاء'
+    },
     {
       name: 'Booking.com',
       value: 'booking',
@@ -157,6 +227,7 @@ export default function BookingPlatformsPage() {
 
   const getPlatformBadge = (platform: string) => {
     const badges: { [key: string]: { label: string; color: string } } = {
+      website: { label: 'الموقع الإلكتروني', color: 'bg-cyan-500' },
       booking: { label: 'Booking.com', color: 'bg-blue-500' },
       almosafer: { label: 'المسافر', color: 'bg-green-500' },
       agoda: { label: 'Agoda', color: 'bg-purple-500' },
