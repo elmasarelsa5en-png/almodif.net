@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { 
   Hotel, User, Phone, Calendar, CreditCard, Globe, 
-  LogIn, Loader2, AlertCircle, CheckCircle, KeyRound
+  LogIn, Loader2, AlertCircle, CheckCircle, KeyRound, UtensilsCrossed
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -688,6 +688,21 @@ export default function GuestLoginPage() {
         <p className="text-center text-slate-400 text-sm mt-6">
           للمساعدة، تواصل مع الاستقبال
         </p>
+
+        {/* زر الدخول السريع للمنيو */}
+        <div className="mt-4">
+          <Button
+            onClick={() => router.push('/guest-app/menu/coffee')}
+            variant="outline"
+            className="w-full bg-slate-800/50 border-amber-500/30 text-amber-300 hover:bg-amber-500/10 hover:border-amber-500/50 py-6"
+          >
+            <UtensilsCrossed className="w-5 h-5 ml-2" />
+            تصفح المنيو بدون تسجيل دخول
+          </Button>
+          <p className="text-center text-slate-500 text-xs mt-2">
+            للطلب يجب تسجيل الدخول أولاً
+          </p>
+        </div>
       </motion.div>
     </div>
   );

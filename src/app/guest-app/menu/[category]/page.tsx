@@ -251,11 +251,13 @@ export default function GuestMenuPage() {
   const handleCheckout = async () => {
     if (cart.length === 0) return;
 
-    // حفظ الطلب
+    // التحقق من تسجيل الدخول
     const guestSession = localStorage.getItem('guest_session');
     if (!guestSession) {
-      alert('الرجاء تسجيل الدخول أولاً');
-      router.push('/guest-app');
+      const confirmLogin = confirm('⚠️ يجب تسجيل الدخول أولاً\n\nهل تريد الانتقال لصفحة تسجيل الدخول؟');
+      if (confirmLogin) {
+        router.push('/guest-app/login');
+      }
       return;
     }
 

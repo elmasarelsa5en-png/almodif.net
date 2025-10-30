@@ -25,15 +25,19 @@ async function addAkramGuest() {
       name: 'akram',
       nationalId: '2529104505',
       password: 'Aazxc',
-      phone: '',
-      roomNumber: '101', // رقم غرفة افتراضي
+      phone: '0500000000',
+      roomNumber: '101',
+      status: 'checked-in', // ✅ مهم جداً للدخول
       checkIn: serverTimestamp(),
       checkOut: null,
       createdAt: serverTimestamp(),
       lastLogin: null,
       isActive: true,
       hasApp: true,
+      verified: true,
       email: '',
+      dateOfBirth: '1990-01-01',
+      nationality: 'السعودية',
       notes: 'حساب تجريبي للمطور'
     };
 

@@ -300,8 +300,6 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
             return pathParts.length > 1 ? pathParts.slice(1).join('-') : (pathParts[0] === 'dashboard' ? 'dashboard' : pathParts[0]);
           })));
         }
-          })));
-        }
       } catch (error) {
         console.error('Error loading sidebar settings:', error);
         // في حالة الخطأ: عرض كل شيء
