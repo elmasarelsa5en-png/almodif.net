@@ -11,39 +11,79 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
 import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
+import { db } from '@/lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 interface HotelSettings {
   hotelName: string;
+  hotelNameEn?: string;
   logo?: string;
+  logoUrl?: string;
   description?: string;
   phone?: string;
+  contactPhone?: string;
+  contactEmail?: string;
   address?: string;
   rating?: number;
   amenities?: string[];
+  welcomeMessage?: string;
+  welcomeMessageEn?: string;
+  enableBooking?: boolean;
+  enableRequests?: boolean;
+  enableQRMenu?: boolean;
+  primaryColor?: string;
+  secondaryColor?: string;
 }
 
 export default function GuestAppHomePage() {
   const router = useRouter();
   const [hotelSettings, setHotelSettings] = useState<HotelSettings>({
-    hotelName: 'فندق سيفن سون',
-    rating: 5
+    hotelName: 'فندق المضيف',
+    hotelNameEn: 'Al Modif Hotel',
+    rating: 5,
+    welcomeMessage: 'مرحباً بك في فندق المضيف',
+    enableBooking: true,
+    enableRequests: true,
+    enableQRMenu: true,
+    primaryColor: '#3B82F6',
+    secondaryColor: '#8B5CF6'
   });
   const [showDownloadPrompt, setShowDownloadPrompt] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // جلب إعدادات الفندق
-    const settings = localStorage.getItem('guest_menu_settings');
-    if (settings) {
-      const parsed = JSON.parse(settings);
-      setHotelSettings(prev => ({
-        ...prev,
-        hotelName: parsed.hotelName || prev.hotelName,
-        logo: parsed.logoUrl,
-        description: parsed.description,
-        phone: parsed.phone,
-        address: parsed.address
-      }));
-    }
+    // جلب إعدادات الفندق من Firebase
+    const loadSettings = async () => {
+      if (!db) {
+        console.warn('⚠️ Firebase غير متصل - استخدام الإعدادات الافتراضية');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const docRef = doc(db, 'settings', 'guest-app');
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setHotelSettings(prev => ({
+            ...prev,
+            ...data,
+            logo: data.logoUrl || data.logo,
+            phone: data.contactPhone || data.phone
+          }));
+          console.log('✅ تم تحميل إعدادات تطبيق النزيل من Firebase');
+        } else {
+          console.log('⚠️ لم يتم العثور على إعدادات - استخدام الإعدادات الافتراضية');
+        }
+      } catch (error) {
+        console.error('❌ خطأ في تحميل الإعدادات:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSettings();
 
     // التحقق من نوع الجهاز
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -60,7 +100,8 @@ export default function GuestAppHomePage() {
       icon: Home,
       color: 'from-blue-500 to-blue-600',
       description: 'احجز غرفتك أو شقتك بسهولة',
-      route: '/guest-app/booking'
+      route: '/guest-app/booking',
+      enabled: hotelSettings.enableBooking !== false
     },
     {
       id: 'restaurant',
@@ -69,7 +110,8 @@ export default function GuestAppHomePage() {
       icon: Utensils,
       color: 'from-amber-500 to-orange-600',
       description: 'تصفح قائمة الطعام واطلب',
-      route: '/guest-app/restaurant'
+      route: '/guest-app/restaurant',
+      enabled: hotelSettings.enableQRMenu !== false
     },
     {
       id: 'coffee',
@@ -78,7 +120,8 @@ export default function GuestAppHomePage() {
       icon: Coffee,
       color: 'from-yellow-600 to-amber-700',
       description: 'قهوة طازجة ومشروبات',
-      route: '/guest-app/coffee-shop'
+      route: '/guest-app/coffee-shop',
+      enabled: hotelSettings.enableQRMenu !== false
     },
     {
       id: 'laundry',
@@ -87,7 +130,8 @@ export default function GuestAppHomePage() {
       icon: Shirt,
       color: 'from-cyan-500 to-blue-600',
       description: 'غسيل وكي الملابس',
-      route: '/guest-app/laundry'
+      route: '/guest-app/laundry',
+      enabled: hotelSettings.enableRequests !== false
     },
     {
       id: 'room-service',
@@ -96,7 +140,8 @@ export default function GuestAppHomePage() {
       icon: Bell,
       color: 'from-purple-500 to-purple-600',
       description: 'اطلب أي شيء لغرفتك',
-      route: '/guest-app/room-service'
+      route: '/guest-app/room-service',
+      enabled: hotelSettings.enableRequests !== false
     },
     {
       id: 'extend',
@@ -105,7 +150,8 @@ export default function GuestAppHomePage() {
       icon: Calendar,
       color: 'from-green-500 to-emerald-600',
       description: 'مدد إقامتك بسهولة',
-      route: '/guest-app/extend-stay'
+      route: '/guest-app/extend-stay',
+      enabled: hotelSettings.enableRequests !== false
     },
     {
       id: 'contact',
@@ -114,9 +160,13 @@ export default function GuestAppHomePage() {
       icon: Phone,
       color: 'from-pink-500 to-rose-600',
       description: 'تواصل مع الاستقبال',
-      route: '/guest-app/contact'
+      route: '/guest-app/contact',
+      enabled: true // دائماً متاح
     }
   ];
+
+  // فلتر الخدمات المفعلة فقط
+  const enabledServices = services.filter(service => service.enabled);
 
   const handleServiceClick = (service: typeof services[0]) => {
     // حفظ جلسة ضيف إذا لم تكن موجودة
@@ -214,55 +264,78 @@ export default function GuestAppHomePage() {
 
       {/* Main Content */}
       <div className="relative z-10 container mx-auto px-4 py-8 md:py-12">
-        {/* Welcome Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="text-center mb-12"
-        >
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            مرحباً بك في تطبيق الضيوف
-          </h2>
-          <p className="text-lg text-blue-200 max-w-2xl mx-auto">
-            استمتع بجميع خدمات الفندق من راحة غرفتك
-          </p>
-        </motion.div>
-
-        {/* Services Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
-          {services.map((service, index) => (
+        {/* Loading State */}
+        {loading ? (
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-white mx-auto mb-4"></div>
+              <p className="text-white text-lg">جاري تحميل الإعدادات...</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Welcome Section */}
             <motion.div
-              key={service.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.1 * index }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-center mb-12"
             >
-              <Card 
-                onClick={() => handleServiceClick(service)}
-                className="bg-white/10 backdrop-blur-xl border-white/20 hover:border-white/40 transition-all duration-300 cursor-pointer group hover:scale-105 hover:shadow-2xl"
-              >
-                <CardContent className="p-6">
-                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${service.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-xl`}>
-                    <service.icon className="w-8 h-8 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold text-white mb-2">
-                    {service.title}
-                  </h3>
-                  <p className="text-sm text-blue-200/80 mb-3">
-                    {service.description}
-                  </p>
-                  <p className="text-xs text-blue-300/60 font-medium">
-                    {service.titleEn}
-                  </p>
-                </CardContent>
-              </Card>
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                {hotelSettings.welcomeMessage || 'مرحباً بك في تطبيق الضيوف'}
+              </h2>
+              <p className="text-lg text-blue-200 max-w-2xl mx-auto">
+                {hotelSettings.welcomeMessageEn || 'استمتع بجميع خدمات الفندق من راحة غرفتك'}
+              </p>
             </motion.div>
-          ))}
+
+            {/* Services Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
+              {enabledServices.map((service, index) => (
+                <motion.div
+                  key={service.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.1 * index }}
+                >
+                  <Card 
+                    onClick={() => handleServiceClick(service)}
+                    className="bg-white/10 backdrop-blur-xl border-white/20 hover:border-white/40 transition-all duration-300 cursor-pointer group hover:scale-105 hover:shadow-2xl"
+                    style={{
+                      borderColor: hotelSettings.primaryColor ? `${hotelSettings.primaryColor}33` : undefined
+                    }}
+                  >
+                    <CardContent className="p-6">
+                      <div 
+                        className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-xl`}
+                        style={{
+                          background: hotelSettings.primaryColor 
+                            ? `linear-gradient(to bottom right, ${hotelSettings.primaryColor}, ${hotelSettings.secondaryColor || hotelSettings.primaryColor})`
+                            : undefined
+                        }}
+                      >
+                        <service.icon className="w-8 h-8 text-white" />
+                      </div>
+                      <h3 className="text-xl font-bold text-white mb-2">
+                        {service.title}
+                      </h3>
+                      <p className="text-sm text-blue-200/80 mb-3">
+                        {service.description}
+                      </p>
+                      <p className="text-xs text-blue-300/60 font-medium">
+                        {service.titleEn}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </>
+        )}
         </div>
 
         {/* Hotel Info */}
-        {(hotelSettings.phone || hotelSettings.address) && (
+        {!loading && (hotelSettings.phone || hotelSettings.contactPhone || hotelSettings.contactEmail) && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -273,13 +346,33 @@ export default function GuestAppHomePage() {
               <CardContent className="p-6">
                 <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                   <Hotel className="w-6 h-6" />
-                  معلومات الفندق
+                  معلومات التواصل
                 </h3>
                 <div className="grid md:grid-cols-2 gap-4">
-                  {hotelSettings.phone && (
+                  {(hotelSettings.phone || hotelSettings.contactPhone) && (
                     <a 
-                      href={`tel:${hotelSettings.phone}`}
+                      href={`tel:${hotelSettings.phone || hotelSettings.contactPhone}`}
                       className="flex items-center gap-3 text-blue-200 hover:text-white transition-colors"
+                    >
+                      <Phone className="w-5 h-5" />
+                      <div>
+                        <p className="text-sm text-blue-300">الهاتف</p>
+                        <p className="font-medium">{hotelSettings.phone || hotelSettings.contactPhone}</p>
+                      </div>
+                    </a>
+                  )}
+                  {hotelSettings.contactEmail && (
+                    <a 
+                      href={`mailto:${hotelSettings.contactEmail}`}
+                      className="flex items-center gap-3 text-blue-200 hover:text-white transition-colors"
+                    >
+                      <Globe className="w-5 h-5" />
+                      <div>
+                        <p className="text-sm text-blue-300">البريد الإلكتروني</p>
+                        <p className="font-medium" dir="ltr">{hotelSettings.contactEmail}</p>
+                      </div>
+                    </a>
+                  )}
                     >
                       <Phone className="w-5 h-5" />
                       <span>{hotelSettings.phone}</span>
