@@ -19,7 +19,8 @@ import {
   Plus,
   Minus,
   DollarSign,
-  Users
+  Users,
+  Settings
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -56,14 +57,14 @@ interface DayPrice {
 }
 
 const platforms = [
-  { id: 'website', name: 'الموقع الإلكتروني', icon: Globe, color: 'from-cyan-500 to-cyan-600' },
-  { id: 'booking', name: 'Booking.com', icon: Globe, color: 'from-blue-500 to-blue-600' },
-  { id: 'almosafer', name: 'المسافر', icon: Building2, color: 'from-green-500 to-green-600' },
-  { id: 'agoda', name: 'Agoda', icon: MapPin, color: 'from-purple-500 to-purple-600' },
-  { id: 'airport', name: 'المطار', icon: Plane, color: 'from-orange-500 to-orange-600' },
-  { id: 'expedia', name: 'Expedia', icon: Globe, color: 'from-yellow-500 to-yellow-600' },
-  { id: 'airbnb', name: 'Airbnb', icon: Building2, color: 'from-pink-500 to-pink-600' },
-  { id: 'elmasarelsa5en', name: 'المسار الساخن', icon: Building2, color: 'from-red-500 to-red-600' },
+  { id: 'website', name: 'الموقع الإلكتروني', icon: Globe, color: 'from-cyan-500 to-cyan-600', visible: true },
+  { id: 'booking', name: 'Booking.com', icon: Globe, color: 'from-blue-500 to-blue-600', visible: true },
+  { id: 'almosafer', name: 'المسافر', icon: Building2, color: 'from-green-500 to-green-600', visible: true },
+  { id: 'agoda', name: 'Agoda', icon: MapPin, color: 'from-purple-500 to-purple-600', visible: true },
+  { id: 'airport', name: 'المطار', icon: Plane, color: 'from-orange-500 to-orange-600', visible: true },
+  { id: 'expedia', name: 'Expedia', icon: Globe, color: 'from-yellow-500 to-yellow-600', visible: false },
+  { id: 'airbnb', name: 'Airbnb', icon: Building2, color: 'from-pink-500 to-pink-600', visible: false },
+  { id: 'elmasarelsa5en', name: 'المسار الساخن', icon: Building2, color: 'from-red-500 to-red-600', visible: true },
 ];
 
 const roomTypes: RoomType[] = [
@@ -87,6 +88,30 @@ export default function PlatformsCalendarPage() {
   const [validationWarning, setValidationWarning] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [pendingAvailability, setPendingAvailability] = useState<boolean>(true);
+  const [platformsSettingsDialog, setPlatformsSettingsDialog] = useState(false);
+  const [visiblePlatforms, setVisiblePlatforms] = useState<string[]>(() => {
+    // Load from localStorage or use default
+    const saved = localStorage.getItem('visible_platforms');
+    return saved ? JSON.parse(saved) : platforms.filter(p => p.visible).map(p => p.id);
+  });
+
+  // Save visible platforms to localStorage whenever it changes
+  React.useEffect(() => {
+    localStorage.setItem('visible_platforms', JSON.stringify(visiblePlatforms));
+  }, [visiblePlatforms]);
+
+  // Filter platforms based on visibility
+  const activePlatforms = platforms.filter(p => visiblePlatforms.includes(p.id));
+
+  const togglePlatformVisibility = (platformId: string) => {
+    setVisiblePlatforms(prev => {
+      if (prev.includes(platformId)) {
+        return prev.filter(id => id !== platformId);
+      } else {
+        return [...prev, platformId];
+      }
+    });
+  };
 
   // بيانات تجريبية للأسعار
   const [pricesData, setPricesData] = useState<DayPrice[]>(() => {
@@ -360,14 +385,25 @@ export default function PlatformsCalendarPage() {
             <p className="text-white/60 mt-1">إدارة الأسعار والتوفر لجميع المنصات</p>
           </div>
 
-          <Button
-            onClick={() => setBulkEditDialog(true)}
-            disabled={selectedDates.length === 0}
-            className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
-          >
-            <Edit className="w-4 h-4 ml-2" />
-            تعديل جماعي ({selectedDates.length})
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => setPlatformsSettingsDialog(true)}
+              variant="outline"
+              className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+            >
+              <Eye className="w-4 h-4 ml-2" />
+              إعدادات المنصات ({activePlatforms.length}/{platforms.length})
+            </Button>
+            
+            <Button
+              onClick={() => setBulkEditDialog(true)}
+              disabled={selectedDates.length === 0}
+              className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
+            >
+              <Edit className="w-4 h-4 ml-2" />
+              تعديل جماعي ({selectedDates.length})
+            </Button>
+          </div>
         </div>
 
         {/* Room Type Selection */}
@@ -422,11 +458,11 @@ export default function PlatformsCalendarPage() {
 
           <CardContent className="p-0">
             {/* Platform Headers */}
-            <div className="grid grid-cols-8 border-b border-white/10 bg-white/5">
+            <div className="grid border-b border-white/10 bg-white/5" style={{ gridTemplateColumns: `200px repeat(${activePlatforms.length}, minmax(120px, 1fr))` }}>
               <div className="p-3 border-l border-white/10 sticky right-0 bg-slate-800/50 backdrop-blur-sm">
                 <span className="text-white/70 text-sm font-medium">التاريخ</span>
               </div>
-              {platforms.map((platform) => {
+              {activePlatforms.map((platform) => {
                 const Icon = platform.icon;
                 return (
                   <div key={platform.id} className="p-3 border-l border-white/10 text-center">
@@ -454,10 +490,11 @@ export default function PlatformsCalendarPage() {
                   <div
                     key={day}
                     className={cn(
-                      "grid grid-cols-8 border-b border-white/10 hover:bg-white/5 transition-colors",
+                      "grid border-b border-white/10 hover:bg-white/5 transition-colors",
                       isWeekend && "bg-orange-500/5",
                       isSelected && "bg-blue-500/10"
                     )}
+                    style={{ gridTemplateColumns: `200px repeat(${activePlatforms.length}, minmax(120px, 1fr))` }}
                   >
                     {/* Day Cell */}
                     <div
@@ -486,7 +523,7 @@ export default function PlatformsCalendarPage() {
                     </div>
 
                     {/* Platform Cells */}
-                    {platforms.map((platform) => {
+                    {activePlatforms.map((platform) => {
                       const dayData = getDayData(day, platform.id);
                       const isEditing = editingCell?.date === dateStr && editingCell?.platformId === platform.id;
 
@@ -796,6 +833,86 @@ export default function PlatformsCalendarPage() {
             >
               حفظ التعديلات
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Platforms Settings Dialog */}
+      <Dialog open={platformsSettingsDialog} onOpenChange={setPlatformsSettingsDialog}>
+        <DialogContent className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border-white/10 text-white max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              إعدادات المنصات
+            </DialogTitle>
+            <DialogDescription className="text-white/70">
+              اختر المنصات التي تريد عرضها في التقويم
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 py-4 max-h-[60vh] overflow-y-auto">
+            {platforms.map((platform) => {
+              const Icon = platform.icon;
+              const isVisible = visiblePlatforms.includes(platform.id);
+              
+              return (
+                <div
+                  key={platform.id}
+                  onClick={() => togglePlatformVisibility(platform.id)}
+                  className={cn(
+                    "flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-all",
+                    isVisible
+                      ? "bg-white/10 border-green-500/50 hover:bg-white/15"
+                      : "bg-white/5 border-white/10 hover:bg-white/10 opacity-60"
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={cn("w-10 h-10 rounded-lg bg-gradient-to-br flex items-center justify-center", platform.color)}>
+                      <Icon className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-white">{platform.name}</h3>
+                      <p className="text-xs text-white/60">
+                        {isVisible ? "معروضة في التقويم" : "مخفية من التقويم"}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className={cn(
+                    "flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium",
+                    isVisible
+                      ? "bg-green-500/20 text-green-300 border border-green-500/50"
+                      : "bg-red-500/20 text-red-300 border border-red-500/50"
+                  )}>
+                    {isVisible ? (
+                      <>
+                        <Check className="w-4 h-4" />
+                        <span>ظاهرة</span>
+                      </>
+                    ) : (
+                      <>
+                        <X className="w-4 h-4" />
+                        <span>مخفية</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <DialogFooter>
+            <div className="flex items-center justify-between w-full">
+              <div className="text-sm text-white/60">
+                {visiblePlatforms.length} من {platforms.length} منصات معروضة
+              </div>
+              <Button
+                onClick={() => setPlatformsSettingsDialog(false)}
+                className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
+              >
+                <Check className="w-4 h-4 ml-2" />
+                تم
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
