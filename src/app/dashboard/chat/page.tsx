@@ -562,15 +562,24 @@ export default function ChatPage() {
       const q = query(messagesRef, where('chatId', '==', chatId), orderBy('timestamp', 'asc'));
 
       let isFirstLoad = true;
-      let previousCount = 0;
+      let previousMessageIds = new Set<string>();
 
       const unsubscribe = onSnapshot(q, (snapshot) => {
         console.log('📨 Messages snapshot received:', snapshot.size, 'messages for chat:', chatId);
         
         const messagesList: Message[] = [];
+        const newMessageIds = new Set<string>();
+        let hasNewMessages = false;
         
         snapshot.forEach((doc) => {
           const data = doc.data();
+          newMessageIds.add(doc.id);
+          
+          // تحديد إذا كانت رسالة جديدة (غير موجودة في المجموعة السابقة)
+          if (!previousMessageIds.has(doc.id)) {
+            hasNewMessages = true;
+          }
+          
           messagesList.push({
             id: doc.id,
             chatId: data.chatId,
@@ -587,12 +596,14 @@ export default function ChatPage() {
         });
         
         console.log('💬 Setting messages state:', messagesList.length);
-        console.log('📋 Messages:', messagesList.map(m => ({ sender: m.senderId, text: m.text })));
         
         setMessages(messagesList);
         
-        // تشغيل صوت إذا كانت هناك رسائل جديدة من شخص آخر
-        if (!isFirstLoad && messagesList.length > previousCount) {
+        // تشغيل صوت فقط إذا:
+        // 1. ليست أول مرة نحمّل الرسائل
+        // 2. هناك رسائل جديدة فعلاً
+        // 3. آخر رسالة ليست من المستخدم الحالي
+        if (!isFirstLoad && hasNewMessages && messagesList.length > 0) {
           const lastMessage = messagesList[messagesList.length - 1];
           const currentUserId = user?.username || user?.email;
           
@@ -603,12 +614,11 @@ export default function ChatPage() {
           });
           
           // تشغيل الصوت فقط إذا كانت الرسالة من شخص آخر
-          // وإذا كانت المحادثة مفتوحة
           if (lastMessage.senderId !== currentUserId) {
             console.log('🔔 Playing notification sound for incoming message...');
             try {
               const audio = new Audio('/sounds/notification.mp3');
-              audio.volume = 0.3; // تقليل الصوت
+              audio.volume = 0.3;
               audio.play().catch(err => console.log('🔇 Sound play failed:', err));
             } catch (error) {
               console.log('🔇 Sound error:', error);
@@ -616,8 +626,9 @@ export default function ChatPage() {
           }
         }
         
+        // تحديث المتغيرات للمرة القادمة
         isFirstLoad = false;
-        previousCount = messagesList.length;
+        previousMessageIds = newMessageIds;
         
         setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
       }, (error) => {
@@ -664,26 +675,32 @@ export default function ChatPage() {
         throw new Error('User ID not found');
       }
 
-      console.log('💾 Adding message to Firestore...');
-      const messageRef = await addDoc(collection(db, 'messages'), {
+      const messageData = {
         chatId: currentChatId,
         senderId: currentUserId,
         text: messageText.trim(),
         type: 'text',
         timestamp: serverTimestamp(),
         read: false,
-      });
+      };
+
+      console.log('💾 Adding message to Firestore...');
+      
+      // مسح النص فوراً قبل الإرسال لتحسين UX
+      const textToSend = messageText.trim();
+      setMessageText('');
+      
+      const messageRef = await addDoc(collection(db, 'messages'), messageData);
       console.log('✅ Message added with ID:', messageRef.id);
 
       console.log('📝 Updating chat document...');
       const chatRef = doc(db, 'chats', currentChatId);
       await updateDoc(chatRef, {
-        lastMessage: messageText.trim(),
+        lastMessage: textToSend,
         lastMessageTime: serverTimestamp(),
       });
       console.log('✅ Chat updated successfully');
 
-      setMessageText('');
     } catch (error: any) {
       console.error('❌ Error sending message:', error);
       console.error('Error details:', {
