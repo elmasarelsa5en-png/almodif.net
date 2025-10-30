@@ -157,7 +157,7 @@ export default function RestaurantPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [menuItems, setMenuItems] = useState<RestaurantItem[]>([]);
+  const [menuItems, setMenuItems] = useState<RestaurantItem[]>(RESTAURANT_MENU);
   const [loading, setLoading] = useState(true);
 
   // Load menu items from Firebase
@@ -166,9 +166,13 @@ export default function RestaurantPage() {
       try {
         setLoading(true);
         const items = await getMenuItemsByCategory('restaurant');
-        setMenuItems(items as RestaurantItem[]);
+        // Use Firebase items if available, otherwise keep default data
+        if (items && items.length > 0) {
+          setMenuItems(items as RestaurantItem[]);
+        }
       } catch (error) {
         console.error('Error loading restaurant menu:', error);
+        // Keep default data on error
       } finally {
         setLoading(false);
       }
@@ -179,7 +183,9 @@ export default function RestaurantPage() {
     // Subscribe to real-time updates
     const unsubscribe = subscribeToMenuItems((allItems) => {
       const restaurantItems = allItems.filter(item => item.category === 'restaurant');
-      setMenuItems(restaurantItems as RestaurantItem[]);
+      if (restaurantItems.length > 0) {
+        setMenuItems(restaurantItems as RestaurantItem[]);
+      }
     });
 
     return () => unsubscribe();

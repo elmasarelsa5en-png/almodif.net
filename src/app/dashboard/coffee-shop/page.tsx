@@ -58,12 +58,109 @@ const itemVariants = {
   }
 };
 
+// Default coffee menu data (fallback if Firebase is empty)
+const DEFAULT_COFFEE_MENU: CoffeeItem[] = [
+  {
+    id: '1',
+    name: 'Signature Espresso',
+    nameAr: 'إسبريسو مميز',
+    category: 'coffee',
+    subCategory: 'مشروبات ساخنة',
+    price: 18,
+    image: '☕',
+    description: 'قهوة إسبريسو إيطالية أصيلة محضرة من أجود حبوب القهوة',
+    rating: 4.8,
+    preparationTime: 3,
+    available: true,
+    featured: true,
+    calories: 10,
+    ingredients: ['حبوب قهوة عربية', 'ماء منقى']
+  },
+  {
+    id: '2',
+    name: 'Caramel Macchiato',
+    nameAr: 'كاراميل ماكياتو',
+    category: 'coffee',
+    subCategory: 'مشروبات ساخنة',
+    price: 28,
+    image: '🍮',
+    description: 'مزيج ساحر من الإسبريسو والحليب المبخر مع صوص الكاراميل',
+    rating: 4.9,
+    preparationTime: 5,
+    available: true,
+    featured: true,
+    calories: 240,
+    ingredients: ['إسبريسو', 'حليب', 'صوص كاراميل', 'فانيليا']
+  },
+  {
+    id: '3',
+    name: 'Iced Vanilla Latte',
+    nameAr: 'لاتيه فانيليا مثلج',
+    category: 'coffee',
+    subCategory: 'مشروبات باردة',
+    price: 25,
+    image: '🧊',
+    description: 'لاتيه منعش مع نكهة الفانيليا الطبيعية وكثير من الثلج',
+    rating: 4.7,
+    preparationTime: 4,
+    available: true,
+    calories: 190,
+    ingredients: ['إسبريسو', 'حليب بارد', 'فانيليا', 'ثلج', 'شراب فانيليا']
+  },
+  {
+    id: '4',
+    name: 'Earl Grey Tea',
+    nameAr: 'شاي إيرل جراي',
+    category: 'coffee',
+    subCategory: 'مشروبات ساخنة',
+    price: 15,
+    image: '🫖',
+    description: 'شاي أسود فاخر بنكهة البرغموت الطبيعية',
+    rating: 4.5,
+    preparationTime: 4,
+    available: true,
+    calories: 5,
+    ingredients: ['شاي أسود', 'برغموت', 'ماء ساخن']
+  },
+  {
+    id: '5',
+    name: 'Chocolate Croissant',
+    nameAr: 'كرواسان شوكولاتة',
+    category: 'coffee',
+    subCategory: 'وجبات خفيفة',
+    price: 22,
+    image: '🥐',
+    description: 'كرواسان فرنسي طازج محشو بالشوكولاتة الداكنة الفاخرة',
+    rating: 4.6,
+    preparationTime: 2,
+    available: true,
+    calories: 340,
+    ingredients: ['دقيق فرنسي', 'زبدة', 'شوكولاتة داكنة', 'بيض']
+  },
+  {
+    id: '6',
+    name: 'Tiramisu Slice',
+    nameAr: 'قطعة تيراميسو',
+    category: 'coffee',
+    subCategory: 'حلويات',
+    price: 32,
+    image: '🍰',
+    description: 'تيراميسو إيطالي أصيل بطعم القهوة والمسكربون',
+    rating: 4.9,
+    preparationTime: 1,
+    available: true,
+    featured: true,
+    calories: 450,
+    ingredients: ['مسكاربون', 'قهوة', 'كاكاو', 'بسكويت سافوياردي', 'مارسالا']
+  }
+];
+
 export default function CoffeeShopPage() {
   const router = useRouter();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [menuItems, setMenuItems] = useState<CoffeeItem[]>([]);
+  const [menuItems, setMenuItems] = useState<CoffeeItem[]>(DEFAULT_COFFEE_MENU);
   const [loading, setLoading] = useState(true);
 
   // Load menu items from Firebase
@@ -72,9 +169,13 @@ export default function CoffeeShopPage() {
       try {
         setLoading(true);
         const items = await getMenuItemsByCategory('coffee');
-        setMenuItems(items as CoffeeItem[]);
+        // Use Firebase items if available, otherwise keep default data
+        if (items && items.length > 0) {
+          setMenuItems(items as CoffeeItem[]);
+        }
       } catch (error) {
         console.error('Error loading coffee menu:', error);
+        // Keep default data on error
       } finally {
         setLoading(false);
       }
@@ -85,7 +186,9 @@ export default function CoffeeShopPage() {
     // Subscribe to real-time updates
     const unsubscribe = subscribeToMenuItems((allItems) => {
       const coffeeItems = allItems.filter(item => item.category === 'coffee');
-      setMenuItems(coffeeItems as CoffeeItem[]);
+      if (coffeeItems.length > 0) {
+        setMenuItems(coffeeItems as CoffeeItem[]);
+      }
     });
 
     return () => unsubscribe();
