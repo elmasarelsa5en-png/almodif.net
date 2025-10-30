@@ -542,6 +542,16 @@ const Dashboard: React.FC = () => {
                   <Bell className="w-4 h-4 inline mr-2" />
                   اختبار الإشعارات
                 </motion.button>
+
+                <motion.button
+                  className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-6 py-3 rounded-full font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-cyan-500/25"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => window.open('/guest-app', '_blank')}
+                >
+                  <Hotel className="w-4 h-4 inline mr-2" />
+                  تطبيق النزلاء
+                </motion.button>
               </div>
             </div>
           </motion.div>
