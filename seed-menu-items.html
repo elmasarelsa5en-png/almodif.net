@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إضافة البيانات الأولية للقوائم</title>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, addDoc, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBpvpfXmUUP9LXw8fJ0x-gI5M8VPGbhJng",
+            authDomain: "hotel-fb51f.firebaseapp.com",
+            projectId: "hotel-fb51f",
+            storageBucket: "hotel-fb51f.firebasestorage.app",
+            messagingSenderId: "1056217488798",
+            appId: "1:1056217488798:web:c1668f2c98c99ad2c83c88"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const coffeeItems = [
+            { name: 'Signature Espresso', nameAr: 'إسبريسو مميز', category: 'coffee', subCategory: 'مشروبات ساخنة', price: 18, image: '☕', description: 'قهوة إسبريسو إيطالية أصيلة محضرة من أجود حبوب القهوة', available: true },
+            { name: 'Caramel Macchiato', nameAr: 'كاراميل ماكياتو', category: 'coffee', subCategory: 'مشروبات ساخنة', price: 28, image: '🍮', description: 'مزيج ساحر من الإسبريسو والحليب المبخر مع صوص الكاراميل', available: true },
+            { name: 'Iced Vanilla Latte', nameAr: 'لاتيه فانيليا مثلج', category: 'coffee', subCategory: 'مشروبات باردة', price: 25, image: '🧊', description: 'لاتيه منعش مع نكهة الفانيليا الطبيعية وكثير من الثلج', available: true },
+            { name: 'Chocolate Croissant', nameAr: 'كرواسان شوكولاتة', category: 'coffee', subCategory: 'وجبات خفيفة', price: 22, image: '🥐', description: 'كرواسان فرنسي طازج محشو بالشوكولاتة الداكنة الفاخرة', available: true },
+            { name: 'Tiramisu Slice', nameAr: 'قطعة تيراميسو', category: 'coffee', subCategory: 'حلويات', price: 32, image: '🍰', description: 'تيراميسو إيطالي أصيل بطعم القهوة والمسكربون', available: true }
+        ];
+
+        const restaurantItems = [
+            { name: 'Grilled Salmon', nameAr: 'سلمون مشوي', category: 'restaurant', subCategory: 'أطباق رئيسية', price: 85, image: '🐟', description: 'سلمون طازج مشوي مع توابل البحر الأبيض المتوسط وخضار مشوية', available: true },
+            { name: 'Beef Steak', nameAr: 'ستيك لحم', category: 'restaurant', subCategory: 'أطباق رئيسية', price: 95, image: '🥩', description: 'ستيك لحم بقري فاخر مشوي حسب الطلب مع صوص الفطر', available: true },
+            { name: 'Caesar Salad', nameAr: 'سلطة سيزر', category: 'restaurant', subCategory: 'مقبلات', price: 35, image: '🥗', description: 'سلطة سيزر كلاسيكية مع دجاج مشوي وجبنة بارميزان', available: true },
+            { name: 'Margherita Pizza', nameAr: 'بيتزا مارجريتا', category: 'restaurant', subCategory: 'أطباق رئيسية', price: 45, image: '🍕', description: 'بيتزا إيطالية كلاسيكية مع صوص الطماطم والموزاريلا والريحان', available: true },
+            { name: 'Chocolate Lava Cake', nameAr: 'كيك الشوكولاتة الساخنة', category: 'restaurant', subCategory: 'حلويات', price: 38, image: '🍫', description: 'كيك شوكولاتة ساخن بقلب سائل مع آيس كريم الفانيليا', available: true }
+        ];
+
+        const laundryItems = [
+            { name: 'Shirt Washing & Ironing', nameAr: 'غسيل وكي قميص', category: 'laundry', subCategory: 'غسيل وكي', price: 15, image: '👔', description: 'غسيل قميص احترافي مع كي وتنشيف وتعطير', available: true },
+            { name: 'Pants Washing & Ironing', nameAr: 'غسيل وكي بنطلون', category: 'laundry', subCategory: 'غسيل وكي', price: 18, image: '👖', description: 'غسيل بنطلون احترافي مع كي دقيق وتعطير', available: true },
+            { name: 'Suit Dry Cleaning', nameAr: 'تنظيف جاف بدلة', category: 'laundry', subCategory: 'تنظيف جاف', price: 45, image: '🤵', description: 'تنظيف جاف احترافي للبدل الرسمية مع كي وتعطير', available: true },
+            { name: 'Dress Cleaning', nameAr: 'تنظيف فستان', category: 'laundry', subCategory: 'تنظيف جاف', price: 40, image: '👗', description: 'تنظيف احترافي للفساتين مع عناية خاصة بالأقمشة الحساسة', available: true },
+            { name: 'Express Service', nameAr: 'خدمة سريعة', category: 'laundry', subCategory: 'خدمات إضافية', price: 25, image: '⚡', description: 'خدمة غسيل سريعة خلال 3 ساعات', available: true }
+        ];
+
+        async function checkExistingItems() {
+            const menuItemsRef = collection(db, 'menu-items');
+            const snapshot = await getDocs(menuItemsRef);
+            return snapshot.size;
+        }
+
+        async function seedData() {
+            const btn = document.getElementById('seedBtn');
+            const status = document.getElementById('status');
+            const results = document.getElementById('results');
+            
+            btn.disabled = true;
+            btn.textContent = 'جاري الإضافة...';
+            status.textContent = '⏳ جاري التحقق من البيانات الموجودة...';
+            status.className = 'status info';
+            results.innerHTML = '';
+
+            try {
+                const existingCount = await checkExistingItems();
+                
+                if (existingCount > 0) {
+                    status.textContent = `⚠️  يوجد بالفعل ${existingCount} عنصر في القائمة. هل تريد الاستمرار؟`;
+                    status.className = 'status warning';
+                    
+                    if (!confirm(`يوجد بالفعل ${existingCount} عنصر في القائمة.\nالاستمرار قد يؤدي لتكرار العناصر.\nهل تريد المتابعة؟`)) {
+                        btn.disabled = false;
+                        btn.textContent = 'إضافة البيانات الأولية';
+                        return;
+                    }
+                }
+
+                status.textContent = '⏳ جاري إضافة البيانات...';
+                const menuItemsRef = collection(db, 'menu-items');
+                let added = 0;
+
+                // Add coffee items
+                results.innerHTML += '<h3>☕ الكوفي شوب</h3>';
+                for (const item of coffeeItems) {
+                    await addDoc(menuItemsRef, { ...item, createdAt: new Date().toISOString() });
+                    results.innerHTML += `<div class="item">✅ ${item.nameAr} - ${item.price} ر.س</div>`;
+                    added++;
+                }
+
+                // Add restaurant items
+                results.innerHTML += '<h3>🍽️ المطعم</h3>';
+                for (const item of restaurantItems) {
+                    await addDoc(menuItemsRef, { ...item, createdAt: new Date().toISOString() });
+                    results.innerHTML += `<div class="item">✅ ${item.nameAr} - ${item.price} ر.س</div>`;
+                    added++;
+                }
+
+                // Add laundry items
+                results.innerHTML += '<h3>👔 المغسلة</h3>';
+                for (const item of laundryItems) {
+                    await addDoc(menuItemsRef, { ...item, createdAt: new Date().toISOString() });
+                    results.innerHTML += `<div class="item">✅ ${item.nameAr} - ${item.price} ر.س</div>`;
+                    added++;
+                }
+
+                status.textContent = `🎉 تم إضافة ${added} عنصر بنجاح!`;
+                status.className = 'status success';
+                btn.textContent = 'تم الإضافة بنجاح ✓';
+
+            } catch (error) {
+                console.error('Error:', error);
+                status.textContent = '❌ حدث خطأ: ' + error.message;
+                status.className = 'status error';
+                btn.disabled = false;
+                btn.textContent = 'إعادة المحاولة';
+            }
+        }
+
+        window.seedData = seedData;
+        
+        // Check existing items on load
+        window.addEventListener('load', async () => {
+            try {
+                const count = await checkExistingItems();
+                document.getElementById('existingCount').textContent = 
+                    count > 0 ? `يوجد حالياً ${count} عنصر في القائمة` : 'القائمة فارغة حالياً';
+            } catch (error) {
+                console.error('Error checking items:', error);
+            }
+        });
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.9rem;
+        }
+        #existingCount {
+            display: inline-block;
+            background: #f0f0f0;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            color: #333;
+            font-weight: 500;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+        .status.info {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        .status.success {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+        .status.error {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+        .status.warning {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        #results {
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        #results h3 {
+            color: #667eea;
+            margin: 20px 0 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .item {
+            padding: 8px 15px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-right: 3px solid #667eea;
+        }
+        .info-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .info-box h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        .info-box ul {
+            margin-right: 20px;
+            color: #856404;
+        }
+        .info-box li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 إضافة البيانات الأولية للقوائم</h1>
+        <p class="subtitle">سيتم إضافة عناصر افتراضية للكوفي شوب والمطعم والمغسلة</p>
+        
+        <div id="existingCount">جاري التحقق...</div>
+        
+        <div class="info-box">
+            <h3>📋 ماذا سيتم إضافته؟</h3>
+            <ul>
+                <li>☕ <strong>5 عناصر</strong> للكوفي شوب (إسبريسو، ماكياتو، لاتيه، كرواسان، تيراميسو)</li>
+                <li>🍽️ <strong>5 عناصر</strong> للمطعم (سلمون، ستيك، سلطة، بيتزا، كيك)</li>
+                <li>👔 <strong>5 خدمات</strong> للمغسلة (قميص، بنطلون، بدلة، فستان، خدمة سريعة)</li>
+                <li>📊 <strong>المجموع: 15 عنصر</strong></li>
+            </ul>
+        </div>
+
+        <button id="seedBtn" onclick="seedData()">إضافة البيانات الأولية</button>
+        
+        <div id="status"></div>
+        <div id="results"></div>
+    </div>
+</body>
+</html>
