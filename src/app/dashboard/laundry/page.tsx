@@ -807,25 +807,27 @@ export default function LaundryPage() {
                   {/* Customer Info */}
                   <div className="space-y-3 mt-6 pt-4 border-t border-cyan-400/20">
                     {customerType === 'guest' && (
-                      <Select value={selectedRoom} onValueChange={setSelectedRoom}>
-                        <SelectTrigger className="bg-white/10 border-cyan-400/50 text-white">
-                          <SelectValue placeholder="اختر الغرفة" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-gray-900 border-cyan-400/30 max-h-[300px]">
-                          {rooms.map(room => (
-                            <SelectItem 
-                              key={room.id} 
-                              value={room.id} 
-                              className="text-white hover:bg-cyan-500/20 focus:bg-cyan-500/30"
-                            >
-                              <div className="flex items-center justify-between gap-2 w-full">
-                                <span className="font-bold">غرفة {room.number}</span>
-                                <span className="text-sm text-cyan-300 truncate max-w-[150px]">{room.guestName || 'بدون اسم'}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div className="relative z-20">
+                        <Select value={selectedRoom} onValueChange={setSelectedRoom}>
+                          <SelectTrigger className="bg-white/10 border-cyan-400/50 text-white">
+                            <SelectValue placeholder="اختر الغرفة" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-gray-900 border-cyan-400/30 max-h-[300px] z-[100]">
+                            {rooms.map(room => (
+                              <SelectItem 
+                                key={room.id} 
+                                value={room.id} 
+                                className="text-white hover:bg-cyan-500/20 focus:bg-cyan-500/30"
+                              >
+                                <div className="flex items-center justify-between gap-2 w-full">
+                                  <span className="font-bold">غرفة {room.number}</span>
+                                  <span className="text-sm text-cyan-300 truncate max-w-[150px]">{room.guestName || 'بدون اسم'}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     )}
 
                     {customerType === 'external' && (
@@ -841,18 +843,20 @@ export default function LaundryPage() {
 
                     {/* Show employee selection only for admin/manager/reception */}
                     {!isLaundryStaff && (
-                      <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
-                        <SelectTrigger className="bg-white/10 border-cyan-400/50 text-white">
-                          <SelectValue placeholder="اختر الموظف المسؤول" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-gray-900 border-cyan-400/30">
-                          {employees.map(emp => (
-                            <SelectItem key={emp.id} value={emp.id} className="text-white hover:bg-cyan-500/20 focus:bg-cyan-500/30">
-                              {emp.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div className="relative z-10">
+                        <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
+                          <SelectTrigger className="bg-white/10 border-cyan-400/50 text-white">
+                            <SelectValue placeholder="اختر الموظف المسؤول" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-gray-900 border-cyan-400/30 z-[90]">
+                            {employees.map(emp => (
+                              <SelectItem key={emp.id} value={emp.id} className="text-white hover:bg-cyan-500/20 focus:bg-cyan-500/30">
+                                {emp.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     )}
 
                     {/* Show info message for laundry staff */}

@@ -1032,25 +1032,80 @@ export default function RoomsPage() {
             <div className="space-y-6">
               {/* زر إنشاء طلب للغرف المشغولة */}
               {selectedRoom && selectedRoom.status === 'Occupied' && selectedRoom.guestName && (
-                <Card className="bg-gradient-to-r from-blue-500/20 to-indigo-500/20 backdrop-blur-md border-blue-400/30">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-lg font-bold text-white mb-1">📋 إنشاء طلب للنزيل</h3>
-                        <p className="text-sm text-blue-200">إنشاء طلب جديد للنزيل {selectedRoom.guestName}</p>
+                <>
+                  <Card className="bg-gradient-to-r from-blue-500/20 to-indigo-500/20 backdrop-blur-md border-blue-400/30">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-lg font-bold text-white mb-1">📋 إنشاء طلب للنزيل</h3>
+                          <p className="text-sm text-blue-200">إنشاء طلب جديد للنزيل {selectedRoom.guestName}</p>
+                        </div>
+                        <Button
+                          onClick={() => {
+                            window.location.href = `/dashboard/requests/new?roomNumber=${selectedRoom.number}&guestName=${encodeURIComponent(selectedRoom.guestName || '')}&phone=${encodeURIComponent(selectedRoom.guestPhone || '')}`;
+                          }}
+                          className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold px-6 py-3 shadow-lg"
+                        >
+                          <FileText className="w-5 h-5 mr-2" />
+                          إنشاء طلب جديد
+                        </Button>
                       </div>
-                      <Button
-                        onClick={() => {
-                          window.location.href = `/dashboard/requests/new?roomNumber=${selectedRoom.number}&guestName=${encodeURIComponent(selectedRoom.guestName || '')}&phone=${encodeURIComponent(selectedRoom.guestPhone || '')}`;
-                        }}
-                        className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold px-6 py-3 shadow-lg"
-                      >
-                        <FileText className="w-5 h-5 mr-2" />
-                        إنشاء طلب جديد
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* زر تصفية الحجز */}
+                  <Card className="bg-gradient-to-r from-orange-500/20 to-red-500/20 backdrop-blur-md border-orange-400/30">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-lg font-bold text-white mb-1">🚪 تصفية الحجز</h3>
+                          <p className="text-sm text-orange-200">إنهاء حجز النزيل وتحويل الغرفة لحالة "تحتاج تنظيف"</p>
+                        </div>
+                        <Button
+                          onClick={async () => {
+                            if (confirm(`هل أنت متأكد من تصفية حجز الغرفة ${selectedRoom.number}?\n\nسيتم:\n- حذف بيانات النزيل\n- تحويل الغرفة إلى "تحتاج تنظيف"`)) {
+                              try {
+                                const updatedRoom: Room = {
+                                  ...selectedRoom,
+                                  status: 'Cleaning' as RoomStatus,
+                                  guestName: '',
+                                  guestPhone: '',
+                                  guestNationality: '',
+                                  guestIdNumber: '',
+                                  bookingDetails: undefined,
+                                  events: [
+                                    ...selectedRoom.events,
+                                    {
+                                      id: Date.now().toString(),
+                                      timestamp: new Date().toISOString(),
+                                      type: 'status_change' as const,
+                                      description: `تصفية الحجز - تحويل الحالة من "مشغولة" إلى "تحتاج تنظيف"`,
+                                      user: user?.username || 'مجهول',
+                                      oldValue: selectedRoom.status,
+                                      newValue: 'Cleaning',
+                                    },
+                                  ],
+                                };
+                                
+                                await saveRoomToFirebase(updatedRoom);
+                                setSelectedRoom(updatedRoom);
+                                alert('✅ تم تصفية الحجز بنجاح!\nالغرفة الآن في حالة "تحتاج تنظيف"');
+                                setIsDetailsOpen(false);
+                              } catch (error) {
+                                console.error('Error clearing reservation:', error);
+                                alert('❌ حدث خطأ أثناء تصفية الحجز');
+                              }
+                            }
+                          }}
+                          className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold px-6 py-3 shadow-lg"
+                        >
+                          <Trash2 className="w-5 h-5 mr-2" />
+                          تصفية الحجز
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
               )}
               
               {/* زر الحجز السريع للغرف المتاحة */}
