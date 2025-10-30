@@ -54,26 +54,49 @@ export default function BookingPage() {
   const loadAvailableRooms = async () => {
     try {
       setLoading(true);
+      
+      // Try to load from Firebase first
       const roomsRef = collection(db, 'rooms');
-      const q = query(roomsRef, where('status', '==', 'available'));
+      const q = query(roomsRef, where('available', '==', true));
       const snapshot = await getDocs(q);
       
-      const roomsData: Room[] = snapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          number: data.number || '',
-          type: data.type || 'غرفة',
-          price: data.pricePerNight || 0,
-          capacity: data.capacity || 2,
-          amenities: data.amenities || [],
-          available: data.status === 'available',
-          images: data.images || [],
-          description: data.description
-        };
-      });
-
-      setRooms(roomsData);
+      if (!snapshot.empty) {
+        const roomsData: Room[] = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            number: data.name || data.number || '',
+            type: data.type || 'غرفة',
+            price: data.price?.daily || data.pricePerNight || 0,
+            capacity: data.maxGuests || data.capacity || 2,
+            amenities: data.amenities || [],
+            available: data.available !== false,
+            images: data.images?.map((img: any) => img.url) || [],
+            description: data.description
+          };
+        });
+        setRooms(roomsData);
+      } else {
+        // Fallback: Load from localStorage (old rooms)
+        const localRooms = localStorage.getItem('hotelRooms');
+        if (localRooms) {
+          const parsedRooms = JSON.parse(localRooms);
+          const roomsData: Room[] = parsedRooms
+            .filter((r: any) => r.available)
+            .map((r: any) => ({
+              id: r.id,
+              number: r.name,
+              type: r.type,
+              price: r.price.daily,
+              capacity: r.maxGuests,
+              amenities: r.amenities,
+              available: true,
+              images: r.images?.map((img: any) => img.url) || [],
+              description: r.description
+            }));
+          setRooms(roomsData);
+        }
+      }
     } catch (error) {
       console.error('Error loading rooms:', error);
     } finally {

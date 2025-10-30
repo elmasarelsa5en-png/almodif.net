@@ -8,8 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { 
   Plus, Edit, Trash2, Save, X, Upload, Image as ImageIcon,
-  Bed, Home, Ruler, DollarSign, Users, Star, Check, AlertCircle
+  Bed, Home, Ruler, DollarSign, Users, Star, Check, AlertCircle, Cloud, CloudOff
 } from 'lucide-react';
+import { syncRoomsToFirebase } from '@/lib/rooms-manager';
 
 interface RoomImage {
   id: string;
@@ -50,6 +51,8 @@ export default function RoomsCatalogPage() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
 
   useEffect(() => {
     // Load from localStorage
@@ -133,6 +136,25 @@ export default function RoomsCatalogPage() {
     'مناشف', 'بياضات', 'خدمة التنظيف', 'خدمة الغرف', 'موقف سيارات'
   ];
 
+  const handleSyncToFirebase = async () => {
+    setIsSyncing(true);
+    setSyncMessage(null);
+    
+    try {
+      const success = await syncRoomsToFirebase();
+      if (success) {
+        setSyncMessage('✅ تم المزامنة بنجاح! الغرف متاحة الآن للحجز في تطبيق النزلاء');
+      } else {
+        setSyncMessage('❌ فشلت المزامنة. يرجى المحاولة مرة أخرى');
+      }
+    } catch (error) {
+      setSyncMessage('❌ حدث خطأ أثناء المزامنة');
+    } finally {
+      setIsSyncing(false);
+      setTimeout(() => setSyncMessage(null), 5000);
+    }
+  };
+
   return (
     <div className="container mx-auto p-6 max-w-7xl">
       <div className="flex items-center justify-between mb-6">
@@ -146,13 +168,42 @@ export default function RoomsCatalogPage() {
           </p>
         </div>
         
-        {!editingRoom && (
-          <Button onClick={handleAddNew} size="lg">
-            <Plus className="h-4 w-4 ml-2" />
-            إضافة غرفة جديدة
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {!editingRoom && (
+            <>
+              <Button 
+                onClick={handleSyncToFirebase}
+                disabled={isSyncing || rooms.length === 0}
+                variant="outline"
+                className="border-blue-500 text-blue-600 hover:bg-blue-50"
+              >
+                {isSyncing ? (
+                  <CloudOff className="h-4 w-4 ml-2 animate-pulse" />
+                ) : (
+                  <Cloud className="h-4 w-4 ml-2" />
+                )}
+                {isSyncing ? 'جاري المزامنة...' : 'مزامنة مع تطبيق النزلاء'}
+              </Button>
+              
+              <Button onClick={handleAddNew} size="lg">
+                <Plus className="h-4 w-4 ml-2" />
+                إضافة غرفة جديدة
+              </Button>
+            </>
+          )}
+        </div>
       </div>
+
+      {/* Sync Message */}
+      {syncMessage && (
+        <div className={`mb-6 p-4 rounded-lg border ${
+          syncMessage.includes('✅') 
+            ? 'bg-green-50 border-green-200 text-green-800' 
+            : 'bg-red-50 border-red-200 text-red-800'
+        }`}>
+          {syncMessage}
+        </div>
+      )}
 
       {/* Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
