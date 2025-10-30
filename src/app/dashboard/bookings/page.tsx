@@ -90,6 +90,9 @@ export default function BookingsPage() {
           const checkOutDate = data.checkOutDate?.toDate?.() || new Date();
           const createdAt = data.createdAt?.toDate?.() || new Date();
           
+          // حساب عدد الليالي
+          const nights = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
+          
           return {
             id: doc.id,
             bookingNumber: doc.id.slice(0, 8).toUpperCase(),
@@ -100,11 +103,14 @@ export default function BookingsPage() {
             source: mapSource(data.source),
             checkInDate: checkInDate.toISOString(),
             checkOutDate: checkOutDate.toISOString(),
+            nights: nights > 0 ? nights : 1,
             numberOfGuests: data.numberOfGuests || 1,
             basePrice: data.pricePerNight || 0,
             totalPrice: data.totalAmount || 0,
             paidAmount: data.paidAmount || 0,
             remainingBalance: (data.totalAmount || 0) - (data.paidAmount || 0),
+            discountAmount: data.discountAmount || 0,
+            taxAmount: data.taxAmount || 0,
             guestPhone: data.guestPhone || '',
             guestEmail: data.guestEmail || '',
             guestNationalId: data.guestNationalId || '',
@@ -927,7 +933,7 @@ export default function BookingsPage() {
                     </div>
                     <div>
                       <p className="text-white/60 text-sm mb-1">تاريخ الإنشاء</p>
-                      <p className="text-white font-medium">{viewDetailsDialog.booking.createdAt}</p>
+                      <p className="text-white font-medium">{formatDate(viewDetailsDialog.booking.createdAt)}</p>
                     </div>
                   </div>
                 </div>
