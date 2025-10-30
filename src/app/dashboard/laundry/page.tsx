@@ -358,7 +358,7 @@ export default function LaundryPage() {
       await addRequest({
         room: customerType === 'guest' ? selectedRoom : 'عميل خارجي',
         guest: guestName || 'عميل خارجي',
-        phone: '',
+        phone: customerType === 'external' ? '' : undefined, // Only include phone if external
         type: 'طلب من المغسلة',
         description: `الطلب:\n${itemsDescription}\n\nالإجمالي: ${cartTotal} ر.س\n\nالموظف المسؤول: ${selectedEmployeeName}`,
         priority: 'medium',

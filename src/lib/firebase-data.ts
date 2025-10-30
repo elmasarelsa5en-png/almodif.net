@@ -170,8 +170,14 @@ export const getRequests = async (): Promise<GuestRequest[]> => {
 export const addRequest = async (request: Omit<GuestRequest, 'id'>): Promise<string | null> => {
   try {
     const docRef = doc(collection(db, COLLECTIONS.REQUESTS));
+    
+    // Remove undefined values to prevent Firestore errors
+    const cleanRequest = Object.fromEntries(
+      Object.entries(request).filter(([_, value]) => value !== undefined)
+    );
+    
     await setDoc(docRef, {
-      ...request,
+      ...cleanRequest,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });

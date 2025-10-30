@@ -256,14 +256,13 @@ export default function CoffeeShopPage() {
       await addRequest({
         room: roomNumber,
         guest: guestName,
-        phone: '',
         type: 'طلب من الكافتيريا',
         description: `الطلب:\n${itemsDescription}\n\nالإجمالي: ${cartTotal} ر.س`,
         priority: 'medium',
         status: 'awaiting_employee_approval',
         notes: `طلب من الكافتيريا - تم إدخاله بواسطة الموظف`,
         createdAt: new Date().toISOString()
-      });
+      } as any);
 
       alert('✅ تم إرسال الطلب بنجاح!');
       setCart([]);
