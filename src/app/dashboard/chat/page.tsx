@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Send, Search, Phone, Video, MoreVertical, Smile, Paperclip,
   CheckCheck, Check, Circle, Loader2, MessageSquare, Users, AlertCircle,
-  Image as ImageIcon, Mic, MicOff, X, Play, Pause, Download, FileText, Trash2
+  Image as ImageIcon, Mic, MicOff, X, Play, Pause, Download, FileText, Trash2, ArrowLeft
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -71,6 +71,7 @@ export default function ChatPage() {
   const [isCallDialogOpen, setIsCallDialogOpen] = useState(false);
   const [callType, setCallType] = useState<'audio' | 'video'>('audio');
   const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false);
+  const [showChatList, setShowChatList] = useState(true); // للتحكم في عرض القائمة على الموبايل
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const unsubscribeRef = useRef<(() => void) | null>(null);
   const allChatsUnsubscribeRef = useRef<(() => void) | null>(null);
@@ -519,6 +520,7 @@ export default function ChatPage() {
     
     setSelectedEmployee(employee);
     setMessages([]);
+    setShowChatList(false); // إخفاء القائمة على الموبايل عند اختيار محادثة
     
     const chatId = await getOrCreateChat(employee.id);
     if (chatId) {
@@ -934,10 +936,15 @@ export default function ChatPage() {
     <ProtectedRoute>
       <div className='h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex overflow-hidden' dir='rtl'>
         
-        <div className='w-80 bg-slate-800/50 backdrop-blur-xl border-l border-white/10 flex flex-col'>
+        {/* Sidebar - قائمة المحادثات */}
+        <div className={cn(
+          'w-full md:w-[420px] bg-slate-800/50 backdrop-blur-xl border-l border-white/10 flex flex-col',
+          // على الموبايل: إخفاء القائمة عند اختيار محادثة
+          !showChatList && selectedEmployee && 'hidden md:flex'
+        )}>
           <div className='p-4 border-b border-white/10'>
-            <h2 className='text-xl font-bold text-white mb-4 flex items-center gap-2'>
-              <MessageSquare className='w-6 h-6' />
+            <h2 className='text-xl md:text-2xl font-bold text-white mb-4 flex items-center gap-2'>
+              <MessageSquare className='w-6 h-6 md:w-7 md:h-7' />
               المحادثات
             </h2>
             
@@ -964,26 +971,26 @@ export default function ChatPage() {
                   key={employee.id}
                   onClick={() => selectEmployee(employee)}
                   className={cn(
-                    'w-full p-4 flex items-center gap-3 hover:bg-slate-700/50 transition-all border-b border-white/5',
-                    selectedEmployee?.id === employee.id && 'bg-gradient-to-l from-purple-500/20 to-transparent border-r-2 border-purple-500'
+                    'w-full p-3 md:p-4 flex items-center gap-3 md:gap-4 hover:bg-slate-700/50 transition-all border-b border-white/5',
+                    selectedEmployee?.id === employee.id && 'bg-gradient-to-l from-purple-500/20 to-transparent border-r-4 border-purple-500'
                   )}
                 >
                   <div className='relative flex-shrink-0'>
-                    <div className='w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center overflow-hidden ring-2 ring-white/20 shadow-lg'>
+                    <div className='w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center overflow-hidden ring-2 ring-purple-400/30 shadow-xl'>
                       {employee.avatar ? (
                         <img src={employee.avatar} alt={employee.name} className='w-full h-full object-cover' />
                       ) : (
-                        <span className='text-white font-bold text-lg'>{employee.name.charAt(0)}</span>
+                        <span className='text-white font-bold text-lg md:text-xl'>{employee.name.charAt(0)}</span>
                       )}
                     </div>
                     {employee.isOnline && (
-                      <div className='absolute bottom-0 left-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-slate-800 shadow-lg' />
+                      <div className='absolute bottom-0 left-0 w-3.5 h-3.5 md:w-4 md:h-4 bg-green-500 rounded-full border-2 border-slate-800 shadow-lg' />
                     )}
                   </div>
 
                   <div className='flex-1 text-right overflow-hidden'>
                     <div className='flex items-center justify-between gap-2 mb-1'>
-                      <p className='font-semibold text-white truncate text-sm'>{employee.name}</p>
+                      <p className='font-semibold text-white truncate text-sm md:text-base'>{employee.name}</p>
                       {lastMessages[employee.id] && (
                         <span className='flex-shrink-0 text-xs text-gray-400'>
                           {formatMessageTime(lastMessages[employee.id].time)}
@@ -992,14 +999,14 @@ export default function ChatPage() {
                     </div>
                     <div className='flex items-center justify-between gap-2'>
                       {lastMessages[employee.id] ? (
-                        <p className='text-xs text-gray-400 truncate flex-1'>
+                        <p className='text-xs md:text-sm text-gray-300 truncate flex-1'>
                           {lastMessages[employee.id].text}
                         </p>
                       ) : (
-                        <p className='text-xs text-gray-500 truncate flex-1'>لا توجد رسائل</p>
+                        <p className='text-xs md:text-sm text-gray-500 truncate flex-1'>لا توجد رسائل</p>
                       )}
                       {unreadCounts[employee.id] > 0 && (
-                        <span className='flex-shrink-0 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse'>
+                        <span className='flex-shrink-0 bg-green-500 text-white text-xs font-bold rounded-full w-5 h-5 md:w-6 md:h-6 flex items-center justify-center shadow-lg'>
                           {unreadCounts[employee.id]}
                         </span>
                       )}
@@ -1016,15 +1023,26 @@ export default function ChatPage() {
             <>
               <div className='bg-slate-800/70 backdrop-blur-xl border-b border-white/10 p-4 flex items-center justify-between shadow-lg'>
                 <div className='flex items-center gap-3'>
-                  <div className='w-11 h-11 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center overflow-hidden ring-2 ring-white/30 shadow-lg'>
+                  {/* زر الرجوع - يظهر فقط على الموبايل */}
+                  <Button
+                    variant='ghost'
+                    size='sm'
+                    onClick={() => setShowChatList(true)}
+                    className='md:hidden text-white hover:bg-slate-700/50 rounded-full w-10 h-10 p-0'
+                    title='رجوع للمحادثات'
+                  >
+                    <ArrowLeft className='w-6 h-6' />
+                  </Button>
+                  
+                  <div className='w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center overflow-hidden ring-2 ring-white/30 shadow-lg'>
                     {selectedEmployee.avatar ? (
                       <img src={selectedEmployee.avatar} alt={selectedEmployee.name} className='w-full h-full object-cover' />
                     ) : (
-                      <span className='text-white font-bold text-lg'>{selectedEmployee.name.charAt(0)}</span>
+                      <span className='text-white font-bold text-lg md:text-xl'>{selectedEmployee.name.charAt(0)}</span>
                     )}
                   </div>
                   <div>
-                    <h3 className='font-bold text-white text-lg'>{selectedEmployee.name}</h3>
+                    <h3 className='font-bold text-white text-base md:text-lg'>{selectedEmployee.name}</h3>
                     {selectedEmployee.isOnline ? (
                       <p className='text-sm text-green-400 flex items-center gap-1.5'>
                         <Circle className='w-2 h-2 fill-current animate-pulse' />
@@ -1039,7 +1057,7 @@ export default function ChatPage() {
                   </div>
                 </div>
 
-                <div className='flex items-center gap-1'>
+                <div className='flex items-center gap-1 md:gap-2'>
                   <Button 
                     variant='ghost' 
                     size='sm' 
@@ -1047,10 +1065,10 @@ export default function ChatPage() {
                       setCallType('audio');
                       setIsCallDialogOpen(true);
                     }}
-                    className='text-white hover:bg-slate-700/50 rounded-full w-9 h-9 p-0 transition-all hover:scale-110'
+                    className='text-white hover:bg-slate-700/50 rounded-full w-9 h-9 md:w-11 md:h-11 p-0 transition-all hover:scale-110'
                     title='مكالمة صوتية'
                   >
-                    <Phone className='w-5 h-5' />
+                    <Phone className='w-5 h-5 md:w-6 md:h-6' />
                   </Button>
                   <Button 
                     variant='ghost' 
@@ -1059,22 +1077,22 @@ export default function ChatPage() {
                       setCallType('video');
                       setIsCallDialogOpen(true);
                     }}
-                    className='text-white hover:bg-slate-700/50 rounded-full w-9 h-9 p-0 transition-all hover:scale-110'
+                    className='text-white hover:bg-slate-700/50 rounded-full w-9 h-9 md:w-11 md:h-11 p-0 transition-all hover:scale-110'
                     title='مكالمة فيديو'
                   >
-                    <Video className='w-5 h-5' />
+                    <Video className='w-5 h-5 md:w-6 md:h-6' />
                   </Button>
                   <Button 
                     variant='ghost' 
                     size='sm' 
                     onClick={() => setIsRequestDialogOpen(true)}
-                    className='text-white hover:bg-slate-700/50 rounded-full w-9 h-9 p-0 transition-all hover:scale-110'
+                    className='text-white hover:bg-slate-700/50 rounded-full w-9 h-9 md:w-11 md:h-11 p-0 transition-all hover:scale-110'
                     title='إرسال طلب'
                   >
-                    <FileText className='w-5 h-5' />
+                    <FileText className='w-5 h-5 md:w-6 md:h-6' />
                   </Button>
-                  <Button variant='ghost' size='sm' className='text-white hover:bg-slate-700/50 rounded-full w-9 h-9 p-0'>
-                    <MoreVertical className='w-5 h-5' />
+                  <Button variant='ghost' size='sm' className='text-white hover:bg-slate-700/50 rounded-full w-9 h-9 md:w-11 md:h-11 p-0'>
+                    <MoreVertical className='w-5 h-5 md:w-6 md:h-6' />
                   </Button>
                 </div>
               </div>
@@ -1101,11 +1119,14 @@ export default function ChatPage() {
                     return (
                       <div key={message.id} className={cn('flex animate-in fade-in slide-in-from-bottom-2 duration-300 group', isCurrentUser ? 'justify-start' : 'justify-end')}>
                         <div className='relative'>
-                          <div className={cn('max-w-[70%] rounded-2xl px-4 py-3 shadow-xl', isCurrentUser ? 'bg-gradient-to-br from-purple-600 to-blue-600 text-white rounded-br-sm' : 'bg-slate-700/90 backdrop-blur-sm text-white rounded-bl-sm')}>
+                          <div className={cn('max-w-[85%] md:max-w-[70%] rounded-2xl px-4 py-3 md:px-5 md:py-3.5 shadow-xl', isCurrentUser ? 'bg-gradient-to-br from-purple-600 to-blue-600 text-white rounded-br-sm' : 'bg-white/10 backdrop-blur-sm text-white rounded-bl-sm border border-white/10')}>
                             
                             {/* رسالة نصية */}
                             {message.type === 'text' && message.text && (
-                              <p className='text-sm leading-relaxed whitespace-pre-wrap break-words'>{message.text}</p>
+                              <p className='text-sm md:text-base leading-relaxed whitespace-pre-wrap break-words'>{message.text}</p>
+                            )}                            {/* رسالة نصية */}
+                            {message.type === 'text' && message.text && (
+                              <p className='text-base leading-relaxed whitespace-pre-wrap break-words'>{message.text}</p>
                             )}
                           
                           {/* صورة */}
@@ -1114,7 +1135,7 @@ export default function ChatPage() {
                               <img
                                 src={message.fileUrl}
                                 alt={message.fileName || 'صورة'}
-                                className='max-w-xs rounded-lg cursor-pointer hover:opacity-90 transition-opacity'
+                                className='max-w-[280px] md:max-w-sm rounded-lg cursor-pointer hover:opacity-90 transition-opacity'
                                 onClick={() => window.open(message.fileUrl, '_blank')}
                                 loading='lazy'
                               />
@@ -1127,7 +1148,7 @@ export default function ChatPage() {
                           {/* رسالة صوتية */}
                           {message.type === 'audio' && message.fileUrl && (
                             <div className='space-y-2'>
-                              <audio controls className='w-64' preload='metadata'>
+                              <audio controls className='w-64 md:w-72' preload='metadata'>
                                 <source src={message.fileUrl} type='audio/webm' />
                                 <source src={message.fileUrl} type='audio/mpeg' />
                                 متصفحك لا يدعم تشغيل الصوت
@@ -1242,16 +1263,16 @@ export default function ChatPage() {
                   </div>
                 )}
                 
-                <div className='flex items-center gap-2'>
+                <div className='flex items-center gap-1 md:gap-2'>
                   {/* زر Emoji (معطل مؤقتاً) */}
                   <Button 
                     variant='ghost' 
                     size='sm' 
-                    className='text-gray-400 hover:text-white hover:bg-slate-700/50 rounded-full w-9 h-9 p-0'
+                    className='text-gray-400 hover:text-white hover:bg-slate-700/50 rounded-full w-9 h-9 md:w-11 md:h-11 p-0'
                     disabled={isUploading || isRecording}
                     title='Emoji (قريباً)'
                   >
-                    <Smile className='w-5 h-5' />
+                    <Smile className='w-5 h-5 md:w-6 md:h-6' />
                   </Button>
                   
                   {/* زر رفع الصور */}
@@ -1272,11 +1293,11 @@ export default function ChatPage() {
                     variant='ghost'
                     size='sm'
                     onClick={() => fileInputRef.current?.click()}
-                    className='text-gray-400 hover:text-white hover:bg-slate-700/50 rounded-full w-9 h-9 p-0'
+                    className='text-gray-400 hover:text-white hover:bg-slate-700/50 rounded-full w-9 h-9 md:w-11 md:h-11 p-0'
                     disabled={isUploading || isRecording}
                     title='رفع صورة'
                   >
-                    <ImageIcon className='w-5 h-5' />
+                    <ImageIcon className='w-5 h-5 md:w-6 md:h-6' />
                   </Button>
                   
                   {/* زر تسجيل الصوت */}
@@ -1285,13 +1306,13 @@ export default function ChatPage() {
                     size='sm'
                     onClick={isRecording ? stopRecording : startRecording}
                     className={cn(
-                      'text-gray-400 hover:text-white hover:bg-slate-700/50 rounded-full w-9 h-9 p-0 transition-all',
+                      'text-gray-400 hover:text-white hover:bg-slate-700/50 rounded-full w-9 h-9 md:w-11 md:h-11 p-0 transition-all',
                       isRecording && 'bg-red-500 text-white animate-pulse'
                     )}
                     disabled={isUploading}
                     title={isRecording ? 'إيقاف التسجيل' : 'تسجيل صوتي'}
                   >
-                    {isRecording ? <MicOff className='w-5 h-5' /> : <Mic className='w-5 h-5' />}
+                    {isRecording ? <MicOff className='w-5 h-5 md:w-6 md:h-6' /> : <Mic className='w-5 h-5 md:w-6 md:h-6' />}
                   </Button>
                   
                   {/* حقل النص */}
@@ -1305,7 +1326,7 @@ export default function ChatPage() {
                         sendMessage(); 
                       } 
                     }}
-                    className='flex-1 bg-slate-700/50 border-slate-600 text-white placeholder:text-gray-400 focus:ring-2 focus:ring-purple-500 rounded-full px-4'
+                    className='flex-1 bg-slate-700/50 border-slate-600 text-white placeholder:text-gray-400 focus:ring-2 focus:ring-purple-500 rounded-full px-4 py-2 md:px-5 md:py-3 text-sm md:text-base'
                     disabled={isRecording || isUploading}
                   />
                   
@@ -1313,10 +1334,10 @@ export default function ChatPage() {
                   <Button 
                     onClick={sendMessage} 
                     disabled={!messageText.trim() || isSending || isRecording || isUploading} 
-                    className='bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 rounded-full w-11 h-11 p-0 shadow-lg disabled:opacity-50 transition-all'
+                    className='bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 rounded-full w-10 h-10 md:w-12 md:h-12 p-0 shadow-lg disabled:opacity-50 transition-all'
                     title='إرسال'
                   >
-                    {isSending ? <Loader2 className='w-5 h-5 animate-spin' /> : <Send className='w-5 h-5' />}
+                    {isSending ? <Loader2 className='w-5 h-5 md:w-6 md:h-6 animate-spin' /> : <Send className='w-5 h-5 md:w-6 md:h-6' />}
                   </Button>
                 </div>
               </div>

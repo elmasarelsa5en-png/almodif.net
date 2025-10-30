@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { getMenuItemsByCategory, subscribeToMenuItems, type MenuItem } from '@/lib/firebase-data';
+import { playNotificationSound } from '@/lib/notification-sounds';
 
 // Professional TypeScript interfaces
 interface RestaurantItem {
@@ -262,6 +263,7 @@ export default function RestaurantPage() {
       } as any);
 
       alert('✅ تم إرسال الطلب بنجاح!');
+      playNotificationSound('new-request');
       setCart([]);
       setIsCartOpen(false);
     } catch (error) {

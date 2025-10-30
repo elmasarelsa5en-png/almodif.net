@@ -15,6 +15,7 @@ import { useRouter } from 'next/navigation';
 import { getRoomsFromFirebase } from '@/lib/firebase-sync';
 import { getEmployees, addRequest, type Employee, getMenuItemsByCategory, subscribeToMenuItems, type MenuItem } from '@/lib/firebase-data';
 import type { Room } from '@/lib/rooms-data';
+import { playNotificationSound } from '@/lib/notification-sounds';
 
 // Professional TypeScript interfaces
 interface LaundryItem {
@@ -368,6 +369,7 @@ export default function LaundryPage() {
       });
 
       alert('✅ تم إرسال الطلب بنجاح!');
+      playNotificationSound('new-request');
       setCart([]);
       setIsCartOpen(false);
       setSelectedRoom('');
