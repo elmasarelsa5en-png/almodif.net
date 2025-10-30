@@ -1,4 +1,4 @@
-const CACHE_NAME = 'almudif-smart-cache-v5'; // ✅ v5 - إعادة كتابة كاملة للدوال
+const CACHE_NAME = 'almudif-smart-cache-v6'; // ✅ v6 - استثناء Firebase APIs
 const urlsToCache = [
   '/',
   '/dashboard',
@@ -40,15 +40,49 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // استراتيجية Cache-First للسرعة
+  const url = event.request.url;
+  
+  // ⚠️ استثناء Firebase وجميع Google APIs من الـ Service Worker
+  if (
+    url.includes('firestore.googleapis.com') ||
+    url.includes('firebase') ||
+    url.includes('googleapis.com') ||
+    url.includes('google.com/recaptcha') ||
+    url.includes('identitytoolkit.googleapis.com') ||
+    url.includes('securetoken.googleapis.com')
+  ) {
+    // اترك Firebase يشتغل بشكل طبيعي بدون تدخل
+    return;
+  }
+
+  // استراتيجية Cache-First للملفات الثابتة فقط
   event.respondWith(
     caches.match(event.request).then((response) => {
       // إذا وجد في الكاش، أرجعه
       if (response) {
         return response;
       }
-      // إذا لم يوجد، اطلبه من الشبكة
-      return fetch(event.request);
+      
+      // إذا لم يوجد، اطلبه من الشبكة وحفظه في الكاش
+      return fetch(event.request).then((fetchResponse) => {
+        // تحقق أن الاستجابة صالحة قبل الحفظ
+        if (!fetchResponse || fetchResponse.status !== 200 || fetchResponse.type !== 'basic') {
+          return fetchResponse;
+        }
+
+        // نسخ الاستجابة (لأن الاستجابة يمكن استخدامها مرة واحدة فقط)
+        const responseToCache = fetchResponse.clone();
+
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, responseToCache);
+        });
+
+        return fetchResponse;
+      }).catch((error) => {
+        console.log('Service Worker: Fetch failed, returning offline page', error);
+        // يمكن إرجاع صفحة offline هنا إذا أردت
+        return caches.match('/offline.html');
+      });
     })
   );
 });
