@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { 
   Hotel, Home, Utensils, Coffee, Shirt, Bell, Calendar, 
   Phone, Star, MapPin, Wifi, Car, Sparkles, QrCode,
-  Download, Globe, Smartphone
+  Download, Globe, Smartphone, User, LogOut, CreditCard, MessageSquare
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,6 +13,16 @@ import { useRouter } from 'next/navigation';
 import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
 import { db } from '@/lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
+
+interface GuestSession {
+  id?: string;
+  name: string;
+  phone: string;
+  nationalId: string;
+  roomNumber: string;
+  checkInDate: string;
+  status: 'checked-in' | 'checked-out';
+}
 
 interface HotelSettings {
   hotelName: string;
@@ -51,9 +61,29 @@ export default function GuestAppHomePage() {
   const [showDownloadPrompt, setShowDownloadPrompt] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
+  const [guestSession, setGuestSession] = useState<GuestSession | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
+    
+    // التحقق من تسجيل دخول النزيل
+    const session = localStorage.getItem('guest_session');
+    if (!session) {
+      router.push('/guest-app/login');
+      return;
+    }
+
+    const guestData: GuestSession = JSON.parse(session);
+    
+    // التحقق من حالة الحجز
+    if (guestData.status === 'checked-out') {
+      alert('تم تسجيل خروجك من الفندق. نتمنى أن تكون قد استمتعت بإقامتك!');
+      localStorage.removeItem('guest_session');
+      router.push('/guest-app/login');
+      return;
+    }
+
+    setGuestSession(guestData);
     
     // جلب إعدادات الفندق من Firebase
     const loadSettings = async () => {
@@ -167,6 +197,16 @@ export default function GuestAppHomePage() {
       description: 'تواصل مع الاستقبال',
       route: '/guest-app/contact',
       enabled: true // دائماً متاح
+    },
+    {
+      id: 'review',
+      title: 'تقييم الإقامة',
+      titleEn: 'Rate Your Stay',
+      icon: MessageSquare,
+      color: 'from-green-500 to-emerald-600',
+      description: 'شاركنا رأيك وتجربتك',
+      route: '/guest-app/review',
+      enabled: true // دائماً متاح
     }
   ];
 
@@ -174,25 +214,20 @@ export default function GuestAppHomePage() {
   const enabledServices = services.filter(service => service.enabled);
 
   const handleServiceClick = (service: typeof services[0]) => {
-    // حفظ جلسة ضيف إذا لم تكن موجودة
-    const guestSession = localStorage.getItem('guest_session');
-    if (!guestSession && service.id !== 'contact' && service.id !== 'booking') {
-      // إنشاء جلسة ضيف مؤقتة
-      const tempGuest = {
-        name: 'ضيف',
-        phone: '',
-        roomNumber: 'معاينة',
-        loginTime: new Date().toISOString(),
-        isGuest: true
-      };
-      localStorage.setItem('guest_session', JSON.stringify(tempGuest));
-    }
+    // حفظ جلسة ضيف - البيانات موجودة من تسجيل الدخول
     router.push(service.route);
   };
 
   const generateQRCode = () => {
     const url = window.location.origin + '/guest-app';
     router.push(`/guest-app/qr-code?url=${encodeURIComponent(url)}`);
+  };
+
+  const handleLogout = () => {
+    if (confirm('هل تريد تسجيل الخروج من التطبيق؟')) {
+      localStorage.removeItem('guest_session');
+      router.push('/guest-app/login');
+    }
   };
 
   return (
@@ -301,7 +336,43 @@ export default function GuestAppHomePage() {
         transition={{ duration: 0.8, ease: "easeOut" }}
         className="relative z-10 bg-gradient-to-r from-slate-800/95 via-slate-700/95 to-slate-800/95 backdrop-blur-xl border-b border-amber-500/30 shadow-2xl"
       >
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto px-4 py-4">
+          {/* Guest Info Bar */}
+          {guestSession && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg"
+            >
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-4 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <User className="w-4 h-4 text-amber-400" />
+                    <span className="text-amber-100 font-medium">{guestSession.name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Hotel className="w-4 h-4 text-amber-400" />
+                    <span className="text-amber-100">غرفة {guestSession.roomNumber}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="w-4 h-4 text-amber-400" />
+                    <span className="text-amber-200 text-sm">{guestSession.nationalId}</span>
+                  </div>
+                </div>
+                <Button
+                  onClick={handleLogout}
+                  variant="ghost"
+                  size="sm"
+                  className="text-amber-200 hover:text-amber-100 hover:bg-amber-500/20"
+                >
+                  <LogOut className="w-4 h-4 mr-1" />
+                  تسجيل خروج
+                </Button>
+              </div>
+            </motion.div>
+          )}
+          
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               {hotelSettings.logo ? (
