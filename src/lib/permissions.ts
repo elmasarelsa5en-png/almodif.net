@@ -143,6 +143,21 @@ export const ALL_PERMISSIONS: PermissionCategory[] = [
     ]
   },
   {
+    id: 'loyalty',
+    label: 'برنامج الولاء',
+    labelEn: 'Loyalty Program',
+    icon: '🎖️',
+    permissions: [
+      { id: 'view_loyalty', label: 'عرض برنامج الولاء', labelEn: 'View Loyalty Program', category: 'loyalty', description: 'رؤية نظام الولاء' },
+      { id: 'manage_members', label: 'إدارة الأعضاء', labelEn: 'Manage Members', category: 'loyalty', description: 'إضافة وتعديل أعضاء الولاء' },
+      { id: 'manage_points', label: 'إدارة النقاط', labelEn: 'Manage Points', category: 'loyalty', description: 'إضافة وخصم النقاط' },
+      { id: 'manage_rewards', label: 'إدارة المكافآت', labelEn: 'Manage Rewards', category: 'loyalty', description: 'إنشاء وتعديل المكافآت' },
+      { id: 'redeem_rewards', label: 'استرداد المكافآت', labelEn: 'Redeem Rewards', category: 'loyalty', description: 'استرداد المكافآت للأعضاء' },
+      { id: 'view_loyalty_reports', label: 'عرض تقارير الولاء', labelEn: 'View Loyalty Reports', category: 'loyalty', description: 'رؤية إحصائيات الولاء' },
+      { id: 'upgrade_tier', label: 'ترقية الدرجات', labelEn: 'Upgrade Tiers', category: 'loyalty', description: 'ترقية درجة العضوية' },
+    ]
+  },
+  {
     id: 'services',
     label: 'الخدمات',
     labelEn: 'Services',
@@ -329,6 +344,7 @@ export const MANAGER_PERMISSIONS = [
   'view_ratings', 'add_rating', 'respond_to_rating', 'view_rating_reports',
   'view_maintenance', 'create_maintenance', 'edit_maintenance', 'assign_maintenance', 'view_maintenance_reports',
   'view_expense_vouchers', 'create_expense_voucher', 'edit_expense_voucher', 'approve_expense_voucher', 'pay_expense_voucher', 'view_expense_reports',
+  'view_loyalty', 'manage_members', 'manage_points', 'manage_rewards', 'redeem_rewards', 'view_loyalty_reports',
   'view_payments', 'receive_payment', 'view_invoices', 'create_invoice',
   'view_reports', 'export_reports', 'view_occupancy_report', 'view_revenue_report',
   'view_employees',
@@ -343,9 +359,10 @@ export const RECEPTION_PERMISSIONS = [
   'view_rooms', 'view_room_details', 'change_room_status',
   'view_bookings', 'create_booking', 'edit_booking', 'view_booking_details',
   'view_guests', 'add_guest', 'edit_guest', 'view_guest_history',
-  'view_requests', 'create_request',
   'view_ratings', 'add_rating',
+  'view_loyalty', 'redeem_rewards',
   'view_expense_vouchers', 'create_expense_voucher',
+  'view_payments', 'receive_payment',pense_voucher',
   'view_payments', 'receive_payment',
   'access_sidebar', 'access_top_menu', 'view_dashboard_link', 'view_rooms_link', 'view_requests_link',
 ];

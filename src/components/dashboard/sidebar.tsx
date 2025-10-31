@@ -50,7 +50,8 @@ import {
   Building, // حالة الغرف
   X, // التناقض
   Building2, // البنك
-  Star // أيقونة التقييمات
+  Star, // أيقونة التقييمات
+  Award // أيقونة برنامج الولاء
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -115,6 +116,13 @@ const navigationItems: NavigationItem[] = [
     descKey: 'ratingsDesc',
     href: '/dashboard/ratings',
     permission: 'view_ratings',
+  },
+  {
+    icon: Award,
+    labelKey: 'loyaltyProgram',
+    descKey: 'loyaltyProgramDesc',
+    href: '/dashboard/loyalty',
+    permission: 'view_loyalty',
   },
   {
     icon: Wrench,
