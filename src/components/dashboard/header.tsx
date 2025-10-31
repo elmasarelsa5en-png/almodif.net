@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { useLanguage } from '@/contexts/language-context';
 import { cn } from '@/lib/utils';
-import { Bell, Search, Menu, Globe, Hotel, Settings, MessageSquare, Sparkles, Check, X, Power, Zap, LogOut, AlertTriangle, Clock, Users, DollarSign, Bed, Calendar, User } from 'lucide-react';
+import { Bell, Search, Menu, Globe, Hotel, Settings, MessageSquare, Sparkles, Check, X, Power, Zap, LogOut, AlertTriangle, Clock, Users, DollarSign, Bed, Calendar, User, MessagesSquare } from 'lucide-react';
 import * as AIAutoReply from '@/lib/ai-auto-reply';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -74,9 +74,12 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
     actionRequired: 0
   });
   const [totalUnreadChats, setTotalUnreadChats] = useState(0);
+  const [totalUnreadSocialMedia, setTotalUnreadSocialMedia] = useState(0);
   const [logo, setLogo] = useState<string | null>(null);
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const [showSearch, setShowSearch] = useState(false);
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const headerRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const previousNotificationCount = useRef(0);
   
@@ -96,6 +99,46 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
     setApiKey(config.openaiApiKey || '');
     setOpenaiModel(config.openaiModel || 'gpt-4o-mini');
     setTemperature(config.temperature || 0.7);
+  }, []);
+
+  // Auto-hide/show header based on mouse position
+  useEffect(() => {
+    let hideTimeout: NodeJS.Timeout;
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      const headerHeight = headerRef.current?.offsetHeight || 70;
+      
+      // إظهار الهيدر إذا كان الماوس في أعلى 100px من الشاشة
+      if (e.clientY < 100) {
+        setIsHeaderVisible(true);
+        clearTimeout(hideTimeout);
+      } else {
+        // إخفاء الهيدر بعد 2 ثانية من خروج الماوس
+        clearTimeout(hideTimeout);
+        hideTimeout = setTimeout(() => {
+          setIsHeaderVisible(false);
+        }, 2000);
+      }
+    };
+
+    const handleMouseEnter = () => {
+      setIsHeaderVisible(true);
+      clearTimeout(hideTimeout);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    headerRef.current?.addEventListener('mouseenter', handleMouseEnter);
+
+    // إظهار الهيدر في البداية لمدة 3 ثواني
+    hideTimeout = setTimeout(() => {
+      setIsHeaderVisible(false);
+    }, 3000);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      headerRef.current?.removeEventListener('mouseenter', handleMouseEnter);
+      clearTimeout(hideTimeout);
+    };
   }, []);
 
   // تحميل اللوجو من localStorage
@@ -209,6 +252,32 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
 
     // تحديث كل 10 ثواني
     const interval = setInterval(countUnreadChats, 10000);
+    return () => clearInterval(interval);
+  }, [user]);
+
+  // حساب عدد الرسائل غير المقروءة في منصات التواصل الاجتماعي
+  useEffect(() => {
+    if (!user) return;
+
+    const countUnreadSocialMedia = async () => {
+      try {
+        const { db } = await import('@/lib/firebase');
+        const { collection, query, where, getDocs } = await import('firebase/firestore');
+        
+        const messagesRef = collection(db, 'socialMediaMessages');
+        const unreadQuery = query(messagesRef, where('read', '==', false));
+        const unreadMessages = await getDocs(unreadQuery);
+
+        setTotalUnreadSocialMedia(unreadMessages.size);
+      } catch (error) {
+        console.error('Error counting unread social media:', error);
+      }
+    };
+
+    countUnreadSocialMedia();
+
+    // تحديث كل 10 ثواني
+    const interval = setInterval(countUnreadSocialMedia, 10000);
     return () => clearInterval(interval);
   }, [user]);
 
@@ -557,13 +626,17 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
   };
 
   return (
-    <header className={cn(
-      "border-b shadow-lg transition-all duration-300",
-      "bg-black/30 backdrop-blur-xl border-b border-white/10", // خلفية شبه شفافة مع تأثير ضبابي
-      "dark:bg-black/30 dark:border-white/10",
-      "z-40", // جعل الهيدر في طبقة عالية
-      className
-    )}>
+    <header 
+      ref={headerRef}
+      className={cn(
+        "border-b shadow-lg transition-all duration-500 fixed top-0 left-0 right-0",
+        "bg-black/30 backdrop-blur-xl border-b border-white/10",
+        "dark:bg-black/30 dark:border-white/10",
+        "z-50",
+        isHeaderVisible ? "translate-y-0" : "-translate-y-full",
+        className
+      )}
+    >
       <div className="flex items-center justify-between px-3 sm:px-6 py-3 sm:py-4">
         {/* Left Section - Menu Button & Large Brand */}
         <div className="flex items-center gap-2 sm:gap-4">
@@ -636,6 +709,22 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
             {totalUnreadChats > 0 && (
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
                 {totalUnreadChats > 99 ? '99+' : totalUnreadChats}
+              </span>
+            )}
+          </Button>
+
+          {/* Social Media Platforms - Icon Only */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push('/dashboard/crm-whatsapp/unified-inbox')}
+            className="hidden lg:flex text-white hover:text-purple-200 hover:bg-purple-500/20 border border-purple-400/30 hover:border-purple-400/60 transition-all duration-200 p-2 w-9 h-9 relative group"
+            title="منصات التواصل الاجتماعي"
+          >
+            <MessagesSquare className="w-4 h-4 group-hover:scale-110 transition-transform" />
+            {totalUnreadSocialMedia > 0 && (
+              <span className="absolute -top-1 -right-1 bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse shadow-lg">
+                {totalUnreadSocialMedia > 99 ? '99+' : totalUnreadSocialMedia}
               </span>
             )}
           </Button>
