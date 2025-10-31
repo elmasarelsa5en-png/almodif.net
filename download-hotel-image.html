@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحميل صورة الفندق</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: white;
+            color: #333;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 30px;
+        }
+        .instructions {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-right: 4px solid #667eea;
+            margin-bottom: 20px;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #667eea;
+        }
+        .step {
+            margin: 15px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+        }
+        code {
+            background: #e9ecef;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #d63384;
+        }
+        .important {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .important strong {
+            color: #856404;
+        }
+        a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .image-preview {
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+            display: block;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📸 تحميل صورة الفندق</h1>
+        
+        <div class="instructions">
+            <h3>📋 التعليمات:</h3>
+            
+            <div class="step">
+                <strong>الخطوة 1:</strong> حمل الصورة من الرابط:
+                <br><br>
+                <a href="https://i.postimg.cc/Y0C8hbB4/430459265-122121159980255118-4903926906806453831-n.jpg" target="_blank">
+                    افتح الصورة في نافذة جديدة
+                </a>
+            </div>
+
+            <div class="step">
+                <strong>الخطوة 2:</strong> اضغط بالزر الأيمن على الصورة واختر "حفظ الصورة باسم" (Save Image As)
+            </div>
+
+            <div class="step">
+                <strong>الخطوة 3:</strong> احفظ الصورة في المسار التالي:
+                <br><br>
+                <code>D:\almodif.net\public\images\hotel-exterior.jpg</code>
+            </div>
+
+            <div class="step">
+                <strong>الخطوة 4:</strong> تأكد من اسم الملف:
+                <br><br>
+                اسم الملف يجب أن يكون: <code>hotel-exterior.jpg</code>
+            </div>
+        </div>
+
+        <div class="important">
+            <strong>⚠️ مهم جداً:</strong>
+            <ul>
+                <li>تأكد من حفظ الصورة في المجلد <code>public/images/</code></li>
+                <li>اسم الملف يجب أن يكون <code>hotel-exterior.jpg</code> بالضبط</li>
+                <li>إذا لم يكن المجلد موجوداً، أنشئه أولاً</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <strong>بعد حفظ الصورة:</strong>
+            <br><br>
+            1. شغل الأمر: <code>npm run build</code>
+            <br>
+            2. افتح تطبيق الضيف وستجد الصورة تعمل بشكل صحيح
+        </div>
+
+        <h3 style="text-align: center; margin-top: 30px; color: #667eea;">
+            📌 أو استخدم هذا الأمر في PowerShell:
+        </h3>
+        <div style="background: #2d3748; color: #48bb78; padding: 15px; border-radius: 8px; font-family: 'Courier New'; text-align: center; margin: 20px 0;">
+            # انسخ والصق هذا الأمر
+            <br><br>
+            $url = "https://i.postimg.cc/Y0C8hbB4/430459265-122121159980255118-4903926906806453831-n.jpg"
+            <br>
+            $output = "public\images\hotel-exterior.jpg"
+            <br>
+            Invoke-WebRequest -Uri $url -OutFile $output -UseBasicParsing
+        </div>
+    </div>
+
+    <script>
+        // Optional: Download automatically
+        window.addEventListener('load', function() {
+            const confirmed = confirm('هل تريد تحميل الصورة تلقائياً؟\n\nسيتم فتح الصورة في نافذة جديدة، احفظها في:\npublic/images/hotel-exterior.jpg');
+            if (confirmed) {
+                window.open('https://i.postimg.cc/Y0C8hbB4/430459265-122121159980255118-4903926906806453831-n.jpg', '_blank');
+            }
+        });
+    </script>
+</body>
+</html>

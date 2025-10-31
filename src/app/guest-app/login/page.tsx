@@ -324,9 +324,14 @@ export default function GuestLoginPage() {
       {/* Background Hotel Image */}
       <div className="fixed inset-0 z-0 opacity-10">
         <img 
-          src="https://i.postimg.cc/Y0C8hbB4/430459265-122121159980255118-4903926906806453831-n.jpg"
+          src="/images/hotel-exterior.jpg"
           alt="Hotel Background"
           className="w-full h-full object-cover"
+          onError={(e) => {
+            // Fallback to gradient if image not found
+            const target = e.currentTarget as HTMLImageElement;
+            target.style.display = 'none';
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900/90 via-slate-800/90 to-slate-900/90"></div>
       </div>

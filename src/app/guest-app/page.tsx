@@ -767,17 +767,26 @@ export default function GuestAppHomePage() {
                   >
                     <div className="relative rounded-2xl overflow-hidden shadow-2xl border-2 border-amber-500/30">
                       <img 
-                        src="https://i.postimg.cc/Y0C8hbB4/430459265-122121159980255118-4903926906806453831-n.jpg"
+                        src="/images/hotel-exterior.jpg"
                         alt="Hotel"
                         className="w-full h-[400px] object-cover"
                         onError={(e) => {
-                          // Fallback gradient if image not found
-                          e.currentTarget.style.display = 'none';
-                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                          // Fallback to beautiful gradient if image not found
+                          const target = e.currentTarget as HTMLImageElement;
+                          target.style.display = 'none';
+                          const fallback = target.nextElementSibling as HTMLElement;
+                          if (fallback) {
+                            fallback.classList.remove('hidden');
+                            fallback.classList.add('flex');
+                          }
                         }}
                       />
-                      <div className="hidden absolute inset-0 bg-gradient-to-br from-amber-500/20 via-purple-500/20 to-blue-500/20 flex items-center justify-center">
-                        <div className="text-6xl">🏨</div>
+                      <div className="hidden absolute inset-0 bg-gradient-to-br from-amber-500/30 via-purple-500/30 to-blue-500/30 backdrop-blur-sm items-center justify-center">
+                        <div className="text-center">
+                          <div className="text-8xl mb-4">🏨</div>
+                          <p className="text-white text-2xl font-bold">فندق المضيف</p>
+                          <p className="text-amber-300 text-lg">Al Modif Hotel</p>
+                        </div>
                       </div>
                       
                       {/* Badge Overlay */}
