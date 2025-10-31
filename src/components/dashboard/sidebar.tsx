@@ -54,7 +54,8 @@ import {
   Award, // أيقونة برنامج الولاء
   Brain, // أيقونة الذكاء الاصطناعي
   AlertTriangle, // أيقونة كشف الشذوذات
-  Clock // أيقونة التقارير المجدولة
+  Clock, // أيقونة التقارير المجدولة
+  Bell // أيقونة الإشعارات
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
