@@ -41,6 +41,8 @@ interface BookingDialogProps {
   onClose: () => void;
   onSave: (bookingData: any) => void;
   onStatusChange?: (roomId: string, newStatus: string, guestName?: string) => void;
+  onRoomChange?: (oldRoomId: string, newRoomNumber: string) => Promise<boolean>;
+  allRooms?: Room[]; // قائمة كل الغرف للتحقق من التوفر
 }
 
 // مصادر الحجز
@@ -63,7 +65,7 @@ const VISIT_TYPES = [
   { value: 'tourism', label: 'سياحة', icon: '🏖️' },
   { value: 'business', label: 'عمل', icon: '💼' }
 ];
-export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusChange }: BookingDialogProps) {
+export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusChange, onRoomChange, allRooms }: BookingDialogProps) {
   // حالة زر تغيير الحالة
   const [showStatusChange, setShowStatusChange] = useState(false);
   
@@ -351,15 +353,52 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
     onClose();
   };
 
-  // 🖨️ طباعة العقد
-  const handlePrintContract = () => {
+  // 🖨️ طباعة العقد الاحترافي
+  const handlePrintContract = async () => {
     if (!selectedGuest || !room) {
       alert('يرجى حفظ بيانات الحجز أولاً');
       return;
     }
 
+    // تحميل إعدادات العقد من Firebase
+    let contractSettings: any = {
+      hotelName: 'فندق المضيف',
+      hotelNameEn: 'Al Modif Hotel',
+      address: 'العنوان الجديد - ابها',
+      city: 'ابها',
+      phone: '+966504755400',
+      email: 'info@almodif.net',
+      commercialRegister: '30092765750003',
+      taxNumber: '1090030246',
+      checkInTime: '14:00',
+      checkOutTime: '12:00',
+      securityDeposit: 500,
+      penaltyAmount: 350,
+      terms: []
+    };
+
+    try {
+      const { doc, getDoc } = await import('firebase/firestore');
+      const settingsDoc = await getDoc(doc(db, 'settings', 'contract'));
+      if (settingsDoc.exists()) {
+        contractSettings = { ...contractSettings, ...settingsDoc.data() };
+      }
+    } catch (error) {
+      console.error('خطأ في تحميل إعدادات العقد:', error);
+    }
+
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
+
+    // تنسيق التاريخ بالهجري
+    const formatHijriDate = (date: string) => {
+      const gregorianDate = new Date(date);
+      return gregorianDate.toLocaleDateString('ar-SA-u-ca-islamic', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    };
 
     const contractHTML = `
       <!DOCTYPE html>
@@ -368,168 +407,352 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
         <meta charset="UTF-8">
         <title>عقد إيجار - غرفة ${room.number}</title>
         <style>
+          @page {
+            size: A4;
+            margin: 15mm;
+          }
+          
           body {
-            font-family: 'Arial', sans-serif;
-            padding: 40px;
+            font-family: 'Traditional Arabic', 'Arial', sans-serif;
+            padding: 0;
+            margin: 0;
             direction: rtl;
             text-align: right;
+            background: white;
+            color: #000;
           }
+          
+          .container {
+            max-width: 210mm;
+            margin: 0 auto;
+            background: white;
+          }
+          
+          /* الرأسية */
           .header {
             text-align: center;
-            border-bottom: 3px solid #2563eb;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
+            border: 3px solid #1e40af;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
           }
+          
           .header h1 {
             color: #1e40af;
-            margin: 0;
-            font-size: 32px;
+            margin: 0 0 10px 0;
+            font-size: 28px;
+            font-weight: bold;
           }
-          .header p {
-            color: #64748b;
-            margin: 5px 0;
-          }
-          .section {
-            margin: 25px 0;
-            padding: 15px;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-          }
-          .section h2 {
-            color: #1e40af;
-            font-size: 20px;
-            margin: 0 0 15px 0;
-            border-bottom: 2px solid #3b82f6;
-            padding-bottom: 8px;
-          }
-          .row {
+          
+          .header-info {
             display: flex;
             justify-content: space-between;
-            margin: 10px 0;
-            padding: 8px;
+            margin-top: 15px;
+            font-size: 12px;
+            color: #1e40af;
+          }
+          
+          .header-info div {
+            flex: 1;
+          }
+          
+          /* بيانات الفندق */
+          .hotel-info {
             background: #f8fafc;
-            border-radius: 4px;
-          }
-          .label {
-            font-weight: bold;
-            color: #475569;
-          }
-          .value {
-            color: #0f172a;
-          }
-          .financial-summary {
-            background: #eff6ff;
-            border: 2px solid #3b82f6;
-            padding: 20px;
-            margin: 20px 0;
+            border: 2px solid #e2e8f0;
             border-radius: 8px;
-          }
-          .total {
-            font-size: 24px;
-            font-weight: bold;
-            color: #1e40af;
+            padding: 15px;
+            margin-bottom: 20px;
             text-align: center;
-            margin: 15px 0;
           }
-          .signature {
-            margin-top: 60px;
+          
+          .hotel-info h2 {
+            color: #1e40af;
+            font-size: 22px;
+            margin: 0 0 5px 0;
+          }
+          
+          .hotel-info p {
+            margin: 3px 0;
+            color: #475569;
+            font-size: 13px;
+          }
+          
+          /* جدول العقد */
+          .contract-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border: 2px solid #1e40af;
+          }
+          
+          .contract-table th {
+            background: #1e40af;
+            color: white;
+            padding: 12px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+          }
+          
+          .contract-table td {
+            border: 1px solid #cbd5e1;
+            padding: 10px;
+            font-size: 13px;
+          }
+          
+          .contract-table .label {
+            background: #f1f5f9;
+            font-weight: bold;
+            color: #334155;
+            width: 35%;
+          }
+          
+          .contract-table .value {
+            background: white;
+            color: #000;
+          }
+          
+          /* البنود */
+          .terms-section {
+            margin: 25px 0;
+          }
+          
+          .terms-section h3 {
+            background: #1e40af;
+            color: white;
+            padding: 10px;
+            margin: 0 0 15px 0;
+            text-align: center;
+            font-size: 16px;
+          }
+          
+          .term-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+            font-size: 12px;
+            line-height: 1.6;
+          }
+          
+          .term-number {
+            flex-shrink: 0;
+            width: 25px;
+            height: 25px;
+            background: #1e40af;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+          }
+          
+          .term-text {
+            flex: 1;
+            color: #334155;
+            text-align: justify;
+          }
+          
+          /* التوقيعات */
+          .signatures {
+            margin-top: 50px;
             display: flex;
             justify-content: space-between;
+            gap: 30px;
           }
-          .signature div {
+          
+          .signature-box {
+            flex: 1;
             text-align: center;
-            width: 200px;
           }
+          
           .signature-line {
-            border-top: 2px solid #0f172a;
-            margin-top: 60px;
+            border-top: 2px solid #1e40af;
+            margin-top: 80px;
             padding-top: 10px;
+            font-weight: bold;
+            color: #1e40af;
           }
+          
+          .signature-image {
+            max-width: 200px;
+            max-height: 60px;
+            margin: 10px auto;
+            display: block;
+          }
+          
+          /* الفوتر */
+          .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 11px;
+            color: #64748b;
+            border-top: 2px solid #e2e8f0;
+            padding-top: 15px;
+          }
+          
           @media print {
-            body { padding: 20px; }
+            body {
+              padding: 0;
+            }
+            .no-print {
+              display: none;
+            }
           }
         </style>
       </head>
       <body>
-        <div class="header">
-          <h1>عقد إيجار غرفة فندقية</h1>
-          <p>رقم العقد: ${contractNumber}</p>
-          <p>التاريخ: ${new Date().toLocaleDateString('ar-SA')}</p>
+        <div class="container">
+          <!-- الرأسية -->
+          <div class="header">
+            <h1>عقد إيجار</h1>
+            <div class="header-info">
+              <div><strong>رقم العقد:</strong> ${contractNumber}</div>
+              <div><strong>التاريخ:</strong> ${new Date().toLocaleDateString('ar-SA')}</div>
+              <div><strong>الموافق:</strong> ${formatHijriDate(checkInDate)}</div>
+            </div>
+          </div>
+          
+          <!-- بيانات الفندق -->
+          <div class="hotel-info">
+            <h2>${contractSettings.hotelName}</h2>
+            <p>${contractSettings.address} - ${contractSettings.city}</p>
+            <p>📞 هاتف: ${contractSettings.phone} | 📧 ${contractSettings.email}</p>
+            <p>الرقم الضريبي: ${contractSettings.taxNumber} | السجل التجاري: ${contractSettings.commercialRegister}</p>
+          </div>
+          
+          <!-- جدول بيانات العقد -->
+          <table class="contract-table">
+            <thead>
+              <tr>
+                <th colspan="4">العقد</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- تاريخ الدخول والخروج -->
+              <tr>
+                <td class="label">تاريخ الدخول (الخميس)</td>
+                <td class="value">${checkInDate} (الجمعة)</td>
+                <td class="label">تاريخ الدخول (الجمعة)</td>
+                <td class="value">${formatHijriDate(checkInDate)}</td>
+              </tr>
+              <tr>
+                <td class="label">تاريخ الخروج (الميلادي)</td>
+                <td class="value">${checkOutDate}</td>
+                <td class="label">الموافق</td>
+                <td class="value">${formatHijriDate(checkOutDate)}</td>
+              </tr>
+              <tr>
+                <td class="label">الشقة</td>
+                <td class="value">${room.number}</td>
+                <td class="label">نوع الإيجار</td>
+                <td class="value">${rentalType === 'daily' ? 'يومي' : 'شهري'}</td>
+              </tr>
+              <tr>
+                <td class="label">الإيجار اليومي</td>
+                <td class="value">${dailyRate} ر.س</td>
+                <td class="label">الأيام</td>
+                <td class="value">${numberOfDays}</td>
+              </tr>
+              <tr>
+                <td class="label">الإجمالي</td>
+                <td class="value"><strong>${totalAmount}</strong> ر.س</td>
+                <td class="label">المدفوع</td>
+                <td class="value" style="color: green"><strong>${totalDeposits}</strong> ر.س</td>
+              </tr>
+              <tr>
+                <td class="label">التأمين</td>
+                <td class="value">${contractSettings.securityDeposit} ر.س</td>
+                <td class="label">الحجم</td>
+                <td class="value">${room.type}</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <!-- بيانات العميل -->
+          <table class="contract-table">
+            <thead>
+              <tr>
+                <th colspan="2">العميل</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="label">اسم العميل</td>
+                <td class="value"><strong>${selectedGuest.name}</strong></td>
+              </tr>
+              <tr>
+                <td class="label">الجنسية</td>
+                <td class="value">${selectedGuest.nationality || 'السعودية'}</td>
+              </tr>
+              <tr>
+                <td class="label">نوع الإثبات</td>
+                <td class="value">${selectedGuest.idType || 'بطاقة هوية مدنية'}</td>
+              </tr>
+              <tr>
+                <td class="label">رقم الإثبات</td>
+                <td class="value">${selectedGuest.idNumber || '—'}</td>
+              </tr>
+              <tr>
+                <td class="label">جوال</td>
+                <td class="value">${selectedGuest.phone}</td>
+              </tr>
+              <tr>
+                <td class="label">عدد المرافقين</td>
+                <td class="value">${companions.length}</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <!-- الشروط والأحكام -->
+          <div class="terms-section">
+            <h3>الشروط</h3>
+            ${contractSettings.terms && contractSettings.terms.length > 0 
+              ? contractSettings.terms.map((term: string, index: number) => `
+                <div class="term-item">
+                  <div class="term-number">${index + 1}</div>
+                  <div class="term-text">${term}</div>
+                </div>
+              `).join('')
+              : '<p style="text-align: center; color: #64748b;">لا توجد بنود محددة</p>'
+            }
+          </div>
+          
+          <!-- التوقيعات -->
+          <div class="signatures">
+            <div class="signature-box">
+              ${room.bookingDetails?.guestSignature 
+                ? `<img src="${room.bookingDetails.guestSignature}" class="signature-image" alt="توقيع النزيل" />`
+                : ''
+              }
+              <div class="signature-line">توقيع المستأجر</div>
+            </div>
+            <div class="signature-box">
+              <div class="signature-line">توقيع المسؤول</div>
+            </div>
+          </div>
+          
+          <!-- الفوتر -->
+          <div class="footer">
+            <p>بتوقيع هذا العقد، يُقر المستأجر بموافقته على جميع الشروط والأحكام المذكورة وفقاً للأنظمة والسياسات الخاصة بالمنشأة</p>
+            <p><strong>${contractSettings.hotelName}</strong> - ${contractSettings.phone}</p>
+          </div>
         </div>
+      </body>
+      </html>
+    `;
 
-        <div class="section">
-          <h2>معلومات الغرفة</h2>
-          <div class="row">
-            <span class="label">رقم الغرفة:</span>
-            <span class="value">${room.number}</span>
-          </div>
-          <div class="row">
-            <span class="label">نوع الغرفة:</span>
-            <span class="value">${room.type}</span>
-          </div>
-          <div class="row">
-            <span class="label">نوع الإيجار:</span>
-            <span class="value">${rentalType === 'daily' ? 'يومي' : 'شهري'}</span>
-          </div>
-        </div>
+    printWindow.document.write(contractHTML);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+    }, 250);
+  };
 
-        <div class="section">
-          <h2>بيانات النزيل</h2>
-          <div class="row">
-            <span class="label">الاسم:</span>
-            <span class="value">${selectedGuest.name}</span>
-          </div>
-          <div class="row">
-            <span class="label">رقم الهاتف:</span>
-            <span class="value">${selectedGuest.phone || '-'}</span>
-          </div>
-          <div class="row">
-            <span class="label">الجنسية:</span>
-            <span class="value">${selectedGuest.nationality || '-'}</span>
-          </div>
-          <div class="row">
-            <span class="label">نوع الهوية:</span>
-            <span class="value">${selectedGuest.idType || '-'}</span>
-          </div>
-          <div class="row">
-            <span class="label">رقم الهوية:</span>
-            <span class="value">${selectedGuest.idNumber || '-'}</span>
-          </div>
-        </div>
-
-        <div class="section">
-          <h2>مدة الإقامة</h2>
-          <div class="row">
-            <span class="label">تاريخ الدخول:</span>
-            <span class="value">${checkInDate} - ${checkInTime}</span>
-          </div>
-          <div class="row">
-            <span class="label">تاريخ الخروج:</span>
-            <span class="value">${checkOutDate} - ${checkOutTime}</span>
-          </div>
-          <div class="row">
-            <span class="label">عدد الأيام:</span>
-            <span class="value">${numberOfDays} يوم</span>
-          </div>
-        </div>
-
-        <div class="financial-summary">
-          <h2>البيانات المالية</h2>
-          <div class="row">
-            <span class="label">السعر اليومي:</span>
-            <span class="value">${dailyRate} ر.س</span>
-          </div>
-          <div class="row">
-            <span class="label">عدد الأيام:</span>
-            <span class="value">${numberOfDays}</span>
-          </div>
-          <div class="row">
-            <span class="label">المبلغ الإجمالي:</span>
-            <span class="value">${totalAmount} ر.س</span>
-          </div>
-          <div class="row">
-            <span class="label">المقبوضات:</span>
-            <span class="value">${totalDeposits} ر.س</span>
+  if (!room) return null;
           </div>
           <div class="total">
             المتبقي: ${remaining} ر.س
@@ -853,7 +1076,56 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                   <tbody>
                     <tr className="border-b border-gray-200">
                       <td className="px-4 py-3 text-sm font-semibold text-gray-600 w-1/3">رقم الشقة</td>
-                      <td className="px-4 py-3 text-gray-900 font-bold">#{room.number}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-900 font-bold">#{room.number}</span>
+                          {(room.status === 'Occupied' || room.status === 'Reserved') && onRoomChange && allRooms && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={async () => {
+                                // عرض الغرف المتاحة فقط
+                                const availableRooms = allRooms.filter(r => r.status === 'Available' && r.id !== room.id);
+                                
+                                if (availableRooms.length === 0) {
+                                  alert('❌ لا توجد غرف متاحة حالياً');
+                                  return;
+                                }
+                                
+                                const roomsList = availableRooms.map(r => `${r.number} - ${r.type}`).join('\\n');
+                                const newRoomNumber = prompt(`تغيير الغرفة من ${room.number}\\n\\nالغرف المتاحة:\\n${roomsList}\\n\\nأدخل رقم الغرفة الجديدة:`);
+                                
+                                if (!newRoomNumber || newRoomNumber === room.number) return;
+                                
+                                // التحقق من أن الغرفة الجديدة متاحة
+                                const targetRoom = allRooms.find(r => r.number === newRoomNumber);
+                                if (!targetRoom) {
+                                  alert('❌ رقم الغرفة غير صحيح');
+                                  return;
+                                }
+                                
+                                if (targetRoom.status !== 'Available') {
+                                  alert('❌ الغرفة المطلوبة غير متاحة');
+                                  return;
+                                }
+                                
+                                if (confirm(`✅ تأكيد النقل\\n\\nسيتم نقل: ${selectedGuest?.name || 'النزيل'}\\nمن غرفة: ${room.number}\\nإلى غرفة: ${newRoomNumber}\\n\\nهل تريد المتابعة؟`)) {
+                                  const success = await onRoomChange(room.id, newRoomNumber);
+                                  if (success) {
+                                    alert(`✅ تم نقل النزيل بنجاح إلى غرفة ${newRoomNumber}`);
+                                    handleClose();
+                                  } else {
+                                    alert('❌ فشل نقل النزيل. حاول مرة أخرى.');
+                                  }
+                                }
+                              }}
+                              className="border-blue-500 text-blue-600 hover:bg-blue-50 font-bold"
+                            >
+                              🔄 تغيير الغرفة
+                            </Button>
+                          )}
+                        </div>
+                      </td>
                     </tr>
                     <tr className="border-b border-gray-200">
                       <td className="px-4 py-3 text-sm font-semibold text-gray-600">نوع الشقة</td>

@@ -1532,6 +1532,115 @@ export default function RoomsPage() {
             alert('حدث خطأ في حفظ التغييرات');
           }
         }}
+        onRoomChange={async (oldRoomId: string, newRoomNumber: string) => {
+          console.log('🔄 نقل النزيل من غرفة إلى أخرى:', oldRoomId, newRoomNumber);
+          
+          if (!user) return false;
+          
+          try {
+            // 1. العثور على الغرفة القديمة والجديدة
+            const oldRoom = rooms.find(r => r.id === oldRoomId);
+            const newRoom = rooms.find(r => r.number === newRoomNumber);
+            
+            if (!oldRoom || !newRoom) {
+              console.error('❌ لم يتم العثور على الغرف');
+              return false;
+            }
+            
+            if (newRoom.status !== 'Available') {
+              console.error('❌ الغرفة الجديدة غير متاحة');
+              return false;
+            }
+            
+            // 2. نسخ بيانات النزيل والحجز من الغرفة القديمة
+            const guestData = {
+              guestName: oldRoom.guestName,
+              guestPhone: oldRoom.guestPhone,
+              guestNationality: oldRoom.guestNationality,
+              guestIdType: oldRoom.guestIdType,
+              guestIdNumber: oldRoom.guestIdNumber,
+              guestIdExpiry: oldRoom.guestIdExpiry,
+              guestEmail: oldRoom.guestEmail,
+              guestWorkPhone: oldRoom.guestWorkPhone,
+              guestAddress: oldRoom.guestAddress,
+              guestNotes: oldRoom.guestNotes,
+              balance: oldRoom.balance,
+              bookingDetails: oldRoom.bookingDetails ? {
+                ...oldRoom.bookingDetails,
+                roomNumber: newRoomNumber // تحديث رقم الغرفة في تفاصيل الحجز
+              } : undefined
+            };
+            
+            // 3. تحديث الغرفة الجديدة بالبيانات
+            const updatedNewRoom: Room = {
+              ...newRoom,
+              ...guestData,
+              status: oldRoom.status, // نفس حالة الغرفة القديمة (Occupied/Reserved)
+              events: [
+                {
+                  id: `event-${Date.now()}`,
+                  type: 'status_change',
+                  description: `تم نقل النزيل ${guestData.guestName} من غرفة ${oldRoom.number}`,
+                  timestamp: new Date().toISOString(),
+                  user: user.name || user.username,
+                  oldValue: oldRoom.number,
+                  newValue: newRoomNumber
+                },
+                ...newRoom.events
+              ],
+              lastUpdated: new Date().toISOString()
+            };
+            
+            // 4. تنظيف الغرفة القديمة
+            const { 
+              guestName, guestPhone, guestNationality, guestIdType, 
+              guestIdNumber, guestIdExpiry, guestEmail, guestWorkPhone, 
+              guestAddress, guestNotes, bookingDetails, ...cleanOldRoom 
+            } = oldRoom;
+            
+            const updatedOldRoom: Room = {
+              ...cleanOldRoom,
+              status: 'NeedsCleaning' as RoomStatus,
+              balance: 0,
+              events: [
+                {
+                  id: `event-${Date.now() + 1}`,
+                  type: 'status_change',
+                  description: `تم نقل النزيل ${guestData.guestName} إلى غرفة ${newRoomNumber}`,
+                  timestamp: new Date().toISOString(),
+                  user: user.name || user.username,
+                  oldValue: 'Occupied',
+                  newValue: 'NeedsCleaning'
+                },
+                ...oldRoom.events
+              ],
+              lastUpdated: new Date().toISOString()
+            };
+            
+            // 5. تحديث قائمة الغرف
+            const updatedRooms = rooms.map(r => {
+              if (r.id === oldRoomId) return updatedOldRoom;
+              if (r.id === newRoom.id) return updatedNewRoom;
+              return r;
+            });
+            
+            // 6. حفظ التغييرات في Firebase
+            await saveRoomToFirebase(updatedOldRoom);
+            await saveRoomToFirebase(updatedNewRoom);
+            
+            // 7. تحديث الحالة
+            setRooms(updatedRooms);
+            setFilteredRooms(updatedRooms);
+            
+            console.log('✅ تم نقل النزيل بنجاح');
+            return true;
+            
+          } catch (error) {
+            console.error('❌ خطأ في نقل النزيل:', error);
+            return false;
+          }
+        }}
+        allRooms={rooms}
       />
 
       {/* زر تحديث الصلاحيات */}
