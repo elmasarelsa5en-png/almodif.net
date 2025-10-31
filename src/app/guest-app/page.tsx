@@ -729,7 +729,7 @@ export default function GuestAppHomePage() {
                         {hotelSettings.hotelNameEn || 'Al Modif Hotel'}
                       </p>
                       <div className="flex items-center gap-2 mb-6">
-                        {[...Array(hotelSettings.rating || 5)].map((_, i) => (
+                        {[...Array(hotelSettings.rating || 3)].map((_, i) => (
                           <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-400" />
                         ))}
                       </div>
@@ -767,7 +767,7 @@ export default function GuestAppHomePage() {
                   >
                     <div className="relative rounded-2xl overflow-hidden shadow-2xl border-2 border-amber-500/30">
                       <img 
-                        src="/hotel-hero.jpg"
+                        src="https://i.postimg.cc/Y0C8hbB4/430459265-122121159980255118-4903926906806453831-n.jpg"
                         alt="Hotel"
                         className="w-full h-[400px] object-cover"
                         onError={(e) => {
