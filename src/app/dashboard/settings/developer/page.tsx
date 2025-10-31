@@ -315,327 +315,489 @@ export default function DeveloperSettingsPage() {
 
         {/* قائمة الإعدادات التقنية - بطاقات سريعة */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-            <Settings2 className="w-6 h-6" />
+          <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+              <Settings2 className="w-5 h-5 text-white" />
+            </div>
             الإعدادات التقنية والأدوات
           </h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* معالج Firebase */}
-            <Card 
-              className="cursor-pointer hover:scale-105 transition-all duration-300 bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-orange-500/20 border-purple-500/30 hover:border-purple-400/50 backdrop-blur-xl"
+            <div 
+              className="group relative cursor-pointer overflow-hidden rounded-2xl bg-gradient-to-br from-purple-600 via-pink-600 to-orange-600 p-[2px] hover:scale-105 transition-all duration-300"
               onClick={() => router.push('/dashboard/settings/firebase-setup')}
             >
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <Wand2 className="w-8 h-8 text-purple-400 mb-2" />
-                  <Badge className="bg-purple-500 text-white">✨ معالج</Badge>
+              <div className="relative h-full bg-slate-900/90 backdrop-blur-xl rounded-2xl p-6">
+                {/* Glow effect */}
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-orange-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"></div>
+                
+                <div className="relative z-10">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/50">
+                      <Wand2 className="w-7 h-7 text-white" />
+                    </div>
+                    <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0">✨ معالج</Badge>
+                  </div>
+                  
+                  <h3 className="text-xl font-bold text-white mb-2 group-hover:text-purple-300 transition-colors">
+                    معالج إعداد Firebase
+                  </h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">
+                    إعداد احترافي خطوة بخطوة مع اختبار الاتصال
+                  </p>
+                  
+                  <div className="mt-4 flex items-center text-purple-400 text-sm font-medium">
+                    <span>فتح المعالج</span>
+                    <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </div>
                 </div>
-                <CardTitle className="text-white">معالج إعداد Firebase</CardTitle>
-                <CardDescription className="text-gray-300">
-                  إعداد احترافي خطوة بخطوة مع اختبار الاتصال
-                </CardDescription>
-              </CardHeader>
-            </Card>
+              </div>
+            </div>
 
             {/* مزامنة البيانات */}
-            <Card 
-              className="cursor-pointer hover:scale-105 transition-all duration-300 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border-cyan-500/30 hover:border-cyan-400/50 backdrop-blur-xl"
+            <div 
+              className="group relative cursor-pointer overflow-hidden rounded-2xl bg-gradient-to-br from-cyan-600 to-blue-600 p-[2px] hover:scale-105 transition-all duration-300"
               onClick={() => router.push('/dashboard/settings/sync')}
             >
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <Cloud className="w-8 h-8 text-cyan-400 mb-2" />
-                  <Badge className="bg-cyan-500 text-white">⭐ مهم</Badge>
+              <div className="relative h-full bg-slate-900/90 backdrop-blur-xl rounded-2xl p-6">
+                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"></div>
+                
+                <div className="relative z-10">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="w-14 h-14 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/50">
+                      <Cloud className="w-7 h-7 text-white" />
+                    </div>
+                    <Badge className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white border-0">⭐ مهم</Badge>
+                  </div>
+                  
+                  <h3 className="text-xl font-bold text-white mb-2 group-hover:text-cyan-300 transition-colors">
+                    مزامنة البيانات
+                  </h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">
+                    المزامنة بين الأجهزة عبر Firebase
+                  </p>
+                  
+                  <div className="mt-4 flex items-center text-cyan-400 text-sm font-medium">
+                    <span>إدارة المزامنة</span>
+                    <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </div>
                 </div>
-                <CardTitle className="text-white">مزامنة البيانات</CardTitle>
-                <CardDescription className="text-gray-300">
-                  المزامنة بين الأجهزة عبر Firebase
-                </CardDescription>
-              </CardHeader>
-            </Card>
+              </div>
+            </div>
 
             {/* الموقع الإلكتروني */}
-            <Card 
-              className="cursor-pointer hover:scale-105 transition-all duration-300 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border-indigo-500/30 hover:border-indigo-400/50 backdrop-blur-xl"
+            <div 
+              className="group relative cursor-pointer overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-600 p-[2px] hover:scale-105 transition-all duration-300"
               onClick={() => router.push('/dashboard/settings/website')}
             >
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <Globe className="w-8 h-8 text-indigo-400 mb-2" />
-                  <ChevronRight className="w-5 h-5 text-gray-400" />
+              <div className="relative h-full bg-slate-900/90 backdrop-blur-xl rounded-2xl p-6">
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"></div>
+                
+                <div className="relative z-10">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/50">
+                      <Globe className="w-7 h-7 text-white" />
+                    </div>
+                  </div>
+                  
+                  <h3 className="text-xl font-bold text-white mb-2 group-hover:text-indigo-300 transition-colors">
+                    الموقع الإلكتروني
+                  </h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">
+                    إنشاء وإدارة موقع الفندق للحجز أونلاين
+                  </p>
+                  
+                  <div className="mt-4 flex items-center text-indigo-400 text-sm font-medium">
+                    <span>إعدادات الموقع</span>
+                    <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </div>
                 </div>
-                <CardTitle className="text-white">الموقع الإلكتروني</CardTitle>
-                <CardDescription className="text-gray-300">
-                  إنشاء وإدارة موقع الفندق للحجز أونلاين
-                </CardDescription>
-              </CardHeader>
-            </Card>
+              </div>
+            </div>
 
             {/* سيرفر WhatsApp */}
-            <Card 
-              className="cursor-pointer hover:scale-105 transition-all duration-300 bg-gradient-to-br from-teal-500/20 to-green-500/20 border-teal-500/30 hover:border-teal-400/50 backdrop-blur-xl"
+            <div 
+              className="group relative cursor-pointer overflow-hidden rounded-2xl bg-gradient-to-br from-teal-600 to-green-600 p-[2px] hover:scale-105 transition-all duration-300"
               onClick={() => router.push('/whatsapp-bot')}
             >
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <ServerCog className="w-8 h-8 text-teal-400 mb-2" />
-                  <ChevronRight className="w-5 h-5 text-gray-400" />
+              <div className="relative h-full bg-slate-900/90 backdrop-blur-xl rounded-2xl p-6">
+                <div className="absolute inset-0 bg-gradient-to-br from-teal-500/20 to-green-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"></div>
+                
+                <div className="relative z-10">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="w-14 h-14 bg-gradient-to-br from-teal-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg shadow-teal-500/50">
+                      <ServerCog className="w-7 h-7 text-white" />
+                    </div>
+                  </div>
+                  
+                  <h3 className="text-xl font-bold text-white mb-2 group-hover:text-teal-300 transition-colors">
+                    سيرفر WhatsApp
+                  </h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">
+                    إدارة الاتصال بـ WhatsApp وإعدادات البوت
+                  </p>
+                  
+                  <div className="mt-4 flex items-center text-teal-400 text-sm font-medium">
+                    <span>إعدادات السيرفر</span>
+                    <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </div>
                 </div>
-                <CardTitle className="text-white">سيرفر WhatsApp</CardTitle>
-                <CardDescription className="text-gray-300">
-                  إدارة الاتصال بـ WhatsApp وإعدادات البوت
-                </CardDescription>
-              </CardHeader>
-            </Card>
+              </div>
+            </div>
 
             {/* مساعد الذكاء الاصطناعي */}
-            <Card 
-              className="cursor-pointer hover:scale-105 transition-all duration-300 bg-gradient-to-br from-yellow-500/20 to-amber-500/20 border-yellow-500/30 hover:border-yellow-400/50 backdrop-blur-xl"
+            <div 
+              className="group relative cursor-pointer overflow-hidden rounded-2xl bg-gradient-to-br from-yellow-600 to-amber-600 p-[2px] hover:scale-105 transition-all duration-300"
               onClick={() => router.push('/crm/whatsapp')}
             >
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <Sparkles className="w-8 h-8 text-yellow-400 mb-2" />
-                  <Badge className="bg-yellow-500 text-white">AI</Badge>
+              <div className="relative h-full bg-slate-900/90 backdrop-blur-xl rounded-2xl p-6">
+                <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/20 to-amber-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"></div>
+                
+                <div className="relative z-10">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="w-14 h-14 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-xl flex items-center justify-center shadow-lg shadow-yellow-500/50">
+                      <Sparkles className="w-7 h-7 text-white" />
+                    </div>
+                    <Badge className="bg-gradient-to-r from-yellow-500 to-amber-500 text-white border-0">AI</Badge>
+                  </div>
+                  
+                  <h3 className="text-xl font-bold text-white mb-2 group-hover:text-yellow-300 transition-colors">
+                    مساعد الذكاء الاصطناعي
+                  </h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">
+                    إعدادات وتدريب مساعد الشات بوت
+                  </p>
+                  
+                  <div className="mt-4 flex items-center text-yellow-400 text-sm font-medium">
+                    <span>تكوين AI</span>
+                    <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </div>
                 </div>
-                <CardTitle className="text-white">مساعد الذكاء الاصطناعي</CardTitle>
-                <CardDescription className="text-gray-300">
-                  إعدادات وتدريب مساعد الشات بوت
-                </CardDescription>
-              </CardHeader>
-            </Card>
+              </div>
+            </div>
 
             {/* إعدادات الأصوات */}
-            <Card 
-              className="cursor-pointer hover:scale-105 transition-all duration-300 bg-gradient-to-br from-orange-500/20 to-red-500/20 border-orange-500/30 hover:border-orange-400/50 backdrop-blur-xl"
+            <div 
+              className="group relative cursor-pointer overflow-hidden rounded-2xl bg-gradient-to-br from-orange-600 to-red-600 p-[2px] hover:scale-105 transition-all duration-300"
               onClick={() => router.push('/dashboard/settings/sound-settings')}
             >
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <Volume2 className="w-8 h-8 text-orange-400 mb-2" />
-                  <ChevronRight className="w-5 h-5 text-gray-400" />
+              <div className="relative h-full bg-slate-900/90 backdrop-blur-xl rounded-2xl p-6">
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"></div>
+                
+                <div className="relative z-10">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/50">
+                      <Volume2 className="w-7 h-7 text-white" />
+                    </div>
+                  </div>
+                  
+                  <h3 className="text-xl font-bold text-white mb-2 group-hover:text-orange-300 transition-colors">
+                    إعدادات الأصوات
+                  </h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">
+                    تخصيص التنبيهات الصوتية للنظام
+                  </p>
+                  
+                  <div className="mt-4 flex items-center text-orange-400 text-sm font-medium">
+                    <span>تخصيص الأصوات</span>
+                    <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </div>
                 </div>
-                <CardTitle className="text-white">إعدادات الأصوات</CardTitle>
-                <CardDescription className="text-gray-300">
-                  تخصيص التنبيهات الصوتية للنظام
-                </CardDescription>
-              </CardHeader>
-            </Card>
+              </div>
+            </div>
 
             {/* نغمات الإشعارات */}
-            <Card 
-              className="cursor-pointer hover:scale-105 transition-all duration-300 bg-gradient-to-br from-orange-500/20 via-red-500/20 to-pink-500/20 border-red-500/30 hover:border-red-400/50 backdrop-blur-xl"
+            <div 
+              className="group relative cursor-pointer overflow-hidden rounded-2xl bg-gradient-to-br from-red-600 via-pink-600 to-rose-600 p-[2px] hover:scale-105 transition-all duration-300"
               onClick={() => router.push('/dashboard/settings/notification-sound')}
             >
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <Bell className="w-8 h-8 text-red-400 mb-2" />
-                  <Badge className="bg-red-500 text-white">🔔</Badge>
+              <div className="relative h-full bg-slate-900/90 backdrop-blur-xl rounded-2xl p-6">
+                <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 via-pink-500/20 to-rose-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"></div>
+                
+                <div className="relative z-10">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="w-14 h-14 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-500/50">
+                      <Bell className="w-7 h-7 text-white" />
+                    </div>
+                    <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white border-0">🔔</Badge>
+                  </div>
+                  
+                  <h3 className="text-xl font-bold text-white mb-2 group-hover:text-red-300 transition-colors">
+                    نغمات الإشعارات
+                  </h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">
+                    نغمة طويلة للطلبات الجديدة
+                  </p>
+                  
+                  <div className="mt-4 flex items-center text-red-400 text-sm font-medium">
+                    <span>إدارة النغمات</span>
+                    <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </div>
                 </div>
-                <CardTitle className="text-white">نغمات الإشعارات</CardTitle>
-                <CardDescription className="text-gray-300">
-                  نغمة طويلة للطلبات الجديدة
-                </CardDescription>
-              </CardHeader>
-            </Card>
+              </div>
+            </div>
 
             {/* إعدادات الإشعارات */}
-            <Card 
-              className="cursor-pointer hover:scale-105 transition-all duration-300 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border-yellow-500/30 hover:border-yellow-400/50 backdrop-blur-xl"
+            <div 
+              className="group relative cursor-pointer overflow-hidden rounded-2xl bg-gradient-to-br from-amber-600 to-orange-600 p-[2px] hover:scale-105 transition-all duration-300"
               onClick={() => router.push('/dashboard/settings/notifications')}
             >
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <Bell className="w-8 h-8 text-yellow-400 mb-2" />
-                  <ChevronRight className="w-5 h-5 text-gray-400" />
+              <div className="relative h-full bg-slate-900/90 backdrop-blur-xl rounded-2xl p-6">
+                <div className="absolute inset-0 bg-gradient-to-br from-amber-500/20 to-orange-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"></div>
+                
+                <div className="relative z-10">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="w-14 h-14 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/50">
+                      <Bell className="w-7 h-7 text-white" />
+                    </div>
+                  </div>
+                  
+                  <h3 className="text-xl font-bold text-white mb-2 group-hover:text-amber-300 transition-colors">
+                    إعدادات الإشعارات
+                  </h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">
+                    تخصيص الإشعارات الذكية وأذونات التنبيهات
+                  </p>
+                  
+                  <div className="mt-4 flex items-center text-amber-400 text-sm font-medium">
+                    <span>تكوين الإشعارات</span>
+                    <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </div>
                 </div>
-                <CardTitle className="text-white">إعدادات الإشعارات</CardTitle>
-                <CardDescription className="text-gray-300">
-                  تخصيص الإشعارات الذكية وأذونات التنبيهات
-                </CardDescription>
-              </CardHeader>
-            </Card>
+              </div>
+            </div>
 
             {/* سجل التدقيق */}
-            <Card 
-              className="cursor-pointer hover:scale-105 transition-all duration-300 bg-gradient-to-br from-gray-500/20 to-slate-500/20 border-gray-500/30 hover:border-gray-400/50 backdrop-blur-xl"
+            <div 
+              className="group relative cursor-pointer overflow-hidden rounded-2xl bg-gradient-to-br from-gray-600 to-slate-600 p-[2px] hover:scale-105 transition-all duration-300"
               onClick={() => router.push('/dashboard/audit-logs')}
             >
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <FileText className="w-8 h-8 text-gray-400 mb-2" />
-                  <ChevronRight className="w-5 h-5 text-gray-400" />
+              <div className="relative h-full bg-slate-900/90 backdrop-blur-xl rounded-2xl p-6">
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-500/20 to-slate-500/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"></div>
+                
+                <div className="relative z-10">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="w-14 h-14 bg-gradient-to-br from-gray-500 to-slate-600 rounded-xl flex items-center justify-center shadow-lg shadow-gray-500/50">
+                      <FileText className="w-7 h-7 text-white" />
+                    </div>
+                  </div>
+                  
+                  <h3 className="text-xl font-bold text-white mb-2 group-hover:text-gray-300 transition-colors">
+                    سجل التدقيق
+                  </h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">
+                    جميع العمليات المسجلة في النظام
+                  </p>
+                  
+                  <div className="mt-4 flex items-center text-gray-400 text-sm font-medium">
+                    <span>عرض السجلات</span>
+                    <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </div>
                 </div>
-                <CardTitle className="text-white">سجل التدقيق</CardTitle>
-                <CardDescription className="text-gray-300">
-                  جميع العمليات المسجلة في النظام
-                </CardDescription>
-              </CardHeader>
-            </Card>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* قسم إدارة المحتوى */}
-        <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-          <Layout className="w-6 h-6" />
+        <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center">
+            <Layout className="w-5 h-5 text-white" />
+          </div>
           إدارة المحتوى والواجهة
         </h2>
 
         {/* Tabs */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* قسم إدارة صور السلايدر */}
-          <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <ImageIcon className="w-6 h-6 text-blue-400" />
-              <h2 className="text-2xl font-bold text-white">إدارة صور الصفحة الرئيسية</h2>
-            </div>
-
-            {/* Upload Section */}
-            <div className="mb-6">
-              <label className="block mb-2">
-                <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6 text-center cursor-pointer hover:from-blue-700 hover:to-purple-700 transition-all">
-                  <Upload className="w-8 h-8 text-white mx-auto mb-2" />
-                  <p className="text-white font-medium">اضغط لرفع صور جديدة</p>
-                  <p className="text-blue-100 text-sm mt-1">يمكنك رفع عدة صور في نفس الوقت</p>
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600/20 to-purple-600/20 p-[2px]">
+            <div className="bg-slate-900/90 backdrop-blur-xl rounded-2xl p-6 h-full">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                  <ImageIcon className="w-6 h-6 text-white" />
                 </div>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                  disabled={uploading}
-                />
-              </label>
-              {uploading && (
-                <p className="text-center text-blue-300 mt-2">جاري الرفع...</p>
-              )}
-            </div>
+                <h2 className="text-2xl font-bold text-white">إدارة صور الصفحة الرئيسية</h2>
+              </div>
 
-            {/* Images Grid */}
-            <div className="space-y-4 max-h-96 overflow-y-auto">
-              {sliderImages.length === 0 ? (
-                <p className="text-center text-gray-400 py-8">لا توجد صور حالياً</p>
-              ) : (
-                sliderImages.map((image, index) => (
-                  <div
-                    key={image.id}
-                    className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-center gap-4 hover:bg-white/10 transition-all"
-                  >
-                    <GripVertical className="w-5 h-5 text-gray-400 cursor-move" />
-                    <img
-                      src={image.url}
-                      alt={`Slide ${index + 1}`}
-                      className="w-24 h-16 object-cover rounded-lg"
-                    />
-                    <div className="flex-1">
-                      <p className="text-white font-medium">صورة رقم {index + 1}</p>
-                      <p className="text-gray-400 text-sm">
-                        {new Date(image.uploadedAt).toLocaleDateString('ar-EG')}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => handleDeleteImage(image)}
-                      className="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-all"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
+              {/* Upload Section */}
+              <div className="mb-6">
+                <label className="block mb-2">
+                  <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-8 text-center cursor-pointer hover:from-blue-700 hover:to-purple-700 transition-all group">
+                    <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <Upload className="w-10 h-10 text-white mx-auto mb-3" />
+                    <p className="text-white font-bold text-lg">اضغط لرفع صور جديدة</p>
+                    <p className="text-blue-100 text-sm mt-2">يمكنك رفع عدة صور في نفس الوقت</p>
                   </div>
-                ))
-              )}
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    disabled={uploading}
+                  />
+                </label>
+                {uploading && (
+                  <div className="text-center mt-3">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                    <p className="text-blue-300 mt-2 font-medium">جاري الرفع...</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Images Grid */}
+              <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
+                {sliderImages.length === 0 ? (
+                  <div className="text-center py-12">
+                    <ImageIcon className="w-16 h-16 text-gray-600 mx-auto mb-3" />
+                    <p className="text-gray-400 font-medium">لا توجد صور حالياً</p>
+                    <p className="text-gray-500 text-sm mt-1">ابدأ برفع أول صورة</p>
+                  </div>
+                ) : (
+                  sliderImages.map((image, index) => (
+                    <div
+                      key={image.id}
+                      className="group bg-white/5 border border-white/10 rounded-xl p-4 flex items-center gap-4 hover:bg-white/10 hover:border-white/20 transition-all"
+                    >
+                      <GripVertical className="w-5 h-5 text-gray-500 cursor-move group-hover:text-gray-300 transition-colors" />
+                      <img
+                        src={image.url}
+                        alt={`Slide ${index + 1}`}
+                        className="w-28 h-20 object-cover rounded-lg shadow-lg"
+                      />
+                      <div className="flex-1">
+                        <p className="text-white font-bold">صورة رقم {index + 1}</p>
+                        <p className="text-gray-400 text-sm mt-1">
+                          {new Date(image.uploadedAt).toLocaleDateString('ar-EG', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteImage(image)}
+                        className="p-2.5 bg-red-500/20 hover:bg-red-500/40 text-red-400 hover:text-red-300 rounded-lg transition-all"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
 
           {/* قسم التحكم في القائمة الجانبية */}
-          <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <Layout className="w-6 h-6 text-purple-400" />
-              <h2 className="text-2xl font-bold text-white">التحكم في القائمة الجانبية</h2>
-            </div>
-
-            {/* Hotel Selector */}
-            <div className="mb-6">
-              <label className="block text-white mb-2 font-medium">اختر الفندق:</label>
-              <select
-                value={selectedHotel}
-                onChange={(e) => setSelectedHotel(e.target.value)}
-                className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white"
-              >
-                <option value="">-- اختر فندق --</option>
-                {hotelSettings.map(hotel => (
-                  <option key={hotel.hotelId} value={hotel.hotelId}>
-                    {hotel.hotelName}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Sidebar Items */}
-            {currentHotelSettings && (
-              <div className="space-y-3 max-h-96 overflow-y-auto mb-6">
-                {currentHotelSettings.items.map(item => (
-                  <div
-                    key={item.id}
-                    className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-center justify-between hover:bg-white/10 transition-all"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{item.icon}</span>
-                      <span className="text-white font-medium">{item.name}</span>
-                    </div>
-                    <button
-                      onClick={() => handleToggleSidebarItem(item.id)}
-                      className={`p-2 rounded-lg transition-all ${
-                        item.enabled
-                          ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
-                          : 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
-                      }`}
-                    >
-                      {item.enabled ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
-                    </button>
-                  </div>
-                ))}
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-600/20 to-pink-600/20 p-[2px]">
+            <div className="bg-slate-900/90 backdrop-blur-xl rounded-2xl p-6 h-full">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
+                  <Layout className="w-6 h-6 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-white">التحكم في القائمة الجانبية</h2>
               </div>
-            )}
 
-            {/* Save Button */}
-            {selectedHotel && (
-              <button
-                onClick={handleSaveHotelSettings}
-                disabled={saving}
-                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-medium py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50"
-              >
-                <Save className="w-5 h-5" />
-                {saving ? 'جاري الحفظ...' : 'حفظ التغييرات'}
-              </button>
-            )}
+              {/* Hotel Selector */}
+              <div className="mb-6">
+                <label className="block text-white mb-3 font-bold text-sm">اختر الفندق:</label>
+                <select
+                  value={selectedHotel}
+                  onChange={(e) => setSelectedHotel(e.target.value)}
+                  className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white font-medium focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all"
+                >
+                  <option value="" className="bg-slate-800">-- اختر فندق --</option>
+                  {hotelSettings.map(hotel => (
+                    <option key={hotel.hotelId} value={hotel.hotelId} className="bg-slate-800">
+                      {hotel.hotelName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Sidebar Items */}
+              {currentHotelSettings && (
+                <div className="space-y-3 max-h-96 overflow-y-auto mb-6 pr-2">
+                  {currentHotelSettings.items.map(item => (
+                    <div
+                      key={item.id}
+                      className="group bg-white/5 border border-white/10 rounded-xl p-4 flex items-center justify-between hover:bg-white/10 hover:border-white/20 transition-all"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-3xl">{item.icon}</span>
+                        <span className="text-white font-bold">{item.name}</span>
+                      </div>
+                      <button
+                        onClick={() => handleToggleSidebarItem(item.id)}
+                        className={`p-2.5 rounded-lg transition-all ${
+                          item.enabled
+                            ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
+                            : 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
+                        }`}
+                      >
+                        {item.enabled ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Save Button */}
+              {selectedHotel && (
+                <button
+                  onClick={handleSaveHotelSettings}
+                  disabled={saving}
+                  className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-3 transition-all disabled:opacity-50 shadow-lg hover:shadow-xl"
+                >
+                  <Save className="w-5 h-5" />
+                  {saving ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Additional Settings Section */}
-        <div className="mt-8 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <Settings2 className="w-6 h-6 text-indigo-400" />
-            <h2 className="text-2xl font-bold text-white">إعدادات إضافية للمطور</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center hover:bg-white/10 transition-all cursor-pointer">
-              <div className="text-3xl mb-2">🗄️</div>
-              <h3 className="text-white font-medium mb-1">إدارة قاعدة البيانات</h3>
-              <p className="text-gray-400 text-sm">قريباً...</p>
+        <div className="mt-8 relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600/20 to-purple-600/20 p-[2px]">
+          <div className="bg-slate-900/90 backdrop-blur-xl rounded-2xl p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                <Settings2 className="w-6 h-6 text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-white">إعدادات إضافية للمطور</h2>
             </div>
 
-            <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center hover:bg-white/10 transition-all cursor-pointer">
-              <div className="text-3xl mb-2">📊</div>
-              <h3 className="text-white font-medium mb-1">سجلات النظام</h3>
-              <p className="text-gray-400 text-sm">قريباً...</p>
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="group relative overflow-hidden bg-white/5 border border-white/10 rounded-xl p-6 text-center hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative z-10">
+                  <div className="text-5xl mb-3">🗄️</div>
+                  <h3 className="text-white font-bold text-lg mb-2">إدارة قاعدة البيانات</h3>
+                  <p className="text-gray-400 text-sm mb-3">استعراض وإدارة البيانات مباشرة</p>
+                  <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">قريباً...</Badge>
+                </div>
+              </div>
 
-            <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center hover:bg-white/10 transition-all cursor-pointer">
-              <div className="text-3xl mb-2">🔧</div>
-              <h3 className="text-white font-medium mb-1">أدوات التطوير</h3>
-              <p className="text-gray-400 text-sm">قريباً...</p>
+              <div className="group relative overflow-hidden bg-white/5 border border-white/10 rounded-xl p-6 text-center hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer">
+                <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-teal-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative z-10">
+                  <div className="text-5xl mb-3">📊</div>
+                  <h3 className="text-white font-bold text-lg mb-2">سجلات النظام</h3>
+                  <p className="text-gray-400 text-sm mb-3">تتبع جميع عمليات النظام</p>
+                  <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">قريباً...</Badge>
+                </div>
+              </div>
+
+              <div className="group relative overflow-hidden bg-white/5 border border-white/10 rounded-xl p-6 text-center hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer">
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative z-10">
+                  <div className="text-5xl mb-3">🔧</div>
+                  <h3 className="text-white font-bold text-lg mb-2">أدوات التطوير</h3>
+                  <p className="text-gray-400 text-sm mb-3">أدوات مساعدة للمطورين</p>
+                  <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">قريباً...</Badge>
+                </div>
+              </div>
             </div>
           </div>
         </div>

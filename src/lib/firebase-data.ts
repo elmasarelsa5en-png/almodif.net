@@ -138,6 +138,10 @@ export interface GuestRequest {
   id: string;
   room: string;
   guest: string;
+  guestName?: string;
+  roomNumber?: string;
+  employeeId?: string;
+  employeeName?: string;
   type: string;
   description?: string;
   notes?: string;
