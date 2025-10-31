@@ -699,79 +699,28 @@ export default function GuestAppHomePage() {
           </div>
         ) : (
           <>
-            {/* Hero Section with Image */}
+            {/* Compact Hero + Services Section */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.8 }}
-              className="mb-12"
+              className="mb-8"
             >
-              <div className="relative bg-gradient-to-r from-slate-800/50 to-slate-900/50 backdrop-blur-xl rounded-3xl overflow-hidden border border-amber-500/20 shadow-2xl">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8 lg:p-12 items-center">
-                  {/* Text Content */}
-                  <div className="order-2 lg:order-1">
-                    <motion.div
-                      initial={{ opacity: 0, x: -50 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.4, duration: 0.8 }}
-                    >
-                      {hotelSettings.logo && (
-                        <img 
-                          src={hotelSettings.logo} 
-                          alt="Logo" 
-                          className="h-16 mb-6 drop-shadow-lg"
-                        />
-                      )}
-                      <h1 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-100 to-amber-200 mb-4">
-                        {hotelSettings.hotelName || 'فندق المضيف'}
-                      </h1>
-                      <p className="text-xl text-amber-400/80 mb-6 font-medium">
-                        {hotelSettings.hotelNameEn || 'Al Modif Hotel'}
-                      </p>
-                      <div className="flex items-center gap-2 mb-6">
-                        {[...Array(hotelSettings.rating || 3)].map((_, i) => (
-                          <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-400" />
-                        ))}
-                      </div>
-                      <p className="text-lg text-slate-300 mb-8 leading-relaxed">
-                        {hotelSettings.welcomeMessage || 'مرحباً بك في فندق المضيف'}
-                      </p>
-                      {guestSession && (
-                        <div className="bg-white/5 backdrop-blur-md border border-amber-500/20 rounded-xl p-4 mb-6">
-                          <div className="flex items-center gap-3 text-white">
-                            <User className="w-5 h-5 text-amber-400" />
-                            <div>
-                              <p className="font-semibold">{guestSession.name}</p>
-                              <p className="text-sm text-slate-400">الغرفة: {guestSession.roomNumber}</p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      <div className="flex flex-wrap gap-3">
-                        {hotelSettings.amenities?.slice(0, 4).map((amenity, i) => (
-                          <div key={i} className="flex items-center gap-2 bg-white/5 backdrop-blur-md px-4 py-2 rounded-full border border-amber-500/20">
-                            <Sparkles className="w-4 h-4 text-amber-400" />
-                            <span className="text-sm text-slate-300">{amenity}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </motion.div>
-                  </div>
-
-                  {/* Hotel Image */}
+              <div className="relative bg-gradient-to-r from-slate-800/50 to-slate-900/50 backdrop-blur-xl rounded-3xl overflow-hidden border border-amber-500/20 shadow-2xl p-6">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                  {/* Left Side - Hotel Image */}
                   <motion.div
-                    initial={{ opacity: 0, x: 50 }}
+                    initial={{ opacity: 0, x: -50 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.5, duration: 0.8 }}
-                    className="order-1 lg:order-2 relative"
+                    transition={{ delay: 0.3, duration: 0.8 }}
+                    className="lg:col-span-5"
                   >
                     <div className="relative rounded-2xl overflow-hidden shadow-2xl border-2 border-amber-500/30">
                       <img 
                         src="/images/hotel-exterior.jpg"
                         alt="Hotel"
-                        className="w-full h-[400px] object-cover"
+                        className="w-full h-[350px] object-cover"
                         onError={(e) => {
-                          // Fallback to beautiful gradient if image not found
                           const target = e.currentTarget as HTMLImageElement;
                           target.style.display = 'none';
                           const fallback = target.nextElementSibling as HTMLElement;
@@ -779,125 +728,188 @@ export default function GuestAppHomePage() {
                             fallback.classList.remove('hidden');
                             fallback.classList.add('flex');
                           }
-                          console.log('Hero image failed to load');
-                        }}
-                        onLoad={() => {
-                          console.log('Hero image loaded successfully');
                         }}
                       />
                       <div className="hidden absolute inset-0 bg-gradient-to-br from-amber-500/30 via-purple-500/30 to-blue-500/30 backdrop-blur-sm items-center justify-center">
                         <div className="text-center">
                           <div className="text-8xl mb-4">🏨</div>
                           <p className="text-white text-2xl font-bold">فندق المضيف</p>
-                          <p className="text-amber-300 text-lg">Al Modif Hotel</p>
                         </div>
                       </div>
                       
                       {/* Badge Overlay */}
-                      <div className="absolute top-4 left-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-full font-bold shadow-lg flex items-center gap-2">
-                        <Sparkles className="w-4 h-4" />
+                      <div className="absolute top-3 left-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-1.5 rounded-full font-bold shadow-lg flex items-center gap-1.5 text-sm">
+                        <Sparkles className="w-3.5 h-3.5" />
                         خصم 50%
                       </div>
                       
-                      {/* Bottom Info */}
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
-                        <p className="text-white font-semibold text-lg mb-2">احجز الآن واستمتع بتجربة فريدة</p>
-                        <p className="text-slate-300 text-sm">Relax with us by creating beautiful memories</p>
+                      {/* Hotel Info Overlay */}
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-4">
+                        {hotelSettings.logo && (
+                          <img src={hotelSettings.logo} alt="Logo" className="h-10 mb-2 drop-shadow-lg" />
+                        )}
+                        <h1 className="text-2xl font-bold text-amber-200 mb-1">
+                          {hotelSettings.hotelName || 'فندق المضيف'}
+                        </h1>
+                        <div className="flex items-center gap-1.5 mb-2">
+                          {[...Array(hotelSettings.rating || 3)].map((_, i) => (
+                            <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                          ))}
+                        </div>
+                        {guestSession && (
+                          <div className="flex items-center gap-2 text-white text-sm">
+                            <User className="w-4 h-4 text-amber-400" />
+                            <span>{guestSession.name} - الغرفة: {guestSession.roomNumber}</span>
+                          </div>
+                        )}
                       </div>
+                    </div>
+                  </motion.div>
+
+                  {/* Right Side - Services Grid */}
+                  <motion.div
+                    initial={{ opacity: 0, x: 50 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.4, duration: 0.8 }}
+                    className="lg:col-span-7"
+                  >
+                    <h2 className="text-2xl font-bold text-amber-200 mb-4 flex items-center gap-2">
+                      <Sparkles className="w-6 h-6 text-amber-400" />
+                      خدمات التطبيق
+                    </h2>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {enabledServices.map((service, index) => (
+                        <motion.div
+                          key={service.id}
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: 0.1 * index, duration: 0.3 }}
+                          whileHover={{ scale: 1.05, y: -5 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <Card
+                            onClick={() => handleServiceClick(service)}
+                            className="relative bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-xl border-amber-500/30 hover:border-amber-400/60 transition-all duration-300 cursor-pointer group overflow-hidden shadow-lg hover:shadow-xl hover:shadow-amber-500/20 h-full"
+                          >
+                            <CardContent className="p-4 relative z-10">
+                              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${service.color} flex items-center justify-center mb-3 shadow-lg`}>
+                                <service.icon className="w-6 h-6 text-white" />
+                              </div>
+                              <h3 className="text-base font-bold text-amber-100 mb-1 line-clamp-1">
+                                {service.title}
+                              </h3>
+                              <p className="text-xs text-slate-400 line-clamp-2 mb-2">
+                                {service.description}
+                              </p>
+                              <div className="flex items-center gap-1 text-amber-400">
+                                <span className="text-xs">اضغط للدخول</span>
+                                <motion.div
+                                  animate={{ x: [0, 5, 0] }}
+                                  transition={{ duration: 1.5, repeat: Infinity }}
+                                >
+                                  ←
+                                </motion.div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      ))}
                     </div>
                   </motion.div>
                 </div>
               </div>
             </motion.div>
 
-            {/* Services Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
-              {enabledServices.map((service, index) => (
-                <motion.div
-                  key={service.id}
-                  initial={{ opacity: 0, scale: 0.8, y: 50 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  transition={{ 
-                    delay: 0.1 * index,
-                    duration: 0.5,
-                    type: "spring",
-                    stiffness: 100,
-                  }}
-                  whileHover={{ 
-                    scale: 1.05,
-                    rotateZ: 2,
-                    transition: { duration: 0.2 }
-                  }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Card 
-                    onClick={() => handleServiceClick(service)}
-                    className="relative bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-xl border-amber-500/30 hover:border-amber-400/60 transition-all duration-300 cursor-pointer group overflow-hidden shadow-xl hover:shadow-2xl hover:shadow-amber-500/30"
+            {/* Additional Services - If any overflow */}
+            {enabledServices.length > 6 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto mt-8">
+                {enabledServices.slice(6).map((service, index) => (
+                  <motion.div
+                    key={service.id}
+                    initial={{ opacity: 0, scale: 0.8, y: 50 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ 
+                      delay: 0.1 * index,
+                      duration: 0.5,
+                      type: "spring",
+                      stiffness: 100,
+                    }}
+                    whileHover={{ 
+                      scale: 1.05,
+                      rotateZ: 2,
+                      transition: { duration: 0.2 }
+                    }}
+                    whileTap={{ scale: 0.95 }}
                   >
-                    {/* تأثير التوهج عند المرور */}
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-400/10 to-transparent"
-                      initial={{ x: '-100%' }}
-                      whileHover={{ x: '100%' }}
-                      transition={{ duration: 0.6 }}
-                    />
-                    
-                    {/* زخرفة في الزاوية */}
-                    <div className="absolute top-0 right-0 w-20 h-20 bg-amber-500/5 rounded-bl-full" />
-                    
-                    <CardContent className="p-6 relative z-10">
-                      <motion.div 
-                        className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${service.color} flex items-center justify-center mb-4 shadow-xl border-2 border-amber-400/30 relative overflow-hidden`}
-                        whileHover={{ rotate: 360 }}
-                        transition={{ duration: 0.8 }}
-                      >
-                        {/* توهج داخلي */}
-                        <motion.div
-                          className="absolute inset-0 bg-white/20"
-                          animate={{
-                            scale: [1, 1.5, 1],
-                            opacity: [0, 0.5, 0],
-                          }}
-                          transition={{
-                            duration: 2,
-                            repeat: Infinity,
-                            ease: "easeInOut",
-                          }}
-                        />
-                        <service.icon className="w-8 h-8 text-white drop-shadow-lg relative z-10" />
-                      </motion.div>
-                      
-                      <motion.h3
-                        className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-100 mb-2"
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.2 + index * 0.1 }}
-                      >
-                        {service.title}
-                      </motion.h3>
-                      <p className="text-sm text-slate-300 mb-3">
-                        {service.description}
-                      </p>
-                      <p className="text-xs text-amber-400/70 font-medium">
-                        {service.titleEn}
-                      </p>
-                      
-                      {/* سهم التنقل */}
+                    <Card 
+                      onClick={() => handleServiceClick(service)}
+                      className="relative bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-xl border-amber-500/30 hover:border-amber-400/60 transition-all duration-300 cursor-pointer group overflow-hidden shadow-xl hover:shadow-2xl hover:shadow-amber-500/30"
+                    >
+                      {/* تأثير التوهج عند المرور */}
                       <motion.div
-                        className="absolute bottom-4 left-4 w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center opacity-0 group-hover:opacity-100"
-                        initial={{ x: -10 }}
-                        whileHover={{ x: 0 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <svg className="w-4 h-4 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
-                      </motion.div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-400/10 to-transparent"
+                        initial={{ x: '-100%' }}
+                        whileHover={{ x: '100%' }}
+                        transition={{ duration: 0.6 }}
+                      />
+                      
+                      {/* زخرفة في الزاوية */}
+                      <div className="absolute top-0 right-0 w-20 h-20 bg-amber-500/5 rounded-bl-full" />
+                      
+                      <CardContent className="p-6 relative z-10">
+                        <motion.div 
+                          className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${service.color} flex items-center justify-center mb-4 shadow-xl border-2 border-amber-400/30 relative overflow-hidden`}
+                          whileHover={{ rotate: 360 }}
+                          transition={{ duration: 0.8 }}
+                        >
+                          {/* توهج داخلي */}
+                          <motion.div
+                            className="absolute inset-0 bg-white/20"
+                            animate={{
+                              scale: [1, 1.5, 1],
+                              opacity: [0, 0.5, 0],
+                            }}
+                            transition={{
+                              duration: 2,
+                              repeat: Infinity,
+                              ease: "easeInOut",
+                            }}
+                          />
+                          <service.icon className="w-8 h-8 text-white drop-shadow-lg relative z-10" />
+                        </motion.div>
+                        
+                        <motion.h3
+                          className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-100 mb-2"
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.2 + index * 0.1 }}
+                        >
+                          {service.title}
+                        </motion.h3>
+                        <p className="text-sm text-slate-300 mb-3">
+                          {service.description}
+                        </p>
+                        <p className="text-xs text-amber-400/70 font-medium">
+                          {service.titleEn}
+                        </p>
+                        
+                        {/* سهم التنقل */}
+                        <motion.div
+                          className="absolute bottom-4 left-4 w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center opacity-0 group-hover:opacity-100"
+                          initial={{ x: -10 }}
+                          whileHover={{ x: 0 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <svg className="w-4 h-4 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                          </svg>
+                        </motion.div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </>
         )}
 
