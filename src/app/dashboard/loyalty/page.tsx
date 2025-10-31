@@ -134,18 +134,39 @@ export default function LoyaltyProgramPage() {
 
   const handleCreateMember = async () => {
     try {
+      // التحقق من البيانات المطلوبة
+      if (!newMemberForm.guestId || !newMemberForm.guestName || !newMemberForm.guestPhone) {
+        alert('الرجاء ملء جميع الحقول المطلوبة');
+        return;
+      }
+
       await createLoyaltyMembership({
         guestId: newMemberForm.guestId,
         guestName: newMemberForm.guestName,
-        guestEmail: newMemberForm.guestEmail,
+        guestEmail: newMemberForm.guestEmail || undefined,
         guestPhone: newMemberForm.guestPhone,
+        // القيم الافتراضية
+        tier: 'bronze',
+        totalPoints: 0,
+        availablePoints: 0,
+        redeemedPoints: 0,
+        expiredPoints: 0,
+        totalBookings: 0,
+        totalSpent: 0,
+        totalNights: 0,
+        joinDate: new Date(),
+        isActive: true,
+        isSuspended: false,
+        createdBy: user?.uid || 'system',
+        createdByName: user?.displayName || user?.email || 'نظام',
       });
       setShowNewMemberDialog(false);
       setNewMemberForm({ guestId: '', guestName: '', guestEmail: '', guestPhone: '' });
       await loadData();
+      alert('تم إنشاء العضوية بنجاح! 🎉');
     } catch (error) {
       console.error('Error creating member:', error);
-      alert('حدث خطأ في إنشاء العضوية');
+      alert('حدث خطأ في إنشاء العضوية: ' + (error as Error).message);
     }
   };
 
