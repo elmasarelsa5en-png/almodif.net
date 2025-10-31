@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import Image from 'next/image';
 
 interface ContractSettings {
@@ -88,7 +89,51 @@ export default function ContractSettingsPage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
+  // رفع الشعار إلى Firebase Storage
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // التحقق من نوع الملف
+    if (!file.type.startsWith('image/')) {
+      setMessage({ type: 'error', text: '❌ يرجى اختيار صورة فقط!' });
+      return;
+    }
+
+    // التحقق من حجم الملف (أقل من 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      setMessage({ type: 'error', text: '❌ حجم الصورة كبير جداً! يجب أن يكون أقل من 2 ميجا.' });
+      return;
+    }
+
+    setUploading(true);
+    setMessage({ type: 'success', text: '⏳ جاري رفع الشعار...' });
+
+    try {
+      const storage = getStorage();
+      const storageRef = ref(storage, `contract-logos/${Date.now()}-${file.name}`);
+      
+      // رفع الملف
+      await uploadBytes(storageRef, file);
+      
+      // الحصول على رابط التحميل
+      const downloadURL = await getDownloadURL(storageRef);
+      
+      // تحديث الحالة
+      setSettings({ ...settings, logoUrl: downloadURL });
+      setMessage({ type: 'success', text: '✅ تم رفع الشعار بنجاح! لا تنسى حفظ الإعدادات.' });
+      
+      console.log('✅ تم رفع الشعار:', downloadURL);
+    } catch (error) {
+      console.error('❌ خطأ في رفع الشعار:', error);
+      setMessage({ type: 'error', text: '❌ فشل رفع الشعار. حاول مرة أخرى.' });
+    } finally {
+      setUploading(false);
+    }
+  };
 
   // تحميل الإعدادات من Firebase
   useEffect(() => {
@@ -322,32 +367,62 @@ export default function ContractSettingsPage() {
               <Upload className="h-4 w-4" />
               شعار الفندق
             </Label>
-            <div className="flex items-center gap-4">
-              <div className="flex-1">
-                <Input
-                  id="logoUrl"
-                  type="url"
-                  value={settings.logoUrl}
-                  onChange={(e) => setSettings({ ...settings, logoUrl: e.target.value })}
-                  placeholder="رابط الشعار (يمكنك رفعه على Firebase Storage أو استخدام رابط مباشر)"
-                  dir="ltr"
+            
+            <div className="space-y-4">
+              {/* زر رفع الصورة */}
+              <div className="flex items-center gap-3">
+                <input
+                  type="file"
+                  id="logo-upload"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  className="hidden"
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  💡 يمكنك استخدام: /almodif-logo.png أو رابط مباشر من الإنترنت
-                </p>
+                <Button
+                  type="button"
+                  onClick={() => document.getElementById('logo-upload')?.click()}
+                  disabled={uploading}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                >
+                  <Upload className="h-4 w-4 ml-2" />
+                  {uploading ? 'جاري الرفع...' : 'رفع شعار من الجهاز'}
+                </Button>
+                
+                {settings.logoUrl && (
+                  <div className="flex-1 px-4 py-2 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
+                    ✅ تم رفع الشعار بنجاح
+                  </div>
+                )}
               </div>
-              {settings.logoUrl && (
-                <div className="w-32 h-20 border-2 border-gray-200 rounded-lg overflow-hidden flex items-center justify-center bg-gray-50">
-                  <img 
-                    src={settings.logoUrl} 
-                    alt="معاينة الشعار" 
-                    className="max-w-full max-h-full object-contain"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = '/almodif-logo.png';
-                    }}
+              
+              {/* أو إدخال رابط مباشر */}
+              <div className="flex items-center gap-4">
+                <div className="flex-1">
+                  <Label htmlFor="logoUrl" className="text-xs text-gray-500 mb-1">
+                    أو أدخل رابط مباشر للشعار
+                  </Label>
+                  <Input
+                    id="logoUrl"
+                    type="url"
+                    value={settings.logoUrl}
+                    onChange={(e) => setSettings({ ...settings, logoUrl: e.target.value })}
+                    placeholder="https://example.com/logo.png"
+                    dir="ltr"
                   />
                 </div>
-              )}
+                {settings.logoUrl && (
+                  <div className="w-32 h-20 border-2 border-gray-200 rounded-lg overflow-hidden flex items-center justify-center bg-gray-50">
+                    <img 
+                      src={settings.logoUrl} 
+                      alt="معاينة الشعار" 
+                      className="max-w-full max-h-full object-contain"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/almodif-logo.png';
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </CardContent>
