@@ -500,6 +500,13 @@ const navigationItems: NavigationItem[] = [
     permission: 'view_reports',
   },
   {
+    icon: BarChart3,
+    labelKey: 'advancedReports',
+    descKey: 'advancedReportsDesc',
+    href: '/dashboard/advanced-reports',
+    permission: 'view_reports',
+  },
+  {
     icon: Clock,
     labelKey: 'scheduledReports',
     descKey: 'scheduledReportsDesc',

@@ -41,6 +41,8 @@ const ar = {
   guestSegmentationDesc: 'تصنيف ذكي واستراتيجيات مستهدفة',
   reportBuilder: 'منشئ التقارير',
   reportBuilderDesc: 'تقارير مخصصة مع فلاتر متقدمة',
+  advancedReports: 'التقارير المتقدمة',
+  advancedReportsDesc: 'تقارير ديناميكية مع تحليلات',
   scheduledReports: 'التقارير المجدولة',
   scheduledReportsDesc: 'جدولة تلقائية وإرسال بريدي',
   notificationsDashboard: 'لوحة الإشعارات',
