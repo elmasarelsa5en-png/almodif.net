@@ -42,6 +42,7 @@ import {
   Receipt, // أيقونة سندات القبض
   DollarSign, // خزنة النقد
   Package, // العمولات
+  FileText as ExpenseVoucher, // سندات الصرف
   UserCheck, // إحصائيات الموظفين
   Lock, // الحجوزات المفتوحة
   Wrench, // تغيير الشقق
@@ -179,13 +180,6 @@ const navigationItems: NavigationItem[] = [
         permission: 'view_invoices',
       },
       {
-        icon: Receipt,
-        labelKey: 'receipts',
-        descKey: 'receiptsDesc',
-        href: '/dashboard/accounting/receipts',
-        permission: 'view_receipts',
-      },
-      {
         icon: TrendingDown,
         labelKey: 'expensesAndCosts',
         descKey: 'expensesAndCostsDesc',
@@ -213,6 +207,43 @@ const navigationItems: NavigationItem[] = [
         href: '/dashboard/accounting/import-summary',
         permission: 'view_financial_reports',
       }
+    ]
+  },
+  {
+    icon: Receipt,
+    labelKey: 'vouchers',
+    descKey: 'vouchersDesc',
+    href: '/dashboard/vouchers',
+    permission: 'view_dashboard',
+    subItems: [
+      {
+        icon: Receipt,
+        labelKey: 'receipts',
+        descKey: 'receiptsDesc',
+        href: '/dashboard/accounting/receipts',
+        permission: 'view_receipts',
+      },
+      {
+        icon: DollarSign,
+        labelKey: 'expenseVouchers',
+        descKey: 'expenseVouchersDesc',
+        href: '/dashboard/expenses',
+        permission: 'view_expense_vouchers',
+      },
+      {
+        icon: FileText,
+        labelKey: 'promissoryNotes',
+        descKey: 'promissoryNotesDesc',
+        href: '/dashboard/vouchers/promissory-notes',
+        permission: 'view_payments',
+      },
+      {
+        icon: CreditCard,
+        labelKey: 'bankVouchers',
+        descKey: 'bankVouchersDesc',
+        href: '/dashboard/vouchers/bank',
+        permission: 'view_payments',
+      },
     ]
   },
   {

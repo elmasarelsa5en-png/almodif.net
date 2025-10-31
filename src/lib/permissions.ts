@@ -127,6 +127,22 @@ export const ALL_PERMISSIONS: PermissionCategory[] = [
     ]
   },
   {
+    id: 'expense_vouchers',
+    label: 'سندات الصرف',
+    labelEn: 'Expense Vouchers',
+    icon: '💰',
+    permissions: [
+      { id: 'view_expense_vouchers', label: 'عرض سندات الصرف', labelEn: 'View Expense Vouchers', category: 'expense_vouchers', description: 'رؤية سندات الصرف' },
+      { id: 'create_expense_voucher', label: 'إنشاء سند صرف', labelEn: 'Create Expense Voucher', category: 'expense_vouchers', description: 'إضافة سند صرف جديد' },
+      { id: 'edit_expense_voucher', label: 'تعديل سند صرف', labelEn: 'Edit Expense Voucher', category: 'expense_vouchers', description: 'تعديل سندات الصرف' },
+      { id: 'delete_expense_voucher', label: 'حذف سند صرف', labelEn: 'Delete Expense Voucher', category: 'expense_vouchers', description: 'حذف سندات الصرف' },
+      { id: 'approve_expense_voucher', label: 'اعتماد سند صرف', labelEn: 'Approve Expense Voucher', category: 'expense_vouchers', description: 'اعتماد سندات الصرف' },
+      { id: 'reject_expense_voucher', label: 'رفض سند صرف', labelEn: 'Reject Expense Voucher', category: 'expense_vouchers', description: 'رفض سندات الصرف' },
+      { id: 'pay_expense_voucher', label: 'دفع سند صرف', labelEn: 'Pay Expense Voucher', category: 'expense_vouchers', description: 'تسجيل دفع السند' },
+      { id: 'view_expense_reports', label: 'عرض تقارير المصروفات', labelEn: 'View Expense Reports', category: 'expense_vouchers', description: 'رؤية إحصائيات المصروفات' },
+    ]
+  },
+  {
     id: 'services',
     label: 'الخدمات',
     labelEn: 'Services',
@@ -312,6 +328,7 @@ export const MANAGER_PERMISSIONS = [
   'view_requests', 'create_request', 'edit_request', 'approve_request', 'reject_request', 'complete_request', 'assign_request',
   'view_ratings', 'add_rating', 'respond_to_rating', 'view_rating_reports',
   'view_maintenance', 'create_maintenance', 'edit_maintenance', 'assign_maintenance', 'view_maintenance_reports',
+  'view_expense_vouchers', 'create_expense_voucher', 'edit_expense_voucher', 'approve_expense_voucher', 'pay_expense_voucher', 'view_expense_reports',
   'view_payments', 'receive_payment', 'view_invoices', 'create_invoice',
   'view_reports', 'export_reports', 'view_occupancy_report', 'view_revenue_report',
   'view_employees',
@@ -328,6 +345,7 @@ export const RECEPTION_PERMISSIONS = [
   'view_guests', 'add_guest', 'edit_guest', 'view_guest_history',
   'view_requests', 'create_request',
   'view_ratings', 'add_rating',
+  'view_expense_vouchers', 'create_expense_voucher',
   'view_payments', 'receive_payment',
   'access_sidebar', 'access_top_menu', 'view_dashboard_link', 'view_rooms_link', 'view_requests_link',
 ];
