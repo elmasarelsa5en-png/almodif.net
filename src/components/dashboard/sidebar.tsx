@@ -499,6 +499,13 @@ const navigationItems: NavigationItem[] = [
     permission: 'view_reports',
   },
   {
+    icon: Clock,
+    labelKey: 'scheduledReports',
+    descKey: 'scheduledReportsDesc',
+    href: '/dashboard/scheduled-reports',
+    permission: 'view_reports',
+  },
+  {
     icon: Settings,
     labelKey: 'settings',
     descKey: 'settingsDesc',
