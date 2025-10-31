@@ -60,6 +60,8 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const autoCaptureTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [countdown, setCountdown] = useState<number>(0);
 
   // التحقق من وجود بيانات محفوظة عند فتح النافذة
   useEffect(() => {
@@ -154,7 +156,7 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
     }
   };
 
-  // فتح الكاميرا
+  // فتح الكاميرا مع التقاط تلقائي
   const openCamera = async () => {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ 
@@ -175,6 +177,9 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
           videoRef.current.srcObject = mediaStream;
           videoRef.current.onloadedmetadata = () => {
             videoRef.current?.play();
+            
+            // بدء العد التنازلي للالتقاط التلقائي (3 ثواني)
+            startAutoCapture();
           };
         }
       }, 100);
@@ -184,8 +189,38 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
     }
   };
 
+  // بدء العد التنازلي للالتقاط التلقائي
+  const startAutoCapture = () => {
+    let count = 3;
+    setCountdown(count);
+    
+    const countdownInterval = setInterval(() => {
+      count--;
+      setCountdown(count);
+      
+      if (count <= 0) {
+        clearInterval(countdownInterval);
+      }
+    }, 1000);
+    
+    // التقاط الصورة تلقائياً بعد 3 ثواني
+    autoCaptureTimerRef.current = setTimeout(() => {
+      capturePhoto();
+    }, 3000);
+  };
+
+  // إلغاء التقاط التلقائي
+  const cancelAutoCapture = () => {
+    if (autoCaptureTimerRef.current) {
+      clearTimeout(autoCaptureTimerRef.current);
+      autoCaptureTimerRef.current = null;
+    }
+    setCountdown(0);
+  };
+
   // إغلاق الكاميرا
   const closeCamera = () => {
+    cancelAutoCapture(); // إلغاء التقاط التلقائي
     if (stream) {
       stream.getTracks().forEach(track => track.stop());
       setStream(null);
@@ -501,6 +536,37 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
                     />
                     <canvas ref={canvasRef} className="hidden" />
                     
+                    {/* العد التنازلي التلقائي */}
+                    {countdown > 0 && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                        <div className="text-center">
+                          <div className="w-32 h-32 mx-auto mb-4 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center animate-pulse shadow-2xl">
+                            <span className="text-7xl font-bold text-white">{countdown}</span>
+                          </div>
+                          <p className="text-2xl font-bold text-white mb-2">
+                            التقاط تلقائي...
+                          </p>
+                          <p className="text-white/80">وجه الكاميرا نحو البطاقة</p>
+                          <Button
+                            onClick={cancelAutoCapture}
+                            size="sm"
+                            variant="outline"
+                            className="mt-4 border-red-400/50 text-red-300 hover:bg-red-500/20"
+                          >
+                            <X className="w-4 h-4 ml-2" />
+                            إلغاء
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* إطار مساعد للتوجيه */}
+                    <div className="absolute inset-0 pointer-events-none">
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-[90%] h-[70%] border-4 border-dashed border-green-400/50 rounded-xl"></div>
+                      </div>
+                    </div>
+                    
                     {/* أزرار التحكم */}
                     <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4">
                       <Button
@@ -509,7 +575,7 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
                         className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-2xl"
                       >
                         <Camera className="w-6 h-6 ml-2" />
-                        التقاط الصورة
+                        التقاط الآن
                       </Button>
                       <Button
                         onClick={closeCamera}
@@ -518,18 +584,21 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
                         className="border-red-400/50 text-red-300 hover:bg-red-500/20 shadow-2xl"
                       >
                         <X className="w-5 h-5 ml-2" />
-                        إلغاء
+                        إغلاق
                       </Button>
                     </div>
                   </div>
                   
-                  <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
-                    <p className="text-sm text-yellow-200 flex items-start gap-2">
-                      <span className="text-xl">💡</span>
-                      <span>
-                        تأكد من وضوح النص في البطاقة وأن الإضاءة جيدة للحصول على أفضل نتائج
-                      </span>
-                    </p>
+                  <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/30 rounded-lg p-4">
+                    <div className="flex items-start gap-3">
+                      <span className="text-3xl">�</span>
+                      <div>
+                        <p className="text-blue-200 font-semibold mb-1">التقاط تلقائي</p>
+                        <p className="text-sm text-blue-300">
+                          سيتم التقاط الصورة تلقائياً بعد 3 ثواني. وجه الكاميرا نحو البطاقة وتأكد من وضوح النص والإضاءة الجيدة.
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
