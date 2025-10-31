@@ -321,18 +321,29 @@ export default function GuestLoginPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 flex items-center justify-center p-4" dir="rtl">
+      {/* Background Hotel Image */}
+      <div className="fixed inset-0 z-0 opacity-10">
+        <img 
+          src="https://i.postimg.cc/Y0C8hbB4/430459265-122121159980255118-4903926906806453831-n.jpg"
+          alt="Hotel Background"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/90 via-slate-800/90 to-slate-900/90"></div>
+      </div>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
+        className="w-full max-w-md relative z-10"
       >
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl shadow-2xl mb-4">
             <Hotel className="w-12 h-12 text-slate-900" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">تطبيق الضيف</h1>
-          <p className="text-slate-300">مرحباً بك في فندق المضيف</p>
+          <p className="text-amber-400 text-sm font-semibold mb-2">تطبيق الضيف</p>
+          <h1 className="text-3xl font-bold text-white mb-2">فندق المضيف</h1>
+          <p className="text-slate-300">مرحباً بك في تطبيق الضيف</p>
         </div>
 
         <Card className="bg-slate-800/90 backdrop-blur-xl border-amber-500/30 shadow-2xl">
