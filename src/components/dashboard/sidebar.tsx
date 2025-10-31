@@ -51,7 +51,8 @@ import {
   X, // التناقض
   Building2, // البنك
   Star, // أيقونة التقييمات
-  Award // أيقونة برنامج الولاء
+  Award, // أيقونة برنامج الولاء
+  Brain // أيقونة الذكاء الاصطناعي
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -467,6 +468,13 @@ const navigationItems: NavigationItem[] = [
         permission: 'view_reports',
       }
     ]
+  },
+  {
+    icon: Brain,
+    labelKey: 'aiForecasting',
+    descKey: 'aiForecastingDesc',
+    href: '/dashboard/ai-forecasting',
+    permission: 'view_reports',
   },
   {
     icon: Settings,
