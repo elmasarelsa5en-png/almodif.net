@@ -120,86 +120,8 @@ export default function RoomsPage() {
     return () => unsubscribe();
   }, []);
 
-  // الفحص التلقائي لحالة الغرف بناءً على تاريخ الخروج - كل دقيقة
-  useEffect(() => {
-    if (rooms.length === 0) return;
-    
-    const checkRoomsStatus = async () => {
-      // تحديث حالة الغرف تلقائياً
-      const updatedRooms = autoUpdateRoomStatusByCheckout(rooms);
-      
-      // التحقق من وجود تغييرات
-      const hasChanges = updatedRooms.some((room, index) => 
-        room.status !== rooms[index].status
-      );
-      
-      if (hasChanges) {
-        // حفظ التغييرات في Firebase فقط
-        for (const room of updatedRooms) {
-          const oldRoom = rooms.find(r => r.id === room.id);
-          if (oldRoom && room.status !== oldRoom.status) {
-            await saveRoomToFirebase(room);
-          }
-        }
-        // Firebase subscription سيحدث الـ state تلقائياً
-      }
-      
-      // التحقق من النزلاء المتأخرين
-      const lateRooms = getLateCheckoutRooms(rooms);
-      if (lateRooms.length > 0 && !showLateCheckoutAlert) {
-        setLateCheckoutRooms(lateRooms);
-        setShowLateCheckoutAlert(true);
-      }
-    };
-    
-    // فحص كل دقيقة فقط (بدون فحص فوري)
-    const interval = setInterval(checkRoomsStatus, 60000);
-    
-    return () => clearInterval(interval);
-  }, []); // Empty dependency - يشتغل مرة واحدة فقط
-
-  // حساب الديون التلقائي للشقق المشغولة
-  useEffect(() => {
-    if (rooms.length === 0) return;
-    
-    const calculateDebts = async () => {
-      const now = new Date();
-      
-      for (const room of rooms) {
-        // احسب الديون فقط للشقق المشغولة أو اللي checkout اليوم
-        if ((room.status === 'Occupied' || room.status === 'CheckoutToday') && room.bookingDetails?.checkIn?.date) {
-          const checkInDate = new Date(room.bookingDetails.checkIn.date);
-          const daysDiff = Math.floor((now.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
-          
-          // احسب دين الإقامة
-          const pricePerNight = room.price || room.bookingDetails?.financial?.dailyRate || 200;
-          const newRoomDebt = daysDiff * pricePerNight;
-          
-          // إجمالي الدين = دين الإقامة + دين الخدمات
-          const newCurrentDebt = newRoomDebt + (room.servicesDebt || 0);
-          
-          // تحديث فقط لو في تغيير كبير (أكثر من 10 ريال)
-          if (Math.abs((room.currentDebt || 0) - newCurrentDebt) > 10) {
-            const updatedRoom = {
-              ...room,
-              currentDebt: newCurrentDebt,
-              roomDebt: newRoomDebt,
-              lastDebtUpdate: now.toISOString(),
-              debtStartDate: room.debtStartDate || room.bookingDetails.checkIn.date
-            };
-            
-            // احفظ في Firebase فقط - subscription سيحدث الـ state
-            await saveRoomToFirebase(updatedRoom);
-          }
-        }
-      }
-    };
-    
-    // احسب الديون كل ساعة فقط
-    const interval = setInterval(calculateDebts, 60 * 60 * 1000);
-    
-    return () => clearInterval(interval);
-  }, []); // Empty dependency - يشتغل مرة واحدة فقط
+  // ⚠️ تم تعطيل الفحص التلقائي والحساب التلقائي مؤقتاً لحل مشكلة الـ infinite loop
+  // سيتم تفعيلهم لاحقاً بشكل آمن
   
   const loadRoomsData = async () => {
     try {
