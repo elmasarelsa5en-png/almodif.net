@@ -242,8 +242,8 @@ const navigationItems: NavigationItem[] = [
         icon: FileText,
         labelKey: 'promissoryNotes',
         descKey: 'promissoryNotesDesc',
-        href: '/dashboard/vouchers/promissory-notes',
-        permission: 'view_payments',
+        href: '/dashboard/promissory-notes',
+        permission: 'view_promissory_notes',
       },
       {
         icon: CreditCard,

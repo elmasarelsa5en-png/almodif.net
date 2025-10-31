@@ -158,6 +158,23 @@ export const ALL_PERMISSIONS: PermissionCategory[] = [
     ]
   },
   {
+    id: 'promissory_notes',
+    label: 'سندات الكمبيالات',
+    labelEn: 'Promissory Notes',
+    icon: '📋',
+    permissions: [
+      { id: 'view_promissory_notes', label: 'عرض سندات الكمبيالات', labelEn: 'View Promissory Notes', category: 'promissory_notes', description: 'رؤية جميع السندات' },
+      { id: 'create_promissory_note', label: 'إنشاء سند كمبيالة', labelEn: 'Create Promissory Note', category: 'promissory_notes', description: 'إنشاء سند جديد' },
+      { id: 'edit_promissory_note', label: 'تعديل سند كمبيالة', labelEn: 'Edit Promissory Note', category: 'promissory_notes', description: 'تعديل بيانات السند' },
+      { id: 'delete_promissory_note', label: 'حذف سند كمبيالة', labelEn: 'Delete Promissory Note', category: 'promissory_notes', description: 'حذف السند' },
+      { id: 'record_payment_promissory_note', label: 'تسجيل دفعة', labelEn: 'Record Payment', category: 'promissory_notes', description: 'تسجيل دفعة على السند' },
+      { id: 'cancel_promissory_note', label: 'إلغاء سند', labelEn: 'Cancel Note', category: 'promissory_notes', description: 'إلغاء السند' },
+      { id: 'renew_promissory_note', label: 'تجديد سند', labelEn: 'Renew Note', category: 'promissory_notes', description: 'تجديد السند' },
+      { id: 'convert_to_legal', label: 'تحويل لسند قضائي', labelEn: 'Convert to Legal', category: 'promissory_notes', description: 'تحويل لسند قضائي' },
+      { id: 'view_promissory_notes_reports', label: 'عرض تقارير الكمبيالات', labelEn: 'View Promissory Notes Reports', category: 'promissory_notes', description: 'رؤية إحصائيات السندات' },
+    ]
+  },
+  {
     id: 'services',
     label: 'الخدمات',
     labelEn: 'Services',
@@ -345,6 +362,7 @@ export const MANAGER_PERMISSIONS = [
   'view_maintenance', 'create_maintenance', 'edit_maintenance', 'assign_maintenance', 'view_maintenance_reports',
   'view_expense_vouchers', 'create_expense_voucher', 'edit_expense_voucher', 'approve_expense_voucher', 'pay_expense_voucher', 'view_expense_reports',
   'view_loyalty', 'manage_members', 'manage_points', 'manage_rewards', 'redeem_rewards', 'view_loyalty_reports',
+  'view_promissory_notes', 'create_promissory_note', 'edit_promissory_note', 'record_payment_promissory_note', 'cancel_promissory_note', 'renew_promissory_note', 'convert_to_legal', 'view_promissory_notes_reports',
   'view_payments', 'receive_payment', 'view_invoices', 'create_invoice',
   'view_reports', 'export_reports', 'view_occupancy_report', 'view_revenue_report',
   'view_employees',
@@ -362,6 +380,7 @@ export const RECEPTION_PERMISSIONS = [
   'view_ratings', 'add_rating',
   'view_loyalty', 'redeem_rewards',
   'view_expense_vouchers', 'create_expense_voucher',
+  'view_promissory_notes', 'create_promissory_note', 'record_payment_promissory_note',
   'view_payments', 'receive_payment',
   'access_sidebar', 'access_top_menu', 'view_dashboard_link', 'view_rooms_link', 'view_requests_link',
 ];
