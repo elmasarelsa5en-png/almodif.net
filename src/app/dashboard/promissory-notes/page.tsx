@@ -42,7 +42,7 @@ import {
   type PromissoryNoteType,
   type NotesStatistics
 } from '@/lib/promissory-notes-system';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth-context';
 
 export default function PromissoryNotesPage() {
   const { user } = useAuth();

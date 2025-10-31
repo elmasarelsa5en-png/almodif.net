@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth-context';
 import { hasPermission } from '@/lib/permissions';
 import {
   BankVoucher,
@@ -115,9 +115,9 @@ export default function BankVouchersPage() {
     });
   }, [vouchers, selectedType, selectedStatus, selectedAccount, searchTerm]);
 
-  const canCreate = hasPermission(user, 'create_bank_voucher');
-  const canEdit = hasPermission(user, 'edit_bank_voucher');
-  const canDelete = hasPermission(user, 'delete_bank_voucher');
+  const canCreate = hasPermission(user?.permissions || [], 'create_bank_voucher');
+  const canEdit = hasPermission(user?.permissions || [], 'edit_bank_voucher');
+  const canDelete = hasPermission(user?.permissions || [], 'delete_bank_voucher');
 
   if (loading) {
     return (
