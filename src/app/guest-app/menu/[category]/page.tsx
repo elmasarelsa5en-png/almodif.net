@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowRight, ShoppingCart, Plus, Minus, Trash2, 
   Coffee, Utensils, Shirt, UtensilsCrossed, 
-  Search, Filter, X, Check
+  Search, Filter, X, Check, DollarSign
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
+import PaymentDialog, { PaymentResult } from '@/components/PaymentDialog';
 
 interface MenuItem {
   id: string;
@@ -115,6 +116,7 @@ export default function GuestMenuPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSubCategory, setSelectedSubCategory] = useState<string>('all');
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
 
   // إذا كان الـ category غير موجود، نرجع للصفحة الرئيسية
   useEffect(() => {
@@ -247,8 +249,8 @@ export default function GuestMenuPage() {
   const cartTotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
   const cartItemsCount = cart.reduce((total, item) => total + item.quantity, 0);
 
-  // إرسال الطلب
-  const handleCheckout = async () => {
+  // إرسال الطلب - فتح نافذة الدفع
+  const handleCheckout = () => {
     if (cart.length === 0) return;
 
     // التحقق من تسجيل الدخول
@@ -260,6 +262,15 @@ export default function GuestMenuPage() {
       }
       return;
     }
+
+    // فتح نافذة الدفع
+    setIsPaymentOpen(true);
+  };
+
+  // معالجة الدفع الناجح
+  const handlePaymentSuccess = async (paymentData: PaymentResult) => {
+    const guestSession = localStorage.getItem('guest_session');
+    if (!guestSession) return;
 
     const session = JSON.parse(guestSession);
     
@@ -282,12 +293,19 @@ export default function GuestMenuPage() {
 
       const requestType = requestTypeMap[category] || 'طلب من تطبيق النزيل';
 
+      // معلومات الدفع
+      const paymentInfo = paymentData.method === 'pay-later' 
+        ? '\n\n💳 طريقة الدفع: الدفع لاحقاً (عند الاستلام)'
+        : `\n\n💳 طريقة الدفع: ${
+            paymentData.method === 'apple-pay' ? 'Apple Pay' : 'بطاقة ائتمان'
+          }\n✅ تم الدفع - رقم العملية: ${paymentData.transactionId}`;
+
       // إرسال الطلب إلى Firebase (سيظهر في صفحة الطلبات)
       await addRequest({
         room: session.roomNumber,
         guest: session.name || session.phone || 'نزيل',
         type: requestType,
-        description: `الطلب:\n${itemsDescription}\n\nالإجمالي: ${cartTotal} ر.س\n\n📱 من: تطبيق النزيل`,
+        description: `الطلب:\n${itemsDescription}\n\nالإجمالي: ${cartTotal} ر.س${paymentInfo}\n\n📱 من: تطبيق النزيل`,
         priority: 'medium',
         status: 'awaiting_employee_approval',
         createdAt: new Date().toISOString()
@@ -297,9 +315,14 @@ export default function GuestMenuPage() {
       setCart([]);
       localStorage.removeItem(`guest_cart_${category}`);
       setIsCartOpen(false);
+      setIsPaymentOpen(false);
 
       // رسالة تأكيد
-      alert('✅ تم إرسال طلبك بنجاح!\nسيتم التواصل معك قريباً.');
+      const paymentMessage = paymentData.method === 'pay-later'
+        ? 'سيتم الدفع عند الاستلام'
+        : 'تم الدفع بنجاح';
+      
+      alert(`✅ تم إرسال طلبك بنجاح!\n${paymentMessage}\nسيتم التواصل معك قريباً.`);
       router.push('/guest-app');
     } catch (error) {
       console.error('Error submitting order:', error);
@@ -549,10 +572,11 @@ export default function GuestMenuPage() {
 
                       <Button
                         onClick={handleCheckout}
-                        className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:opacity-90 text-white py-6 text-lg"
+                        disabled={cartTotal === 0}
+                        className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white py-6 text-lg shadow-xl"
                       >
-                        <Check className="w-6 h-6 ml-2" />
-                        إرسال الطلب
+                        <DollarSign className="w-6 h-6 ml-2" />
+                        الدفع والطلب ({cartTotal} ريال)
                       </Button>
                     </div>
                   </div>
@@ -562,6 +586,16 @@ export default function GuestMenuPage() {
           </>
         )}
       </AnimatePresence>
+
+      {/* Payment Dialog */}
+      <PaymentDialog
+        open={isPaymentOpen}
+        onClose={() => setIsPaymentOpen(false)}
+        amount={cartTotal}
+        orderId={`ORD-${Date.now()}`}
+        onPaymentSuccess={handlePaymentSuccess}
+        allowPayLater={true}
+      />
     </div>
   );
 }

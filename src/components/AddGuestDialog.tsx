@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Upload, Loader2, UserPlus, Image as ImageIcon, Edit, Download, Clipboard } from 'lucide-react';
+import { Upload, Loader2, UserPlus, Image as ImageIcon, Edit, Download, Clipboard, Camera, X } from 'lucide-react';
 import Tesseract from 'tesseract.js';
 import { getGuestDataFromClipboard, clearGuestClipboard, saveGuestDataToClipboard } from './GuestDataClipboard';
 
@@ -55,7 +55,11 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
   });
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [stream, setStream] = useState<MediaStream | null>(null);
 
   // التحقق من وجود بيانات محفوظة عند فتح النافذة
   useEffect(() => {
@@ -149,6 +153,108 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
       setOcrProgress(0);
     }
   };
+
+  // فتح الكاميرا
+  const openCamera = async () => {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode: 'environment', // الكاميرا الخلفية للجوال
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        } 
+      });
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
+        videoRef.current.play();
+      }
+      
+      setStream(mediaStream);
+      setIsCameraOpen(true);
+      setActiveTab('camera');
+    } catch (error) {
+      console.error('Error opening camera:', error);
+      alert('لا يمكن الوصول إلى الكاميرا. تأكد من منح الإذن للمتصفح.');
+    }
+  };
+
+  // إغلاق الكاميرا
+  const closeCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    }
+    setIsCameraOpen(false);
+  };
+
+  // التقاط صورة من الكاميرا
+  const capturePhoto = async () => {
+    if (!videoRef.current || !canvasRef.current) return;
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.drawImage(video, 0, 0);
+    
+    // تحويل الصورة إلى blob
+    canvas.toBlob(async (blob) => {
+      if (!blob) return;
+
+      // عرض معاينة
+      const imageUrl = URL.createObjectURL(blob);
+      setImagePreview(imageUrl);
+
+      // إغلاق الكاميرا
+      closeCamera();
+
+      // معالجة الصورة بـ OCR
+      setIsProcessing(true);
+      setOcrProgress(0);
+
+      try {
+        const result = await Tesseract.recognize(
+          blob,
+          'ara+eng',
+          {
+            logger: (m) => {
+              if (m.status === 'recognizing text') {
+                setOcrProgress(Math.round(m.progress * 100));
+              }
+            }
+          }
+        );
+
+        const text = result.data.text;
+        console.log('Extracted text from camera:', text);
+        
+        const extractedData = extractDataFromText(text);
+        setGuestData(extractedData);
+        
+        setActiveTab('manual'); // العودة للتبويب اليدوي لمراجعة البيانات
+        
+      } catch (error) {
+        console.error('OCR Error:', error);
+        alert('حدث خطأ أثناء قراءة الصورة. يرجى المحاولة مرة أخرى.');
+      } finally {
+        setIsProcessing(false);
+        setOcrProgress(0);
+      }
+    }, 'image/jpeg', 0.95);
+  };
+
+  // إغلاق الكاميرا عند إغلاق النافذة
+  useEffect(() => {
+    if (!open) {
+      closeCamera();
+    }
+  }, [open]);
 
   const extractDataFromText = (text: string): GuestData => {
     const lines = text.split('\n').map(line => line.trim()).filter(line => line);
@@ -327,16 +433,86 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 bg-white/10">
+          <TabsList className="grid w-full grid-cols-3 bg-white/10">
             <TabsTrigger value="manual" className="data-[state=active]:bg-blue-600">
               <Edit className="w-4 h-4 ml-2" />
               إدخال يدوي
             </TabsTrigger>
-            <TabsTrigger value="ocr" className="data-[state=active]:bg-blue-600">
+            <TabsTrigger value="camera" className="data-[state=active]:bg-green-600">
+              <Camera className="w-4 h-4 ml-2" />
+              التقاط صورة
+            </TabsTrigger>
+            <TabsTrigger value="ocr" className="data-[state=active]:bg-purple-600">
               <ImageIcon className="w-4 h-4 ml-2" />
               رفع صورة
             </TabsTrigger>
           </TabsList>
+
+          {/* تبويب الكاميرا */}
+          <TabsContent value="camera" className="space-y-4 mt-4">
+            <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-xl p-6 border border-green-500/30">
+              {!isCameraOpen ? (
+                <div className="text-center py-12">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
+                    <Camera className="w-10 h-10 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">التقط صورة بطاقة الهوية</h3>
+                  <p className="text-blue-200 mb-6">
+                    استخدم الكاميرا لالتقاط صورة واضحة لبطاقة الهوية
+                  </p>
+                  <Button
+                    onClick={openCamera}
+                    className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white"
+                  >
+                    <Camera className="w-5 h-5 ml-2" />
+                    فتح الكاميرا
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="relative bg-black rounded-lg overflow-hidden">
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      playsInline
+                      className="w-full h-auto"
+                    />
+                    <canvas ref={canvasRef} className="hidden" />
+                    
+                    {/* أزرار التحكم */}
+                    <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4">
+                      <Button
+                        onClick={capturePhoto}
+                        size="lg"
+                        className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-2xl"
+                      >
+                        <Camera className="w-6 h-6 ml-2" />
+                        التقاط الصورة
+                      </Button>
+                      <Button
+                        onClick={closeCamera}
+                        size="lg"
+                        variant="outline"
+                        className="border-red-400/50 text-red-300 hover:bg-red-500/20 shadow-2xl"
+                      >
+                        <X className="w-5 h-5 ml-2" />
+                        إلغاء
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
+                    <p className="text-sm text-yellow-200 flex items-start gap-2">
+                      <span className="text-xl">💡</span>
+                      <span>
+                        تأكد من وضوح النص في البطاقة وأن الإضاءة جيدة للحصول على أفضل نتائج
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </TabsContent>
 
           <TabsContent value="manual" className="space-y-4 mt-4">
             <div className="grid grid-cols-2 gap-4">

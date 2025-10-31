@@ -205,3 +205,12 @@
 2025/10/31-02:54:11.122 3ea8 compacted to: files[ 0 0 1 0 0 0 0 ]
 2025/10/31-02:54:11.123 3ea8 Delete type=2 #87
 2025/10/31-02:54:11.123 3ea8 Delete type=2 #89
+2025/10/31-04:00:23.096 522c Level-0 table #92: started
+2025/10/31-04:00:23.146 522c Level-0 table #92: 959796 bytes OK
+2025/10/31-04:00:23.152 522c Delete type=0 #88
+2025/10/31-04:01:06.556 7dc8 Compacting 1@1 + 1@2 files
+2025/10/31-04:01:06.616 7dc8 Generated table #93@1: 11143 keys, 855793 bytes
+2025/10/31-04:01:06.616 7dc8 Compacted 1@1 + 1@2 files => 855793 bytes
+2025/10/31-04:01:06.618 7dc8 compacted to: files[ 0 0 1 0 0 0 0 ]
+2025/10/31-04:01:06.620 7dc8 Delete type=2 #90
+2025/10/31-04:01:06.620 7dc8 Delete type=2 #92
