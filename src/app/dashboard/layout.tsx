@@ -88,7 +88,7 @@ export default function DashboardLayout({
       <Sidebar isCollapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 relative overflow-hidden pt-16">
+      <div className="flex-1 flex flex-col min-w-0 relative overflow-hidden">
         {/* Header */}
         <Header onMenuClick={() => setSidebarCollapsed(!sidebarCollapsed)} />
         

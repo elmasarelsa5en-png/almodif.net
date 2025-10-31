@@ -78,8 +78,6 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
   const [logo, setLogo] = useState<string | null>(null);
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const [showSearch, setShowSearch] = useState(false);
-  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
-  const headerRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const previousNotificationCount = useRef(0);
   
@@ -99,46 +97,6 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
     setApiKey(config.openaiApiKey || '');
     setOpenaiModel(config.openaiModel || 'gpt-4o-mini');
     setTemperature(config.temperature || 0.7);
-  }, []);
-
-  // Auto-hide/show header based on mouse position
-  useEffect(() => {
-    let hideTimeout: NodeJS.Timeout;
-    
-    const handleMouseMove = (e: MouseEvent) => {
-      const headerHeight = headerRef.current?.offsetHeight || 70;
-      
-      // إظهار الهيدر إذا كان الماوس في أعلى 100px من الشاشة
-      if (e.clientY < 100) {
-        setIsHeaderVisible(true);
-        clearTimeout(hideTimeout);
-      } else {
-        // إخفاء الهيدر بعد 2 ثانية من خروج الماوس
-        clearTimeout(hideTimeout);
-        hideTimeout = setTimeout(() => {
-          setIsHeaderVisible(false);
-        }, 2000);
-      }
-    };
-
-    const handleMouseEnter = () => {
-      setIsHeaderVisible(true);
-      clearTimeout(hideTimeout);
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    headerRef.current?.addEventListener('mouseenter', handleMouseEnter);
-
-    // إظهار الهيدر في البداية لمدة 3 ثواني
-    hideTimeout = setTimeout(() => {
-      setIsHeaderVisible(false);
-    }, 3000);
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      headerRef.current?.removeEventListener('mouseenter', handleMouseEnter);
-      clearTimeout(hideTimeout);
-    };
   }, []);
 
   // تحميل اللوجو من localStorage
@@ -626,17 +584,13 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
   };
 
   return (
-    <header 
-      ref={headerRef}
-      className={cn(
-        "border-b shadow-lg transition-all duration-500 fixed top-0 left-0 right-0",
-        "bg-black/30 backdrop-blur-xl border-b border-white/10",
-        "dark:bg-black/30 dark:border-white/10",
-        "z-50",
-        isHeaderVisible ? "translate-y-0" : "-translate-y-full",
-        className
-      )}
-    >
+    <header className={cn(
+      "border-b shadow-lg transition-all duration-300",
+      "bg-black/30 backdrop-blur-xl border-b border-white/10",
+      "dark:bg-black/30 dark:border-white/10",
+      "z-40",
+      className
+    )}>
       <div className="flex items-center justify-between px-3 sm:px-6 py-3 sm:py-4">
         {/* Left Section - Menu Button & Large Brand */}
         <div className="flex items-center gap-2 sm:gap-4">
