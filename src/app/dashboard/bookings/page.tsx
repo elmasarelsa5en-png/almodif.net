@@ -903,173 +903,445 @@ export default function BookingsPage() {
 
         {/* View Details Dialog */}
         <Dialog open={viewDetailsDialog.open} onOpenChange={(open) => setViewDetailsDialog({ open, booking: null })}>
-          <DialogContent className="max-w-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border-white/10 text-white">
-            <DialogHeader>
-              <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                تفاصيل الحجز
+          <DialogContent className="max-w-[95vw] w-full h-[95vh] overflow-y-auto bg-white text-gray-900 border-0">
+            {/* Header with blue background */}
+            <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-600 to-blue-700 -mx-6 -mt-6 px-6 py-4 mb-6 flex items-center justify-between">
+              <DialogTitle className="text-2xl font-bold text-white">
+                {viewDetailsDialog.booking?.status === 'قائمة' ? 'تعديل الحجز' : 'إضافة حجز'}
               </DialogTitle>
-              <DialogDescription className="text-white/70">
-                معلومات كاملة عن الحجز والضيف
-              </DialogDescription>
-            </DialogHeader>
+              <button
+                onClick={() => setViewDetailsDialog({ open: false, booking: null })}
+                className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
 
             {viewDetailsDialog.booking && (
-              <div className="space-y-6 py-4">
-                {/* Booking Number & Status */}
-                <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                  <div className="flex items-center justify-between mb-4">
+              <div className="space-y-6">
+                {/* معلومات الحجز - Header Section */}
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <h3 className="text-lg font-bold text-gray-800 mb-4">معلومات الحجز</h3>
+                  <div className="grid grid-cols-4 gap-4">
+                    {/* رقم العقد */}
                     <div>
-                      <p className="text-white/60 text-sm mb-1">رقم الحجز</p>
-                      <p className="text-2xl font-bold text-white">{viewDetailsDialog.booking.bookingNumber}</p>
+                      <label className="block text-sm text-gray-600 mb-2">رقم العقد</label>
+                      <input
+                        type="text"
+                        value={viewDetailsDialog.booking.bookingNumber}
+                        readOnly
+                        className="w-full px-3 py-2 border border-gray-300 rounded bg-white text-gray-900"
+                      />
                     </div>
-                    <Badge className={cn("px-3 py-1", getStatusColor(viewDetailsDialog.booking.status))}>
-                      {viewDetailsDialog.booking.status}
-                    </Badge>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
+                    
+                    {/* مصدر الحجز */}
                     <div>
-                      <p className="text-white/60 text-sm mb-1">مصدر الحجز</p>
-                      <p className="text-white font-medium">{viewDetailsDialog.booking.source}</p>
+                      <label className="block text-sm text-gray-600 mb-2">مصدر الحجز</label>
+                      <select className="w-full px-3 py-2 border border-gray-300 rounded bg-white text-gray-900">
+                        <option value={viewDetailsDialog.booking.source}>{viewDetailsDialog.booking.source}</option>
+                        <option>اختر</option>
+                      </select>
                     </div>
+
+                    {/* الاستقبال */}
                     <div>
-                      <p className="text-white/60 text-sm mb-1">تاريخ الإنشاء</p>
-                      <p className="text-white font-medium">{formatDate(viewDetailsDialog.booking.createdAt)}</p>
+                      <label className="block text-sm text-gray-600 mb-2">الاستقبال</label>
+                      <select className="w-full px-3 py-2 border border-gray-300 rounded bg-white text-gray-900">
+                        <option>اختر</option>
+                      </select>
+                    </div>
+
+                    {/* Status Badge */}
+                    <div className="flex items-center gap-2">
+                      <Badge className={cn("px-4 py-2 text-sm", getStatusColor(viewDetailsDialog.booking.status))}>
+                        {viewDetailsDialog.booking.status}
+                      </Badge>
+                      <button className="p-2 hover:bg-gray-100 rounded">
+                        <ChevronDown className="w-4 h-4 text-gray-600" />
+                      </button>
                     </div>
                   </div>
                 </div>
 
-                {/* Guest Information */}
-                <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg p-4 border border-blue-500/20">
-                  <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
-                    <Users className="w-5 h-5 text-blue-400" />
-                    معلومات الضيف
-                  </h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-white/60 text-sm mb-1">اسم الضيف</p>
-                      <p className="text-white font-medium">{viewDetailsDialog.booking.guestName}</p>
+                {/* الفترة - Period Table */}
+                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                  <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                    <h3 className="text-lg font-bold text-gray-800">الفترة</h3>
+                  </div>
+                  <table className="w-full">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">الإنهاء</th>
+                        <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">الوقت</th>
+                        <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">إلى</th>
+                        <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">من</th>
+                        <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">الأيام</th>
+                        <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-t border-gray-200">
+                        <td className="px-4 py-3">
+                          <input type="text" value="1" className="w-16 px-2 py-1 border border-gray-300 rounded text-center" readOnly />
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <div className="flex flex-col gap-1">
+                            <input type="time" value="02:53" className="px-2 py-1 border border-gray-300 rounded text-sm" />
+                            <input type="time" value="00:00" className="px-2 py-1 border border-gray-300 rounded text-sm" />
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <div className="flex flex-col gap-1">
+                            <span className="text-sm">ميلادي</span>
+                            <input type="date" value={viewDetailsDialog.booking.checkOutDate.split('T')[0]} className="px-2 py-1 border border-gray-300 rounded text-sm" />
+                            <span className="text-sm text-gray-500">هجري</span>
+                            <input type="date" className="px-2 py-1 border border-gray-300 rounded text-sm" />
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <div className="flex flex-col gap-1">
+                            <span className="text-sm">ميلادي</span>
+                            <input type="date" value={viewDetailsDialog.booking.checkInDate.split('T')[0]} className="px-2 py-1 border border-gray-300 rounded text-sm" />
+                            <span className="text-sm text-gray-500">هجري</span>
+                            <input type="date" className="px-2 py-1 border border-gray-300 rounded text-sm" />
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <input type="text" value={viewDetailsDialog.booking.nights} className="w-20 px-2 py-1 border border-gray-300 rounded text-center font-bold" readOnly />
+                        </td>
+                        <td className="px-4 py-3"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* الشقة / العميل - Apartment/Client Section */}
+                <div className="grid grid-cols-2 gap-6">
+                  {/* الشقة */}
+                  <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                    <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                      <h3 className="text-lg font-bold text-gray-800">الشقة / العميل</h3>
                     </div>
-                    <div>
-                      <p className="text-white/60 text-sm mb-1">عدد الضيوف</p>
-                      <p className="text-white font-medium">{viewDetailsDialog.booking.numberOfGuests} شخص</p>
+                    <table className="w-full">
+                      <tbody>
+                        <tr className="border-b border-gray-200">
+                          <td className="px-4 py-3 text-right font-semibold text-gray-700">الشقة</td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2">
+                              <button className="p-2 hover:bg-gray-100 rounded">
+                                <Edit className="w-4 h-4 text-blue-600" />
+                              </button>
+                              <button className="p-2 hover:bg-gray-100 rounded">
+                                <Plus className="w-4 h-4 text-green-600" />
+                              </button>
+                              <button className="p-2 hover:bg-gray-100 rounded">
+                                <Search className="w-4 h-4 text-gray-600" />
+                              </button>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-right text-gray-900 font-medium">
+                            {viewDetailsDialog.booking.roomName}
+                          </td>
+                        </tr>
+                        <tr className="border-b border-gray-200">
+                          <td className="px-4 py-3 text-right font-semibold text-gray-700">الشركة</td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2">
+                              <button className="p-2 hover:bg-gray-100 rounded">
+                                <X className="w-4 h-4 text-red-600" />
+                              </button>
+                              <button className="p-2 hover:bg-gray-100 rounded">
+                                <Edit className="w-4 h-4 text-blue-600" />
+                              </button>
+                              <button className="p-2 hover:bg-gray-100 rounded">
+                                <Plus className="w-4 h-4 text-green-600" />
+                              </button>
+                              <button className="p-2 hover:bg-gray-100 rounded">
+                                <Search className="w-4 h-4 text-gray-600" />
+                              </button>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <select className="w-full px-2 py-1 border border-gray-300 rounded">
+                              <option>------</option>
+                            </select>
+                          </td>
+                        </tr>
+                        <tr className="border-b border-gray-200">
+                          <td className="px-4 py-3 text-right font-semibold text-gray-700">المرافقون</td>
+                          <td className="px-4 py-3">
+                            <button className="p-2 hover:bg-gray-100 rounded">
+                              <ChevronDown className="w-4 h-4 text-gray-600" />
+                            </button>
+                          </td>
+                          <td className="px-4 py-3 text-right text-gray-900">
+                            {viewDetailsDialog.booking.numberOfGuests || 0}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-3 text-right font-semibold text-gray-700">سبب الزيارة</td>
+                          <td className="px-4 py-3"></td>
+                          <td className="px-4 py-3 text-right">
+                            <select className="w-full px-2 py-1 border border-gray-300 rounded">
+                              <option>-- اختر --</option>
+                              <option>سياحة</option>
+                            </select>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* العميل */}
+                  <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                    <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                      <h3 className="text-lg font-bold text-gray-800">العميل</h3>
                     </div>
+                    <table className="w-full">
+                      <tbody>
+                        <tr className="border-b border-gray-200">
+                          <td className="px-4 py-3 text-right font-semibold text-gray-700">العميل</td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2">
+                              <button className="p-2 hover:bg-gray-100 rounded">
+                                <Edit className="w-4 h-4 text-blue-600" />
+                              </button>
+                              <button className="p-2 hover:bg-gray-100 rounded">
+                                <Plus className="w-4 h-4 text-green-600" />
+                              </button>
+                              <button className="p-2 hover:bg-gray-100 rounded">
+                                <Search className="w-4 h-4 text-gray-600" />
+                              </button>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-right text-gray-900 font-medium">
+                            {viewDetailsDialog.booking.guestName}
+                          </td>
+                        </tr>
+                        <tr className="border-b border-gray-200">
+                          <td className="px-4 py-3 text-right font-semibold text-gray-700">سعر الخدمة</td>
+                          <td className="px-4 py-3"></td>
+                          <td className="px-4 py-3 text-right text-gray-900">
+                            {viewDetailsDialog.booking.basePrice}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-3 text-right font-semibold text-gray-700">سعر الخدمة</td>
+                          <td className="px-4 py-3">
+                            <input type="checkbox" className="w-4 h-4" />
+                          </td>
+                          <td className="px-4 py-3 text-right text-gray-900">
+                            {viewDetailsDialog.booking.totalPrice}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
                 </div>
 
-                {/* Room & Dates */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                    <p className="text-white/60 text-sm mb-1">الغرفة</p>
-                    <p className="text-xl font-bold text-white">{viewDetailsDialog.booking.roomName}</p>
+                {/* المالية - Financial Table */}
+                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                  <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                    <h3 className="text-lg font-bold text-gray-800">المالية</h3>
                   </div>
-                  <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                    <p className="text-white/60 text-sm mb-1">عدد الليالي</p>
-                    <p className="text-xl font-bold text-white">{viewDetailsDialog.booking.nights} ليلة</p>
-                  </div>
+                  <table className="w-full">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">القالية</th>
+                        <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">المفسوضات</th>
+                        <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">بدل الإيجار</th>
+                        <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">التوفيرتر</th>
+                        <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">الخدمات</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-t border-gray-200">
+                        <td className="px-4 py-3 text-right font-bold text-gray-900">
+                          {viewDetailsDialog.booking.totalPrice.toLocaleString()}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex items-center gap-2">
+                            <button className="p-1 hover:bg-gray-100 rounded">
+                              <Search className="w-4 h-4 text-blue-600" />
+                            </button>
+                            <button className="p-1 hover:bg-gray-100 rounded">
+                              <Plus className="w-4 h-4 text-green-600" />
+                            </button>
+                            <button className="p-1 hover:bg-gray-100 rounded">
+                              <Download className="w-4 h-4 text-gray-600" />
+                            </button>
+                            <select className="px-2 py-1 border border-gray-300 rounded text-sm">
+                              <option>R {viewDetailsDialog.booking.bookingNumber.slice(-4)}</option>
+                            </select>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex items-center gap-2">
+                            <button className="p-1 hover:bg-gray-100 rounded">
+                              <Plus className="w-4 h-4 text-green-600" />
+                            </button>
+                            <button className="p-1 hover:bg-gray-100 rounded">
+                              <Download className="w-4 h-4 text-gray-600" />
+                            </button>
+                            <span className="text-gray-900">0</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex items-center gap-2">
+                            <button className="p-1 hover:bg-gray-100 rounded">
+                              <Plus className="w-4 h-4 text-green-600" />
+                            </button>
+                            <button className="p-1 hover:bg-gray-100 rounded">
+                              <Download className="w-4 h-4 text-gray-600" />
+                            </button>
+                            <span className="text-gray-900">0</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex items-center gap-2">
+                            <button className="p-1 hover:bg-gray-100 rounded">
+                              <Filter className="w-4 h-4 text-blue-600" />
+                            </button>
+                            <button className="p-1 hover:bg-gray-100 rounded">
+                              <Edit className="w-4 h-4 text-blue-600" />
+                            </button>
+                            <button className="p-1 hover:bg-gray-100 rounded">
+                              <Download className="w-4 h-4 text-gray-600" />
+                            </button>
+                            <select className="px-2 py-1 border border-gray-300 rounded text-sm">
+                              <option>مغلق</option>
+                            </select>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr className="border-t border-gray-200 bg-gray-50">
+                        <td className="px-4 py-3"></td>
+                        <td className="px-4 py-3 text-right font-semibold text-gray-700">التكلفة الكلية</td>
+                        <td className="px-4 py-3 text-right font-bold text-gray-900">
+                          {viewDetailsDialog.booking.totalPrice.toLocaleString()}
+                        </td>
+                        <td className="px-4 py-3"></td>
+                        <td className="px-4 py-3"></td>
+                      </tr>
+                      <tr className="border-t border-gray-200">
+                        <td className="px-4 py-3"></td>
+                        <td className="px-4 py-3 text-right font-semibold text-gray-700">التكلفة بعد الخصم</td>
+                        <td className="px-4 py-3 text-right font-bold text-gray-900">
+                          {(viewDetailsDialog.booking.totalPrice - viewDetailsDialog.booking.discountAmount).toLocaleString()}
+                        </td>
+                        <td className="px-4 py-3">
+                          <button className="text-sm text-blue-600 hover:underline flex items-center gap-1">
+                            <span>تغيير</span>
+                            <span className="text-green-600">(شامل الضريبة {viewDetailsDialog.booking.taxAmount || 0})</span>
+                          </button>
+                        </td>
+                        <td className="px-4 py-3"></td>
+                      </tr>
+                      <tr className="border-t border-gray-200 bg-gray-50">
+                        <td className="px-4 py-3"></td>
+                        <td className="px-4 py-3 text-right font-semibold text-gray-700">التكلفة النهائية</td>
+                        <td className="px-4 py-3 text-right font-bold text-blue-600 text-lg">
+                          {viewDetailsDialog.booking.totalPrice.toLocaleString()}
+                        </td>
+                        <td className="px-4 py-3"></td>
+                        <td className="px-4 py-3"></td>
+                      </tr>
+                      <tr className="border-t border-gray-200">
+                        <td className="px-4 py-3"></td>
+                        <td className="px-4 py-3 text-right font-semibold text-gray-700">الرصيد</td>
+                        <td className="px-4 py-3 text-right">
+                          <span className="font-bold text-red-600">
+                            {viewDetailsDialog.booking.remainingBalance.toLocaleString()}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3"></td>
+                        <td className="px-4 py-3"></td>
+                      </tr>
+                      <tr className="border-t border-gray-200 bg-blue-50">
+                        <td className="px-4 py-3"></td>
+                        <td className="px-4 py-3 text-right font-semibold text-gray-700">مبلغ الخصم</td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex items-center gap-2">
+                            <button className="p-1 hover:bg-gray-100 rounded">
+                              <ChevronDown className="w-4 h-4 text-gray-600" />
+                            </button>
+                            <span className="font-bold text-gray-900">اختر</span>
+                            <button className="p-1 hover:bg-gray-100 rounded">
+                              <ChevronDown className="w-4 h-4 text-gray-600" />
+                            </button>
+                            <input 
+                              type="text" 
+                              className="w-20 px-2 py-1 border border-gray-300 rounded text-center"
+                              value="$"
+                            />
+                          </div>
+                        </td>
+                        <td className="px-4 py-3"></td>
+                        <td className="px-4 py-3"></td>
+                      </tr>
+                      <tr className="border-t border-gray-200">
+                        <td className="px-4 py-3"></td>
+                        <td className="px-4 py-3 text-right font-semibold text-gray-700">نوع الخصم</td>
+                        <td className="px-4 py-3 text-right">
+                          <select className="w-full px-2 py-1 border border-gray-300 rounded">
+                            <option>اختر</option>
+                          </select>
+                        </td>
+                        <td className="px-4 py-3"></td>
+                        <td className="px-4 py-3"></td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
 
-                {/* Check-in & Check-out */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-green-500/10 rounded-lg p-4 border border-green-500/30">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Calendar className="w-4 h-4 text-green-400" />
-                      <p className="text-green-300 text-sm font-medium">تاريخ الدخول</p>
-                    </div>
-                    <p className="text-white font-bold">{formatDate(viewDetailsDialog.booking.checkInDate)}</p>
+                {/* Footer Actions */}
+                <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                  {/* Notifications */}
+                  <div className="flex items-center gap-4">
+                    <label className="flex items-center gap-2">
+                      <input type="checkbox" className="w-4 h-4" defaultChecked />
+                      <span className="text-sm text-gray-700">إرسال إلى خدمة سمسمي</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input type="checkbox" className="w-4 h-4" defaultChecked />
+                      <span className="text-sm text-gray-700">إرسال إلى خدمة الشوؤون</span>
+                    </label>
                   </div>
-                  <div className="bg-red-500/10 rounded-lg p-4 border border-red-500/30">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Calendar className="w-4 h-4 text-red-400" />
-                      <p className="text-red-300 text-sm font-medium">تاريخ الخروج</p>
-                    </div>
-                    <p className="text-white font-bold">{formatDate(viewDetailsDialog.booking.checkOutDate)}</p>
-                  </div>
-                </div>
 
-                {/* Financial Details */}
-                <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg p-4 border border-purple-500/20">
-                  <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
-                    <DollarSign className="w-5 h-5 text-purple-400" />
-                    التفاصيل المالية
-                  </h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-white/70">السعر الأساسي</span>
-                      <span className="text-white font-bold">{viewDetailsDialog.booking.basePrice.toLocaleString()} ر.ع</span>
-                    </div>
-                    {viewDetailsDialog.booking.discountAmount > 0 && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-white/70">الخصم</span>
-                        <span className="text-green-400 font-bold">- {viewDetailsDialog.booking.discountAmount.toLocaleString()} ر.ع</span>
-                      </div>
-                    )}
-                    {viewDetailsDialog.booking.taxAmount > 0 && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-white/70">الضريبة</span>
-                        <span className="text-orange-400 font-bold">+ {viewDetailsDialog.booking.taxAmount.toLocaleString()} ر.ع</span>
-                      </div>
-                    )}
-                    <div className="h-px bg-white/20 my-2"></div>
-                    <div className="flex items-center justify-between text-lg">
-                      <span className="text-white font-bold">الإجمالي</span>
-                      <span className="text-blue-400 font-bold text-2xl">{viewDetailsDialog.booking.totalPrice.toLocaleString()} ر.ع</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-white/70">المدفوع</span>
-                      <span className="text-green-400 font-bold">{viewDetailsDialog.booking.paidAmount.toLocaleString()} ر.ع</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-white/70">المتبقي</span>
-                      <span className={cn(
-                        "font-bold",
-                        viewDetailsDialog.booking.remainingBalance > 0 ? "text-red-400" : "text-green-400"
-                      )}>
-                        {viewDetailsDialog.booking.remainingBalance.toLocaleString()} ر.ع
-                      </span>
-                    </div>
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-3">
+                    <Button
+                      onClick={() => setViewDetailsDialog({ open: false, booking: null })}
+                      className="bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-6"
+                    >
+                      خروج
+                    </Button>
+                    <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6">
+                      ملحق الحجز
+                    </Button>
+                    <Button className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-6">
+                      عرض العقد
+                    </Button>
+                    <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6">
+                      حفظ
+                    </Button>
+                    <Button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6">
+                      دخول الشقة
+                    </Button>
                   </div>
-                </div>
 
-                {/* Payment Status */}
-                <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                  <div className="flex items-center justify-between">
-                    <span className="text-white/70">حالة الدفع</span>
-                    <Badge className={cn(
-                      "px-3 py-1",
-                      viewDetailsDialog.booking.paymentStatus === 'مسدد' 
-                        ? 'bg-green-500/20 text-green-300 border-green-500/30'
-                        : viewDetailsDialog.booking.paymentStatus === 'جزئي'
-                        ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30'
-                        : 'bg-red-500/20 text-red-300 border-red-500/30'
-                    )}>
-                      {viewDetailsDialog.booking.paymentStatus}
-                    </Badge>
-                  </div>
+                  {/* Filter Contracts Button */}
+                  <Button 
+                    variant="outline"
+                    className="border-2 border-purple-600 text-purple-600 hover:bg-purple-50 px-6"
+                  >
+                    <Filter className="w-4 h-4 ml-2" />
+                    تصفية العقد
+                  </Button>
                 </div>
               </div>
             )}
 
-            <DialogFooter>
-              <Button
-                onClick={() => setViewDetailsDialog({ open: false, booking: null })}
-                variant="outline"
-                className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-              >
-                إغلاق
-              </Button>
-              <Button
-                onClick={() => {
-                  setViewDetailsDialog({ open: false, booking: null });
-                  if (viewDetailsDialog.booking) {
-                    handleEditBooking(viewDetailsDialog.booking);
-                  }
-                }}
-                className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
-              >
-                <Edit className="w-4 h-4 ml-2" />
-                تعديل الحجز
-              </Button>
-            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
