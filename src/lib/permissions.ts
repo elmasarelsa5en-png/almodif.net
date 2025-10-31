@@ -98,6 +98,19 @@ export const ALL_PERMISSIONS: PermissionCategory[] = [
     ]
   },
   {
+    id: 'ratings',
+    label: 'التقييمات',
+    labelEn: 'Ratings',
+    icon: '⭐',
+    permissions: [
+      { id: 'view_ratings', label: 'عرض التقييمات', labelEn: 'View Ratings', category: 'ratings', description: 'رؤية تقييمات النزلاء' },
+      { id: 'add_rating', label: 'إضافة تقييم', labelEn: 'Add Rating', category: 'ratings', description: 'إضافة تقييم جديد' },
+      { id: 'respond_to_rating', label: 'الرد على التقييمات', labelEn: 'Respond to Ratings', category: 'ratings', description: 'إضافة رد الإدارة على التقييم' },
+      { id: 'delete_rating', label: 'حذف تقييم', labelEn: 'Delete Rating', category: 'ratings', description: 'حذف التقييمات' },
+      { id: 'view_rating_reports', label: 'عرض تقارير التقييمات', labelEn: 'View Rating Reports', category: 'ratings', description: 'رؤية إحصائيات التقييمات' },
+    ]
+  },
+  {
     id: 'services',
     label: 'الخدمات',
     labelEn: 'Services',
@@ -282,6 +295,7 @@ export const MANAGER_PERMISSIONS = [
   'view_bookings', 'create_booking', 'edit_booking', 'cancel_booking', 'confirm_booking', 'view_booking_details',
   'view_guests', 'add_guest', 'edit_guest', 'view_guest_history',
   'view_requests', 'create_request', 'edit_request', 'approve_request', 'reject_request', 'complete_request', 'assign_request',
+  'view_ratings', 'add_rating', 'respond_to_rating', 'view_rating_reports',
   'view_payments', 'receive_payment', 'view_invoices', 'create_invoice',
   'view_reports', 'export_reports', 'view_occupancy_report', 'view_revenue_report',
   'view_employees',
@@ -297,6 +311,7 @@ export const RECEPTION_PERMISSIONS = [
   'view_bookings', 'create_booking', 'edit_booking', 'view_booking_details',
   'view_guests', 'add_guest', 'edit_guest', 'view_guest_history',
   'view_requests', 'create_request',
+  'view_ratings', 'add_rating',
   'view_payments', 'receive_payment',
   'access_sidebar', 'access_top_menu', 'view_dashboard_link', 'view_rooms_link', 'view_requests_link',
 ];

@@ -20,6 +20,7 @@ import {
   ChevronDown,
   RefreshCw,
   Loader2,
+  Star,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,6 +28,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { RatingDialog } from '@/components/RatingDialog';
 import { 
   subscribeToRequests, 
   updateRequest, 
@@ -58,6 +60,8 @@ export default function RequestsPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [previousRequestCount, setPreviousRequestCount] = useState(0);
+  const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
+  const [selectedRequestForRating, setSelectedRequestForRating] = useState<GuestRequest | null>(null);
 
   // Function to play notification sound
   const playNotificationSound = () => {
@@ -669,6 +673,19 @@ export default function RequestsPage() {
                               ✅ مكتمل
                             </Button>
                           )}
+                          {request.status === 'completed' && (
+                            <Button
+                              onClick={() => {
+                                setSelectedRequestForRating(request);
+                                setRatingDialogOpen(true);
+                              }}
+                              variant="outline"
+                              className="border-yellow-500/30 text-yellow-300 hover:bg-yellow-500/10 text-xs"
+                            >
+                              <Star className="w-4 h-4 ml-1" />
+                              تقييم الخدمة
+                            </Button>
+                          )}
                           {request.status !== 'rejected' && (
                             <Button
                               onClick={() => updateRequestStatus(request.id, 'rejected')}
@@ -697,6 +714,26 @@ export default function RequestsPage() {
           </div>
         </div>
       </div>
+
+      {/* Rating Dialog */}
+      {ratingDialogOpen && selectedRequestForRating && (
+        <RatingDialog
+          type="service"
+          targetId={selectedRequestForRating.id}
+          targetName={selectedRequestForRating.type}
+          guestName={selectedRequestForRating.guestName}
+          roomNumber={selectedRequestForRating.roomNumber}
+          employeeId={selectedRequestForRating.employeeId}
+          employeeName={selectedRequestForRating.employeeName}
+          onClose={() => {
+            setRatingDialogOpen(false);
+            setSelectedRequestForRating(null);
+          }}
+          onSuccess={() => {
+            // يمكن إضافة إشعار نجاح هنا
+          }}
+        />
+      )}
     </ProtectedRoute>
   );
 }

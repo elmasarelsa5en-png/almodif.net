@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
+import { RatingDialog } from '@/components/RatingDialog';
 import { getMenuItemsByCategory, subscribeToMenuItems, type MenuItem } from '@/lib/firebase-data';
 import { playNotificationSound } from '@/lib/notification-sounds';
 
@@ -163,6 +164,8 @@ export default function CoffeeShopPage() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [menuItems, setMenuItems] = useState<CoffeeItem[]>(DEFAULT_COFFEE_MENU);
   const [loading, setLoading] = useState(true);
+  const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
+  const [selectedItemForRating, setSelectedItemForRating] = useState<CoffeeItem | null>(null);
 
   // Load menu items from Firebase
   useEffect(() => {
@@ -574,6 +577,24 @@ export default function CoffeeShopPage() {
                               {item.available ? 'إضافة للسلة' : 'غير متوفر'}
                             </Button>
                           </motion.div>
+
+                          {/* Rate button */}
+                          <motion.div
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            <Button
+                              onClick={() => {
+                                setSelectedItemForRating(item);
+                                setRatingDialogOpen(true);
+                              }}
+                              variant="outline"
+                              className="w-full border-yellow-400/30 text-yellow-300 hover:bg-yellow-500/10"
+                            >
+                              <Star className="h-4 w-4 mr-2" />
+                              تقييم الصنف
+                            </Button>
+                          </motion.div>
                         </div>
                       </CardContent>
                     </Card>
@@ -682,6 +703,23 @@ export default function CoffeeShopPage() {
           />
         )}
       </AnimatePresence>
+
+      {/* Rating Dialog */}
+      {ratingDialogOpen && selectedItemForRating && (
+        <RatingDialog
+          type="food"
+          targetId={selectedItemForRating.id}
+          targetName={selectedItemForRating.nameAr}
+          guestName="نزيل"
+          onClose={() => {
+            setRatingDialogOpen(false);
+            setSelectedItemForRating(null);
+          }}
+          onSuccess={() => {
+            // إعادة تحميل البيانات
+          }}
+        />
+      )}
     </div>
   );
 }

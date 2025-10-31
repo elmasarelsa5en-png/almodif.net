@@ -48,7 +48,8 @@ import {
   PieChart, // الضرائب والرسوم
   Building, // حالة الغرف
   X, // التناقض
-  Building2 // البنك
+  Building2, // البنك
+  Star // أيقونة التقييمات
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -106,6 +107,13 @@ const navigationItems: NavigationItem[] = [
     descKey: 'guestRequestsDesc',
     href: '/dashboard/requests',
     permission: 'view_requests',
+  },
+  {
+    icon: Star,
+    labelKey: 'ratings',
+    descKey: 'ratingsDesc',
+    href: '/dashboard/ratings',
+    permission: 'view_ratings',
   },
   {
     icon: Shirt,
