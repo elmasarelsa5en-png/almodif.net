@@ -439,6 +439,36 @@ const navigationItems: NavigationItem[] = [
     ]
   },
   {
+    icon: TrendingUp,
+    labelKey: 'executiveDashboards',
+    descKey: 'executiveDashboardsDesc',
+    href: '/dashboard/executive',
+    permission: 'view_executive_reports',
+    subItems: [
+      {
+        icon: BarChart3,
+        labelKey: 'gmDashboard',
+        descKey: 'gmDashboardDesc',
+        href: '/dashboard/executive/gm',
+        permission: 'view_executive_reports',
+      },
+      {
+        icon: DollarSign,
+        labelKey: 'cfoDashboard',
+        descKey: 'cfoDashboardDesc',
+        href: '/dashboard/executive/cfo',
+        permission: 'view_financial_reports',
+      },
+      {
+        icon: TrendingUp,
+        labelKey: 'salesDashboard',
+        descKey: 'salesDashboardDesc',
+        href: '/dashboard/executive/sales',
+        permission: 'view_reports',
+      }
+    ]
+  },
+  {
     icon: Settings,
     labelKey: 'settings',
     descKey: 'settingsDesc',
