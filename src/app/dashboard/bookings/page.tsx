@@ -755,149 +755,420 @@ export default function BookingsPage() {
 
         {/* New Booking Dialog */}
         <Dialog open={showNewBookingDialog} onOpenChange={setShowNewBookingDialog}>
-          <DialogContent className="sm:max-w-[600px] bg-slate-900 border-slate-700 text-white">
-            <DialogHeader>
-              <DialogTitle className="text-xl">إنشاء حجز جديد</DialogTitle>
-              <DialogDescription className="text-slate-400">
-                أدخل بيانات الحجز الجديد
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-4 py-4">
-              {/* Guest Name */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">اسم الضيف *</label>
-                <Input
-                  value={newBooking.guestName}
-                  onChange={(e) => setNewBooking({ ...newBooking, guestName: e.target.value })}
-                  placeholder="أدخل اسم الضيف"
-                  className="bg-slate-800 border-slate-700 text-white"
-                />
-              </div>
-
-              {/* Room Name */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">اسم/رقم الغرفة *</label>
-                <Input
-                  value={newBooking.roomName}
-                  onChange={(e) => setNewBooking({ ...newBooking, roomName: e.target.value })}
-                  placeholder="مثال: غرفة 101 أو جناح A"
-                  className="bg-slate-800 border-slate-700 text-white"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                {/* Check-in Date */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">تاريخ الدخول *</label>
-                  <Input
-                    type="date"
-                    value={newBooking.checkInDate}
-                    onChange={(e) => setNewBooking({ ...newBooking, checkInDate: e.target.value })}
-                    className="bg-slate-800 border-slate-700 text-white"
-                  />
-                </div>
-
-                {/* Check-out Date */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">تاريخ الخروج *</label>
-                  <Input
-                    type="date"
-                    value={newBooking.checkOutDate}
-                    onChange={(e) => setNewBooking({ ...newBooking, checkOutDate: e.target.value })}
-                    className="bg-slate-800 border-slate-700 text-white"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                {/* Number of Guests */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">عدد النزلاء</label>
-                  <Input
-                    type="number"
-                    value={newBooking.numberOfGuests}
-                    onChange={(e) => setNewBooking({ ...newBooking, numberOfGuests: parseInt(e.target.value) })}
-                    min="1"
-                    className="bg-slate-800 border-slate-700 text-white"
-                  />
-                </div>
-
-                {/* Base Price */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">سعر الليلة *</label>
-                  <Input
-                    type="number"
-                    value={newBooking.basePrice}
-                    onChange={(e) => setNewBooking({ ...newBooking, basePrice: parseFloat(e.target.value) })}
-                    placeholder="0.00"
-                    className="bg-slate-800 border-slate-700 text-white"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                {/* Status */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">الحالة</label>
-                  <select
-                    value={newBooking.status}
-                    onChange={(e) => setNewBooking({ ...newBooking, status: e.target.value as BookingStatus })}
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white"
-                  >
-                    <option value="غير مؤكدة">غير مؤكدة</option>
-                    <option value="قائمة">قائمة</option>
-                    <option value="جاهز_دخول">جاهز لتسجيل الدخول</option>
-                    <option value="جاهز_خروج">جاهز لتسجيل الخروج</option>
-                    <option value="قادمة">قادمة</option>
-                  </select>
-                </div>
-
-                {/* Paid Amount */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">المبلغ المدفوع</label>
-                  <Input
-                    type="number"
-                    value={newBooking.paidAmount}
-                    onChange={(e) => setNewBooking({ ...newBooking, paidAmount: parseFloat(e.target.value) })}
-                    placeholder="0.00"
-                    className="bg-slate-800 border-slate-700 text-white"
-                  />
-                </div>
-              </div>
-
-              {/* Source */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">مصدر الحجز</label>
-                <select
-                  value={newBooking.source}
-                  onChange={(e) => setNewBooking({ ...newBooking, source: e.target.value as any })}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white"
-                >
-                  <option value="حجز_مباشر">حجز مباشر</option>
-                  <option value="موقع_الكتروني">موقع إلكتروني</option>
-                  <option value="وكيل_سفر">وكيل سفر</option>
-                  <option value="تطبيق_الهاتف">تطبيق الهاتف</option>
-                </select>
-              </div>
+          <DialogContent className="max-w-[95vw] w-full h-[95vh] overflow-y-auto bg-white text-gray-900 border-0">
+            {/* Header with blue background */}
+            <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-600 to-blue-700 -mx-6 -mt-6 px-6 py-4 mb-6 flex items-center justify-between">
+              <DialogTitle className="text-2xl font-bold text-white">
+                إضافة حجز
+              </DialogTitle>
+              <button
+                onClick={() => setShowNewBookingDialog(false)}
+                className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
             </div>
 
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setShowNewBookingDialog(false)}
-                className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700"
-              >
-                إلغاء
-              </Button>
-              <Button
-                onClick={handleCreateBooking}
-                className="bg-green-600 hover:bg-green-700 text-white"
-              >
-                <Plus className="w-4 h-4 ml-2" />
-                إنشاء الحجز
-              </Button>
-            </DialogFooter>
+            <div className="space-y-6">
+              {/* معلومات الحجز - Header Section */}
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <h3 className="text-lg font-bold text-gray-800 mb-4">معلومات الحجز</h3>
+                <div className="grid grid-cols-4 gap-4">
+                  {/* رقم العقد */}
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-2">رقم العقد</label>
+                    <input
+                      type="text"
+                      value="تلقائي"
+                      readOnly
+                      className="w-full px-3 py-2 border border-gray-300 rounded bg-gray-100 text-gray-500"
+                    />
+                  </div>
+                  
+                  {/* مصدر الحجز */}
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-2">مصدر الحجز</label>
+                    <select 
+                      value={newBooking.source}
+                      onChange={(e) => setNewBooking({ ...newBooking, source: e.target.value as any })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded bg-white text-gray-900"
+                    >
+                      <option value="حجز_مباشر">حجز مباشر</option>
+                      <option value="تطبيق النزلاء">تطبيق النزلاء</option>
+                      <option value="Booking.com">Booking.com</option>
+                      <option value="Airbnb">Airbnb</option>
+                      <option value="الموقع الإلكتروني">الموقع الإلكتروني</option>
+                    </select>
+                  </div>
+
+                  {/* الاستقبال */}
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-2">الاستقبال</label>
+                    <select className="w-full px-3 py-2 border border-gray-300 rounded bg-white text-gray-900">
+                      <option>اختر</option>
+                      <option>مكتب الاستقبال</option>
+                    </select>
+                  </div>
+
+                  {/* Status */}
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-2">الحالة</label>
+                    <select
+                      value={newBooking.status}
+                      onChange={(e) => setNewBooking({ ...newBooking, status: e.target.value as BookingStatus })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded bg-white text-gray-900"
+                    >
+                      <option value="غير مؤكدة">غير مؤكدة</option>
+                      <option value="قائمة">قائمة</option>
+                      <option value="جاهز_دخول">جاهز للدخول</option>
+                      <option value="قادمة">قادمة</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* الفترة - Period Table */}
+              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                  <h3 className="text-lg font-bold text-gray-800">الفترة</h3>
+                </div>
+                <table className="w-full">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">الإنهاء</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">الوقت</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">إلى</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">من</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">الأيام</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-t border-gray-200">
+                      <td className="px-4 py-3">
+                        <input type="text" value="1" className="w-16 px-2 py-1 border border-gray-300 rounded text-center" readOnly />
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <div className="flex flex-col gap-1">
+                          <input type="time" defaultValue="02:00" className="px-2 py-1 border border-gray-300 rounded text-sm" />
+                          <input type="time" defaultValue="12:00" className="px-2 py-1 border border-gray-300 rounded text-sm" />
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-sm">ميلادي</span>
+                          <input 
+                            type="date" 
+                            value={newBooking.checkOutDate}
+                            onChange={(e) => setNewBooking({ ...newBooking, checkOutDate: e.target.value })}
+                            className="px-2 py-1 border border-gray-300 rounded text-sm" 
+                          />
+                          <span className="text-sm text-gray-500">هجري</span>
+                          <input type="date" className="px-2 py-1 border border-gray-300 rounded text-sm" />
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-sm">ميلادي</span>
+                          <input 
+                            type="date" 
+                            value={newBooking.checkInDate}
+                            onChange={(e) => setNewBooking({ ...newBooking, checkInDate: e.target.value })}
+                            className="px-2 py-1 border border-gray-300 rounded text-sm" 
+                          />
+                          <span className="text-sm text-gray-500">هجري</span>
+                          <input type="date" className="px-2 py-1 border border-gray-300 rounded text-sm" />
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <input 
+                          type="text" 
+                          value={newBooking.checkInDate && newBooking.checkOutDate ? 
+                            Math.ceil((new Date(newBooking.checkOutDate).getTime() - new Date(newBooking.checkInDate).getTime()) / (1000 * 60 * 60 * 24)) 
+                            : ''
+                          }
+                          className="w-20 px-2 py-1 border border-gray-300 rounded text-center font-bold bg-gray-50" 
+                          readOnly 
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* الشقة / العميل - Apartment/Client Section */}
+              <div className="grid grid-cols-2 gap-6">
+                {/* الشقة */}
+                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                  <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                    <h3 className="text-lg font-bold text-gray-800">الشقة / العميل</h3>
+                  </div>
+                  <table className="w-full">
+                    <tbody>
+                      <tr className="border-b border-gray-200">
+                        <td className="px-4 py-3 text-right font-semibold text-gray-700">الشقة</td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <button className="p-2 hover:bg-gray-100 rounded">
+                              <Search className="w-4 h-4 text-gray-600" />
+                            </button>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <input
+                            type="text"
+                            value={newBooking.roomName}
+                            onChange={(e) => setNewBooking({ ...newBooking, roomName: e.target.value })}
+                            placeholder="اسم/رقم الشقة"
+                            className="w-full px-2 py-1 border border-gray-300 rounded"
+                          />
+                        </td>
+                      </tr>
+                      <tr className="border-b border-gray-200">
+                        <td className="px-4 py-3 text-right font-semibold text-gray-700">الشركة</td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <button className="p-2 hover:bg-gray-100 rounded">
+                              <Search className="w-4 h-4 text-gray-600" />
+                            </button>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <select className="w-full px-2 py-1 border border-gray-300 rounded">
+                            <option>------</option>
+                          </select>
+                        </td>
+                      </tr>
+                      <tr className="border-b border-gray-200">
+                        <td className="px-4 py-3 text-right font-semibold text-gray-700">المرافقون</td>
+                        <td className="px-4 py-3">
+                          <button className="p-2 hover:bg-gray-100 rounded">
+                            <ChevronDown className="w-4 h-4 text-gray-600" />
+                          </button>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <input
+                            type="number"
+                            value={newBooking.numberOfGuests}
+                            onChange={(e) => setNewBooking({ ...newBooking, numberOfGuests: parseInt(e.target.value) })}
+                            min="0"
+                            className="w-full px-2 py-1 border border-gray-300 rounded"
+                          />
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="px-4 py-3 text-right font-semibold text-gray-700">سبب الزيارة</td>
+                        <td className="px-4 py-3"></td>
+                        <td className="px-4 py-3 text-right">
+                          <select className="w-full px-2 py-1 border border-gray-300 rounded">
+                            <option>-- اختر --</option>
+                            <option>سياحة</option>
+                            <option>عمل</option>
+                            <option>عائلية</option>
+                          </select>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* العميل */}
+                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                  <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                    <h3 className="text-lg font-bold text-gray-800">العميل</h3>
+                  </div>
+                  <table className="w-full">
+                    <tbody>
+                      <tr className="border-b border-gray-200">
+                        <td className="px-4 py-3 text-right font-semibold text-gray-700">العميل</td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <button className="p-2 hover:bg-gray-100 rounded">
+                              <Plus className="w-4 h-4 text-green-600" />
+                            </button>
+                            <button className="p-2 hover:bg-gray-100 rounded">
+                              <Search className="w-4 h-4 text-gray-600" />
+                            </button>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <input
+                            type="text"
+                            value={newBooking.guestName}
+                            onChange={(e) => setNewBooking({ ...newBooking, guestName: e.target.value })}
+                            placeholder="اسم النزيل"
+                            className="w-full px-2 py-1 border border-gray-300 rounded"
+                          />
+                        </td>
+                      </tr>
+                      <tr className="border-b border-gray-200">
+                        <td className="px-4 py-3 text-right font-semibold text-gray-700">سعر الخدمة</td>
+                        <td className="px-4 py-3"></td>
+                        <td className="px-4 py-3 text-right">
+                          <input
+                            type="number"
+                            value={newBooking.basePrice}
+                            onChange={(e) => setNewBooking({ ...newBooking, basePrice: parseFloat(e.target.value) || 0 })}
+                            placeholder="0"
+                            className="w-full px-2 py-1 border border-gray-300 rounded"
+                          />
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="px-4 py-3 text-right font-semibold text-gray-700">سعر الخدمة</td>
+                        <td className="px-4 py-3">
+                          <input type="checkbox" className="w-4 h-4" />
+                        </td>
+                        <td className="px-4 py-3 text-right text-gray-900 font-bold">
+                          {newBooking.basePrice * (newBooking.checkInDate && newBooking.checkOutDate ? 
+                            Math.ceil((new Date(newBooking.checkOutDate).getTime() - new Date(newBooking.checkInDate).getTime()) / (1000 * 60 * 60 * 24)) 
+                            : 0)}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* المالية - Financial Table */}
+              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                  <h3 className="text-lg font-bold text-gray-800">المالية</h3>
+                </div>
+                <table className="w-full">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">القالية</th>
+                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">المدفوعات</th>
+                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">بدل الإيجار</th>
+                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">التوفيرتر</th>
+                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">الخدمات</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-t border-gray-200">
+                      <td className="px-4 py-3 text-right font-bold text-gray-900">
+                        {(newBooking.basePrice * (newBooking.checkInDate && newBooking.checkOutDate ? 
+                          Math.ceil((new Date(newBooking.checkOutDate).getTime() - new Date(newBooking.checkInDate).getTime()) / (1000 * 60 * 60 * 24)) 
+                          : 0)).toLocaleString()}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center gap-2">
+                          <button className="p-1 hover:bg-gray-100 rounded">
+                            <Plus className="w-4 h-4 text-green-600" />
+                          </button>
+                          <span className="text-gray-900">0</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <span className="text-gray-900">0</span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <span className="text-gray-900">0</span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <select className="px-2 py-1 border border-gray-300 rounded text-sm">
+                          <option>مغلق</option>
+                        </select>
+                      </td>
+                    </tr>
+                    <tr className="border-t border-gray-200 bg-gray-50">
+                      <td className="px-4 py-3"></td>
+                      <td className="px-4 py-3 text-right font-semibold text-gray-700">التكلفة الكلية</td>
+                      <td className="px-4 py-3 text-right font-bold text-gray-900">
+                        {(newBooking.basePrice * (newBooking.checkInDate && newBooking.checkOutDate ? 
+                          Math.ceil((new Date(newBooking.checkOutDate).getTime() - new Date(newBooking.checkInDate).getTime()) / (1000 * 60 * 60 * 24)) 
+                          : 0)).toLocaleString()}
+                      </td>
+                      <td className="px-4 py-3"></td>
+                      <td className="px-4 py-3"></td>
+                    </tr>
+                    <tr className="border-t border-gray-200">
+                      <td className="px-4 py-3"></td>
+                      <td className="px-4 py-3 text-right font-semibold text-gray-700">التكلفة بعد الخصم</td>
+                      <td className="px-4 py-3 text-right font-bold text-gray-900">
+                        {(newBooking.basePrice * (newBooking.checkInDate && newBooking.checkOutDate ? 
+                          Math.ceil((new Date(newBooking.checkOutDate).getTime() - new Date(newBooking.checkInDate).getTime()) / (1000 * 60 * 60 * 24)) 
+                          : 0)).toLocaleString()}
+                      </td>
+                      <td className="px-4 py-3">
+                        <button className="text-sm text-blue-600 hover:underline">تغيير</button>
+                      </td>
+                      <td className="px-4 py-3"></td>
+                    </tr>
+                    <tr className="border-t border-gray-200 bg-gray-50">
+                      <td className="px-4 py-3"></td>
+                      <td className="px-4 py-3 text-right font-semibold text-gray-700">التكلفة النهائية</td>
+                      <td className="px-4 py-3 text-right font-bold text-blue-600 text-lg">
+                        {(newBooking.basePrice * (newBooking.checkInDate && newBooking.checkOutDate ? 
+                          Math.ceil((new Date(newBooking.checkOutDate).getTime() - new Date(newBooking.checkInDate).getTime()) / (1000 * 60 * 60 * 24)) 
+                          : 0)).toLocaleString()}
+                      </td>
+                      <td className="px-4 py-3"></td>
+                      <td className="px-4 py-3"></td>
+                    </tr>
+                    <tr className="border-t border-gray-200">
+                      <td className="px-4 py-3"></td>
+                      <td className="px-4 py-3 text-right font-semibold text-gray-700">المبلغ المدفوع</td>
+                      <td className="px-4 py-3 text-right">
+                        <input
+                          type="number"
+                          value={newBooking.paidAmount}
+                          onChange={(e) => setNewBooking({ ...newBooking, paidAmount: parseFloat(e.target.value) || 0 })}
+                          placeholder="0"
+                          className="w-32 px-2 py-1 border border-gray-300 rounded"
+                        />
+                      </td>
+                      <td className="px-4 py-3"></td>
+                      <td className="px-4 py-3"></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Footer Actions */}
+              <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                {/* Notifications */}
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-2">
+                    <input type="checkbox" className="w-4 h-4" defaultChecked />
+                    <span className="text-sm text-gray-700">إرسال إلى خدمة سمسمي</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input type="checkbox" className="w-4 h-4" defaultChecked />
+                    <span className="text-sm text-gray-700">إرسال إلى خدمة الشوؤون</span>
+                  </label>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-3">
+                  <Button
+                    onClick={() => setShowNewBookingDialog(false)}
+                    className="bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-6"
+                  >
+                    خروج
+                  </Button>
+                  <Button 
+                    onClick={handleCreateBooking}
+                    className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6"
+                  >
+                    <Plus className="w-5 h-5 ml-2" />
+                    حفظ
+                  </Button>
+                  <Button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6">
+                    دخول الشقة
+                  </Button>
+                </div>
+
+                {/* Filter Contracts Button */}
+                <Button 
+                  variant="outline"
+                  className="border-2 border-purple-600 text-purple-600 hover:bg-purple-50 px-6"
+                >
+                  <Filter className="w-4 h-4 ml-2" />
+                  تصفية العقد
+                </Button>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
 
