@@ -48,6 +48,15 @@ export default function SettingsPage() {
       badge: '🌐 جديد'
     },
     {
+      id: 'contract-settings',
+      title: 'إعدادات العقد',
+      description: 'بيانات المنشأة وبنود العقد والشروط والأحكام',
+      icon: FileText,
+      color: 'from-orange-500 via-red-500 to-pink-500',
+      href: '/dashboard/settings/contract-settings',
+      badge: '📝 جديد'
+    },
+    {
       id: 'social-media',
       title: 'منصات التواصل الاجتماعي',
       description: 'ربط وإدارة حسابات واتساب وماسنجر وانستجرام',
