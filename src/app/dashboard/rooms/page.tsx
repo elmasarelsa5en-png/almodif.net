@@ -328,7 +328,8 @@ export default function RoomsPage() {
     maintenance: rooms.filter(r => r.status === 'Maintenance').length,
     needsCleaning: rooms.filter(r => r.status === 'NeedsCleaning').length,
     reserved: rooms.filter(r => r.status === 'Reserved').length,
-    pendingCleaning: rooms.filter(r => r.status === 'PendingCleaning').length,
+    checkoutToday: rooms.filter(r => r.status === 'CheckoutToday').length,
+    pendingCleaning: rooms.filter(r => r.status === 'Cleaning').length,
     occupancyRate: Math.round((rooms.filter(r => r.status === 'Occupied').length / rooms.length) * 100)
   };
 
@@ -714,6 +715,10 @@ export default function RoomsPage() {
       type: room.type || 'غرفة',
       status: 'Available' as RoomStatus,
       balance: 0,
+      currentDebt: 0,
+      roomDebt: 0,
+      servicesDebt: 0,
+      payments: [],
       events: [{
         id: Date.now().toString(),
         type: 'status_change',
@@ -750,15 +755,15 @@ export default function RoomsPage() {
     // المدير والمشرف يمكنهم تغيير أي حالة
     if (user.role === 'admin' || user.role === 'supervisor') return true;
     
-    // موظف النظافة يمكنه تغيير من "تحتاج تنظيف" إلى "خروج اليوم"
-    // والموظفين يمكنهم تغيير من "مشغولة" إلى "خروج اليوم"
-    // والموظفين يمكنهم تغيير من "خروج اليوم" إلى "تحتاج تنظيف" أو "متاحة"
+    // موظف النظافة يمكنه تغيير من "تحتاج تنظيف" إلى "جاري التنظيف"
+    // والموظفين يمكنهم تغيير من "مشغولة" إلى "جاري التنظيف"
+    // والموظفين يمكنهم تغيير من "جاري التنظيف" إلى "تحتاج تنظيف" أو "متاحة"
     if (user.role === 'housekeeping') {
-      return fromStatus === 'NeedsCleaning' && toStatus === 'PendingCleaning';
+      return fromStatus === 'NeedsCleaning' && toStatus === 'Cleaning';
     }
     if (user.role === 'staff' || user.role === 'admin' || user.role === 'supervisor') {
-      return (fromStatus === 'Occupied' && toStatus === 'PendingCleaning') ||
-             (fromStatus === 'PendingCleaning' && (toStatus === 'NeedsCleaning' || toStatus === 'Available'));
+      return (fromStatus === 'Occupied' && toStatus === 'Cleaning') ||
+             (fromStatus === 'Cleaning' && (toStatus === 'NeedsCleaning' || toStatus === 'Available'));
     }
     
     return false;
@@ -793,7 +798,7 @@ export default function RoomsPage() {
 
     return (
       <div
-        className={`relative group cursor-pointer transition-all duration-500 hover:scale-110 hover:rotate-1 hover:shadow-2xl hover:shadow-blue-500/30 rounded-2xl overflow-hidden ${
+        className={`relative group cursor-pointer transition-transform duration-300 will-change-transform hover:scale-105 hover:rotate-1 hover:shadow-2xl hover:shadow-blue-500/30 rounded-2xl overflow-hidden min-h-[220px] ${
           imageUrl ? '' : config.bgColor
         } active:scale-95 ${isLate ? 'animate-pulse ring-4 ring-red-500' : ''}`}
         onClick={(e) => {
