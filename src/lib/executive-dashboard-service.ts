@@ -568,6 +568,263 @@ async function getGMTrends(propertyId: string, dateRange: DateRangeFilter) {
 }
 
 // ====================================
+// CFO Dashboard Functions
+// ====================================
+
+/**
+ * الحصول على بيانات لوحة المدير المالي
+ */
+export async function getCFODashboardData(
+  propertyId: string,
+  dateRange: DateRangeFilter
+): Promise<CFODashboardData> {
+  // جلب الإيرادات
+  const bookingsRef = collection(db, 'bookings');
+  const bookingsQuery = query(
+    bookingsRef,
+    where('propertyId', '==', propertyId),
+    where('checkIn', '>=', Timestamp.fromDate(dateRange.start)),
+    where('checkIn', '<=', Timestamp.fromDate(dateRange.end))
+  );
+  const bookingsSnap = await getDocs(bookingsQuery);
+  const bookings = bookingsSnap.docs.map(d => d.data());
+  const totalRevenue = bookings.reduce((sum, b) => sum + (b.totalAmount || 0), 0);
+
+  // جلب المصروفات
+  const expensesRef = collection(db, 'expense_vouchers');
+  const expensesQuery = query(
+    expensesRef,
+    where('propertyId', '==', propertyId),
+    where('date', '>=', Timestamp.fromDate(dateRange.start)),
+    where('date', '<=', Timestamp.fromDate(dateRange.end)),
+    where('status', '==', 'approved')
+  );
+  const expensesSnap = await getDocs(expensesQuery);
+  const expenses = expensesSnap.docs.map(d => d.data());
+  const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+
+  // حساب صافي الربح
+  const netProfit = totalRevenue - totalExpenses;
+  const profitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
+
+  // التدفق النقدي (مبسط)
+  const operatingCashFlow = netProfit;
+  const investingCashFlow = 0; // يجب جلبه من نظام الأصول
+  const financingCashFlow = 0; // يجب جلبه من نظام القروض
+  const netCashFlow = operatingCashFlow + investingCashFlow + financingCashFlow;
+
+  // الذمم المدينة
+  const promissoryNotesRef = collection(db, 'promissory_notes');
+  const receivableQuery = query(
+    promissoryNotesRef,
+    where('propertyId', '==', propertyId),
+    where('type', '==', 'receivable'),
+    where('status', 'in', ['pending', 'partially_paid'])
+  );
+  const receivableSnap = await getDocs(receivableQuery);
+  const receivables = receivableSnap.docs.map(d => d.data());
+  const totalReceivable = receivables.reduce((sum, r) => sum + (r.amount || 0), 0);
+  
+  // متوسط فترة التحصيل (مبسط)
+  const averageCollectionPeriod = 30; // يجب حسابه من البيانات الفعلية
+  
+  // المبالغ المتأخرة
+  const today = new Date();
+  const overdueReceivable = receivables
+    .filter(r => toDate(r.dueDate) < today)
+    .reduce((sum, r) => sum + (r.amount || 0), 0);
+  
+  // معدل التحصيل
+  const collectionRate = totalReceivable > 0 
+    ? ((totalReceivable - overdueReceivable) / totalReceivable) * 100 
+    : 100;
+
+  // الذمم الدائنة
+  const payableQuery = query(
+    promissoryNotesRef,
+    where('propertyId', '==', propertyId),
+    where('type', '==', 'payable'),
+    where('status', 'in', ['pending', 'partially_paid'])
+  );
+  const payableSnap = await getDocs(payableQuery);
+  const payables = payableSnap.docs.map(d => d.data());
+  const totalPayable = payables.reduce((sum, p) => sum + (p.amount || 0), 0);
+  
+  // متوسط فترة السداد
+  const averagePaymentPeriod = 45;
+  
+  // المبالغ المتأخرة
+  const overduePayable = payables
+    .filter(p => toDate(p.dueDate) < today)
+    .reduce((sum, p) => sum + (p.amount || 0), 0);
+
+  // تفصيل الإيرادات
+  const revenueByCategory = [
+    { category: 'الحجوزات', amount: bookings.reduce((sum, b) => sum + (b.roomCharges || 0), 0) },
+    { category: 'خدمة الغرف', amount: bookings.reduce((sum, b) => sum + (b.roomServiceCharges || 0), 0) },
+    { category: 'المطعم', amount: 0 }, // يجب جلبه من نظام المطعم
+    { category: 'المغسلة', amount: 0 }, // يجب جلبه من نظام المغسلة
+    { category: 'أخرى', amount: bookings.reduce((sum, b) => sum + (b.otherCharges || 0), 0) }
+  ].filter(item => item.amount > 0);
+
+  // تفصيل المصروفات
+  const expensesByCategory = expenses.reduce((acc, e) => {
+    const category = e.category || 'أخرى';
+    const existing = acc.find(item => item.category === category);
+    if (existing) {
+      existing.amount += e.amount || 0;
+    } else {
+      acc.push({ category, amount: e.amount || 0 });
+    }
+    return acc;
+  }, [] as { category: string; amount: number }[]);
+
+  // صافي الربح الشهري (آخر 12 شهر)
+  const profitByMonth = [];
+  for (let i = 11; i >= 0; i--) {
+    const date = new Date();
+    date.setMonth(date.getMonth() - i);
+    const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
+    const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+    const monthName = date.toLocaleDateString('ar-SA', { month: 'short', year: 'numeric' });
+
+    // جلب إيرادات الشهر
+    const monthBookingsQuery = query(
+      bookingsRef,
+      where('propertyId', '==', propertyId),
+      where('checkIn', '>=', Timestamp.fromDate(monthStart)),
+      where('checkIn', '<=', Timestamp.fromDate(monthEnd))
+    );
+    const monthBookingsSnap = await getDocs(monthBookingsQuery);
+    const monthBookings = monthBookingsSnap.docs.map(d => d.data());
+    const monthRevenue = monthBookings.reduce((sum, b) => sum + (b.totalAmount || 0), 0);
+
+    // جلب مصروفات الشهر
+    const monthExpensesQuery = query(
+      expensesRef,
+      where('propertyId', '==', propertyId),
+      where('date', '>=', Timestamp.fromDate(monthStart)),
+      where('date', '<=', Timestamp.fromDate(monthEnd)),
+      where('status', '==', 'approved')
+    );
+    const monthExpensesSnap = await getDocs(monthExpensesQuery);
+    const monthExpenses = monthExpensesSnap.docs.map(d => d.data());
+    const monthExpensesTotal = monthExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+
+    const monthProfit = monthRevenue - monthExpensesTotal;
+    profitByMonth.push({ month: monthName, profit: monthProfit });
+  }
+
+  return {
+    financial: {
+      revenue: {
+        label: 'إجمالي الإيرادات',
+        value: totalRevenue,
+        unit: 'SAR' as const,
+        target: 500000,
+        status: getKPIStatus(totalRevenue, 500000)
+      },
+      expenses: {
+        label: 'إجمالي المصروفات',
+        value: totalExpenses,
+        unit: 'SAR' as const,
+        target: 300000,
+        status: totalExpenses <= 300000 ? 'good' : 'warning'
+      },
+      profit: {
+        label: 'صافي الربح',
+        value: netProfit,
+        unit: 'SAR' as const,
+        target: 200000,
+        status: getKPIStatus(netProfit, 200000)
+      },
+      profitMargin: {
+        label: 'هامش الربح',
+        value: profitMargin.toFixed(1),
+        unit: 'percentage' as const,
+        target: 40,
+        status: getKPIStatus(profitMargin, 40)
+      }
+    },
+    cashFlow: {
+      operatingCashFlow: {
+        label: 'التدفق التشغيلي',
+        value: operatingCashFlow,
+        unit: 'SAR' as const
+      },
+      investingCashFlow: {
+        label: 'التدفق الاستثماري',
+        value: investingCashFlow,
+        unit: 'SAR' as const
+      },
+      financingCashFlow: {
+        label: 'التدفق التمويلي',
+        value: financingCashFlow,
+        unit: 'SAR' as const
+      },
+      netCashFlow: {
+        label: 'صافي التدفق النقدي',
+        value: netCashFlow,
+        unit: 'SAR' as const,
+        status: netCashFlow >= 0 ? 'good' : 'critical'
+      }
+    },
+    accountsReceivable: {
+      totalReceivable: {
+        label: 'إجمالي الذمم المدينة',
+        value: totalReceivable,
+        unit: 'SAR' as const
+      },
+      averageCollectionPeriod: {
+        label: 'متوسط فترة التحصيل',
+        value: averageCollectionPeriod,
+        unit: 'days' as const,
+        target: 30,
+        status: averageCollectionPeriod <= 30 ? 'good' : 'warning'
+      },
+      overdueAmount: {
+        label: 'المبالغ المتأخرة',
+        value: overdueReceivable,
+        unit: 'SAR' as const,
+        status: overdueReceivable === 0 ? 'good' : 'warning'
+      },
+      collectionRate: {
+        label: 'معدل التحصيل',
+        value: collectionRate.toFixed(1),
+        unit: 'percentage' as const,
+        target: 95,
+        status: getKPIStatus(collectionRate, 95)
+      }
+    },
+    accountsPayable: {
+      totalPayable: {
+        label: 'إجمالي الذمم الدائنة',
+        value: totalPayable,
+        unit: 'SAR' as const
+      },
+      averagePaymentPeriod: {
+        label: 'متوسط فترة السداد',
+        value: averagePaymentPeriod,
+        unit: 'days' as const,
+        target: 45,
+        status: averagePaymentPeriod <= 45 ? 'good' : 'warning'
+      },
+      overdueAmount: {
+        label: 'المبالغ المتأخرة',
+        value: overduePayable,
+        unit: 'SAR' as const,
+        status: overduePayable === 0 ? 'good' : 'warning'
+      }
+    },
+    breakdown: {
+      revenueByCategory,
+      expensesByCategory,
+      profitByMonth
+    }
+  };
+}
+
+// ====================================
 // Export Functions
 // ====================================
 
@@ -576,5 +833,6 @@ export default {
   getGMOverview,
   getGMFinancial,
   getGMOperations,
-  getGMTrends
+  getGMTrends,
+  getCFODashboardData
 };
