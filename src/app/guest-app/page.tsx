@@ -417,25 +417,9 @@ export default function GuestAppHomePage() {
                     window.location.reload();
                   }}
                   size="sm"
-                  className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-100 backdrop-blur-sm border border-amber-400/30"
+                  className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-50 backdrop-blur-sm border border-amber-400/40 shadow-lg"
                 >
                   <Globe className="w-4 h-4" />
-                </Button>
-              </motion.div>
-              
-              <motion.div
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.65 }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Button
-                  onClick={() => router.push('/guest-app/my-orders')}
-                  size="sm"
-                  className="bg-purple-500/10 hover:bg-purple-500/20 text-purple-100 backdrop-blur-sm border border-purple-400/30"
-                >
-                  <ShoppingBag className="w-4 h-4" />
                 </Button>
               </motion.div>
               
@@ -449,7 +433,7 @@ export default function GuestAppHomePage() {
                 <Button
                   onClick={generateQRCode}
                   size="sm"
-                  className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-100 backdrop-blur-sm border border-amber-400/30"
+                  className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-50 backdrop-blur-sm border border-amber-400/40 shadow-lg"
                 >
                   <QrCode className="w-4 h-4" />
                 </Button>
@@ -466,7 +450,7 @@ export default function GuestAppHomePage() {
                   onClick={handleLogout}
                   size="sm"
                   variant="ghost"
-                  className="text-red-300 hover:text-red-200 hover:bg-red-500/10 border border-red-400/20"
+                  className="text-red-200 hover:text-red-100 hover:bg-red-500/20 border border-red-400/30 shadow-lg"
                 >
                   <LogOut className="w-4 h-4" />
                 </Button>
@@ -570,7 +554,7 @@ export default function GuestAppHomePage() {
                     <Button
                       onClick={() => router.push('/guest-app/my-bookings')}
                       size="sm"
-                      className="bg-gradient-to-r from-amber-500/20 to-purple-500/20 hover:from-amber-500/30 hover:to-purple-500/30 text-white backdrop-blur-sm border border-amber-400/30"
+                      className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white backdrop-blur-sm border border-amber-400/50 shadow-lg font-semibold"
                     >
                       <Calendar className="w-4 h-4 mr-2" />
                       حجوزاتي
@@ -582,9 +566,23 @@ export default function GuestAppHomePage() {
                     whileTap={{ scale: 0.95 }}
                   >
                     <Button
+                      onClick={() => router.push('/guest-app/my-orders')}
+                      size="sm"
+                      className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white backdrop-blur-sm border border-purple-400/50 shadow-lg font-semibold"
+                    >
+                      <ShoppingBag className="w-4 h-4 mr-2" />
+                      طلباتي
+                    </Button>
+                  </motion.div>
+                  
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Button
                       onClick={() => router.push('/guest-app/profile')}
                       size="sm"
-                      className="bg-gradient-to-r from-purple-500/20 to-blue-500/20 hover:from-purple-500/30 hover:to-blue-500/30 text-white backdrop-blur-sm border border-purple-400/30"
+                      className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white backdrop-blur-sm border border-emerald-400/50 shadow-lg font-semibold"
                     >
                       <User className="w-4 h-4 mr-2" />
                       الملف الشخصي

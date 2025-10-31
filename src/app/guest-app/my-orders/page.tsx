@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { generateAndPrintInvoice, calculateVAT, type InvoiceData } from '@/lib/invoice-generator';
 
 interface Order {
   id: string;
@@ -65,6 +66,51 @@ export default function MyOrdersPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // دالة تحميل الفاتورة
+  const handleDownloadInvoice = (order: Order) => {
+    // حساب الضريبة
+    const amountBeforeTax = order.totalAmount / 1.15; // إزالة الـ 15% VAT
+    const vatData = calculateVAT(amountBeforeTax);
+    
+    // تحديد نوع الطلب بالعربية
+    const orderTypeMap = {
+      'restaurant': 'مطعم',
+      'coffee-shop': 'مقهى',
+      'laundry': 'مغسلة',
+      'room-service': 'خدمة الغرف',
+      'other': 'خدمات أخرى'
+    };
+    
+    // بناء وصف تفصيلي للطلبات
+    const itemsDescription = order.items.map(item => 
+      `${item.name} (${item.quantity}×)`
+    ).join(', ');
+    
+    const invoiceData: InvoiceData = {
+      id: order.id,
+      number: `ORD-${order.id}-${new Date().getFullYear()}`,
+      date: new Date(order.orderDate).toISOString().split('T')[0],
+      customerName: order.guestName,
+      phone: guestSession?.phone || '',
+      room: order.roomNumber,
+      description: `${orderTypeMap[order.type]} - ${itemsDescription}${order.notes ? `\nملاحظات: ${order.notes}` : ''}`,
+      amountBeforeTax: amountBeforeTax,
+      taxAmount: vatData.taxAmount,
+      amountAfterTax: order.totalAmount,
+      paymentType: 'مدفوع',
+      bookingId: `ORDER-${order.id}`,
+      roomNights: 1, // للطلبات نستخدم 1 كعدد افتراضي
+      hotelName: 'المضيف سمارت لإدارة الفنادق والمنتجعات',
+      hotelAddress: 'أبها، شارع العرين',
+      hotelPhone: '+966559902557',
+      hotelEmail: 'akramabdelaziz1992@gmail.com',
+      hotelVAT: '300092095780003',
+      hotelCR: '7017845756'
+    };
+    
+    generateAndPrintInvoice(invoiceData);
   };
 
   const loadSampleOrders = () => {
@@ -576,6 +622,7 @@ export default function MyOrdersPage() {
                         {order.status === 'delivered' && (
                           <Button
                             size="sm"
+                            onClick={() => handleDownloadInvoice(order)}
                             className="bg-gradient-to-r from-amber-500 to-purple-500 hover:from-amber-600 hover:to-purple-600 text-white"
                           >
                             <Download className="w-4 h-4 mr-2" />

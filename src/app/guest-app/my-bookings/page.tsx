@@ -12,6 +12,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { generateAndPrintInvoice, calculateVAT, type InvoiceData } from '@/lib/invoice-generator';
 
 interface Booking {
   id: string;
@@ -80,6 +81,42 @@ export default function MyBookingsPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // دالة تحميل الفاتورة
+  const handleDownloadInvoice = (booking: Booking) => {
+    // حساب الضريبة
+    const amountBeforeTax = booking.totalAmount / 1.15; // إزالة الـ 15% VAT
+    const vatData = calculateVAT(amountBeforeTax);
+    
+    // حساب عدد الليالي
+    const checkInDate = new Date(booking.checkIn);
+    const checkOutDate = new Date(booking.checkOut);
+    const nights = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    const invoiceData: InvoiceData = {
+      id: booking.id,
+      number: `INV-${booking.id}-${new Date().getFullYear()}`,
+      date: new Date().toISOString().split('T')[0],
+      customerName: booking.guestName,
+      phone: guestSession?.phone || '',
+      room: booking.roomNumber,
+      description: `إقامة فندقية - ${booking.roomType} - ${nights} ليالي`,
+      amountBeforeTax: amountBeforeTax,
+      taxAmount: vatData.taxAmount,
+      amountAfterTax: booking.totalAmount,
+      paymentType: booking.paid >= booking.totalAmount ? 'مدفوع بالكامل' : 'دفع جزئي',
+      bookingId: booking.id,
+      roomNights: nights,
+      hotelName: 'المضيف سمارت لإدارة الفنادق والمنتجعات',
+      hotelAddress: 'أبها، شارع العرين',
+      hotelPhone: '+966559902557',
+      hotelEmail: 'akramabdelaziz1992@gmail.com',
+      hotelVAT: '300092095780003',
+      hotelCR: '7017845756'
+    };
+    
+    generateAndPrintInvoice(invoiceData);
   };
 
   const loadSampleBookings = () => {
@@ -423,28 +460,35 @@ export default function MyBookingsPage() {
                       </div>
                     </div>
 
-                    {/* Payment Info */}
-                    <div className="flex items-center justify-between p-4 bg-gradient-to-r from-amber-500/10 to-purple-500/10 rounded-xl border border-amber-400/20 mb-4">
-                      <div className="flex items-center gap-3">
-                        <CreditCard className="w-6 h-6 text-amber-400" />
-                        <div>
-                          <p className="text-sm text-slate-300">المبلغ الإجمالي</p>
-                          <p className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-100">
-                            {booking.totalAmount.toLocaleString()} ريال
-                          </p>
-                        </div>
-                      </div>
+                    {/* Payment Status */}
+                    <div className="p-4 bg-gradient-to-r from-amber-500/10 to-purple-500/10 rounded-xl border border-amber-400/20 mb-6">
                       {booking.paid >= booking.totalAmount ? (
-                        <div className="flex items-center gap-2 px-4 py-2 bg-green-500/20 rounded-lg border border-green-400/30">
-                          <CheckCircle2 className="w-5 h-5 text-green-400" />
-                          <span className="text-sm font-medium text-green-300">مدفوع</span>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-xs text-slate-400 mb-1">المبلغ الإجمالي</p>
+                            <p className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-purple-300">
+                              {booking.totalAmount.toLocaleString()} ريال
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2 text-green-400">
+                            <CheckCircle2 className="w-5 h-5" />
+                            <span className="text-sm font-medium text-green-300">مدفوع</span>
+                          </div>
                         </div>
                       ) : (
-                        <div className="text-left">
-                          <p className="text-xs text-slate-400">المتبقي</p>
-                          <p className="text-lg font-bold text-red-300">
-                            {(booking.totalAmount - booking.paid).toLocaleString()} ريال
-                          </p>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-xs text-slate-400 mb-1">المبلغ الإجمالي</p>
+                            <p className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-purple-300">
+                              {booking.totalAmount.toLocaleString()} ريال
+                            </p>
+                          </div>
+                          <div className="text-left">
+                            <p className="text-xs text-slate-400">المتبقي</p>
+                            <p className="text-lg font-bold text-red-300">
+                              {(booking.totalAmount - booking.paid).toLocaleString()} ريال
+                            </p>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -460,6 +504,7 @@ export default function MyBookingsPage() {
                     {/* Actions */}
                     <div className="flex gap-3">
                       <Button
+                        onClick={() => handleDownloadInvoice(booking)}
                         className="flex-1 bg-gradient-to-r from-amber-500 to-purple-500 hover:from-amber-600 hover:to-purple-600 text-white"
                       >
                         <Download className="w-4 h-4 mr-2" />
