@@ -27,10 +27,13 @@ import {
   Briefcase,
   Plane,
   FileText,
-  Users
+  Users,
+  Printer
 } from 'lucide-react';
 import { Room } from '@/lib/rooms-data';
 import AddGuestDialog from '@/components/AddGuestDialog';
+import { db } from '@/lib/firebase';
+import { collection, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
 
 interface BookingDialogProps {
   room: Room | null;
@@ -63,6 +66,32 @@ const VISIT_TYPES = [
 export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusChange }: BookingDialogProps) {
   // حالة زر تغيير الحالة
   const [showStatusChange, setShowStatusChange] = useState(false);
+  
+  // تحميل أسعار الغرف من Firebase
+  const [roomTypes, setRoomTypes] = useState<any[]>([]);
+  
+  // تحميل أنواع الغرف والأسعار
+  useEffect(() => {
+    const loadRoomTypes = async () => {
+      if (!db) return;
+      
+      try {
+        const roomTypesSnapshot = await getDocs(collection(db, 'room-types'));
+        const types = roomTypesSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setRoomTypes(types);
+        console.log('✅ تم تحميل أنواع الغرف:', types);
+      } catch (error) {
+        console.error('❌ خطأ في تحميل أنواع الغرف:', error);
+      }
+    };
+    
+    if (isOpen) {
+      loadRoomTypes();
+    }
+  }, [isOpen]);
   
   // تتبع فتح النافذة
   useEffect(() => {
@@ -104,8 +133,18 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
       setCheckInDate(now.toISOString().split('T')[0]);
       setCheckInTime(now.toTimeString().slice(0, 5));
       
-      // تعيين السعر اليومي من بيانات الغرفة
-      setDailyRate(room.price || 0);
+      // 🔥 تحميل السعر من الكتالوج (room-types) بناءً على نوع الغرفة
+      const roomTypeData = roomTypes.find(rt => rt.name === room.type || rt.nameAr === room.type);
+      if (roomTypeData) {
+        // استخدام السعر اليومي من الكتالوج
+        const priceToUse = rentalType === 'daily' ? roomTypeData.pricePerDay : roomTypeData.pricePerMonth;
+        setDailyRate(priceToUse || room.price || 0);
+        console.log('✅ تم تحميل السعر من الكتالوج:', priceToUse);
+      } else {
+        // استخدام السعر من بيانات الغرفة كبديل
+        setDailyRate(room.price || 0);
+        console.log('ℹ️ استخدام السعر من بيانات الغرفة:', room.price);
+      }
       
       // توليد رقم عقد تلقائي
       setContractNumber(`CONTRACT-${Date.now()}`);
@@ -158,7 +197,7 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
         setAdvancePayments([]);
       }
     }
-  }, [isOpen, room]);
+  }, [isOpen, room, roomTypes, rentalType]);
 
   // حساب عدد الأيام عند تغيير التواريخ
   useEffect(() => {
@@ -192,7 +231,53 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
   const totalAdvance = advancePayments.reduce((sum, amount) => sum + amount, 0);
   const remaining = totalAmount - totalDeposits;
 
-  const handleSave = () => {
+  // 💰 حفظ سند قبض في Firebase
+  const saveReceiptVoucher = async (paymentData: {
+    amount: number;
+    method: 'cash' | 'card' | 'transfer';
+    guestName: string;
+    roomNumber: string;
+    contractNumber: string;
+  }) => {
+    if (!db) {
+      console.warn('⚠️ Firebase غير متصل - لن يتم حفظ سند القبض');
+      return;
+    }
+
+    try {
+      const receiptData = {
+        type: 'receipt',
+        amount: paymentData.amount,
+        paymentMethod: paymentData.method,
+        paymentMethodAr: paymentData.method === 'cash' ? 'نقدي' : 
+                         paymentData.method === 'card' ? 'بطاقة' : 'تحويل بنكي',
+        guestName: paymentData.guestName,
+        roomNumber: paymentData.roomNumber,
+        contractNumber: paymentData.contractNumber,
+        description: `مقبوضات من ${paymentData.guestName} - غرفة ${paymentData.roomNumber}`,
+        date: new Date().toISOString(),
+        createdAt: serverTimestamp(),
+        createdBy: 'النظام',
+        status: 'completed'
+      };
+
+      const docRef = await addDoc(collection(db, 'receipts'), receiptData);
+      console.log('✅ تم حفظ سند القبض:', docRef.id);
+      
+      // إضافة أيضاً في الحسابات العامة
+      await addDoc(collection(db, 'accounting-transactions'), {
+        ...receiptData,
+        category: 'room-revenue',
+        categoryAr: 'إيرادات الغرف'
+      });
+      
+      return docRef.id;
+    } catch (error) {
+      console.error('❌ خطأ في حفظ سند القبض:', error);
+    }
+  };
+
+  const handleSave = async () => {
     if (!selectedGuest) {
       alert('يرجى اختيار نزيل');
       return;
@@ -227,6 +312,21 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
       createdAt: new Date().toISOString()
     };
 
+    // 🔥 حفظ سند قبض لكل دفعة مقبوضات
+    if (deposits.length > 0 && room) {
+      for (const deposit of deposits) {
+        if (deposit > 0) {
+          await saveReceiptVoucher({
+            amount: deposit,
+            method: 'cash', // يمكن تحسينه لاحقاً لاختيار طريقة الدفع لكل مقبوضة
+            guestName: selectedGuest.name,
+            roomNumber: room.number,
+            contractNumber
+          });
+        }
+      }
+    }
+
     onSave(bookingData);
     handleClose();
   };
@@ -251,15 +351,220 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
     onClose();
   };
 
+  // 🖨️ طباعة العقد
+  const handlePrintContract = () => {
+    if (!selectedGuest || !room) {
+      alert('يرجى حفظ بيانات الحجز أولاً');
+      return;
+    }
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    const contractHTML = `
+      <!DOCTYPE html>
+      <html dir="rtl" lang="ar">
+      <head>
+        <meta charset="UTF-8">
+        <title>عقد إيجار - غرفة ${room.number}</title>
+        <style>
+          body {
+            font-family: 'Arial', sans-serif;
+            padding: 40px;
+            direction: rtl;
+            text-align: right;
+          }
+          .header {
+            text-align: center;
+            border-bottom: 3px solid #2563eb;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+          }
+          .header h1 {
+            color: #1e40af;
+            margin: 0;
+            font-size: 32px;
+          }
+          .header p {
+            color: #64748b;
+            margin: 5px 0;
+          }
+          .section {
+            margin: 25px 0;
+            padding: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+          }
+          .section h2 {
+            color: #1e40af;
+            font-size: 20px;
+            margin: 0 0 15px 0;
+            border-bottom: 2px solid #3b82f6;
+            padding-bottom: 8px;
+          }
+          .row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 8px;
+            background: #f8fafc;
+            border-radius: 4px;
+          }
+          .label {
+            font-weight: bold;
+            color: #475569;
+          }
+          .value {
+            color: #0f172a;
+          }
+          .financial-summary {
+            background: #eff6ff;
+            border: 2px solid #3b82f6;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+          }
+          .total {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1e40af;
+            text-align: center;
+            margin: 15px 0;
+          }
+          .signature {
+            margin-top: 60px;
+            display: flex;
+            justify-content: space-between;
+          }
+          .signature div {
+            text-align: center;
+            width: 200px;
+          }
+          .signature-line {
+            border-top: 2px solid #0f172a;
+            margin-top: 60px;
+            padding-top: 10px;
+          }
+          @media print {
+            body { padding: 20px; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>عقد إيجار غرفة فندقية</h1>
+          <p>رقم العقد: ${contractNumber}</p>
+          <p>التاريخ: ${new Date().toLocaleDateString('ar-SA')}</p>
+        </div>
+
+        <div class="section">
+          <h2>معلومات الغرفة</h2>
+          <div class="row">
+            <span class="label">رقم الغرفة:</span>
+            <span class="value">${room.number}</span>
+          </div>
+          <div class="row">
+            <span class="label">نوع الغرفة:</span>
+            <span class="value">${room.type}</span>
+          </div>
+          <div class="row">
+            <span class="label">نوع الإيجار:</span>
+            <span class="value">${rentalType === 'daily' ? 'يومي' : 'شهري'}</span>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>بيانات النزيل</h2>
+          <div class="row">
+            <span class="label">الاسم:</span>
+            <span class="value">${selectedGuest.name}</span>
+          </div>
+          <div class="row">
+            <span class="label">رقم الهاتف:</span>
+            <span class="value">${selectedGuest.phone || '-'}</span>
+          </div>
+          <div class="row">
+            <span class="label">الجنسية:</span>
+            <span class="value">${selectedGuest.nationality || '-'}</span>
+          </div>
+          <div class="row">
+            <span class="label">نوع الهوية:</span>
+            <span class="value">${selectedGuest.idType || '-'}</span>
+          </div>
+          <div class="row">
+            <span class="label">رقم الهوية:</span>
+            <span class="value">${selectedGuest.idNumber || '-'}</span>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>مدة الإقامة</h2>
+          <div class="row">
+            <span class="label">تاريخ الدخول:</span>
+            <span class="value">${checkInDate} - ${checkInTime}</span>
+          </div>
+          <div class="row">
+            <span class="label">تاريخ الخروج:</span>
+            <span class="value">${checkOutDate} - ${checkOutTime}</span>
+          </div>
+          <div class="row">
+            <span class="label">عدد الأيام:</span>
+            <span class="value">${numberOfDays} يوم</span>
+          </div>
+        </div>
+
+        <div class="financial-summary">
+          <h2>البيانات المالية</h2>
+          <div class="row">
+            <span class="label">السعر اليومي:</span>
+            <span class="value">${dailyRate} ر.س</span>
+          </div>
+          <div class="row">
+            <span class="label">عدد الأيام:</span>
+            <span class="value">${numberOfDays}</span>
+          </div>
+          <div class="row">
+            <span class="label">المبلغ الإجمالي:</span>
+            <span class="value">${totalAmount} ر.س</span>
+          </div>
+          <div class="row">
+            <span class="label">المقبوضات:</span>
+            <span class="value">${totalDeposits} ر.س</span>
+          </div>
+          <div class="total">
+            المتبقي: ${remaining} ر.س
+          </div>
+        </div>
+
+        <div class="signature">
+          <div>
+            <div class="signature-line">توقيع النزيل</div>
+          </div>
+          <div>
+            <div class="signature-line">توقيع الإدارة</div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(contractHTML);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+    }, 250);
+  };
+
   if (!room) return null;
 
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="max-w-[98vw] w-full max-h-[98vh] h-full overflow-y-auto bg-white text-gray-900 border-0 p-0">
-          {/* Header with blue background */}
-          <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-5 mb-6 flex items-center justify-between shadow-lg">
-            <DialogTitle className="text-3xl font-bold text-white">
+        <DialogContent className="max-w-[98vw] w-full max-h-[98vh] h-full overflow-y-auto bg-gradient-to-br from-gray-50 to-blue-50 text-gray-900 border-0 p-0">
+          {/* Header with modern gradient */}
+          <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-600 via-blue-700 to-purple-600 px-6 py-5 mb-6 flex items-center justify-between shadow-xl">
+            <DialogTitle className="text-3xl font-bold text-white drop-shadow-lg">
               {room.status === 'Occupied' || room.status === 'Reserved' 
                 ? `تفاصيل الحجز - غرفة ${room.number}` 
                 : `حجز جديد - غرفة ${room.number}`}
@@ -270,7 +575,7 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
               <Button
                 variant="outline"
                 onClick={() => setShowStatusChange(!showStatusChange)}
-                className="bg-purple-600 hover:bg-purple-700 border-0 text-white"
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 border-0 text-white shadow-lg font-bold"
               >
                 <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
@@ -292,7 +597,7 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
           <div className="space-y-6 px-6">
             {/* قسم تغيير الحالة */}
             {showStatusChange && onStatusChange && (
-              <div className="bg-purple-50 rounded-lg p-6 border-2 border-purple-200">
+              <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-300 shadow-lg">
                 <h3 className="text-lg font-bold text-purple-800 mb-4 flex items-center gap-2">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
@@ -307,7 +612,7 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                       setShowStatusChange(false);
                       handleClose();
                     }}
-                    className="bg-green-600 hover:bg-green-700 text-white"
+                    className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-md"
                   >
                     متاحة
                   </Button>
@@ -317,7 +622,7 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                       setShowStatusChange(false);
                       handleClose();
                     }}
-                    className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                    className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white shadow-md"
                   >
                     محجوزة
                   </Button>
@@ -327,7 +632,7 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                       setShowStatusChange(false);
                       handleClose();
                     }}
-                    className="bg-orange-600 hover:bg-orange-700 text-white"
+                    className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-md"
                   >
                     صيانة
                   </Button>
@@ -337,7 +642,7 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                       setShowStatusChange(false);
                       handleClose();
                     }}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-md"
                   >
                     تحتاج تنظيف
                   </Button>
@@ -347,14 +652,14 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                       setShowStatusChange(false);
                       handleClose();
                     }}
-                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                    className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-md"
                   >
                     خروج اليوم
                   </Button>
                   <Button
                     onClick={() => setShowStatusChange(false)}
                     variant="outline"
-                    className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50"
+                    className="border-2 border-gray-400 text-gray-700 hover:bg-gray-100 shadow-md"
                   >
                     إلغاء
                   </Button>
@@ -364,27 +669,27 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
             
             {/* عرض بيانات النزيل الحالي */}
             {selectedGuest && (room.status === 'Occupied' || room.status === 'Reserved') && (
-              <div className="bg-blue-50 rounded-lg p-6 border-2 border-blue-200">
+              <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-6 border-2 border-blue-300 shadow-lg">
                 <h3 className="text-lg font-bold text-blue-800 mb-4 flex items-center gap-2">
                   <User className="h-5 w-5" />
                   بيانات النزيل الحالي
                 </h3>
                 
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-blue-600 mb-1">الاسم</p>
-                    <p className="text-gray-900 font-semibold">{selectedGuest.name}</p>
+                  <div className="bg-white rounded-lg p-3 shadow-sm">
+                    <p className="text-sm text-blue-600 mb-1 font-semibold">الاسم</p>
+                    <p className="text-gray-900 font-bold">{selectedGuest.name}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-blue-600 mb-1">رقم الهاتف</p>
-                    <p className="text-gray-900 font-semibold">{selectedGuest.phone || '-'}</p>
+                  <div className="bg-white rounded-lg p-3 shadow-sm">
+                    <p className="text-sm text-blue-600 mb-1 font-semibold">رقم الهاتف</p>
+                    <p className="text-gray-900 font-bold">{selectedGuest.phone || '-'}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-blue-600 mb-1">الجنسية</p>
-                    <p className="text-gray-900 font-semibold">{selectedGuest.nationality || '-'}</p>
+                  <div className="bg-white rounded-lg p-3 shadow-sm">
+                    <p className="text-sm text-blue-600 mb-1 font-semibold">الجنسية</p>
+                    <p className="text-gray-900 font-bold">{selectedGuest.nationality || '-'}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-blue-600 mb-1">الرصيد المستحق</p>
+                  <div className="bg-white rounded-lg p-3 shadow-sm">
+                    <p className="text-sm text-blue-600 mb-1 font-semibold">الرصيد المستحق</p>
                     <p className={`font-bold text-lg ${room.balance > 0 ? 'text-red-600' : 'text-green-600'}`}>
                       {room.balance} ر.س
                     </p>
@@ -795,24 +1100,37 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
             <Button
               variant="outline"
               onClick={handleClose}
-              className="flex-1 bg-white border-gray-300 text-gray-700 hover:bg-gray-50 h-12 text-lg"
+              className="flex-1 bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 h-14 text-lg font-semibold"
             >
               إلغاء
             </Button>
+            
+            {/* زر طباعة العقد - يظهر فقط للغرف المحجوزة */}
+            {(room.status === 'Occupied' || room.status === 'Reserved') && selectedGuest && (
+              <Button
+                variant="outline"
+                onClick={handlePrintContract}
+                className="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white border-0 h-14 text-lg font-bold shadow-lg"
+              >
+                <Printer className="w-5 h-5 ml-2" />
+                طباعة العقد
+              </Button>
+            )}
             
             {/* زر إنهاء العقد - يظهر فقط للغرف المشغولة */}
             {(room.status === 'Occupied' || room.status === 'Reserved') && (
               <Button
                 variant="outline"
                 onClick={() => {
-                  if (confirm('هل أنت متأكد من إنهاء هذا العقد؟')) {
+                  if (confirm(`هل أنت متأكد من إنهاء عقد ${selectedGuest?.name || 'النزيل'} في غرفة ${room.number}؟\n\n⚠️ سيتم:\n• حذف بيانات النزيل\n• تغيير حالة الغرفة إلى "تحتاج تنظيف"\n• إعادة تعيين الرصيد`)) {
                     if (onStatusChange) {
-                      onStatusChange(room.id, 'Available');
+                      // تغيير الحالة لـ NeedsCleaning وحذف البيانات
+                      onStatusChange(room.id, 'NeedsCleaning');
                     }
                     handleClose();
                   }
                 }}
-                className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white border-0 h-12 text-lg font-bold"
+                className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white border-0 h-14 text-lg font-bold shadow-lg"
               >
                 <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -824,9 +1142,9 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
             <Button
               onClick={handleSave}
               disabled={!selectedGuest}
-              className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white h-12 text-lg font-bold"
+              className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white h-14 text-lg font-bold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              حفظ الحجز
+              💾 حفظ الحجز
             </Button>
           </div>
         </DialogContent>

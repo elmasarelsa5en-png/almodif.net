@@ -1502,11 +1502,16 @@ export default function RoomsPage() {
           
           if (!user) return;
           
+          // 🔥 عند تغيير الحالة لـ NeedsCleaning، نحذف بيانات النزيل تماماً
+          const clearGuestData = newStatus === 'NeedsCleaning' || newStatus === 'Available' || newStatus === 'Maintenance';
+          
           const updatedRooms = updateRoomStatus(
             rooms,
             roomId,
             newStatus as RoomStatus,
-            user.name || user.username
+            user.name || user.username,
+            undefined, // guestName
+            clearGuestData // مسح بيانات النزيل
           );
           
           try {
@@ -1515,7 +1520,12 @@ export default function RoomsPage() {
               await saveRoomToFirebase(updatedRoom);
               setRooms(updatedRooms);
               setFilteredRooms(updatedRooms);
-              alert('✅ تم تغيير حالة الشقة بنجاح');
+              
+              if (newStatus === 'NeedsCleaning') {
+                alert('✅ تم إنهاء العقد وتغيير الحالة إلى "تحتاج تنظيف"');
+              } else {
+                alert('✅ تم تغيير حالة الشقة بنجاح');
+              }
             }
           } catch (error) {
             console.error('❌ خطأ في حفظ التغييرات:', error);
