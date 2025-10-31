@@ -111,6 +111,22 @@ export const ALL_PERMISSIONS: PermissionCategory[] = [
     ]
   },
   {
+    id: 'maintenance',
+    label: 'الصيانة',
+    labelEn: 'Maintenance',
+    icon: '🔧',
+    permissions: [
+      { id: 'view_maintenance', label: 'عرض الصيانة', labelEn: 'View Maintenance', category: 'maintenance', description: 'رؤية مهام الصيانة' },
+      { id: 'create_maintenance', label: 'إنشاء مهمة صيانة', labelEn: 'Create Maintenance', category: 'maintenance', description: 'إضافة مهمة صيانة جديدة' },
+      { id: 'edit_maintenance', label: 'تعديل مهمة صيانة', labelEn: 'Edit Maintenance', category: 'maintenance', description: 'تعديل مهام الصيانة' },
+      { id: 'delete_maintenance', label: 'حذف مهمة صيانة', labelEn: 'Delete Maintenance', category: 'maintenance', description: 'حذف مهام الصيانة' },
+      { id: 'assign_maintenance', label: 'تعيين مهمة صيانة', labelEn: 'Assign Maintenance', category: 'maintenance', description: 'تعيين المهام للموظفين' },
+      { id: 'start_maintenance', label: 'بدء مهمة صيانة', labelEn: 'Start Maintenance', category: 'maintenance', description: 'بدء تنفيذ المهمة' },
+      { id: 'complete_maintenance', label: 'إكمال مهمة صيانة', labelEn: 'Complete Maintenance', category: 'maintenance', description: 'إكمال المهمة' },
+      { id: 'view_maintenance_reports', label: 'عرض تقارير الصيانة', labelEn: 'View Maintenance Reports', category: 'maintenance', description: 'رؤية إحصائيات الصيانة' },
+    ]
+  },
+  {
     id: 'services',
     label: 'الخدمات',
     labelEn: 'Services',
@@ -122,7 +138,6 @@ export const ALL_PERMISSIONS: PermissionCategory[] = [
       { id: 'manage_restaurant', label: 'إدارة المطعم', labelEn: 'Manage Restaurant', category: 'services', description: 'تعديل منتجات المطعم' },
       { id: 'view_laundry', label: 'عرض المغسلة', labelEn: 'View Laundry', category: 'services', description: 'الوصول لخدمات المغسلة' },
       { id: 'manage_laundry', label: 'إدارة المغسلة', labelEn: 'Manage Laundry', category: 'services', description: 'تعديل خدمات المغسلة' },
-      { id: 'manage_maintenance', label: 'إدارة الصيانة', labelEn: 'Manage Maintenance', category: 'services', description: 'طلبات الصيانة' },
       { id: 'manage_housekeeping', label: 'إدارة خدمات الغرف', labelEn: 'Manage Housekeeping', category: 'services', description: 'خدمات التنظيف' },
     ]
   },
@@ -296,6 +311,7 @@ export const MANAGER_PERMISSIONS = [
   'view_guests', 'add_guest', 'edit_guest', 'view_guest_history',
   'view_requests', 'create_request', 'edit_request', 'approve_request', 'reject_request', 'complete_request', 'assign_request',
   'view_ratings', 'add_rating', 'respond_to_rating', 'view_rating_reports',
+  'view_maintenance', 'create_maintenance', 'edit_maintenance', 'assign_maintenance', 'view_maintenance_reports',
   'view_payments', 'receive_payment', 'view_invoices', 'create_invoice',
   'view_reports', 'export_reports', 'view_occupancy_report', 'view_revenue_report',
   'view_employees',

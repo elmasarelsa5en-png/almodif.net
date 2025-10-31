@@ -116,6 +116,13 @@ const navigationItems: NavigationItem[] = [
     permission: 'view_ratings',
   },
   {
+    icon: Wrench,
+    labelKey: 'maintenance',
+    descKey: 'maintenanceDesc',
+    href: '/dashboard/maintenance',
+    permission: 'view_maintenance',
+  },
+  {
     icon: Shirt,
     labelKey: 'laundry',
     descKey: 'laundryDesc',
