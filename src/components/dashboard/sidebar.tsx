@@ -485,6 +485,13 @@ const navigationItems: NavigationItem[] = [
     permission: 'view_reports',
   },
   {
+    icon: Users,
+    labelKey: 'guestSegmentation',
+    descKey: 'guestSegmentationDesc',
+    href: '/dashboard/guest-segmentation',
+    permission: 'view_reports',
+  },
+  {
     icon: Settings,
     labelKey: 'settings',
     descKey: 'settingsDesc',
