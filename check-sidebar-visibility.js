@@ -55,27 +55,41 @@ async function checkSidebarVisibility() {
         console.log(`${icon} ${key}: ${status}`);
       });
 
-      // Check specifically for crm-whatsapp
+      // التحقق من وجود التقارير ومنصات التواصل
+      const missingItems = [];
+      
       if (data['crm-whatsapp'] === undefined) {
+        missingItems.push('crm-whatsapp');
         console.log('\n⚠️  منصات التواصل الاجتماعي غير موجودة في الإعدادات!');
-        console.log('📝 سيتم إضافتها الآن...');
-        
-        await updateDoc(settingsRef, {
-          'crm-whatsapp': true
-        });
-        
-        console.log('✅ تم تفعيل منصات التواصل الاجتماعي بنجاح!');
       } else if (data['crm-whatsapp'] === false) {
+        missingItems.push('crm-whatsapp');
         console.log('\n⚠️  منصات التواصل الاجتماعي معطلة!');
-        console.log('📝 سيتم تفعيلها الآن...');
+      }
+
+      if (data['reports'] === undefined) {
+        missingItems.push('reports');
+        console.log('\n⚠️  قسم التقارير غير موجود في الإعدادات!');
+      } else if (data['reports'] === false) {
+        missingItems.push('reports');
+        console.log('\n⚠️  قسم التقارير معطّل!');
+      }
+
+      if (missingItems.length > 0) {
+        console.log('\n📝 سيتم تفعيل العناصر المفقودة...');
         
-        await updateDoc(settingsRef, {
-          'crm-whatsapp': true
+        const updates = {};
+        missingItems.forEach(item => {
+          updates[item] = true;
         });
         
-        console.log('✅ تم تفعيل منصات التواصل الاجتماعي بنجاح!');
+        await updateDoc(settingsRef, updates);
+        
+        console.log('✅ تم تفعيل العناصر التالية بنجاح:');
+        missingItems.forEach(item => {
+          console.log(`   ✅ ${item}`);
+        });
       } else {
-        console.log('\n✅ منصات التواصل الاجتماعي مفعّلة بالفعل!');
+        console.log('\n✅ منصات التواصل الاجتماعي والتقارير مفعّلة بالفعل!');
       }
     }
 
