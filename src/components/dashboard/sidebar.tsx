@@ -52,7 +52,8 @@ import {
   Building2, // البنك
   Star, // أيقونة التقييمات
   Award, // أيقونة برنامج الولاء
-  Brain // أيقونة الذكاء الاصطناعي
+  Brain, // أيقونة الذكاء الاصطناعي
+  AlertTriangle // أيقونة كشف الشذوذات
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -474,6 +475,13 @@ const navigationItems: NavigationItem[] = [
     labelKey: 'aiForecasting',
     descKey: 'aiForecastingDesc',
     href: '/dashboard/ai-forecasting',
+    permission: 'view_reports',
+  },
+  {
+    icon: AlertTriangle,
+    labelKey: 'anomalyDetection',
+    descKey: 'anomalyDetectionDesc',
+    href: '/dashboard/anomaly-detection',
     permission: 'view_reports',
   },
   {

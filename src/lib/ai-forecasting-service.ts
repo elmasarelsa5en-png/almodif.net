@@ -515,11 +515,394 @@ export async function calculateDynamicPricing(
 }
 
 // ====================================
+// Occupancy Prediction
+// ====================================
+
+/**
+ * توقع معدل الإشغال
+ */
+export async function predictOccupancy(
+  propertyId: string,
+  targetDate: Date,
+  totalRooms: number = 50
+): Promise<OccupancyPrediction> {
+  // جلب البيانات التاريخية
+  const bookingsRef = collection(db, 'bookings');
+  
+  // نفس اليوم من العام الماضي
+  const lastYearDate = new Date(targetDate);
+  lastYearDate.setFullYear(lastYearDate.getFullYear() - 1);
+  
+  const historicalQuery = query(
+    bookingsRef,
+    where('propertyId', '==', propertyId),
+    where('checkIn', '>=', Timestamp.fromDate(new Date(lastYearDate.getTime() - 14 * 24 * 60 * 60 * 1000))),
+    where('checkIn', '<=', Timestamp.fromDate(new Date(lastYearDate.getTime() + 14 * 24 * 60 * 60 * 1000)))
+  );
+  
+  const historicalSnap = await getDocs(historicalQuery);
+  const historicalBookings = historicalSnap.docs.map(d => d.data());
+  
+  // حساب معدل الإشغال التاريخي
+  const historicalOccupancy = (historicalBookings.length / totalRooms) * 100;
+  
+  // حساب معدل الإشغال الحالي
+  const today = new Date();
+  const currentQuery = query(
+    bookingsRef,
+    where('propertyId', '==', propertyId),
+    where('checkIn', '<=', Timestamp.fromDate(today)),
+    where('checkOut', '>=', Timestamp.fromDate(today))
+  );
+  
+  const currentSnap = await getDocs(currentQuery);
+  const currentOccupancy = (currentSnap.size / totalRooms) * 100;
+  
+  // التنبؤ (مبسط - يمكن تحسينه)
+  const month = targetDate.getMonth();
+  const seasonalFactor = [0.8, 0.85, 1.0, 1.1, 1.2, 1.15, 1.1, 1.2, 1.0, 0.95, 0.9, 1.3][month];
+  
+  // حساب الاتجاه
+  const recentBookingsQuery = query(
+    bookingsRef,
+    where('propertyId', '==', propertyId),
+    where('checkIn', '>=', Timestamp.fromDate(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))),
+    orderBy('checkIn', 'desc')
+  );
+  
+  const recentSnap = await getDocs(recentBookingsQuery);
+  const recentOccupancy = (recentSnap.size / (totalRooms * 30)) * 100;
+  
+  let trendMultiplier = 1.0;
+  if (recentOccupancy > currentOccupancy * 1.1) {
+    trendMultiplier = 1.1;
+  } else if (recentOccupancy < currentOccupancy * 0.9) {
+    trendMultiplier = 0.9;
+  }
+  
+  // التنبؤ النهائي
+  const predictedOccupancy = Math.min(100, Math.max(0, 
+    historicalOccupancy * seasonalFactor * trendMultiplier
+  ));
+  
+  // تحديد الاتجاه
+  const trend = predictedOccupancy > currentOccupancy * 1.05 ? 'increasing' :
+                predictedOccupancy < currentOccupancy * 0.95 ? 'decreasing' : 'stable';
+  
+  // مستوى الثقة
+  const confidence = 85 - Math.abs(predictedOccupancy - historicalOccupancy);
+  
+  // التوصيات
+  const recommendations: string[] = [];
+  if (predictedOccupancy < 60) {
+    recommendations.push('تفعيل عروض ترويجية لزيادة الحجوزات');
+    recommendations.push('التواصل مع العملاء السابقين');
+  } else if (predictedOccupancy > 90) {
+    recommendations.push('رفع الأسعار لزيادة الإيرادات');
+    recommendations.push('التحضير لاستقبال عدد كبير من الضيوف');
+  }
+  
+  if (trend === 'decreasing') {
+    recommendations.push('مراجعة استراتيجية التسعير');
+  }
+  
+  return {
+    date: targetDate.toISOString().split('T')[0],
+    predictedOccupancy,
+    currentOccupancy,
+    trend,
+    confidence: Math.max(0, Math.min(100, confidence)),
+    recommendations
+  };
+}
+
+// ====================================
+// Anomaly Detection
+// ====================================
+
+/**
+ * كشف الشذوذات في البيانات
+ */
+export async function detectAnomalies(
+  propertyId: string,
+  dateRange: { start: Date; end: Date }
+): Promise<AnomalyDetection[]> {
+  const anomalies: AnomalyDetection[] = [];
+  
+  // جلب البيانات التاريخية للمقارنة
+  const bookingsRef = collection(db, 'bookings');
+  const bookingsQuery = query(
+    bookingsRef,
+    where('propertyId', '==', propertyId),
+    where('checkIn', '>=', Timestamp.fromDate(dateRange.start)),
+    where('checkIn', '<=', Timestamp.fromDate(dateRange.end)),
+    orderBy('checkIn', 'asc')
+  );
+  
+  const bookingsSnap = await getDocs(bookingsQuery);
+  const bookings = bookingsSnap.docs.map(d => d.data());
+  
+  // تجميع الإيرادات اليومية
+  const dailyRevenue: Record<string, number> = {};
+  const dailyBookings: Record<string, number> = {};
+  
+  bookings.forEach(b => {
+    const date = new Date(b.checkIn.toDate()).toISOString().split('T')[0];
+    if (!dailyRevenue[date]) {
+      dailyRevenue[date] = 0;
+      dailyBookings[date] = 0;
+    }
+    dailyRevenue[date] += b.totalAmount || 0;
+    dailyBookings[date]++;
+  });
+  
+  const revenues = Object.values(dailyRevenue);
+  const avgRevenue = revenues.reduce((sum, val) => sum + val, 0) / revenues.length;
+  const stdDevRevenue = calculateStandardDeviation(revenues);
+  
+  // كشف شذوذات الإيرادات
+  Object.keys(dailyRevenue).forEach(date => {
+    const revenue = dailyRevenue[date];
+    const deviation = ((revenue - avgRevenue) / avgRevenue) * 100;
+    
+    if (Math.abs(deviation) > 30) { // انحراف أكثر من 30%
+      let severity: 'low' | 'medium' | 'high' | 'critical';
+      if (Math.abs(deviation) > 50) severity = 'critical';
+      else if (Math.abs(deviation) > 40) severity = 'high';
+      else severity = 'medium';
+      
+      const possibleCauses: string[] = [];
+      const recommendations: string[] = [];
+      
+      if (deviation < 0) {
+        possibleCauses.push('انخفاض في عدد الحجوزات');
+        possibleCauses.push('مشاكل تقنية في نظام الحجز');
+        possibleCauses.push('منافسة قوية في السوق');
+        recommendations.push('مراجعة استراتيجية التسويق');
+        recommendations.push('فحص نظام الحجز الإلكتروني');
+      } else {
+        possibleCauses.push('حدث خاص أو مناسبة');
+        possibleCauses.push('عرض ترويجي ناجح');
+        recommendations.push('تحليل أسباب النجاح للاستفادة منها');
+        recommendations.push('التحضير لاستيعاب الطلب المرتفع');
+      }
+      
+      anomalies.push({
+        type: 'revenue',
+        date,
+        value: revenue,
+        expectedValue: avgRevenue,
+        deviation,
+        severity,
+        description: `إيرادات ${deviation > 0 ? 'أعلى' : 'أقل'} من المتوقع بنسبة ${Math.abs(deviation).toFixed(1)}%`,
+        possibleCauses,
+        recommendations
+      });
+    }
+  });
+  
+  // كشف شذوذات معدل الإلغاء
+  const cancellations = bookings.filter(b => b.status === 'cancelled');
+  const cancellationRate = (cancellations.length / bookings.length) * 100;
+  
+  if (cancellationRate > 15) { // معدل إلغاء أعلى من 15%
+    anomalies.push({
+      type: 'cancellation',
+      date: new Date().toISOString().split('T')[0],
+      value: cancellationRate,
+      expectedValue: 10,
+      deviation: ((cancellationRate - 10) / 10) * 100,
+      severity: cancellationRate > 25 ? 'critical' : cancellationRate > 20 ? 'high' : 'medium',
+      description: `معدل إلغاء مرتفع: ${cancellationRate.toFixed(1)}%`,
+      possibleCauses: [
+        'سياسة إلغاء غير مرضية',
+        'مشاكل في جودة الخدمة',
+        'تغييرات في ظروف السفر'
+      ],
+      recommendations: [
+        'مراجعة سياسة الإلغاء',
+        'تحسين تجربة العملاء',
+        'التواصل مع العملاء الملغيين لمعرفة الأسباب'
+      ]
+    });
+  }
+  
+  // كشف شذوذات المصروفات
+  const expensesRef = collection(db, 'expense_vouchers');
+  const expensesQuery = query(
+    expensesRef,
+    where('propertyId', '==', propertyId),
+    where('date', '>=', Timestamp.fromDate(dateRange.start)),
+    where('date', '<=', Timestamp.fromDate(dateRange.end)),
+    where('status', '==', 'approved')
+  );
+  
+  const expensesSnap = await getDocs(expensesQuery);
+  const expenses = expensesSnap.docs.map(d => d.data());
+  
+  // تجميع المصروفات اليومية
+  const dailyExpenses: Record<string, number> = {};
+  expenses.forEach(e => {
+    const date = new Date(e.date.toDate()).toISOString().split('T')[0];
+    if (!dailyExpenses[date]) dailyExpenses[date] = 0;
+    dailyExpenses[date] += e.amount || 0;
+  });
+  
+  const expenseValues = Object.values(dailyExpenses);
+  if (expenseValues.length > 0) {
+    const avgExpense = expenseValues.reduce((sum, val) => sum + val, 0) / expenseValues.length;
+    
+    Object.keys(dailyExpenses).forEach(date => {
+      const expense = dailyExpenses[date];
+      const deviation = ((expense - avgExpense) / avgExpense) * 100;
+      
+      if (deviation > 40) { // مصروفات أعلى بـ 40%
+        anomalies.push({
+          type: 'expense',
+          date,
+          value: expense,
+          expectedValue: avgExpense,
+          deviation,
+          severity: deviation > 60 ? 'critical' : 'high',
+          description: `مصروفات غير متوقعة: ${expense.toLocaleString('ar-SA')} ر.س`,
+          possibleCauses: [
+            'صيانة طارئة',
+            'شراء معدات جديدة',
+            'خطأ في التسجيل'
+          ],
+          recommendations: [
+            'مراجعة سند الصرف',
+            'التحقق من الموافقات',
+            'تحليل أسباب الإنفاق المرتفع'
+          ]
+        });
+      }
+    });
+  }
+  
+  return anomalies.sort((a, b) => {
+    const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+    return severityOrder[a.severity] - severityOrder[b.severity];
+  });
+}
+
+// ====================================
+// Guest Segments Analysis
+// ====================================
+
+/**
+ * تحليل شرائح الضيوف
+ */
+export async function analyzeGuestSegments(propertyId: string): Promise<{
+  segments: {
+    name: string;
+    count: number;
+    percentage: number;
+    avgRevenue: number;
+    characteristics: string[];
+  }[];
+  recommendations: string[];
+}> {
+  const bookingsRef = collection(db, 'bookings');
+  const bookingsQuery = query(
+    bookingsRef,
+    where('propertyId', '==', propertyId),
+    orderBy('checkIn', 'desc'),
+    limit(500)
+  );
+  
+  const bookingsSnap = await getDocs(bookingsQuery);
+  const bookings = bookingsSnap.docs.map(d => d.data());
+  
+  // تجميع حسب الضيف
+  const guestData: Record<string, { bookings: any[]; revenue: number }> = {};
+  
+  bookings.forEach(b => {
+    const guestId = b.guestId || 'unknown';
+    if (!guestData[guestId]) {
+      guestData[guestId] = { bookings: [], revenue: 0 };
+    }
+    guestData[guestId].bookings.push(b);
+    guestData[guestId].revenue += b.totalAmount || 0;
+  });
+  
+  // تصنيف الضيوف
+  const highValue = [];
+  const mediumValue = [];
+  const lowValue = [];
+  const atRisk = [];
+  
+  Object.keys(guestData).forEach(guestId => {
+    const data = guestData[guestId];
+    const bookingCount = data.bookings.length;
+    const avgSpending = data.revenue / bookingCount;
+    const lastBooking = data.bookings[0];
+    const daysSinceLastBooking = Math.ceil(
+      (Date.now() - new Date(lastBooking.checkIn.toDate()).getTime()) / (1000 * 60 * 60 * 24)
+    );
+    
+    if (daysSinceLastBooking > 180) {
+      atRisk.push({ guestId, ...data, avgSpending });
+    } else if (avgSpending > 5000 && bookingCount > 3) {
+      highValue.push({ guestId, ...data, avgSpending });
+    } else if (avgSpending > 2000 && bookingCount > 1) {
+      mediumValue.push({ guestId, ...data, avgSpending });
+    } else {
+      lowValue.push({ guestId, ...data, avgSpending });
+    }
+  });
+  
+  const totalGuests = Object.keys(guestData).length;
+  
+  const segments = [
+    {
+      name: 'عملاء VIP',
+      count: highValue.length,
+      percentage: (highValue.length / totalGuests) * 100,
+      avgRevenue: highValue.reduce((sum, g) => sum + g.avgSpending, 0) / (highValue.length || 1),
+      characteristics: ['إنفاق مرتفع', 'حجوزات متكررة', 'ولاء عالي']
+    },
+    {
+      name: 'عملاء منتظمون',
+      count: mediumValue.length,
+      percentage: (mediumValue.length / totalGuests) * 100,
+      avgRevenue: mediumValue.reduce((sum, g) => sum + g.avgSpending, 0) / (mediumValue.length || 1),
+      characteristics: ['إنفاق متوسط', 'حجوزات دورية']
+    },
+    {
+      name: 'عملاء عاديون',
+      count: lowValue.length,
+      percentage: (lowValue.length / totalGuests) * 100,
+      avgRevenue: lowValue.reduce((sum, g) => sum + g.avgSpending, 0) / (lowValue.length || 1),
+      characteristics: ['إنفاق منخفض', 'حجوزات قليلة']
+    },
+    {
+      name: 'معرضون للفقدان',
+      count: atRisk.length,
+      percentage: (atRisk.length / totalGuests) * 100,
+      avgRevenue: atRisk.reduce((sum, g) => sum + g.avgSpending, 0) / (atRisk.length || 1),
+      characteristics: ['لم يحجزوا منذ 6 أشهر', 'يحتاجون لإعادة استهداف']
+    }
+  ];
+  
+  const recommendations = [
+    `التركيز على عملاء VIP (${highValue.length}) - يمثلون ${((highValue.length / totalGuests) * 100).toFixed(1)}% من العملاء`,
+    `إعادة استهداف ${atRisk.length} عميل معرض للفقدان بعروض خاصة`,
+    `تطوير برنامج ولاء لتحويل العملاء المنتظمين إلى VIP`
+  ];
+  
+  return { segments, recommendations };
+}
+
+// ====================================
 // Exports
 // ====================================
 
 export default {
   forecastRevenue,
   analyzeGuestBehavior,
-  calculateDynamicPricing
+  calculateDynamicPricing,
+  predictOccupancy,
+  detectAnomalies,
+  analyzeGuestSegments
 };
