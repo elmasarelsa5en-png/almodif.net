@@ -320,15 +320,14 @@ export default function GuestLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden" dir="rtl">
-      {/* Background Hotel Image */}
+    <div className="min-h-screen flex items-center justify-end p-4 md:p-8 relative overflow-hidden" dir="rtl">
+      {/* Background Hotel Image - More Visible */}
       <div className="fixed inset-0 z-0">
         <img 
           src="/images/hotel-exterior.jpg"
           alt="Hotel Background"
-          className="w-full h-full object-cover opacity-20"
+          className="w-full h-full object-cover"
           onError={(e) => {
-            // Fallback to gradient if image not found
             const target = e.currentTarget as HTMLImageElement;
             target.style.display = 'none';
             console.log('Image failed to load');
@@ -337,36 +336,66 @@ export default function GuestLoginPage() {
             console.log('Image loaded successfully');
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/85 via-slate-800/85 to-slate-900/85"></div>
+        {/* Darker overlay on left, lighter on right for better readability */}
+        <div className="absolute inset-0 bg-gradient-to-l from-slate-900/40 via-slate-900/60 to-slate-900/80"></div>
       </div>
 
+      {/* Login Form Container - Right Side with Glass Effect */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md relative z-10"
+        initial={{ opacity: 0, x: 50 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.6 }}
+        className="w-full max-w-md relative z-10 mr-0 md:mr-8"
       >
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl shadow-2xl mb-4">
+        <div className="text-center mb-6">
+          <motion.div 
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+            className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl shadow-2xl mb-4 border-2 border-white/20"
+          >
             <Hotel className="w-12 h-12 text-slate-900" />
-          </div>
-          <p className="text-amber-400 text-sm font-semibold mb-2">تطبيق الضيف</p>
-          <h1 className="text-3xl font-bold text-white mb-2">فندق المضيف</h1>
-          <p className="text-slate-300">مرحباً بك في تطبيق الضيف</p>
+          </motion.div>
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="text-amber-400 text-sm font-semibold mb-2"
+          >
+            تطبيق الضيف
+          </motion.p>
+          <motion.h1 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="text-3xl font-bold text-white mb-2 drop-shadow-lg"
+          >
+            فندق المضيف
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="text-slate-200 drop-shadow-md"
+          >
+            مرحباً بك في تطبيق الضيف
+          </motion.p>
         </div>
 
-        <Card className="bg-slate-800/90 backdrop-blur-xl border-amber-500/30 shadow-2xl">
+        {/* Glass Card with Backdrop Blur */}
+        <Card className="bg-white/10 backdrop-blur-2xl border border-white/20 shadow-2xl hover:shadow-amber-500/20 transition-shadow duration-300">
           <CardHeader>
             <div className="flex gap-2 mb-4">
               <Button
                 onClick={() => setMode('login')}
-                className={`flex-1 ${mode === 'login' ? 'bg-amber-500 hover:bg-amber-600' : 'bg-slate-700 hover:bg-slate-600'}`}
+                className={`flex-1 ${mode === 'login' ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-lg' : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'}`}
               >
                 تسجيل دخول
               </Button>
               <Button
                 onClick={() => setMode('register')}
-                className={`flex-1 ${mode === 'register' ? 'bg-amber-500 hover:bg-amber-600' : 'bg-slate-700 hover:bg-slate-600'}`}
+                className={`flex-1 ${mode === 'register' ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-lg' : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'}`}
               >
                 تسجيل جديد
               </Button>
@@ -402,30 +431,30 @@ export default function GuestLoginPage() {
             {mode === 'login' ? (
               <form onSubmit={handleLogin} className="space-y-4">
                 <div>
-                  <Label className="text-amber-100 mb-2 block">رقم الهوية الوطنية</Label>
+                  <Label className="text-white mb-2 block font-medium">رقم الهوية الوطنية</Label>
                   <div className="relative">
-                    <CreditCard className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                    <CreditCard className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-400 w-5 h-5" />
                     <Input
                       type="text"
                       value={loginData.nationalId}
                       onChange={(e) => setLoginData({ ...loginData, nationalId: e.target.value })}
                       placeholder="1234567890"
-                      className="pr-10 bg-slate-700/50 border-slate-600 text-white"
+                      className="pr-10 bg-white/10 border-white/20 text-white placeholder:text-slate-400 focus:border-amber-400 focus:ring-amber-400/50"
                       required
                     />
                   </div>
                 </div>
 
                 <div>
-                  <Label className="text-amber-100 mb-2 block">كلمة المرور</Label>
+                  <Label className="text-white mb-2 block font-medium">كلمة المرور</Label>
                   <div className="relative">
-                    <KeyRound className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                    <KeyRound className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-400 w-5 h-5" />
                     <Input
                       type="password"
                       value={loginData.password}
                       onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                       placeholder="••••••••"
-                      className="pr-10 bg-slate-700/50 border-slate-600 text-white"
+                      className="pr-10 bg-white/10 border-white/20 text-white placeholder:text-slate-400 focus:border-amber-400 focus:ring-amber-400/50"
                       required
                     />
                   </div>
@@ -434,7 +463,7 @@ export default function GuestLoginPage() {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white py-6 text-lg"
+                  className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white py-6 text-lg shadow-lg shadow-amber-500/30 border border-amber-400/30"
                 >
                   {loading ? (
                     <>
@@ -470,13 +499,13 @@ export default function GuestLoginPage() {
                 </div>
 
                 <div>
-                  <Label className="text-amber-100 mb-2 block">رمز التحقق</Label>
+                  <Label className="text-white mb-2 block font-medium">رمز التحقق</Label>
                   <Input
                     type="text"
                     value={otpCode}
                     onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                     placeholder="123456"
-                    className="text-center text-2xl tracking-widest bg-slate-700/50 border-slate-600 text-white"
+                    className="text-center text-2xl tracking-widest bg-white/10 border-white/20 placeholder:text-slate-400 focus:border-amber-400 focus:ring-amber-400/50 text-white"
                     maxLength={6}
                     required
                   />
@@ -524,30 +553,30 @@ export default function GuestLoginPage() {
                 </div>
 
                 <div>
-                  <Label className="text-amber-100 mb-2 block">الاسم الكامل</Label>
+                  <Label className="text-white mb-2 block font-medium">الاسم الكامل</Label>
                   <div className="relative">
-                    <User className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                    <User className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-400 w-5 h-5" />
                     <Input
                       type="text"
                       value={forgotPasswordData.name}
                       onChange={(e) => setForgotPasswordData({ ...forgotPasswordData, name: e.target.value })}
                       placeholder="أحمد محمد"
-                      className="pr-10 bg-slate-700/50 border-slate-600 text-white"
+                      className="pr-10 bg-white/10 border-white/20 placeholder:text-slate-400 focus:border-amber-400 focus:ring-amber-400/50 text-white"
                       required
                     />
                   </div>
                 </div>
 
                 <div>
-                  <Label className="text-amber-100 mb-2 block">رقم الهوية الوطنية</Label>
+                  <Label className="text-white mb-2 block font-medium">رقم الهوية الوطنية</Label>
                   <div className="relative">
-                    <CreditCard className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                    <CreditCard className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-400 w-5 h-5" />
                     <Input
                       type="text"
                       value={forgotPasswordData.nationalId}
                       onChange={(e) => setForgotPasswordData({ ...forgotPasswordData, nationalId: e.target.value })}
                       placeholder="1234567890"
-                      className="pr-10 bg-slate-700/50 border-slate-600 text-white"
+                      className="pr-10 bg-white/10 border-white/20 placeholder:text-slate-400 focus:border-amber-400 focus:ring-amber-400/50 text-white"
                       required
                     />
                   </div>
@@ -588,89 +617,89 @@ export default function GuestLoginPage() {
               // نموذج التسجيل (كما هو)
               <form onSubmit={handleRegister} className="space-y-4">
                 <div>
-                  <Label className="text-amber-100 mb-2 block">الاسم الكامل *</Label>
+                  <Label className="text-white mb-2 block font-medium">الاسم الكامل *</Label>
                   <div className="relative">
-                    <User className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                    <User className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-400 w-5 h-5" />
                     <Input
                       type="text"
                       value={registerData.name}
                       onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
                       placeholder="أحمد محمد"
-                      className="pr-10 bg-slate-700/50 border-slate-600 text-white"
+                      className="pr-10 bg-white/10 border-white/20 placeholder:text-slate-400 focus:border-amber-400 focus:ring-amber-400/50 text-white"
                       required
                     />
                   </div>
                 </div>
 
                 <div>
-                  <Label className="text-amber-100 mb-2 block">رقم الجوال *</Label>
+                  <Label className="text-white mb-2 block font-medium">رقم الجوال *</Label>
                   <div className="relative">
-                    <Phone className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                    <Phone className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-400 w-5 h-5" />
                     <Input
                       type="tel"
                       value={registerData.phone}
                       onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })}
                       placeholder="05xxxxxxxx"
-                      className="pr-10 bg-slate-700/50 border-slate-600 text-white"
+                      className="pr-10 bg-white/10 border-white/20 placeholder:text-slate-400 focus:border-amber-400 focus:ring-amber-400/50 text-white"
                       required
                     />
                   </div>
                 </div>
 
                 <div>
-                  <Label className="text-amber-100 mb-2 block">رقم الهوية الوطنية *</Label>
+                  <Label className="text-white mb-2 block font-medium">رقم الهوية الوطنية *</Label>
                   <div className="relative">
-                    <CreditCard className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                    <CreditCard className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-400 w-5 h-5" />
                     <Input
                       type="text"
                       value={registerData.nationalId}
                       onChange={(e) => setRegisterData({ ...registerData, nationalId: e.target.value })}
                       placeholder="1234567890"
-                      className="pr-10 bg-slate-700/50 border-slate-600 text-white"
+                      className="pr-10 bg-white/10 border-white/20 placeholder:text-slate-400 focus:border-amber-400 focus:ring-amber-400/50 text-white"
                       required
                     />
                   </div>
                 </div>
 
                 <div>
-                  <Label className="text-amber-100 mb-2 block">تاريخ الميلاد *</Label>
+                  <Label className="text-white mb-2 block font-medium">تاريخ الميلاد *</Label>
                   <div className="relative">
-                    <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                    <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-400 w-5 h-5" />
                     <Input
                       type="date"
                       value={registerData.dateOfBirth}
                       onChange={(e) => setRegisterData({ ...registerData, dateOfBirth: e.target.value })}
-                      className="pr-10 bg-slate-700/50 border-slate-600 text-white"
+                      className="pr-10 bg-white/10 border-white/20 placeholder:text-slate-400 focus:border-amber-400 focus:ring-amber-400/50 text-white"
                       required
                     />
                   </div>
                 </div>
 
                 <div>
-                  <Label className="text-amber-100 mb-2 block">الجنسية *</Label>
+                  <Label className="text-white mb-2 block font-medium">الجنسية *</Label>
                   <div className="relative">
-                    <Globe className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                    <Globe className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-400 w-5 h-5" />
                     <Input
                       type="text"
                       value={registerData.nationality}
                       onChange={(e) => setRegisterData({ ...registerData, nationality: e.target.value })}
                       placeholder="السعودية"
-                      className="pr-10 bg-slate-700/50 border-slate-600 text-white"
+                      className="pr-10 bg-white/10 border-white/20 placeholder:text-slate-400 focus:border-amber-400 focus:ring-amber-400/50 text-white"
                       required
                     />
                   </div>
                 </div>
 
                 <div>
-                  <Label className="text-amber-100 mb-2 block">كلمة المرور *</Label>
+                  <Label className="text-white mb-2 block font-medium">كلمة المرور *</Label>
                   <div className="relative">
-                    <KeyRound className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                    <KeyRound className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-400 w-5 h-5" />
                     <Input
                       type="password"
                       value={registerData.password}
                       onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
                       placeholder="••••••••"
-                      className="pr-10 bg-slate-700/50 border-slate-600 text-white"
+                      className="pr-10 bg-white/10 border-white/20 placeholder:text-slate-400 focus:border-amber-400 focus:ring-amber-400/50 text-white"
                       required
                       minLength={6}
                     />
@@ -727,3 +756,4 @@ export default function GuestLoginPage() {
     </div>
   );
 }
+
