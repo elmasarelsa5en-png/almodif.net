@@ -689,18 +689,25 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
                 <Link href={item.href} onClick={handleMenuClick}>
                   <div 
                     className={cn(
-                      "flex items-center gap-2 px-2.5 py-2 rounded-lg transition-all duration-200 group relative",
+                      "flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 group relative",
                       isActive 
-                        ? "bg-gradient-to-r from-blue-500/20 to-indigo-500/20 text-white dark:text-white light:text-purple-900 light:from-purple-200 light:to-pink-200 border border-blue-400/30 dark:border-blue-400/30 light:border-purple-400 shadow-lg" 
-                        : "text-blue-200 dark:text-blue-200 light:text-purple-700 hover:text-white dark:hover:text-white light:hover:text-purple-900 hover:bg-slate-700/50 dark:hover:bg-slate-700/50 light:hover:bg-purple-100",
-                      isCollapsed && "justify-center px-2"
+                        ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xl shadow-blue-500/50 scale-105" 
+                        : "text-blue-100 hover:text-white hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-600 hover:shadow-lg hover:scale-105",
+                      isCollapsed && "justify-center px-3"
                     )}
                     title={isCollapsed ? t(item.labelKey as any) : undefined}
                   >
-                    <Icon className={cn(
-                      "flex-shrink-0 transition-transform group-hover:scale-110",
-                      isCollapsed ? "w-6 h-6" : "w-4 h-4"
-                    )} />
+                    <div className={cn(
+                      "flex items-center justify-center rounded-lg transition-all duration-300",
+                      isActive ? "bg-white/20 p-2" : "group-hover:bg-white/10 p-2",
+                      isCollapsed && "p-2.5"
+                    )}>
+                      <Icon className={cn(
+                        "flex-shrink-0 transition-all duration-300",
+                        isCollapsed ? "w-6 h-6" : "w-5 h-5",
+                        isActive && "drop-shadow-lg"
+                      )} />
+                    </div>
                     
                     {/* Badge للرسائل غير المقروءة */}
                     {item.href === '/dashboard/chat' && totalUnreadMessages > 0 && (
@@ -711,9 +718,9 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
                     
                     {!isCollapsed && (
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate text-sm">{t(item.labelKey as any)}</p>
+                        <p className="font-bold text-base truncate tracking-wide">{t(item.labelKey as any)}</p>
                         {item.descKey && (
-                          <p className="text-[10px] opacity-70 truncate">{t(item.descKey as any)}</p>
+                          <p className="text-xs opacity-80 truncate mt-0.5 font-medium">{t(item.descKey as any)}</p>
                         )}
                       </div>
                     )}
@@ -742,12 +749,12 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
 
                     {/* Tooltip for collapsed state */}
                     {isCollapsed && (
-                      <div className="absolute left-full ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 whitespace-nowrap">
-                        <div className="font-medium">{t(item.labelKey as any)}</div>
+                      <div className="absolute left-full ml-4 px-4 py-3 bg-gradient-to-r from-slate-800 to-slate-900 text-white rounded-xl shadow-2xl opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-50 whitespace-nowrap border border-white/10 backdrop-blur-sm">
+                        <div className="font-bold text-base mb-1">{t(item.labelKey as any)}</div>
                         {item.descKey && (
-                          <div className="text-xs opacity-70">{t(item.descKey as any)}</div>
+                          <div className="text-xs text-slate-300">{t(item.descKey as any)}</div>
                         )}
-                        <div className="absolute top-1/2 -left-1 -translate-y-1/2 w-2 h-2 bg-gray-900 rotate-45" />
+                        <div className="absolute top-1/2 -left-2 -translate-y-1/2 w-4 h-4 bg-slate-800 rotate-45 border-l border-t border-white/10" />
                       </div>
                     )}
                   </div>

@@ -53,44 +53,50 @@ const platformConfig = {
   whatsapp: {
     name: 'واتساب',
     icon: MessageSquare,
-    color: 'text-green-500',
-    bgColor: 'bg-green-500/10',
-    borderColor: 'border-green-500/30'
+    color: 'text-green-400',
+    bgColor: 'from-green-900/30 to-green-800/20',
+    borderColor: 'border-green-500/40',
+    badge: 'bg-green-500/20 text-green-300 border-green-500/30'
   },
   messenger: {
     name: 'ماسنجر',
     icon: MessageCircle,
-    color: 'text-blue-500',
-    bgColor: 'bg-blue-500/10',
-    borderColor: 'border-blue-500/30'
+    color: 'text-blue-400',
+    bgColor: 'from-blue-900/30 to-blue-800/20',
+    borderColor: 'border-blue-500/40',
+    badge: 'bg-blue-500/20 text-blue-300 border-blue-500/30'
   },
   snapchat: {
     name: 'سناب شات',
     icon: Camera,
-    color: 'text-yellow-500',
-    bgColor: 'bg-yellow-500/10',
-    borderColor: 'border-yellow-500/30'
+    color: 'text-yellow-300',
+    bgColor: 'from-yellow-900/30 to-yellow-800/20',
+    borderColor: 'border-yellow-500/40',
+    badge: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30'
   },
   instagram: {
     name: 'انستجرام',
     icon: Camera,
-    color: 'text-pink-500',
-    bgColor: 'bg-pink-500/10',
-    borderColor: 'border-pink-500/30'
+    color: 'text-pink-400',
+    bgColor: 'from-pink-900/30 via-purple-900/20 to-orange-900/20',
+    borderColor: 'border-pink-500/40',
+    badge: 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-pink-300 border-pink-500/30'
   },
   tiktok: {
     name: 'تيك توك',
     icon: Music,
-    color: 'text-gray-900 dark:text-white',
-    bgColor: 'bg-gray-900/10 dark:bg-white/10',
-    borderColor: 'border-gray-900/30 dark:border-white/30'
+    color: 'text-cyan-400',
+    bgColor: 'from-gray-900/50 to-cyan-900/20',
+    borderColor: 'border-cyan-500/40',
+    badge: 'bg-gray-900/50 text-cyan-300 border-cyan-500/30'
   },
   telegram: {
     name: 'تيليجرام',
     icon: Plane,
-    color: 'text-blue-400',
-    bgColor: 'bg-blue-400/10',
-    borderColor: 'border-blue-400/30'
+    color: 'text-sky-400',
+    bgColor: 'from-sky-900/30 to-blue-900/20',
+    borderColor: 'border-sky-500/40',
+    badge: 'bg-sky-500/20 text-sky-300 border-sky-500/30'
   }
 };
 
@@ -369,30 +375,34 @@ export default function UnifiedInboxPage() {
                 return (
                   <div
                     key={message.id}
-                    className={`flex items-start gap-2 md:gap-4 p-3 md:p-4 rounded-xl transition-all ${
+                    className={`flex items-start gap-3 md:gap-4 p-4 md:p-5 rounded-2xl transition-all duration-300 hover:scale-[1.02] border-2 ${
                       message.isRead
-                        ? 'bg-gray-800/30 hover:bg-gray-800/50'
-                        : 'bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 hover:border-cyan-500/50'
+                        ? `bg-gradient-to-br ${config.bgColor} hover:${config.bgColor} ${config.borderColor}`
+                        : `bg-gradient-to-br ${config.bgColor} border-2 ${config.borderColor} shadow-lg`
                     }`}
                   >
                     {/* Avatar with Platform Icon */}
                     <div className="relative flex-shrink-0">
-                      <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-gray-700 to-gray-800 rounded-full flex items-center justify-center text-white font-bold text-sm md:text-base">
+                      <div className={`w-12 h-12 md:w-14 md:h-14 bg-gradient-to-br ${config.bgColor} border-2 ${config.borderColor} rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-xl`}>
                         {message.senderName.charAt(0).toUpperCase()}
                       </div>
-                      <div className={`absolute -bottom-1 -left-1 w-5 h-5 md:w-6 md:h-6 ${config.bgColor} rounded-full flex items-center justify-center border-2 border-gray-900`}>
-                        <Icon className={`w-2.5 h-2.5 md:w-3 md:h-3 ${config.color}`} />
+                      <div className={`absolute -bottom-2 -left-2 w-7 h-7 md:w-8 md:h-8 bg-gradient-to-br ${config.bgColor} rounded-xl flex items-center justify-center border-3 border-gray-900 shadow-lg`}>
+                        <Icon className={`w-4 h-4 md:w-5 md:h-5 ${config.color}`} />
                       </div>
                     </div>
 
                     {/* Message Content */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1 md:gap-2 mb-1 flex-wrap">
-                        <span className="text-white font-semibold text-sm md:text-base truncate">{message.senderName}</span>
-                        <span className={`text-xs ${config.color}`}>• {config.name}</span>
-                        <span className="text-gray-500 text-xs hidden sm:inline">{formatTime(message.timestamp)}</span>
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
+                        <span className="text-white font-bold text-base md:text-lg truncate">{message.senderName}</span>
+                        <Badge className={`${config.badge} border text-xs font-semibold px-2 py-1`}>
+                          {config.name}
+                        </Badge>
+                        <span className="text-gray-400 text-xs hidden sm:inline">{formatTime(message.timestamp)}</span>
                         {!message.isRead && (
-                          <Badge className="bg-red-500/20 text-red-400 border-0 text-xs">جديد</Badge>
+                          <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white border-0 text-xs font-bold animate-pulse">
+                            جديد
+                          </Badge>
                         )}
                       </div>
                       
