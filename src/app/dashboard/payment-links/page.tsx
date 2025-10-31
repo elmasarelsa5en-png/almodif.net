@@ -573,116 +573,179 @@ ${link.paymentMethods.includes('apple-pay') ? '🍎 Apple Pay\n' : ''}${link.pay
           </Card>
         ) : (
           filteredLinks.map(link => (
-            <Card key={link.id} className="bg-white/10 backdrop-blur-md border-white/20 shadow-xl hover:shadow-2xl hover:scale-[1.01] transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                      <h3 className="text-2xl font-bold text-white drop-shadow-lg">{link.title}</h3>
-                      <Badge className={cn("flex items-center gap-1 font-bold shadow-lg", 
-                        link.status === 'active' ? 'bg-blue-500/80 text-white border-blue-400/40' :
-                        link.status === 'paid' ? 'bg-green-500/80 text-white border-green-400/40' :
-                        link.status === 'expired' ? 'bg-gray-500/80 text-white border-gray-400/40' :
-                        'bg-red-500/80 text-white border-red-400/40'
-                      )}>
-                        {getStatusIcon(link.status)}
-                        {getStatusText(link.status)}
-                      </Badge>
-                    </div>
-                    
-                    {link.description && (
-                      <p className="text-blue-200 mb-4 text-base">{link.description}</p>
-                    )}
-
-                    <div className="flex flex-wrap gap-4 mb-4">
-                      <div className="flex items-center gap-2 bg-green-500/20 px-3 py-2 rounded-lg border border-green-400/30">
-                        <DollarSign className="w-5 h-5 text-green-300" />
-                        <span className="font-bold text-white text-lg">{link.amount} {link.currency}</span>
+            <Card key={link.id} className="bg-gradient-to-br from-slate-800/90 via-blue-900/80 to-indigo-900/80 backdrop-blur-xl border border-white/30 shadow-2xl hover:shadow-indigo-500/50 hover:scale-[1.02] transition-all duration-300 overflow-hidden">
+              <CardContent className="p-0">
+                {/* Header colorido según estado */}
+                <div className={cn(
+                  "p-4 border-b border-white/20",
+                  link.status === 'active' ? 'bg-gradient-to-r from-blue-600/50 to-cyan-600/50' :
+                  link.status === 'paid' ? 'bg-gradient-to-r from-green-600/50 to-emerald-600/50' :
+                  link.status === 'expired' ? 'bg-gradient-to-r from-gray-600/50 to-gray-700/50' :
+                  'bg-gradient-to-r from-red-600/50 to-pink-600/50'
+                )}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                        <DollarSign className="w-7 h-7 text-white" />
                       </div>
-                      
-                      {link.customerName && (
-                        <div className="flex items-center gap-2 bg-white/10 px-3 py-2 rounded-lg border border-white/20">
-                          <span className="text-blue-200">👤 {link.customerName}</span>
-                        </div>
-                      )}
-                      
-                      {link.bookingId && (
-                        <div className="flex items-center gap-2 bg-white/10 px-3 py-2 rounded-lg border border-white/20">
-                          <Calendar className="w-4 h-4 text-blue-300" />
-                          <span className="text-blue-200">{link.bookingId}</span>
-                        </div>
-                      )}
-
-                      {link.expiresAt && (
-                        <div className="flex items-center gap-2 bg-white/10 px-3 py-2 rounded-lg border border-white/20">
-                          <Clock className="w-4 h-4 text-blue-300" />
-                          <span className="text-blue-200">صالح حتى: {new Date(link.expiresAt).toLocaleDateString('ar-EG')}</span>
-                        </div>
-                      )}
+                      <div>
+                        <h3 className="text-2xl font-bold text-white drop-shadow-lg">{link.title}</h3>
+                        <p className="text-sm text-white/80">رابط دفع احترافي</p>
+                      </div>
                     </div>
-
-                    {/* Payment Methods */}
-                    <div className="flex gap-2 mb-4">
-                      {link.paymentMethods.map(method => (
-                        <Badge key={method} className="bg-indigo-500/30 text-white border border-indigo-400/30 font-medium">
-                          {method === 'apple-pay' && '🍎 Apple Pay'}
-                          {method === 'samsung-pay' && '📱 Samsung Pay'}
-                          {method === 'credit-card' && '💳 بطاقة'}
-                          {method === 'bank-transfer' && '🏦 تحويل'}
-                        </Badge>
-                      ))}
-                    </div>
-
-                    {/* Link */}
-                    <div className="flex items-center gap-2 p-3 bg-slate-800/50 rounded-lg border border-white/20">
-                      <code className="flex-1 text-sm text-blue-200 truncate font-mono" dir="ltr">{link.link}</code>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => copyToClipboard(link.link)}
-                        className="text-white hover:bg-white/10"
-                      >
-                        <Copy className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* QR Code */}
-                  <div className="mr-6 flex flex-col items-center gap-2">
-                    <div className="p-2 bg-white rounded-lg shadow-xl">
-                      <img src={link.qrCode} alt="QR Code" className="w-24 h-24" />
-                    </div>
-                    <Button size="sm" className="text-xs bg-white/10 hover:bg-white/20 text-white border border-white/20">
-                      <Download className="w-3 h-3 ml-1" />
-                      تحميل
-                    </Button>
+                    <Badge className={cn("flex items-center gap-1 font-bold shadow-lg px-4 py-2 text-base", 
+                      link.status === 'active' ? 'bg-blue-500 text-white border-0' :
+                      link.status === 'paid' ? 'bg-green-500 text-white border-0' :
+                      link.status === 'expired' ? 'bg-gray-500 text-white border-0' :
+                      'bg-red-500 text-white border-0'
+                    )}>
+                      {getStatusIcon(link.status)}
+                      {getStatusText(link.status)}
+                    </Badge>
                   </div>
                 </div>
 
-                {/* Actions */}
-                <div className="flex gap-2 mt-4 pt-4 border-t border-white/20">
-                  {link.customerPhone && (
+                <div className="p-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* القسم الأيسر - المعلومات */}
+                    <div className="lg:col-span-2 space-y-4">
+                      {link.description && (
+                        <div className="flex items-start gap-2 p-3 bg-white/5 rounded-lg border border-white/10">
+                          <div className="text-blue-300 mt-0.5">📋</div>
+                          <p className="text-blue-100 text-base">{link.description}</p>
+                        </div>
+                      )}
+
+                      {/* المبلغ - بارز جداً */}
+                      <div className="p-6 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-2xl border-2 border-green-400/40 shadow-xl">
+                        <div className="flex items-center gap-4">
+                          <div className="w-16 h-16 bg-green-500/30 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                            <DollarSign className="w-9 h-9 text-green-300" />
+                          </div>
+                          <div>
+                            <p className="text-sm text-green-200 font-medium">المبلغ المطلوب</p>
+                            <p className="text-4xl font-black text-white drop-shadow-lg">{link.amount} <span className="text-2xl">{link.currency}</span></p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* معلومات إضافية */}
+                      <div className="grid grid-cols-2 gap-3">
+                        {link.customerName && (
+                          <div className="flex items-center gap-2 bg-white/10 px-4 py-3 rounded-xl border border-white/20">
+                            <div className="w-8 h-8 bg-blue-500/30 rounded-lg flex items-center justify-center">
+                              <span className="text-lg">👤</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs text-blue-200">العميل</p>
+                              <p className="text-white font-medium truncate">{link.customerName}</p>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {link.bookingId && (
+                          <div className="flex items-center gap-2 bg-white/10 px-4 py-3 rounded-xl border border-white/20">
+                            <div className="w-8 h-8 bg-purple-500/30 rounded-lg flex items-center justify-center">
+                              <Calendar className="w-4 h-4 text-purple-300" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs text-blue-200">رقم الحجز</p>
+                              <p className="text-white font-medium truncate">{link.bookingId}</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {link.expiresAt && (
+                          <div className="flex items-center gap-2 bg-white/10 px-4 py-3 rounded-xl border border-white/20 col-span-2">
+                            <div className="w-8 h-8 bg-orange-500/30 rounded-lg flex items-center justify-center">
+                              <Clock className="w-4 h-4 text-orange-300" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-xs text-blue-200">صالح حتى</p>
+                              <p className="text-white font-medium">{new Date(link.expiresAt).toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* طرق الدفع */}
+                      <div>
+                        <p className="text-blue-200 text-sm font-semibold mb-2">طرق الدفع المتاحة:</p>
+                        <div className="flex gap-2 flex-wrap">
+                          {link.paymentMethods.map(method => (
+                            <div key={method} className="flex items-center gap-2 bg-indigo-500/20 px-3 py-2 rounded-lg border border-indigo-400/40">
+                              <div className="w-6 h-6 bg-indigo-500/30 rounded flex items-center justify-center">
+                                {method === 'apple-pay' && '🍎'}
+                                {method === 'samsung-pay' && '📱'}
+                                {method === 'credit-card' && '💳'}
+                                {method === 'bank-transfer' && '🏦'}
+                              </div>
+                              <span className="text-white font-medium text-sm">
+                                {method === 'apple-pay' && 'Apple Pay'}
+                                {method === 'samsung-pay' && 'Samsung Pay'}
+                                {method === 'credit-card' && 'بطاقة ائتمان'}
+                                {method === 'bank-transfer' && 'تحويل بنكي'}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* الرابط */}
+                      <div className="p-4 bg-slate-900/50 rounded-xl border border-white/20">
+                        <p className="text-blue-200 text-sm font-semibold mb-2">🔗 رابط الدفع:</p>
+                        <div className="flex items-center gap-2">
+                          <code className="flex-1 text-sm text-blue-300 truncate font-mono bg-black/30 px-3 py-2 rounded-lg" dir="ltr">{link.link}</code>
+                          <Button
+                            size="sm"
+                            onClick={() => copyToClipboard(link.link)}
+                            className="bg-blue-500/30 hover:bg-blue-500/50 text-white border border-blue-400/30 flex-shrink-0"
+                          >
+                            <Copy className="w-4 h-4 ml-1" />
+                            نسخ
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* القسم الأيمن - QR Code */}
+                    <div className="lg:col-span-1 flex flex-col items-center justify-center gap-4">
+                      <div className="p-4 bg-white rounded-2xl shadow-2xl">
+                        <img src={link.qrCode} alt="QR Code" className="w-32 h-32" />
+                      </div>
+                      <Button size="sm" className="w-full bg-white/10 hover:bg-white/20 text-white border border-white/20 font-medium">
+                        <Download className="w-4 h-4 ml-2" />
+                        تحميل QR Code
+                      </Button>
+                      <p className="text-xs text-blue-300 text-center">امسح الكود للدفع السريع</p>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-3 mt-6 pt-6 border-t border-white/20">
+                    {link.customerPhone && (
+                      <Button
+                        onClick={() => shareViaWhatsApp(link)}
+                        className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold shadow-lg py-6"
+                      >
+                        <Send className="w-5 h-5 ml-2" />
+                        إرسال عبر WhatsApp
+                      </Button>
+                    )}
                     <Button
-                      onClick={() => shareViaWhatsApp(link)}
-                      className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold shadow-lg"
+                      onClick={() => window.open(link.link, '_blank')}
+                      className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold shadow-lg py-6"
                     >
-                      <Send className="w-4 h-4 ml-2" />
-                      إرسال عبر WhatsApp
+                      <ExternalLink className="w-5 h-5 ml-2" />
+                      فتح صفحة الدفع
                     </Button>
-                  )}
-                  <Button
-                    onClick={() => window.open(link.link, '_blank')}
-                    className="bg-blue-500/30 hover:bg-blue-500/50 text-white border border-blue-400/30 font-medium"
-                  >
-                    <ExternalLink className="w-4 h-4 ml-2" />
-                    فتح
-                  </Button>
-                  <Button className="bg-white/10 hover:bg-white/20 text-white border border-white/20">
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                  <Button className="bg-red-500/30 hover:bg-red-500/50 text-white border border-red-400/30">
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                    <Button className="bg-white/10 hover:bg-white/20 text-white border border-white/20 font-medium px-6">
+                      <Edit className="w-5 h-5" />
+                    </Button>
+                    <Button className="bg-red-500/30 hover:bg-red-500/50 text-white border border-red-400/30 font-medium px-6">
+                      <Trash2 className="w-5 h-5" />
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
