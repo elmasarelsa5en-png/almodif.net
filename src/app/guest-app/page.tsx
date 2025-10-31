@@ -699,29 +699,102 @@ export default function GuestAppHomePage() {
           </div>
         ) : (
           <>
-            {/* Welcome Section */}
+            {/* Hero Section with Image */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.8 }}
-              className="text-center mb-12"
+              className="mb-12"
             >
-              <motion.h2
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.4, duration: 0.8, type: "spring" }}
-                className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-100 to-amber-200 mb-4 drop-shadow-lg"
-              >
-                {hotelSettings.welcomeMessage || 'مرحباً بك في تطبيق الضيوف'}
-              </motion.h2>
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.6, duration: 0.8 }}
-                className="text-lg text-slate-300 max-w-2xl mx-auto"
-              >
-                {hotelSettings.welcomeMessageEn || 'استمتع بجميع خدمات الفندق من راحة غرفتك'}
-              </motion.p>
+              <div className="relative bg-gradient-to-r from-slate-800/50 to-slate-900/50 backdrop-blur-xl rounded-3xl overflow-hidden border border-amber-500/20 shadow-2xl">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8 lg:p-12 items-center">
+                  {/* Text Content */}
+                  <div className="order-2 lg:order-1">
+                    <motion.div
+                      initial={{ opacity: 0, x: -50 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.4, duration: 0.8 }}
+                    >
+                      {hotelSettings.logo && (
+                        <img 
+                          src={hotelSettings.logo} 
+                          alt="Logo" 
+                          className="h-16 mb-6 drop-shadow-lg"
+                        />
+                      )}
+                      <h1 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-100 to-amber-200 mb-4">
+                        {hotelSettings.hotelName || 'فندق المضيف'}
+                      </h1>
+                      <p className="text-xl text-amber-400/80 mb-6 font-medium">
+                        {hotelSettings.hotelNameEn || 'Al Modif Hotel'}
+                      </p>
+                      <div className="flex items-center gap-2 mb-6">
+                        {[...Array(hotelSettings.rating || 5)].map((_, i) => (
+                          <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-400" />
+                        ))}
+                      </div>
+                      <p className="text-lg text-slate-300 mb-8 leading-relaxed">
+                        {hotelSettings.welcomeMessage || 'مرحباً بك في فندق المضيف'}
+                      </p>
+                      {guestSession && (
+                        <div className="bg-white/5 backdrop-blur-md border border-amber-500/20 rounded-xl p-4 mb-6">
+                          <div className="flex items-center gap-3 text-white">
+                            <User className="w-5 h-5 text-amber-400" />
+                            <div>
+                              <p className="font-semibold">{guestSession.name}</p>
+                              <p className="text-sm text-slate-400">الغرفة: {guestSession.roomNumber}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      <div className="flex flex-wrap gap-3">
+                        {hotelSettings.amenities?.slice(0, 4).map((amenity, i) => (
+                          <div key={i} className="flex items-center gap-2 bg-white/5 backdrop-blur-md px-4 py-2 rounded-full border border-amber-500/20">
+                            <Sparkles className="w-4 h-4 text-amber-400" />
+                            <span className="text-sm text-slate-300">{amenity}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  </div>
+
+                  {/* Hotel Image */}
+                  <motion.div
+                    initial={{ opacity: 0, x: 50 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.5, duration: 0.8 }}
+                    className="order-1 lg:order-2 relative"
+                  >
+                    <div className="relative rounded-2xl overflow-hidden shadow-2xl border-2 border-amber-500/30">
+                      <img 
+                        src="/hotel-hero.jpg"
+                        alt="Hotel"
+                        className="w-full h-[400px] object-cover"
+                        onError={(e) => {
+                          // Fallback gradient if image not found
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                        }}
+                      />
+                      <div className="hidden absolute inset-0 bg-gradient-to-br from-amber-500/20 via-purple-500/20 to-blue-500/20 flex items-center justify-center">
+                        <div className="text-6xl">🏨</div>
+                      </div>
+                      
+                      {/* Badge Overlay */}
+                      <div className="absolute top-4 left-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-full font-bold shadow-lg flex items-center gap-2">
+                        <Sparkles className="w-4 h-4" />
+                        خصم 50%
+                      </div>
+                      
+                      {/* Bottom Info */}
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
+                        <p className="text-white font-semibold text-lg mb-2">احجز الآن واستمتع بتجربة فريدة</p>
+                        <p className="text-slate-300 text-sm">Relax with us by creating beautiful memories</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                </div>
+              </div>
             </motion.div>
 
             {/* Services Grid */}

@@ -769,33 +769,42 @@ export default function DeveloperSettingsPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="group relative overflow-hidden bg-white/5 border border-white/10 rounded-xl p-6 text-center hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer">
+              <div 
+                onClick={() => router.push('/dashboard/settings/database-manager')}
+                className="group relative overflow-hidden bg-white/5 border border-white/10 rounded-xl p-6 text-center hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer"
+              >
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <div className="relative z-10">
                   <div className="text-5xl mb-3">🗄️</div>
                   <h3 className="text-white font-bold text-lg mb-2">إدارة قاعدة البيانات</h3>
                   <p className="text-gray-400 text-sm mb-3">استعراض وإدارة البيانات مباشرة</p>
-                  <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">قريباً...</Badge>
+                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30">متاح</Badge>
                 </div>
               </div>
 
-              <div className="group relative overflow-hidden bg-white/5 border border-white/10 rounded-xl p-6 text-center hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer">
+              <div 
+                onClick={() => router.push('/dashboard/audit-logs')}
+                className="group relative overflow-hidden bg-white/5 border border-white/10 rounded-xl p-6 text-center hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer"
+              >
                 <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-teal-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <div className="relative z-10">
                   <div className="text-5xl mb-3">📊</div>
                   <h3 className="text-white font-bold text-lg mb-2">سجلات النظام</h3>
                   <p className="text-gray-400 text-sm mb-3">تتبع جميع عمليات النظام</p>
-                  <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">قريباً...</Badge>
+                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30">متاح</Badge>
                 </div>
               </div>
 
-              <div className="group relative overflow-hidden bg-white/5 border border-white/10 rounded-xl p-6 text-center hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer">
+              <div 
+                onClick={() => router.push('/dashboard/settings/dev-tools')}
+                className="group relative overflow-hidden bg-white/5 border border-white/10 rounded-xl p-6 text-center hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer"
+              >
                 <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <div className="relative z-10">
                   <div className="text-5xl mb-3">🔧</div>
                   <h3 className="text-white font-bold text-lg mb-2">أدوات التطوير</h3>
                   <p className="text-gray-400 text-sm mb-3">أدوات مساعدة للمطورين</p>
-                  <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">قريباً...</Badge>
+                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30">متاح</Badge>
                 </div>
               </div>
             </div>
