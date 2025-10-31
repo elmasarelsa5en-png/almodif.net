@@ -268,7 +268,9 @@ ${link.paymentMethods.includes('apple-pay') ? '🍎 Apple Pay\n' : ''}${link.pay
                 <DialogDescription className="text-blue-200/80 font-medium">
                   أدخل تفاصيل الدفع لإنشاء رابط احترافي
                 </DialogDescription>
-              </DialogHeader>            <div className="space-y-4 mt-4">
+              </DialogHeader>
+
+              <div className="space-y-4 mt-4">
               {/* العنوان */}
               <div>
                 <Label className="text-blue-200 font-semibold">العنوان *</Label>
@@ -686,6 +688,7 @@ ${link.paymentMethods.includes('apple-pay') ? '🍎 Apple Pay\n' : ''}${link.pay
             </Card>
           ))
         )}
+      </div>
       </div>
     </div>
   );
