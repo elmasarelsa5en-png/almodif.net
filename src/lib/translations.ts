@@ -43,6 +43,8 @@ const ar = {
   reportBuilderDesc: 'تقارير مخصصة مع فلاتر متقدمة',
   scheduledReports: 'التقارير المجدولة',
   scheduledReportsDesc: 'جدولة تلقائية وإرسال بريدي',
+  notificationsDashboard: 'لوحة الإشعارات',
+  notificationsDashboardDesc: 'إحصائيات الإشعارات',
   paymentLinks: 'روابط الدفع',
   paymentLinksDesc: 'إدارة الدفع',
   accounting: 'المحاسبة',

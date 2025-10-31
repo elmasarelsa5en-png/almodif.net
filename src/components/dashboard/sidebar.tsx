@@ -507,6 +507,13 @@ const navigationItems: NavigationItem[] = [
     permission: 'view_reports',
   },
   {
+    icon: Bell,
+    labelKey: 'notificationsDashboard',
+    descKey: 'notificationsDashboardDesc',
+    href: '/dashboard/notifications-dashboard',
+    permission: 'view_reports',
+  },
+  {
     icon: Settings,
     labelKey: 'settings',
     descKey: 'settingsDesc',
