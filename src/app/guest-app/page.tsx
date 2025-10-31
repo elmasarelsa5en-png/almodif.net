@@ -22,6 +22,8 @@ interface GuestSession {
   roomNumber: string;
   checkInDate: string;
   status: 'checked-in' | 'checked-out';
+  photo?: string;
+  email?: string;
 }
 
 interface HotelSettings {
@@ -329,52 +331,31 @@ export default function GuestAppHomePage() {
         }}
       />
 
-      {/* Header */}
+      {/* Professional Header */}
       <motion.header 
         initial={{ opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
-        className="relative z-10 bg-gradient-to-r from-slate-800/95 via-slate-700/95 to-slate-800/95 backdrop-blur-xl border-b border-amber-500/30 shadow-2xl"
+        className="relative z-10 bg-gradient-to-r from-slate-900/98 via-slate-800/98 to-slate-900/98 backdrop-blur-2xl border-b-2 border-amber-500/40 shadow-2xl"
       >
-        <div className="container mx-auto px-4 py-4">
-          {/* Guest Info Bar */}
-          {guestSession && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg"
-            >
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <div className="flex items-center gap-4 flex-wrap">
-                  <div className="flex items-center gap-2">
-                    <User className="w-4 h-4 text-amber-400" />
-                    <span className="text-amber-100 font-medium">{guestSession.name}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Hotel className="w-4 h-4 text-amber-400" />
-                    <span className="text-amber-100">غرفة {guestSession.roomNumber}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="w-4 h-4 text-amber-400" />
-                    <span className="text-amber-200 text-sm">{guestSession.nationalId}</span>
-                  </div>
-                </div>
-                <Button
-                  onClick={handleLogout}
-                  variant="ghost"
-                  size="sm"
-                  className="text-amber-200 hover:text-amber-100 hover:bg-amber-500/20"
-                >
-                  <LogOut className="w-4 h-4 mr-1" />
-                  تسجيل خروج
-                </Button>
-              </div>
-            </motion.div>
-          )}
-          
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+        {/* Animated top border */}
+        <motion.div
+          className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent"
+          animate={{
+            x: ['-100%', '100%'],
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: "linear",
+          }}
+        />
+        
+        <div className="container mx-auto px-4 py-3">
+          {/* Top Bar - Logo & Actions */}
+          <div className="flex items-center justify-between mb-4">
+            {/* Logo Section */}
+            <div className="flex items-center gap-3">
               {hotelSettings.logo ? (
                 <motion.img
                   initial={{ scale: 0, rotate: -180 }}
@@ -382,76 +363,221 @@ export default function GuestAppHomePage() {
                   transition={{ duration: 1, type: "spring", bounce: 0.5 }}
                   src={hotelSettings.logo} 
                   alt={hotelSettings.hotelName}
-                  className="h-16 w-auto object-contain drop-shadow-2xl"
+                  className="h-12 w-auto object-contain drop-shadow-2xl"
                 />
               ) : (
                 <motion.div
                   initial={{ scale: 0, rotate: -180 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ duration: 1, type: "spring", bounce: 0.5 }}
-                  className="w-16 h-16 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl flex items-center justify-center shadow-2xl border-2 border-amber-300/50"
+                  className="w-12 h-12 bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 rounded-xl flex items-center justify-center shadow-2xl border-2 border-amber-300/50"
                 >
-                  <Hotel className="w-10 h-10 text-slate-900" />
+                  <Hotel className="w-7 h-7 text-slate-900" />
                 </motion.div>
               )}
               <div>
                 <motion.h1
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.8, delay: 0.3 }}
-                  className="text-2xl md:text-3xl font-bold text-amber-100 flex items-center gap-2 drop-shadow-lg"
+                  transition={{ duration: 0.8, delay: 0.2 }}
+                  className="text-lg md:text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-100 to-amber-200 flex items-center gap-2"
                 >
                   {hotelSettings.hotelName}
-                  <motion.div
-                    animate={{
-                      rotate: [0, 10, -10, 0],
-                      scale: [1, 1.2, 1],
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      repeatDelay: 3,
-                    }}
-                  >
-                    <Sparkles className="w-6 h-6 text-amber-400" />
-                  </motion.div>
                 </motion.h1>
                 {hotelSettings.rating && (
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5 }}
-                    className="flex items-center gap-1 mt-1"
+                    transition={{ delay: 0.4 }}
+                    className="flex items-center gap-1"
                   >
                     {[...Array(hotelSettings.rating)].map((_, i) => (
-                      <motion.div
-                        key={i}
-                        initial={{ scale: 0, rotate: -180 }}
-                        animate={{ scale: 1, rotate: 0 }}
-                        transition={{ delay: 0.7 + i * 0.1, type: "spring" }}
-                      >
-                        <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                      </motion.div>
+                      <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
                     ))}
                   </motion.div>
                 )}
               </div>
             </div>
 
-            <motion.div
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.8 }}
-            >
-              <Button
-                onClick={generateQRCode}
-                className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-100 backdrop-blur-sm border border-amber-400/30 hover:scale-105 transition-all duration-300"
+            {/* Action Buttons */}
+            <div className="flex items-center gap-2">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.6 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                <QrCode className="w-5 h-5 mr-2" />
-                QR Code
-              </Button>
-            </motion.div>
+                <Button
+                  onClick={() => {
+                    const currentLang = localStorage.getItem('guest_language') || 'ar';
+                    const newLang = currentLang === 'ar' ? 'en' : 'ar';
+                    localStorage.setItem('guest_language', newLang);
+                    alert(`Language changed to ${newLang === 'ar' ? 'العربية' : 'English'}`);
+                    window.location.reload();
+                  }}
+                  size="sm"
+                  className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-100 backdrop-blur-sm border border-amber-400/30"
+                >
+                  <Globe className="w-4 h-4" />
+                </Button>
+              </motion.div>
+              
+              <motion.div
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.7 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button
+                  onClick={generateQRCode}
+                  size="sm"
+                  className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-100 backdrop-blur-sm border border-amber-400/30"
+                >
+                  <QrCode className="w-4 h-4" />
+                </Button>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.8 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button
+                  onClick={handleLogout}
+                  size="sm"
+                  variant="ghost"
+                  className="text-red-300 hover:text-red-200 hover:bg-red-500/10 border border-red-400/20"
+                >
+                  <LogOut className="w-4 h-4" />
+                </Button>
+              </motion.div>
+            </div>
           </div>
+
+          {/* Guest Profile Card */}
+          {guestSession && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+              className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500/10 via-amber-600/5 to-purple-500/10 backdrop-blur-xl border border-amber-400/30 p-4 shadow-xl"
+            >
+              {/* Animated gradient overlay */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"
+                animate={{ x: ['-100%', '100%'] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+              />
+              
+              <div className="relative z-10 flex items-center justify-between gap-4 flex-wrap">
+                {/* Guest Avatar & Info */}
+                <div className="flex items-center gap-4">
+                  {/* Avatar */}
+                  <motion.div
+                    className="relative cursor-pointer group"
+                    onClick={() => router.push('/guest-app/profile')}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <motion.div
+                      className="absolute -inset-1 bg-gradient-to-r from-amber-400 via-amber-500 to-purple-500 rounded-full blur-md opacity-75"
+                      animate={{
+                        scale: [1, 1.1, 1],
+                        opacity: [0.5, 0.8, 0.5],
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      }}
+                    />
+                    <div className="relative w-16 h-16 bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 rounded-full flex items-center justify-center shadow-2xl border-2 border-white/20">
+                      {guestSession.photo ? (
+                        <img 
+                          src={guestSession.photo} 
+                          alt={guestSession.name}
+                          className="w-full h-full rounded-full object-cover"
+                        />
+                      ) : (
+                        <User className="w-8 h-8 text-white" />
+                      )}
+                      {/* Edit indicator on hover */}
+                      <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">تعديل</span>
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  {/* Guest Details */}
+                  <div>
+                    <motion.h2
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.4 }}
+                      className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-100 to-white"
+                    >
+                      {guestSession.name}
+                    </motion.h2>
+                    <div className="flex items-center gap-3 mt-1 flex-wrap">
+                      <motion.div
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.5 }}
+                        className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/20 rounded-full border border-amber-400/30"
+                      >
+                        <Hotel className="w-3.5 h-3.5 text-amber-300" />
+                        <span className="text-sm text-amber-100 font-medium">غرفة {guestSession.roomNumber}</span>
+                      </motion.div>
+                      <motion.div
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.6 }}
+                        className="flex items-center gap-1.5 px-2.5 py-1 bg-purple-500/20 rounded-full border border-purple-400/30"
+                      >
+                        <CreditCard className="w-3.5 h-3.5 text-purple-300" />
+                        <span className="text-xs text-purple-200 font-medium">{guestSession.nationalId}</span>
+                      </motion.div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Actions */}
+                <div className="flex items-center gap-2">
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Button
+                      onClick={() => router.push('/guest-app/my-bookings')}
+                      size="sm"
+                      className="bg-gradient-to-r from-amber-500/20 to-purple-500/20 hover:from-amber-500/30 hover:to-purple-500/30 text-white backdrop-blur-sm border border-amber-400/30"
+                    >
+                      <Calendar className="w-4 h-4 mr-2" />
+                      حجوزاتي
+                    </Button>
+                  </motion.div>
+                  
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Button
+                      onClick={() => router.push('/guest-app/profile')}
+                      size="sm"
+                      className="bg-gradient-to-r from-purple-500/20 to-blue-500/20 hover:from-purple-500/30 hover:to-blue-500/30 text-white backdrop-blur-sm border border-purple-400/30"
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      الملف الشخصي
+                    </Button>
+                  </motion.div>
+                </div>
+              </div>
+            </motion.div>
+          )}
         </div>
       </motion.header>
 
