@@ -458,6 +458,13 @@ const navigationItems: NavigationItem[] = [
         descKey: 'hrManagementDesc',
         href: '/dashboard/settings/hr',
         permission: 'manage_permissions',
+      },
+      {
+        icon: DollarSign,
+        labelKey: 'accountingSettings',
+        descKey: 'accountingSettingsDesc',
+        href: '/dashboard/settings/accounting',
+        permission: 'manage_general_settings',
       }
     ]
   },
