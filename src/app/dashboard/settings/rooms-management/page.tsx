@@ -62,7 +62,8 @@ export default function RoomsManagementPage() {
     number: '',
     floor: 1,
     type: 'غرفة',
-    status: 'Available' as RoomStatus
+    status: 'Available' as RoomStatus,
+    price: 200 // السعر الافتراضي للشقة (يومي)
   });
 
   useEffect(() => {
@@ -224,7 +225,8 @@ export default function RoomsManagementPage() {
       number: '',
       floor: 1,
       type: 'غرفة',
-      status: 'Available'
+      status: 'Available',
+      price: 200 // السعر الافتراضي
     });
     setIsAddDialogOpen(true);
   };
@@ -253,7 +255,12 @@ export default function RoomsManagementPage() {
       type: formData.type,
       floor: formData.floor,
       status: formData.status,
+      price: formData.price, // السعر اليومي
       balance: 0,
+      currentDebt: 0,
+      roomDebt: 0,
+      servicesDebt: 0,
+      payments: [],
       events: [{
         id: Date.now().toString(),
         type: 'status_change' as const,
@@ -312,7 +319,12 @@ export default function RoomsManagementPage() {
       floor: room.floor || Math.floor(parseInt(room.number || '0') / 100),
       type: room.type || 'غرفة',
       status: 'Available' as RoomStatus,
+      price: room.price || 200, // السعر الافتراضي
       balance: 0,
+      currentDebt: 0,
+      roomDebt: 0,
+      servicesDebt: 0,
+      payments: [],
       events: [{
         id: Date.now().toString(),
         type: 'status_change' as const,
@@ -661,6 +673,20 @@ export default function RoomsManagementPage() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="add-price" className="text-blue-200">السعر اليومي (ريال)</Label>
+                <Input 
+                  id="add-price" 
+                  type="number" 
+                  min="0" 
+                  value={formData.price} 
+                  onChange={(e) => setFormData({ ...formData, price: parseInt(e.target.value) || 0 })}
+                  placeholder="مثال: 200"
+                  className="bg-white/10 border-blue-400/30 text-white placeholder:text-blue-300/50"
+                />
+                <p className="text-xs text-blue-300/60">السعر الافتراضي لليلة واحدة</p>
               </div>
             </div>
 

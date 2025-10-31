@@ -31,6 +31,24 @@ export interface Room {
   guestAddress?: string;
   guestNotes?: string;
   balance: number;
+  
+  // نظام تتبع الديون التلقائي
+  currentDebt: number; // إجمالي الديون الحالية (إقامة + خدمات)
+  roomDebt: number; // دين الإقامة فقط
+  servicesDebt: number; // دين الخدمات (منيو، مطعم، مقهى، مغسلة)
+  lastDebtUpdate?: string; // آخر تحديث للدين
+  debtStartDate?: string; // تاريخ بدء احتساب الدين
+  payments: {
+    id: string;
+    amount: number;
+    date: string;
+    time: string;
+    method: 'cash' | 'card' | 'transfer';
+    receiptNumber?: string;
+    paidBy: string; // اسم الموظف
+    note?: string;
+  }[];
+  
   bookingDetails?: {
     contractNumber: string;
     bookingSource: string;

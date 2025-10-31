@@ -166,6 +166,60 @@ export default function RoomsPage() {
     
     return () => clearInterval(interval);
   }, [rooms]);
+
+  // حساب الديون التلقائي للشقق المشغولة
+  useEffect(() => {
+    const calculateDebts = async () => {
+      const now = new Date();
+      let hasChanges = false;
+      
+      const updatedRooms = await Promise.all(rooms.map(async (room) => {
+        // احسب الديون فقط للشقق المشغولة أو اللي checkout اليوم
+        if ((room.status === 'Occupied' || room.status === 'CheckoutToday') && room.bookingDetails?.checkIn?.date) {
+          const checkInDate = new Date(room.bookingDetails.checkIn.date);
+          const daysDiff = Math.floor((now.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
+          
+          // احسب دين الإقامة
+          const pricePerNight = room.price || room.bookingDetails?.financial?.dailyRate || 200;
+          const newRoomDebt = daysDiff * pricePerNight;
+          
+          // إجمالي الدين = دين الإقامة + دين الخدمات
+          const newCurrentDebt = newRoomDebt + (room.servicesDebt || 0);
+          
+          // تحديث فقط لو في تغيير
+          if (room.currentDebt !== newCurrentDebt || room.roomDebt !== newRoomDebt) {
+            hasChanges = true;
+            const updatedRoom = {
+              ...room,
+              currentDebt: newCurrentDebt,
+              roomDebt: newRoomDebt,
+              lastDebtUpdate: now.toISOString(),
+              debtStartDate: room.debtStartDate || room.bookingDetails.checkIn.date
+            };
+            
+            // احفظ في Firebase
+            await saveRoomToFirebase(updatedRoom);
+            return updatedRoom;
+          }
+        }
+        return room;
+      }));
+      
+      if (hasChanges) {
+        setRooms(updatedRooms);
+        setFilteredRooms(updatedRooms);
+        console.log('💰 تم تحديث الديون التلقائي');
+      }
+    };
+    
+    // احسب الديون فوراً
+    calculateDebts();
+    
+    // احسب الديون كل ساعة
+    const interval = setInterval(calculateDebts, 60 * 60 * 1000);
+    
+    return () => clearInterval(interval);
+  }, [rooms]);
   
   const loadRoomsData = async () => {
     try {
@@ -364,22 +418,53 @@ export default function RoomsPage() {
   const handlePayment = async () => {
     if (!selectedRoom || !user || paymentAmount <= 0) return;
     
-    const updatedRooms = processPayment(
-      rooms,
-      selectedRoom.id,
-      paymentAmount,
-      paymentMethod,
-      user.name || user.username
-    );
+    // حساب المبلغ المتبقي بعد الدفع
+    const remainingDebt = Math.max(0, (selectedRoom.currentDebt || 0) - paymentAmount);
+    
+    const updatedRoom: Room = {
+      ...selectedRoom,
+      currentDebt: remainingDebt,
+      payments: [
+        ...(selectedRoom.payments || []),
+        {
+          id: `payment_${Date.now()}`,
+          amount: paymentAmount,
+          date: new Date().toLocaleDateString('ar-SA'),
+          time: new Date().toLocaleTimeString('ar-SA'),
+          method: paymentMethod.type,
+          receiptNumber: paymentMethod.receiptNumber,
+          paidBy: user.name || user.username || 'غير معروف',
+          note: `دفعة لتسديد الديون - المبلغ المتبقي: ${remainingDebt} ر.س`
+        }
+      ],
+      lastDebtUpdate: new Date().toISOString(),
+      events: [
+        ...selectedRoom.events,
+        {
+          id: Date.now().toString(),
+          type: 'payment' as const,
+          description: `تم تسجيل دفعة ${paymentAmount} ر.س - المتبقي: ${remainingDebt} ر.س`,
+          timestamp: new Date().toISOString(),
+          user: user.name || user.username || 'غير معروف',
+          amount: paymentAmount
+        }
+      ]
+    };
     
     try {
       // حفظ الغرفة المحدثة في Firebase
-      const updatedRoom = updatedRooms.find(r => r.id === selectedRoom.id);
-      if (updatedRoom) {
-        await saveRoomToFirebase(updatedRoom);
-        setRooms(updatedRooms);
-        setSelectedRoom(updatedRoom);
-      }
+      await saveRoomToFirebase(updatedRoom);
+      
+      // تحديث الحالة المحلية
+      const updatedRooms = rooms.map(r => r.id === updatedRoom.id ? updatedRoom : r);
+      setRooms(updatedRooms);
+      setSelectedRoom(updatedRoom);
+      
+      alert(`✅ تم تسجيل الدفعة بنجاح!\n\nالمبلغ المدفوع: ${paymentAmount} ر.س\nالمتبقي: ${remainingDebt} ر.س`);
+      
+      // TODO: إنشاء سند قبض في وحدة المحاسبة
+      // يمكن إضافة هذه الوظيفة لاحقاً
+      
     } catch (error) {
       console.error('خطأ في حفظ الدفعة:', error);
       alert('حدث خطأ في حفظ الدفعة');
@@ -739,6 +824,19 @@ export default function RoomsPage() {
                 <p className="text-sm font-bold text-white truncate drop-shadow-md">👤 {room.guestName}</p>
                 {room.guestPhone && (
                   <p className="text-xs text-white/90 truncate mt-0.5">📱 {room.guestPhone}</p>
+                )}
+                {/* عرض الديون إذا كانت موجودة */}
+                {(room.currentDebt || 0) > 0 && (
+                  <div className="mt-2 pt-2 border-t border-white/20">
+                    <p className="text-xs text-yellow-300 font-bold">💰 الدين الحالي</p>
+                    <p className="text-lg font-bold text-white mt-1">{room.currentDebt} ر.س</p>
+                    {(room.roomDebt || 0) > 0 && (
+                      <p className="text-[10px] text-white/70">إقامة: {room.roomDebt} ر.س</p>
+                    )}
+                    {(room.servicesDebt || 0) > 0 && (
+                      <p className="text-[10px] text-white/70">خدمات: {room.servicesDebt} ر.س</p>
+                    )}
+                  </div>
                 )}
               </div>
             )}
@@ -1117,6 +1215,44 @@ export default function RoomsPage() {
                       </div>
                     </CardContent>
                   </Card>
+
+                  {/* بطاقة الديون والدفعات */}
+                  {(selectedRoom.currentDebt || 0) > 0 && (
+                    <Card className="bg-gradient-to-r from-red-500/20 to-pink-500/20 backdrop-blur-md border-red-400/30">
+                      <CardContent className="p-4">
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h3 className="text-lg font-bold text-white mb-1">💰 الديون الحالية</h3>
+                              <p className="text-sm text-red-200">إجمالي المستحقات على النزيل</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-3xl font-bold text-white">{selectedRoom.currentDebt} ر.س</p>
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-3 pt-3 border-t border-white/20">
+                            <div className="bg-white/10 p-3 rounded-lg">
+                              <p className="text-xs text-white/70">دين الإقامة</p>
+                              <p className="text-lg font-bold text-white">{selectedRoom.roomDebt || 0} ر.س</p>
+                            </div>
+                            <div className="bg-white/10 p-3 rounded-lg">
+                              <p className="text-xs text-white/70">دين الخدمات</p>
+                              <p className="text-lg font-bold text-white">{selectedRoom.servicesDebt || 0} ر.س</p>
+                            </div>
+                          </div>
+                          
+                          <Button
+                            onClick={() => setIsPaymentOpen(true)}
+                            className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-3 shadow-lg"
+                          >
+                            <DollarSign className="w-5 h-5 mr-2" />
+                            تسجيل دفعة جديدة
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
                   
                   {/* زر تصفية الحجز */}
                   <Card className="bg-gradient-to-r from-orange-500/20 to-red-500/20 backdrop-blur-md border-orange-400/30">
@@ -1382,6 +1518,26 @@ export default function RoomsPage() {
           </DialogHeader>
           
           <div className="space-y-6">
+            {/* عرض إجمالي الديون */}
+            <Card className="bg-gradient-to-r from-red-500/20 to-pink-500/20 backdrop-blur-md border-red-400/30">
+              <CardContent className="p-4">
+                <div className="text-center">
+                  <p className="text-sm text-red-200 mb-1">💰 إجمالي الديون الحالية</p>
+                  <p className="text-4xl font-bold text-white">{selectedRoom?.currentDebt || 0} ر.س</p>
+                  <div className="flex gap-4 justify-center mt-3 pt-3 border-t border-white/20">
+                    <div>
+                      <p className="text-xs text-white/70">دين الإقامة</p>
+                      <p className="text-lg font-bold text-white">{selectedRoom?.roomDebt || 0} ر.س</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-white/70">دين الخدمات</p>
+                      <p className="text-lg font-bold text-white">{selectedRoom?.servicesDebt || 0} ر.س</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
             <Card className="bg-white/10 backdrop-blur-md border-white/20">
               <CardContent className="p-4">
                 <label className="text-sm font-semibold text-blue-200 mb-2 block">المبلغ المستحق</label>
