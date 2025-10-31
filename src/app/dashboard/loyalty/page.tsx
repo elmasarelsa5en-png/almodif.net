@@ -164,64 +164,74 @@ export default function LoyaltyProgramPage() {
         {/* Stats Overview */}
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-            <Card className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-md border-purple-400/30">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-purple-200">إجمالي الأعضاء</p>
+                    <p className="text-sm text-white/70">إجمالي الأعضاء</p>
                     <p className="text-3xl font-bold text-white">{stats.totalMembers}</p>
-                    <p className="text-xs text-purple-300">نشط: {stats.activeMembers}</p>
+                    <p className="text-xs text-white/60">نشط: {stats.activeMembers}</p>
                   </div>
-                  <Users className="w-10 h-10 text-purple-400" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                    <Users className="w-6 h-6 text-white" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-yellow-500/20 to-orange-500/20 backdrop-blur-md border-yellow-400/30">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-yellow-200">النقاط المتاحة</p>
+                    <p className="text-sm text-white/70">النقاط المتاحة</p>
                     <p className="text-2xl font-bold text-white">{formatPoints(stats.totalPointsAvailable)}</p>
                   </div>
-                  <Coins className="w-10 h-10 text-yellow-400" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-lg flex items-center justify-center">
+                    <Coins className="w-6 h-6 text-white" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-md border-green-400/30">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-green-200">النقاط المكتسبة</p>
+                    <p className="text-sm text-white/70">النقاط المكتسبة</p>
                     <p className="text-2xl font-bold text-white">{formatPoints(stats.totalPointsIssued)}</p>
                   </div>
-                  <TrendingUp className="w-10 h-10 text-green-400" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
+                    <TrendingUp className="w-6 h-6 text-white" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 backdrop-blur-md border-blue-400/30">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-blue-200">النقاط المستردة</p>
+                    <p className="text-sm text-white/70">النقاط المستردة</p>
                     <p className="text-2xl font-bold text-white">{formatPoints(stats.totalPointsRedeemed)}</p>
                   </div>
-                  <Gift className="w-10 h-10 text-blue-400" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
+                    <Gift className="w-6 h-6 text-white" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-pink-500/20 to-rose-500/20 backdrop-blur-md border-pink-400/30">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-pink-200">المكافآت النشطة</p>
+                    <p className="text-sm text-white/70">المكافآت النشطة</p>
                     <p className="text-3xl font-bold text-white">{stats.activeRewards}</p>
-                    <p className="text-xs text-pink-300">من {stats.totalRewards}</p>
+                    <p className="text-xs text-white/60">من {stats.totalRewards}</p>
                   </div>
-                  <Star className="w-10 h-10 text-pink-400" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-rose-500 rounded-lg flex items-center justify-center">
+                    <Star className="w-6 h-6 text-white" />
+                  </div>
                 </div>
               </CardContent>
             </Card>

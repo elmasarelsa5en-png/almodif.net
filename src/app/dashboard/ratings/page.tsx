@@ -145,73 +145,75 @@ export default function RatingsPage() {
         {/* Stats Cards */}
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-            <Card className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-md border-purple-400/30">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-purple-200">إجمالي التقييمات</p>
+                    <p className="text-sm text-white/70">إجمالي التقييمات</p>
                     <p className="text-3xl font-bold text-white">{stats.total}</p>
                   </div>
-                  <Award className="w-10 h-10 text-purple-400" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                    <Award className="w-6 h-6 text-white" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 backdrop-blur-md border-blue-400/30">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-blue-200">تقييم الخدمات</p>
+                    <p className="text-sm text-white/70">تقييم الخدمات</p>
                     <div className="flex items-center gap-2">
                       <p className="text-2xl font-bold text-white">{stats.service.average.toFixed(1)}</p>
                       <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                     </div>
-                    <p className="text-xs text-blue-300">({stats.service.count} تقييم)</p>
+                    <p className="text-xs text-white/60">({stats.service.count} تقييم)</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-md border-green-400/30">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-green-200">تقييم الطعام</p>
+                    <p className="text-sm text-white/70">تقييم الطعام</p>
                     <div className="flex items-center gap-2">
                       <p className="text-2xl font-bold text-white">{stats.food.average.toFixed(1)}</p>
                       <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                     </div>
-                    <p className="text-xs text-green-300">({stats.food.count} تقييم)</p>
+                    <p className="text-xs text-white/60">({stats.food.count} تقييم)</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-orange-500/20 to-red-500/20 backdrop-blur-md border-orange-400/30">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-orange-200">تقييم الشقق</p>
+                    <p className="text-sm text-white/70">تقييم الشقق</p>
                     <div className="flex items-center gap-2">
                       <p className="text-2xl font-bold text-white">{stats.room.average.toFixed(1)}</p>
                       <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                     </div>
-                    <p className="text-xs text-orange-300">({stats.room.count} تقييم)</p>
+                    <p className="text-xs text-white/60">({stats.room.count} تقييم)</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-yellow-500/20 to-amber-500/20 backdrop-blur-md border-yellow-400/30">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-yellow-200">تقييم الموظفين</p>
+                    <p className="text-sm text-white/70">تقييم الموظفين</p>
                     <div className="flex items-center gap-2">
                       <p className="text-2xl font-bold text-white">{stats.employee.average.toFixed(1)}</p>
                       <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                     </div>
-                    <p className="text-xs text-yellow-300">({stats.employee.count} تقييم)</p>
+                    <p className="text-xs text-white/60">({stats.employee.count} تقييم)</p>
                   </div>
                 </div>
               </CardContent>

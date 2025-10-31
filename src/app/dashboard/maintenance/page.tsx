@@ -148,74 +148,86 @@ export default function MaintenancePage() {
         {/* Stats Cards */}
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
-            <Card className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 backdrop-blur-md border-blue-400/30">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-blue-200">إجمالي المهام</p>
+                    <p className="text-sm text-white/70">إجمالي المهام</p>
                     <p className="text-3xl font-bold text-white">{stats.total}</p>
                   </div>
-                  <BarChart3 className="w-10 h-10 text-blue-400" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
+                    <BarChart3 className="w-6 h-6 text-white" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-yellow-500/20 to-orange-500/20 backdrop-blur-md border-yellow-400/30">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-yellow-200">قيد الانتظار</p>
+                    <p className="text-sm text-white/70">قيد الانتظار</p>
                     <p className="text-3xl font-bold text-white">{stats.pending}</p>
                   </div>
-                  <Clock className="w-10 h-10 text-yellow-400" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-lg flex items-center justify-center">
+                    <Clock className="w-6 h-6 text-white" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-md border-purple-400/30">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-purple-200">قيد التنفيذ</p>
+                    <p className="text-sm text-white/70">قيد التنفيذ</p>
                     <p className="text-3xl font-bold text-white">{stats.inProgress}</p>
                   </div>
-                  <Play className="w-10 h-10 text-purple-400" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                    <Play className="w-6 h-6 text-white" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-md border-green-400/30">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-green-200">مكتملة</p>
+                    <p className="text-sm text-white/70">مكتملة</p>
                     <p className="text-3xl font-bold text-white">{stats.completed}</p>
                   </div>
-                  <CheckCircle2 className="w-10 h-10 text-green-400" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
+                    <CheckCircle2 className="w-6 h-6 text-white" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-red-500/20 to-pink-500/20 backdrop-blur-md border-red-400/30">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-red-200">متأخرة</p>
+                    <p className="text-sm text-white/70">متأخرة</p>
                     <p className="text-3xl font-bold text-white">{stats.overdue}</p>
                   </div>
-                  <AlertTriangle className="w-10 h-10 text-red-400" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-500 rounded-lg flex items-center justify-center">
+                    <AlertTriangle className="w-6 h-6 text-white" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-cyan-500/20 to-blue-500/20 backdrop-blur-md border-cyan-400/30">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-cyan-200">معدل الإنجاز</p>
+                    <p className="text-sm text-white/70">معدل الإنجاز</p>
                     <p className="text-3xl font-bold text-white">{stats.completionRate}%</p>
                   </div>
-                  <Target className="w-10 h-10 text-cyan-400" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-lg flex items-center justify-center">
+                    <Target className="w-6 h-6 text-white" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
