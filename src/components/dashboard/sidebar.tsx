@@ -492,6 +492,13 @@ const navigationItems: NavigationItem[] = [
     permission: 'view_reports',
   },
   {
+    icon: FileText,
+    labelKey: 'reportBuilder',
+    descKey: 'reportBuilderDesc',
+    href: '/dashboard/report-builder',
+    permission: 'view_reports',
+  },
+  {
     icon: Settings,
     labelKey: 'settings',
     descKey: 'settingsDesc',
