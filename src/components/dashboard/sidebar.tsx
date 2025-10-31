@@ -39,9 +39,9 @@ import {
   CreditCard, // أيقونة بطاقات الدفع
   List, // أيقونة قوائم الأصناف
   BarChart3, // تقرير شهري
+  Receipt, // أيقونة سندات القبض
   DollarSign, // خزنة النقد
   Package, // العمولات
-  Receipt, // سندات القبض
   UserCheck, // إحصائيات الموظفين
   Lock, // الحجوزات المفتوحة
   Wrench, // تغيير الشقق
@@ -162,6 +162,13 @@ const navigationItems: NavigationItem[] = [
         descKey: 'invoiceManagementDesc',
         href: '/dashboard/accounting/invoices',
         permission: 'view_invoices',
+      },
+      {
+        icon: Receipt,
+        labelKey: 'receipts',
+        descKey: 'receiptsDesc',
+        href: '/dashboard/accounting/receipts',
+        permission: 'view_receipts',
       },
       {
         icon: TrendingDown,
