@@ -581,7 +581,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ className, isCollapsed: externalCollapsed, onToggle }: SidebarProps) {
-  const [internalCollapsed, setInternalCollapsed] = useState(false);
+  const [internalCollapsed, setInternalCollapsed] = useState(false); // القائمة مفتوحة بشكل افتراضي
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const { t } = useLanguage();
   const [logo, setLogo] = useState<string | null>(null);
@@ -589,8 +589,8 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
   const [loadingSettings, setLoadingSettings] = useState(true);
   const [totalUnreadMessages, setTotalUnreadMessages] = useState(0);
   
-  // في وضع الويب: دائماً مفتوحة، في الموبايل: تستخدم الحالة الخارجية
-  const [isDesktop, setIsDesktop] = useState(false);
+  // القائمة الجانبية دائماً مفتوحة بشكل افتراضي على جميع الأحجام
+  const [isDesktop, setIsDesktop] = useState(true);
   
   useEffect(() => {
     const checkDesktop = () => {
@@ -602,7 +602,7 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
     return () => window.removeEventListener('resize', checkDesktop);
   }, []);
   
-  // استخدام الحالة الخارجية أو الداخلية
+  // استخدام الحالة الخارجية أو الداخلية - القائمة مفتوحة افتراضياً
   const isCollapsed = externalCollapsed !== undefined ? externalCollapsed : internalCollapsed;
   
   const handleMenuClick = () => {
