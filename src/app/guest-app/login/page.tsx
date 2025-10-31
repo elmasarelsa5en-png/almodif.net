@@ -320,20 +320,24 @@ export default function GuestLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 flex items-center justify-center p-4" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden" dir="rtl">
       {/* Background Hotel Image */}
-      <div className="fixed inset-0 z-0 opacity-10">
+      <div className="fixed inset-0 z-0">
         <img 
           src="/images/hotel-exterior.jpg"
           alt="Hotel Background"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover opacity-20"
           onError={(e) => {
             // Fallback to gradient if image not found
             const target = e.currentTarget as HTMLImageElement;
             target.style.display = 'none';
+            console.log('Image failed to load');
+          }}
+          onLoad={() => {
+            console.log('Image loaded successfully');
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/90 via-slate-800/90 to-slate-900/90"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/85 via-slate-800/85 to-slate-900/85"></div>
       </div>
 
       <motion.div

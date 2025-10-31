@@ -779,6 +779,10 @@ export default function GuestAppHomePage() {
                             fallback.classList.remove('hidden');
                             fallback.classList.add('flex');
                           }
+                          console.log('Hero image failed to load');
+                        }}
+                        onLoad={() => {
+                          console.log('Hero image loaded successfully');
                         }}
                       />
                       <div className="hidden absolute inset-0 bg-gradient-to-br from-amber-500/30 via-purple-500/30 to-blue-500/30 backdrop-blur-sm items-center justify-center">
