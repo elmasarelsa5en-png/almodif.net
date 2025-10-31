@@ -753,33 +753,6 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
   };
 
   if (!room) return null;
-          </div>
-          <div class="total">
-            المتبقي: ${remaining} ر.س
-          </div>
-        </div>
-
-        <div class="signature">
-          <div>
-            <div class="signature-line">توقيع النزيل</div>
-          </div>
-          <div>
-            <div class="signature-line">توقيع الإدارة</div>
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
-
-    printWindow.document.write(contractHTML);
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-    }, 250);
-  };
-
-  if (!room) return null;
 
   return (
     <>

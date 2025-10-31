@@ -58,6 +58,7 @@ export interface Room {
     };
     createdAt: string;
     createdBy: string;
+    guestSignature?: string; // التوقيع الإلكتروني للنزيل (base64)
   };
   events: RoomEvent[];
   lastUpdated: string;
