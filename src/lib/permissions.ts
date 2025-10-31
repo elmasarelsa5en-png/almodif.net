@@ -175,6 +175,24 @@ export const ALL_PERMISSIONS: PermissionCategory[] = [
     ]
   },
   {
+    id: 'bank_vouchers',
+    label: 'سندات البنك',
+    labelEn: 'Bank Vouchers',
+    icon: '🏦',
+    permissions: [
+      { id: 'view_bank_vouchers', label: 'عرض سندات البنك', labelEn: 'View Bank Vouchers', category: 'bank_vouchers', description: 'رؤية جميع السندات البنكية' },
+      { id: 'create_bank_voucher', label: 'إنشاء سند بنك', labelEn: 'Create Bank Voucher', category: 'bank_vouchers', description: 'إضافة سند بنكي جديد' },
+      { id: 'edit_bank_voucher', label: 'تعديل سند بنك', labelEn: 'Edit Bank Voucher', category: 'bank_vouchers', description: 'تعديل بيانات السند البنكي' },
+      { id: 'delete_bank_voucher', label: 'حذف سند بنك', labelEn: 'Delete Bank Voucher', category: 'bank_vouchers', description: 'حذف السند البنكي' },
+      { id: 'upload_bank_statement', label: 'رفع كشف حساب', labelEn: 'Upload Bank Statement', category: 'bank_vouchers', description: 'رفع كشف حساب بنكي' },
+      { id: 'perform_bank_reconciliation', label: 'إجراء المطابقة البنكية', labelEn: 'Perform Bank Reconciliation', category: 'bank_vouchers', description: 'إجراء المطابقة البنكية' },
+      { id: 'approve_bank_reconciliation', label: 'اعتماد المطابقة البنكية', labelEn: 'Approve Bank Reconciliation', category: 'bank_vouchers', description: 'اعتماد المطابقة البنكية' },
+      { id: 'manage_bank_accounts', label: 'إدارة الحسابات البنكية', labelEn: 'Manage Bank Accounts', category: 'bank_vouchers', description: 'إضافة وتعديل الحسابات البنكية' },
+      { id: 'view_bank_reports', label: 'عرض تقارير البنك', labelEn: 'View Bank Reports', category: 'bank_vouchers', description: 'رؤية تقارير وإحصائيات البنك' },
+      { id: 'manual_match_transactions', label: 'مطابقة يدوية', labelEn: 'Manual Match Transactions', category: 'bank_vouchers', description: 'مطابقة المعاملات يدوياً' },
+    ]
+  },
+  {
     id: 'services',
     label: 'الخدمات',
     labelEn: 'Services',
@@ -363,6 +381,7 @@ export const MANAGER_PERMISSIONS = [
   'view_expense_vouchers', 'create_expense_voucher', 'edit_expense_voucher', 'approve_expense_voucher', 'pay_expense_voucher', 'view_expense_reports',
   'view_loyalty', 'manage_members', 'manage_points', 'manage_rewards', 'redeem_rewards', 'view_loyalty_reports',
   'view_promissory_notes', 'create_promissory_note', 'edit_promissory_note', 'record_payment_promissory_note', 'cancel_promissory_note', 'renew_promissory_note', 'convert_to_legal', 'view_promissory_notes_reports',
+  'view_bank_vouchers', 'create_bank_voucher', 'edit_bank_voucher', 'upload_bank_statement', 'perform_bank_reconciliation', 'manage_bank_accounts', 'view_bank_reports', 'manual_match_transactions',
   'view_payments', 'receive_payment', 'view_invoices', 'create_invoice',
   'view_reports', 'export_reports', 'view_occupancy_report', 'view_revenue_report',
   'view_employees',
@@ -381,6 +400,7 @@ export const RECEPTION_PERMISSIONS = [
   'view_loyalty', 'redeem_rewards',
   'view_expense_vouchers', 'create_expense_voucher',
   'view_promissory_notes', 'create_promissory_note', 'record_payment_promissory_note',
+  'view_bank_vouchers', 'create_bank_voucher',
   'view_payments', 'receive_payment',
   'access_sidebar', 'access_top_menu', 'view_dashboard_link', 'view_rooms_link', 'view_requests_link',
 ];

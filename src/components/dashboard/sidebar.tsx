@@ -249,8 +249,8 @@ const navigationItems: NavigationItem[] = [
         icon: CreditCard,
         labelKey: 'bankVouchers',
         descKey: 'bankVouchersDesc',
-        href: '/dashboard/vouchers/bank',
-        permission: 'view_payments',
+        href: '/dashboard/bank-vouchers',
+        permission: 'view_bank_vouchers',
       },
     ]
   },
