@@ -409,7 +409,7 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
         <style>
           @page {
             size: A4;
-            margin: 15mm;
+            margin: 10mm;
           }
           
           body {
@@ -420,47 +420,49 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
             text-align: right;
             background: white;
             color: #000;
+            font-size: 11px;
           }
           
           .container {
             max-width: 210mm;
             margin: 0 auto;
             background: white;
+            padding: 5mm;
           }
           
           /* الرأسية */
           .header {
             text-align: center;
-            border: 3px solid #1e40af;
-            padding: 20px;
-            margin-bottom: 20px;
+            border: 2px solid #1e40af;
+            padding: 8px;
+            margin-bottom: 8px;
             background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
             position: relative;
           }
           
           .logo-container {
             text-align: center;
-            margin-bottom: 15px;
+            margin-bottom: 5px;
           }
           
           .logo {
-            max-width: 150px;
-            max-height: 80px;
+            max-width: 100px;
+            max-height: 50px;
             object-fit: contain;
           }
           
           .header h1 {
             color: #1e40af;
-            margin: 0 0 10px 0;
-            font-size: 28px;
+            margin: 0 0 5px 0;
+            font-size: 20px;
             font-weight: bold;
           }
           
           .header-info {
             display: flex;
             justify-content: space-between;
-            margin-top: 15px;
-            font-size: 12px;
+            margin-top: 5px;
+            font-size: 10px;
             color: #1e40af;
           }
           
@@ -471,26 +473,26 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
           /* بيانات الفندق */
           .hotel-info {
             background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
-            border: 3px solid #1e40af;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 25px;
+            border: 2px solid #1e40af;
+            border-radius: 6px;
+            padding: 8px;
+            margin-bottom: 8px;
             text-align: center;
-            box-shadow: 0 4px 6px rgba(30, 64, 175, 0.15);
+            box-shadow: 0 2px 3px rgba(30, 64, 175, 0.15);
           }
           
           .hotel-info h2 {
             color: #ffffff;
-            font-size: 24px;
-            margin: 0 0 8px 0;
+            font-size: 16px;
+            margin: 0 0 3px 0;
             font-weight: bold;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
           }
           
           .hotel-info p {
-            margin: 5px 0;
+            margin: 2px 0;
             color: #e0e7ff;
-            font-size: 13px;
+            font-size: 10px;
             font-weight: 500;
           }
           
@@ -502,27 +504,27 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
           .contract-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 20px 0;
-            border: 3px solid #1e40af;
-            border-radius: 8px;
+            margin: 8px 0;
+            border: 2px solid #1e40af;
+            border-radius: 4px;
             overflow: hidden;
-            box-shadow: 0 2px 4px rgba(30, 64, 175, 0.1);
+            box-shadow: 0 1px 2px rgba(30, 64, 175, 0.1);
           }
           
           .contract-table th {
             background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
             color: white;
-            padding: 14px;
+            padding: 6px;
             text-align: center;
-            font-size: 15px;
+            font-size: 12px;
             font-weight: bold;
             text-shadow: 0 1px 2px rgba(0,0,0,0.1);
           }
           
           .contract-table td {
             border: 1px solid #cbd5e1;
-            padding: 11px;
-            font-size: 13px;
+            padding: 5px;
+            font-size: 10px;
           }
           
           .contract-table .label {
@@ -540,40 +542,40 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
           
           /* البنود */
           .terms-section {
-            margin: 25px 0;
+            margin: 10px 0;
             border: 2px solid #1e40af;
-            border-radius: 8px;
+            border-radius: 4px;
             overflow: hidden;
           }
           
           .terms-section h3 {
             background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
             color: white;
-            padding: 12px;
-            margin: 0 0 15px 0;
+            padding: 6px;
+            margin: 0 0 8px 0;
             text-align: center;
-            font-size: 17px;
+            font-size: 13px;
             font-weight: bold;
             text-shadow: 0 1px 2px rgba(0,0,0,0.1);
           }
           
           .terms-content {
-            padding: 15px 20px;
+            padding: 8px 10px;
             background: #ffffff;
           }
           
           .term-item {
             display: flex;
-            gap: 10px;
-            margin-bottom: 12px;
-            font-size: 12px;
-            line-height: 1.7;
+            gap: 6px;
+            margin-bottom: 6px;
+            font-size: 9px;
+            line-height: 1.4;
           }
           
           .term-number {
             flex-shrink: 0;
-            width: 28px;
-            height: 28px;
+            width: 20px;
+            height: 20px;
             background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
             color: white;
             border-radius: 50%;
@@ -581,8 +583,8 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 13px;
-            box-shadow: 0 2px 4px rgba(30, 64, 175, 0.2);
+            font-size: 10px;
+            box-shadow: 0 1px 2px rgba(30, 64, 175, 0.2);
           }
           
           .term-text {
@@ -593,54 +595,59 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
           
           /* التوقيعات */
           .signatures {
-            margin-top: 50px;
+            margin-top: 15px;
             display: flex;
             justify-content: space-between;
-            gap: 40px;
-            padding: 20px 0;
+            gap: 20px;
+            padding: 8px 0;
           }
           
           .signature-box {
             flex: 1;
             text-align: center;
             border: 2px solid #1e40af;
-            border-radius: 8px;
-            padding: 20px;
+            border-radius: 4px;
+            padding: 8px;
             background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
           }
           
           .signature-title {
             color: #1e40af;
             font-weight: bold;
-            font-size: 14px;
-            margin-bottom: 60px;
+            font-size: 11px;
+            margin-bottom: 25px;
           }
           
           .signature-line {
             border-top: 2px solid #1e40af;
-            margin-top: 80px;
-            padding-top: 10px;
+            margin-top: 30px;
+            padding-top: 5px;
             font-weight: bold;
             color: #1e40af;
+            font-size: 10px;
           }
           
           .signature-image {
-            max-width: 200px;
-            max-height: 60px;
-            margin: 10px auto;
+            max-width: 150px;
+            max-height: 40px;
+            margin: 5px auto;
             display: block;
             border: 1px solid #e2e8f0;
-            border-radius: 4px;
+            border-radius: 2px;
           }
           
           /* الفوتر */
           .footer {
-            margin-top: 30px;
+            margin-top: 10px;
             text-align: center;
-            font-size: 11px;
+            font-size: 9px;
             color: #64748b;
-            border-top: 2px solid #e2e8f0;
-            padding-top: 15px;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 8px;
+          }
+          
+          .footer p {
+            margin: 2px 0;
           }
           
           @media print {
@@ -657,9 +664,9 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
         <div class="container">
           <!-- الرأسية -->
           <div class="header">
-            ${contractSettings.logo ? `
+            ${contractSettings.logoUrl ? `
             <div class="logo-container">
-              <img src="${contractSettings.logo}" alt="شعار الفندق" class="logo" />
+              <img src="${contractSettings.logoUrl}" alt="شعار الفندق" class="logo" />
             </div>
             ` : ''}
             <h1>عقد إيجار</h1>
