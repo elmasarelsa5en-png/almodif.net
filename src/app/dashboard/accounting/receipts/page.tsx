@@ -226,60 +226,77 @@ export default function ReceiptsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">📋 سندات القبض</h1>
-          <p className="text-blue-200">إدارة وعرض جميع سندات القبض</p>
+        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-white/20 mb-6">
+          <h1 className="text-4xl font-bold text-white mb-2 flex items-center gap-3">
+            <div className="p-3 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg">
+              <FileText className="w-8 h-8" />
+            </div>
+            سندات القبض
+          </h1>
+          <p className="text-white/80 text-lg">إدارة وعرض جميع سندات القبض والإيصالات</p>
         </div>
 
         {/* Summary Cards */}
         {summary && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <Card className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-md border-green-400/30">
-              <CardContent className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15 hover:shadow-2xl transition-all shadow-xl">
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-green-200">إجمالي المحصلات</p>
-                    <p className="text-2xl font-bold text-white">{summary.totalAmount} ر.س</p>
+                    <p className="text-sm text-white/70 mb-1">إجمالي المحصلات</p>
+                    <p className="text-3xl font-bold text-white">{summary.totalAmount}</p>
+                    <p className="text-xs text-white/60 mt-1">ريال سعودي</p>
                   </div>
-                  <DollarSign className="w-10 h-10 text-green-400" />
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg">
+                    <DollarSign className="w-8 h-8 text-white" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 backdrop-blur-md border-blue-400/30">
-              <CardContent className="p-4">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15 hover:shadow-2xl transition-all shadow-xl">
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-blue-200">عدد السندات</p>
-                    <p className="text-2xl font-bold text-white">{summary.totalReceipts}</p>
+                    <p className="text-sm text-white/70 mb-1">عدد السندات</p>
+                    <p className="text-3xl font-bold text-white">{summary.totalReceipts}</p>
+                    <p className="text-xs text-white/60 mt-1">سند قبض</p>
                   </div>
-                  <FileText className="w-10 h-10 text-blue-400" />
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 shadow-lg">
+                    <FileText className="w-8 h-8 text-white" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-yellow-500/20 to-orange-500/20 backdrop-blur-md border-yellow-400/30">
-              <CardContent className="p-4">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15 hover:shadow-2xl transition-all shadow-xl">
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-yellow-200">نقدي</p>
-                    <p className="text-2xl font-bold text-white">{summary.byPaymentMethod.cash} ر.س</p>
+                    <p className="text-sm text-white/70 mb-1">المدفوعات النقدية</p>
+                    <p className="text-3xl font-bold text-white">{summary.byPaymentMethod.cash}</p>
+                    <p className="text-xs text-white/60 mt-1">ريال سعودي</p>
                   </div>
-                  <DollarSign className="w-10 h-10 text-yellow-400" />
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-600 shadow-lg">
+                    <DollarSign className="w-8 h-8 text-white" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-md border-purple-400/30">
-              <CardContent className="p-4">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15 hover:shadow-2xl transition-all shadow-xl">
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-purple-200">بطاقات</p>
-                    <p className="text-2xl font-bold text-white">{summary.byPaymentMethod.card} ر.س</p>
+                    <p className="text-sm text-white/70 mb-1">البطاقات البنكية</p>
+                    <p className="text-3xl font-bold text-white">{summary.byPaymentMethod.card}</p>
+                    <p className="text-xs text-white/60 mt-1">ريال سعودي</p>
                   </div>
-                  <CreditCard className="w-10 h-10 text-purple-400" />
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 shadow-lg">
+                    <CreditCard className="w-8 h-8 text-white" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -287,40 +304,40 @@ export default function ReceiptsPage() {
         )}
 
         {/* Filters */}
-        <Card className="bg-white/10 backdrop-blur-md border-white/20 mb-6">
-          <CardContent className="p-4">
+        <Card className="bg-white/10 backdrop-blur-md border-white/20 mb-6 shadow-xl">
+          <CardContent className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="relative">
-                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 w-5 h-5" />
+                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/70 w-5 h-5" />
                 <Input
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="بحث برقم السند، الشقة، أو النزيل..."
-                  className="pr-10 bg-white/10 border-white/30 text-white placeholder:text-white/50"
+                  className="pr-10 bg-white/10 border-white/30 text-white placeholder:text-white/60"
                 />
               </div>
 
               <select
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}
-                className="bg-white/10 border-white/30 text-white rounded-lg px-3 py-2"
+                className="bg-white/10 border-white/30 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
               >
-                <option value="all">جميع الأنواع</option>
-                <option value="room_payment">دفعات الشقق</option>
-                <option value="service_payment">دفعات الخدمات</option>
-                <option value="booking_deposit">عربون حجز</option>
-                <option value="other">أخرى</option>
+                <option value="all" className="bg-slate-800">جميع الأنواع</option>
+                <option value="room_payment" className="bg-slate-800">دفعات الشقق</option>
+                <option value="service_payment" className="bg-slate-800">دفعات الخدمات</option>
+                <option value="booking_deposit" className="bg-slate-800">عربون حجز</option>
+                <option value="other" className="bg-slate-800">أخرى</option>
               </select>
 
               <select
                 value={filterPaymentMethod}
                 onChange={(e) => setFilterPaymentMethod(e.target.value)}
-                className="bg-white/10 border-white/30 text-white rounded-lg px-3 py-2"
+                className="bg-white/10 border-white/30 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
               >
-                <option value="all">جميع طرق الدفع</option>
-                <option value="cash">💵 نقدي</option>
-                <option value="card">💳 بطاقة</option>
-                <option value="transfer">🏦 تحويل</option>
+                <option value="all" className="bg-slate-800">جميع طرق الدفع</option>
+                <option value="cash" className="bg-slate-800">💵 نقدي</option>
+                <option value="card" className="bg-slate-800">💳 بطاقة</option>
+                <option value="transfer" className="bg-slate-800">🏦 تحويل</option>
               </select>
 
               <Button
@@ -329,8 +346,7 @@ export default function ReceiptsPage() {
                   setFilterType('all');
                   setFilterPaymentMethod('all');
                 }}
-                variant="outline"
-                className="border-white/30 text-white hover:bg-white/20"
+                className="bg-white/20 hover:bg-white/30 text-white border-0"
               >
                 <Filter className="w-4 h-4 ml-2" />
                 مسح الفلاتر
@@ -340,56 +356,81 @@ export default function ReceiptsPage() {
         </Card>
 
         {/* Receipts List */}
-        <Card className="bg-white/10 backdrop-blur-md border-white/20">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <FileText className="w-6 h-6" />
+        <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-xl">
+          <CardHeader className="border-b border-white/10">
+            <CardTitle className="text-white flex items-center gap-3 text-2xl">
+              <FileText className="w-7 h-7" />
               السندات ({filteredReceipts.length})
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6">
             {loading ? (
-              <div className="text-center py-8 text-white">جاري التحميل...</div>
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+                <div className="text-white text-xl">جاري التحميل...</div>
+              </div>
             ) : filteredReceipts.length === 0 ? (
-              <div className="text-center py-8 text-white/70">لا توجد سندات</div>
+              <div className="text-center py-12">
+                <FileText className="w-16 h-16 text-white/30 mx-auto mb-4" />
+                <p className="text-white/70 text-xl">لا توجد سندات</p>
+              </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {filteredReceipts.map((receipt) => (
                   <div
                     key={receipt.id}
-                    className="bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors"
+                    className="bg-white/5 rounded-xl p-5 hover:bg-white/10 transition-all border border-white/10 hover:border-white/20 hover:shadow-lg"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <span className="text-lg font-bold text-white">{receipt.receiptNumber}</span>
-                          <span className="px-2 py-1 rounded-full text-xs font-semibold bg-green-500/20 text-green-300">
+                        <div className="flex items-center gap-3 mb-3">
+                          <span className="text-xl font-bold text-white">{receipt.receiptNumber}</span>
+                          <span className="px-3 py-1 rounded-full text-sm font-semibold bg-green-500/30 text-green-200 border border-green-400/30">
                             {getPaymentMethodLabel(receipt.paymentMethod)}
                           </span>
-                          <span className="px-2 py-1 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-300">
+                          <span className="px-3 py-1 rounded-full text-sm font-semibold bg-blue-500/30 text-blue-200 border border-blue-400/30">
                             {getCategoryLabel(receipt.category)}
                           </span>
                         </div>
-                        <div className="text-sm text-white/70 space-y-1">
-                          {receipt.roomNumber && <p>🏠 شقة: {receipt.roomNumber}</p>}
-                          {receipt.guestName && <p>👤 {receipt.guestName}</p>}
-                          <p>📝 {receipt.description}</p>
-                          <p>📅 {new Date(receipt.createdAt).toLocaleDateString('ar-SA')} - {new Date(receipt.createdAt).toLocaleTimeString('ar-SA')}</p>
-                          <p>👨‍💼 المستلم: {receipt.paidBy}</p>
+                        <div className="text-sm text-white/80 space-y-2">
+                          {receipt.roomNumber && (
+                            <p className="flex items-center gap-2">
+                              <span className="text-white/60">🏠 شقة:</span>
+                              <span className="font-semibold">{receipt.roomNumber}</span>
+                            </p>
+                          )}
+                          {receipt.guestName && (
+                            <p className="flex items-center gap-2">
+                              <span className="text-white/60">👤 النزيل:</span>
+                              <span className="font-semibold">{receipt.guestName}</span>
+                            </p>
+                          )}
+                          <p className="flex items-center gap-2">
+                            <span className="text-white/60">📝 التفاصيل:</span>
+                            <span>{receipt.description}</span>
+                          </p>
+                          <p className="flex items-center gap-2">
+                            <span className="text-white/60">📅 التاريخ:</span>
+                            <span>{new Date(receipt.createdAt).toLocaleDateString('ar-SA')} - {new Date(receipt.createdAt).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</span>
+                          </p>
+                          <p className="flex items-center gap-2">
+                            <span className="text-white/60">👨‍💼 المستلم:</span>
+                            <span className="font-semibold">{receipt.paidBy}</span>
+                          </p>
                         </div>
                       </div>
-                      <div className="text-right flex flex-col items-end gap-3">
-                        <div>
-                          <p className="text-xs text-white/50">المبلغ</p>
-                          <p className="text-2xl font-bold text-green-400">{receipt.amount} ر.س</p>
+                      <div className="text-right flex flex-col items-end gap-4">
+                        <div className="bg-gradient-to-br from-green-500/20 to-emerald-600/20 rounded-xl p-4 border border-green-400/30">
+                          <p className="text-xs text-white/70 mb-1">المبلغ المحصل</p>
+                          <p className="text-3xl font-bold text-white">{receipt.amount}</p>
+                          <p className="text-xs text-white/60 mt-1">ريال سعودي</p>
                         </div>
                         <Button
                           onClick={() => printReceipt(receipt)}
-                          size="sm"
-                          className="bg-blue-600 hover:bg-blue-700"
+                          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg w-full"
                         >
                           <Printer className="w-4 h-4 ml-2" />
-                          طباعة
+                          طباعة السند
                         </Button>
                       </div>
                     </div>

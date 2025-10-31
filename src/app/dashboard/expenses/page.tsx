@@ -395,79 +395,94 @@ export default function ExpenseVouchersPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-green-900 to-emerald-900 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg">
-              <Receipt className="w-7 h-7 text-white" />
+        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-white/20 mb-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-xl bg-gradient-to-br from-red-500 to-pink-600 shadow-lg">
+              <Receipt className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold text-white">💸 سندات الصرف</h1>
-              <p className="text-green-200">إدارة وتتبع جميع المصروفات المالية</p>
+              <h1 className="text-4xl font-bold text-white">سندات الصرف</h1>
+              <p className="text-white/80 text-lg">إدارة وتتبع جميع المصروفات والمدفوعات</p>
             </div>
           </div>
         </div>
 
         {/* Stats Cards */}
         {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-            <Card className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 backdrop-blur-md border-blue-400/30">
-              <CardContent className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15 hover:shadow-2xl transition-all shadow-xl">
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-blue-200">إجمالي السندات</p>
+                    <p className="text-sm text-white/70 mb-1">إجمالي السندات</p>
                     <p className="text-3xl font-bold text-white">{stats.total}</p>
+                    <p className="text-xs text-white/60 mt-1">سند صرف</p>
                   </div>
-                  <FileText className="w-10 h-10 text-blue-400" />
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 shadow-lg">
+                    <FileText className="w-8 h-8 text-white" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-md border-green-400/30">
-              <CardContent className="p-4">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15 hover:shadow-2xl transition-all shadow-xl">
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-green-200">إجمالي المصروفات</p>
+                    <p className="text-sm text-white/70 mb-1">إجمالي المصروفات</p>
                     <p className="text-2xl font-bold text-white">{formatAmount(stats.totalAmount)}</p>
+                    <p className="text-xs text-white/60 mt-1">ريال سعودي</p>
                   </div>
-                  <TrendingUp className="w-10 h-10 text-green-400" />
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-red-500 to-pink-600 shadow-lg">
+                    <TrendingUp className="w-8 h-8 text-white" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-yellow-500/20 to-orange-500/20 backdrop-blur-md border-yellow-400/30">
-              <CardContent className="p-4">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15 hover:shadow-2xl transition-all shadow-xl">
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-yellow-200">قيد الانتظار</p>
+                    <p className="text-sm text-white/70 mb-1">قيد الانتظار</p>
                     <p className="text-2xl font-bold text-white">{formatAmount(stats.pendingAmount)}</p>
+                    <p className="text-xs text-white/60 mt-1">ريال سعودي</p>
                   </div>
-                  <Clock className="w-10 h-10 text-yellow-400" />
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-600 shadow-lg">
+                    <Clock className="w-8 h-8 text-white" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-emerald-500/20 to-green-500/20 backdrop-blur-md border-emerald-400/30">
-              <CardContent className="p-4">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15 hover:shadow-2xl transition-all shadow-xl">
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-emerald-200">المدفوع</p>
+                    <p className="text-sm text-white/70 mb-1">المدفوع</p>
                     <p className="text-2xl font-bold text-white">{formatAmount(stats.paidAmount)}</p>
+                    <p className="text-xs text-white/60 mt-1">ريال سعودي</p>
                   </div>
-                  <CheckCircle2 className="w-10 h-10 text-emerald-400" />
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg">
+                    <CheckCircle2 className="w-8 h-8 text-white" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-md border-purple-400/30">
-              <CardContent className="p-4">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15 hover:shadow-2xl transition-all shadow-xl">
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-purple-200">متوسط السند</p>
+                    <p className="text-sm text-white/70 mb-1">متوسط السند</p>
                     <p className="text-2xl font-bold text-white">{formatAmount(stats.avgVoucherAmount)}</p>
+                    <p className="text-xs text-white/60 mt-1">ريال سعودي</p>
                   </div>
-                  <BarChart3 className="w-10 h-10 text-purple-400" />
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 shadow-lg">
+                    <BarChart3 className="w-8 h-8 text-white" />
+                  </div>
                 </div>
               </CardContent>
             </Card>

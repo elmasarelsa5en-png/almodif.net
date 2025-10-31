@@ -178,85 +178,100 @@ export default function PromissoryNotesPage() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">سندات الكمبيالات</h1>
-        <p className="text-gray-600">إدارة سندات الكمبيالات والأوراق التجارية</p>
+      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-white/20 mb-6">
+        <div className="flex items-center gap-4">
+          <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg">
+            <FileText className="w-8 h-8 text-white" />
+          </div>
+          <div>
+            <h1 className="text-4xl font-bold text-white">السندات الأذنية</h1>
+            <p className="text-white/80 text-lg">إدارة سندات الكمبيالات والأوراق التجارية</p>
+          </div>
+        </div>
       </div>
 
       {/* Statistics Cards */}
       {statistics && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           {/* Total Notes */}
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
+          <div className="bg-white/10 backdrop-blur-md border-white/20 rounded-xl p-6 shadow-xl hover:bg-white/15 hover:shadow-2xl transition-all">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-100 text-sm mb-1">إجمالي السندات</p>
-                <p className="text-3xl font-bold">{statistics.total}</p>
-                <div className="flex items-center gap-4 mt-2 text-sm">
-                  <span className="flex items-center gap-1">
-                    <TrendingUp className="w-4 h-4" />
-                    {statistics.byType.receivable} مدين
+                <p className="text-white/70 text-sm mb-1">إجمالي السندات</p>
+                <p className="text-4xl font-bold text-white mb-2">{statistics.total}</p>
+                <div className="flex flex-col gap-1 text-sm text-white/80">
+                  <span className="flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-green-400" />
+                    {statistics.byType.receivable} سند مدين
                   </span>
-                  <span className="flex items-center gap-1">
-                    <TrendingDown className="w-4 h-4" />
-                    {statistics.byType.payable} دائن
+                  <span className="flex items-center gap-2">
+                    <TrendingDown className="w-4 h-4 text-red-400" />
+                    {statistics.byType.payable} سند دائن
                   </span>
                 </div>
               </div>
-              <FileText className="w-12 h-12 text-blue-200" />
+              <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 shadow-lg">
+                <FileText className="w-8 h-8 text-white" />
+              </div>
             </div>
           </div>
 
           {/* Total Amount */}
-          <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white shadow-lg">
+          <div className="bg-white/10 backdrop-blur-md border-white/20 rounded-xl p-6 shadow-xl hover:bg-white/15 hover:shadow-2xl transition-all">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-green-100 text-sm mb-1">إجمالي المبلغ</p>
-                <p className="text-3xl font-bold">{statistics.totalAmount.toLocaleString()}</p>
-                <p className="text-green-100 text-sm mt-2">ريال سعودي</p>
+                <p className="text-white/70 text-sm mb-1">إجمالي المبلغ</p>
+                <p className="text-4xl font-bold text-white">{statistics.totalAmount.toLocaleString()}</p>
+                <p className="text-white/60 text-xs mt-2">ريال سعودي</p>
               </div>
-              <DollarSign className="w-12 h-12 text-green-200" />
+              <div className="p-4 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg">
+                <DollarSign className="w-8 h-8 text-white" />
+              </div>
             </div>
           </div>
 
           {/* Overdue Amount */}
-          <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-6 text-white shadow-lg">
+          <div className="bg-white/10 backdrop-blur-md border-white/20 rounded-xl p-6 shadow-xl hover:bg-white/15 hover:shadow-2xl transition-all">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-red-100 text-sm mb-1">المبلغ المتأخر</p>
-                <p className="text-3xl font-bold">{statistics.overdueAmount.toLocaleString()}</p>
-                <p className="text-red-100 text-sm mt-2">
+                <p className="text-white/70 text-sm mb-1">المبلغ المتأخر</p>
+                <p className="text-4xl font-bold text-white">{statistics.overdueAmount.toLocaleString()}</p>
+                <p className="text-white/60 text-xs mt-2">
                   {statistics.byStatus.overdue} سند متأخر
                 </p>
               </div>
-              <AlertTriangle className="w-12 h-12 text-red-200" />
+              <div className="p-4 rounded-xl bg-gradient-to-br from-red-500 to-pink-600 shadow-lg">
+                <AlertTriangle className="w-8 h-8 text-white" />
+              </div>
             </div>
           </div>
 
           {/* Due This Month */}
-          <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl p-6 text-white shadow-lg">
+          <div className="bg-white/10 backdrop-blur-md border-white/20 rounded-xl p-6 shadow-xl hover:bg-white/15 hover:shadow-2xl transition-all">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-yellow-100 text-sm mb-1">مستحق هذا الشهر</p>
-                <p className="text-3xl font-bold">{statistics.dueThisMonth.toLocaleString()}</p>
-                <p className="text-yellow-100 text-sm mt-2">ريال سعودي</p>
+                <p className="text-white/70 text-sm mb-1">مستحق هذا الشهر</p>
+                <p className="text-4xl font-bold text-white">{statistics.dueThisMonth.toLocaleString()}</p>
+                <p className="text-white/60 text-xs mt-2">ريال سعودي</p>
               </div>
-              <Clock className="w-12 h-12 text-yellow-200" />
+              <div className="p-4 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-600 shadow-lg">
+                <Clock className="w-8 h-8 text-white" />
+              </div>
             </div>
           </div>
         </div>
       )}
 
       {/* Tabs and Actions */}
-      <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+      <div className="bg-white/10 backdrop-blur-md border-white/20 rounded-xl shadow-xl p-6 mb-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           {/* Tabs */}
           <div className="flex gap-2">
             <button
               onClick={() => setSelectedTab('all')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              className={`px-6 py-2.5 rounded-lg font-semibold transition-all ${
                 selectedTab === 'all'
                   ? 'bg-blue-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
