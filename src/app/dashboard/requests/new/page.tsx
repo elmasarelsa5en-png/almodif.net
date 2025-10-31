@@ -65,6 +65,18 @@ export default function NewRequestPage() {
   const [requestTypes, setRequestTypes] = useState<RequestType[]>([]);
   const [selectedType, setSelectedType] = useState<RequestType | null>(null);
   const [selectedSubItems, setSelectedSubItems] = useState<string[]>([]);
+  
+  // حالات جديدة لأقسام المنيو
+  const [menuCategories] = useState([
+    { value: 'coffee', label: 'كوفي شوب', icon: '☕' },
+    { value: 'restaurant', label: 'مطعم', icon: '🍽️' },
+    { value: 'laundry', label: 'مغسلة', icon: '👔' },
+    { value: 'room-services', label: 'خدمات الغرف', icon: '🛏️' },
+    { value: 'reception', label: 'خدمات الاستقبال', icon: '🔔' },
+  ]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [menuItems, setMenuItems] = useState<any[]>([]);
+  
   const [formData, setFormData] = useState({
     room: '',
     guest: '',
@@ -79,6 +91,37 @@ export default function NewRequestPage() {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+
+  // تحميل أصناف المنيو عند اختيار قسم
+  useEffect(() => {
+    if (selectedCategory) {
+      loadMenuItems(selectedCategory);
+    } else {
+      setMenuItems([]);
+    }
+  }, [selectedCategory]);
+
+  const loadMenuItems = async (category: string) => {
+    try {
+      // محاولة التحميل من Firebase أولاً
+      const { getMenuItems } = await import('@/lib/firebase-data');
+      const allItems = await getMenuItems();
+      
+      // فلترة الأصناف حسب القسم
+      const categoryItems = allItems.filter((item: any) => 
+        item.category === category && item.available
+      );
+      
+      console.log(`📦 Loaded ${categoryItems.length} items for category: ${category}`);
+      setMenuItems(categoryItems);
+      
+      // مسح الأصناف المختارة عند تغيير القسم
+      setSelectedSubItems([]);
+    } catch (error) {
+      console.error('Error loading menu items:', error);
+      setMenuItems([]);
+    }
+  };
 
   // تحميل الشقق والموظفين عند بدء الصفحة
   useEffect(() => {
@@ -252,10 +295,12 @@ export default function NewRequestPage() {
     if (!formData.room.trim()) newErrors.room = 'رقم الغرفة مطلوب';
     if (!formData.guest.trim()) newErrors.guest = 'اسم النزيل مطلوب';
     if (!formData.type) newErrors.type = 'نوع الطلب مطلوب';
-    if (selectedType?.hasSubItems && selectedSubItems.length === 0) {
+    
+    // التحقق من اختيار صنف واحد على الأقل إذا كان هناك قسم محدد
+    if (selectedCategory && menuItems.length > 0 && selectedSubItems.length === 0) {
       newErrors.subItems = 'يجب اختيار صنف واحد على الأقل';
     }
-    // الملاحظات أصبحت اختيارية - تم حذف التحقق منها
+    
     if (!formData.assignedEmployee) newErrors.assignedEmployee = 'يجب تحديد موظف';
 
     setErrors(newErrors);
@@ -272,7 +317,17 @@ export default function NewRequestPage() {
     try {
       // Build description with sub-items if any
       let fullDescription = formData.notes;
-      if (selectedType?.hasSubItems && selectedSubItems.length > 0) {
+      
+      // إذا كان هناك أصناف محددة من المنيو
+      if (selectedCategory && selectedSubItems.length > 0) {
+        const subItemNames = selectedSubItems
+          .map(itemId => {
+            const item = menuItems.find(mi => mi.id === itemId);
+            return item ? (item.nameAr || item.name) : itemId;
+          })
+          .join(' + ');
+        fullDescription = `${formData.type}: ${subItemNames}${formData.notes ? '\n' + formData.notes : ''}`;
+      } else if (selectedType?.hasSubItems && selectedSubItems.length > 0) {
         const subItemNames = selectedSubItems
           .map(itemId => {
             const item = selectedType.subItems?.find(si => si.id === itemId);
@@ -296,7 +351,8 @@ export default function NewRequestPage() {
         assignedEmployee: formData.assignedEmployee,
         employeeApprovalStatus: 'pending',
         selectedSubItems: selectedSubItems.length > 0 ? selectedSubItems : undefined,
-        linkedSection: selectedType?.linkedSection,
+        linkedSection: selectedCategory || selectedType?.linkedSection,
+        menuCategory: selectedCategory || undefined,
       };
 
       // Save to Firebase
@@ -384,6 +440,9 @@ export default function NewRequestPage() {
       const type = requestTypes.find(t => t.name === value);
       setSelectedType(type || null);
       setSelectedSubItems([]);
+      
+      // إذا كان القسم يجب تحديده من القائمة المنسدلة الجديدة
+      setSelectedCategory('');
     }
     
     setFormData((prev) => ({
@@ -396,6 +455,20 @@ export default function NewRequestPage() {
         ...prev,
         [name]: '',
       }));
+    }
+  };
+
+  // معالجة تغيير القسم
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    setFormData((prev) => ({
+      ...prev,
+      type: menuCategories.find(c => c.value === category)?.label || '',
+    }));
+    setSelectedType(null);
+    setSelectedSubItems([]);
+    if (errors.type) {
+      setErrors((prev) => ({ ...prev, type: '' }));
     }
   };
 
@@ -620,38 +693,118 @@ export default function NewRequestPage() {
                     />
                   </div>
 
-                  {/* Request Type */}
-                  <div className="space-y-2">
+                  {/* Request Type - Menu Categories */}
+                  <div className="space-y-2 md:col-span-2">
                     <label className="text-white/80 text-sm font-semibold flex items-center gap-2">
                       <FileText className="w-4 h-4 text-indigo-400" />
-                      نوع الطلب
+                      نوع الطلب (اختر القسم)
                       <span className="text-red-400">*</span>
                     </label>
-                    <select
-                      name="type"
-                      value={formData.type}
-                      onChange={handleInputChange}
-                      className={`w-full bg-white/10 border-2 text-white p-2 rounded-lg appearance-none cursor-pointer ${
-                        errors.type ? 'border-red-500' : 'border-white/20 focus:border-green-500'
-                      }`}
-                      style={{
-                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E")`,
-                        backgroundRepeat: 'no-repeat',
-                        backgroundPosition: 'left 8px center',
-                        paddingLeft: '28px',
-                      }}
-                    >
-                      <option value="" className="bg-slate-900">-- اختر نوع الطلب --</option>
-                      {requestTypes.map((type) => (
-                        <option key={type.id} value={type.name} className="bg-slate-900">
-                          {type.icon && `${type.icon} `}{type.name}
-                        </option>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                      {menuCategories.map((category) => (
+                        <button
+                          key={category.value}
+                          type="button"
+                          onClick={() => handleCategoryChange(category.value)}
+                          className={`p-4 rounded-lg border-2 transition-all text-sm font-semibold flex flex-col items-center gap-2 ${
+                            selectedCategory === category.value
+                              ? 'bg-purple-500/30 border-purple-400 text-purple-200 shadow-lg scale-105'
+                              : 'bg-white/10 border-white/20 text-white/70 hover:bg-white/20 hover:border-white/30'
+                          }`}
+                        >
+                          <span className="text-3xl">{category.icon}</span>
+                          <span>{category.label}</span>
+                          {selectedCategory === category.value && <span className="text-xs">✓ محدد</span>}
+                        </button>
                       ))}
-                    </select>
+                    </div>
                     {errors.type && <p className="text-red-400 text-xs">{errors.type}</p>}
+                    
+                    {/* إظهار الأنواع التقليدية إذا لم يتم اختيار قسم */}
+                    {!selectedCategory && (
+                      <div className="mt-3">
+                        <p className="text-white/60 text-xs mb-2">أو اختر من الأنواع التقليدية:</p>
+                        <select
+                          name="type"
+                          value={formData.type}
+                          onChange={handleInputChange}
+                          className="w-full bg-white/10 border-2 border-white/20 focus:border-green-500 text-white p-2 rounded-lg appearance-none cursor-pointer"
+                          style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E")`,
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'left 8px center',
+                            paddingLeft: '28px',
+                          }}
+                        >
+                          <option value="" className="bg-slate-900">-- اختر نوع الطلب --</option>
+                          {requestTypes.map((type) => (
+                            <option key={type.id} value={type.name} className="bg-slate-900">
+                              {type.icon && `${type.icon} `}{type.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Sub-Items Selection - Shows if type has sub-items */}
+                  {/* Menu Items Selection - Shows if category selected */}
+                  {selectedCategory && menuItems.length > 0 && (
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-white/80 text-sm font-semibold flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-cyan-400" />
+                        اختر الأصناف المطلوبة
+                        <span className="text-red-400">*</span>
+                      </label>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-96 overflow-y-auto p-2 bg-white/5 rounded-lg">
+                        {menuItems.map((item) => (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => toggleSubItem(item.id)}
+                            className={`p-3 rounded-lg border-2 transition-all text-sm font-semibold flex flex-col items-start gap-1 ${
+                              selectedSubItems.includes(item.id)
+                                ? 'bg-green-500/30 border-green-400 text-green-200'
+                                : 'bg-white/10 border-white/20 text-white/70 hover:bg-white/20'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 w-full">
+                              {item.image && <span className="text-2xl">{item.image}</span>}
+                              <span className="flex-1 text-right">{item.nameAr || item.name}</span>
+                              {selectedSubItems.includes(item.id) && <span className="text-green-400">✓</span>}
+                            </div>
+                            {item.price > 0 && (
+                              <span className="text-xs text-white/50">{item.price} ر.س</span>
+                            )}
+                            {item.description && (
+                              <span className="text-xs text-white/40 line-clamp-2">{item.description}</span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                      {errors.subItems && <p className="text-red-400 text-xs mt-2">{errors.subItems}</p>}
+                      
+                      {/* Selected items summary */}
+                      {selectedSubItems.length > 0 && (
+                        <div className="mt-3 p-3 bg-green-500/20 border border-green-500/30 rounded-lg">
+                          <p className="text-green-200 text-sm font-semibold mb-2">
+                            ✓ تم اختيار {selectedSubItems.length} صنف:
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {selectedSubItems.map(id => {
+                              const item = menuItems.find(mi => mi.id === id);
+                              return item ? (
+                                <span key={id} className="bg-green-500/30 px-2 py-1 rounded text-xs">
+                                  {item.image} {item.nameAr || item.name}
+                                </span>
+                              ) : null;
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Old Sub-Items Selection - Shows if type has sub-items */}
                   {selectedType?.hasSubItems && selectedType.subItems && selectedType.subItems.length > 0 && (
                     <div className="space-y-2 md:col-span-2">
                       <label className="text-white/80 text-sm font-semibold flex items-center gap-2">

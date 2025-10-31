@@ -165,14 +165,19 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
         } 
       });
       
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-        videoRef.current.play();
-      }
-      
       setStream(mediaStream);
       setIsCameraOpen(true);
       setActiveTab('camera');
+      
+      // الانتظار حتى يكون الـ video element جاهز
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = mediaStream;
+          videoRef.current.onloadedmetadata = () => {
+            videoRef.current?.play();
+          };
+        }
+      }, 100);
     } catch (error) {
       console.error('Error opening camera:', error);
       alert('لا يمكن الوصول إلى الكاميرا. تأكد من منح الإذن للمتصفح.');
@@ -190,22 +195,39 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
 
   // التقاط صورة من الكاميرا
   const capturePhoto = async () => {
-    if (!videoRef.current || !canvasRef.current) return;
+    if (!videoRef.current || !canvasRef.current) {
+      alert('الكاميرا غير جاهزة. يرجى المحاولة مرة أخرى.');
+      return;
+    }
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
     
+    // التأكد من أن الفيديو يعمل
+    if (video.videoWidth === 0 || video.videoHeight === 0) {
+      alert('الكاميرا لم تحمل بعد. انتظر قليلاً ثم حاول مرة أخرى.');
+      return;
+    }
+    
+    // تعيين حجم الـ canvas بنفس حجم الفيديو
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) {
+      alert('حدث خطأ في الرسم.');
+      return;
+    }
 
-    ctx.drawImage(video, 0, 0);
+    // رسم الفيديو على الـ canvas
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     
     // تحويل الصورة إلى blob
     canvas.toBlob(async (blob) => {
-      if (!blob) return;
+      if (!blob) {
+        alert('فشل التقاط الصورة.');
+        return;
+      }
 
       // عرض معاينة
       const imageUrl = URL.createObjectURL(blob);
