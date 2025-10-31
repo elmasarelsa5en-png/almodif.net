@@ -26,184 +26,184 @@ const reportCards: ReportCard[] = [
     titleKey: 'cashMovementReport',
     descKey: 'cashMovementReportDesc',
     href: '/dashboard/reports/cash-movement',
-    color: 'text-green-500',
-    gradient: 'from-green-500/20 to-emerald-500/20'
+    color: 'text-emerald-400',
+    gradient: 'from-emerald-600/30 to-green-600/30'
   },
   {
     icon: BarChart3,
     titleKey: 'monthlyTotalReport',
     descKey: 'monthlyTotalReportDesc',
     href: '/dashboard/reports/monthly-total',
-    color: 'text-blue-500',
-    gradient: 'from-blue-500/20 to-cyan-500/20'
+    color: 'text-blue-400',
+    gradient: 'from-blue-600/30 to-indigo-600/30'
   },
   {
     icon: Calendar,
     titleKey: 'dailyMovementReport',
     descKey: 'dailyMovementReportDesc',
     href: '/dashboard/reports/daily-movement',
-    color: 'text-purple-500',
-    gradient: 'from-purple-500/20 to-pink-500/20'
+    color: 'text-purple-400',
+    gradient: 'from-purple-600/30 to-fuchsia-600/30'
   },
   {
     icon: TrendingDown,
     titleKey: 'occupancyRateReport',
     descKey: 'occupancyRateReportDesc',
     href: '/dashboard/reports/occupancy-rate',
-    color: 'text-orange-500',
-    gradient: 'from-orange-500/20 to-red-500/20'
+    color: 'text-orange-400',
+    gradient: 'from-orange-600/30 to-red-600/30'
   },
   {
     icon: DollarSign,
     titleKey: 'cashVaultReport',
     descKey: 'cashVaultReportDesc',
     href: '/dashboard/reports/cash-vault',
-    color: 'text-yellow-500',
-    gradient: 'from-yellow-500/20 to-amber-500/20'
+    color: 'text-amber-400',
+    gradient: 'from-amber-600/30 to-yellow-600/30'
   },
   {
     icon: Package,
     titleKey: 'commissionsReport',
     descKey: 'commissionsReportDesc',
     href: '/dashboard/reports/commissions',
-    color: 'text-indigo-500',
-    gradient: 'from-indigo-500/20 to-violet-500/20'
+    color: 'text-indigo-400',
+    gradient: 'from-indigo-600/30 to-violet-600/30'
   },
   {
     icon: Receipt,
     titleKey: 'receiptsReport',
     descKey: 'receiptsReportDesc',
     href: '/dashboard/reports/receipts',
-    color: 'text-pink-500',
-    gradient: 'from-pink-500/20 to-rose-500/20'
+    color: 'text-rose-400',
+    gradient: 'from-rose-600/30 to-pink-600/30'
   },
   {
     icon: Users,
     titleKey: 'employeeReservationsReport',
     descKey: 'employeeReservationsReportDesc',
     href: '/dashboard/reports/employee-reservations',
-    color: 'text-teal-500',
-    gradient: 'from-teal-500/20 to-cyan-500/20'
+    color: 'text-teal-400',
+    gradient: 'from-teal-600/30 to-cyan-600/30'
   },
   {
     icon: UserCheck,
     titleKey: 'employeeStatisticsReport',
     descKey: 'employeeStatisticsReportDesc',
     href: '/dashboard/reports/employee-statistics',
-    color: 'text-lime-500',
-    gradient: 'from-lime-500/20 to-green-500/20'
+    color: 'text-lime-400',
+    gradient: 'from-lime-600/30 to-green-600/30'
   },
   {
     icon: CreditCard,
     titleKey: 'servicesReport',
     descKey: 'servicesReportDesc',
     href: '/dashboard/reports/services',
-    color: 'text-sky-500',
-    gradient: 'from-sky-500/20 to-blue-500/20'
+    color: 'text-sky-400',
+    gradient: 'from-sky-600/30 to-blue-600/30'
   },
   {
     icon: Lock,
     titleKey: 'openReservationsReport',
     descKey: 'openReservationsReportDesc',
     href: '/dashboard/reports/open-reservations',
-    color: 'text-red-500',
-    gradient: 'from-red-500/20 to-orange-500/20'
+    color: 'text-red-400',
+    gradient: 'from-red-600/30 to-orange-600/30'
   },
   {
     icon: MessageSquare,
     titleKey: 'messagesSummaryReport',
     descKey: 'messagesSummaryReportDesc',
     href: '/dashboard/reports/messages-summary',
-    color: 'text-violet-500',
-    gradient: 'from-violet-500/20 to-purple-500/20'
+    color: 'text-violet-400',
+    gradient: 'from-violet-600/30 to-purple-600/30'
   },
   {
     icon: Wrench,
     titleKey: 'apartmentChangeReport',
     descKey: 'apartmentChangeReportDesc',
     href: '/dashboard/reports/apartment-change',
-    color: 'text-amber-500',
-    gradient: 'from-amber-500/20 to-yellow-500/20'
+    color: 'text-amber-400',
+    gradient: 'from-amber-600/30 to-orange-600/30'
   },
   {
     icon: BarChart3,
     titleKey: 'monthlyReportByMonth',
     descKey: 'monthlyReportByMonthDesc',
     href: '/dashboard/reports/monthly-by-month',
-    color: 'text-emerald-500',
-    gradient: 'from-emerald-500/20 to-teal-500/20'
+    color: 'text-emerald-400',
+    gradient: 'from-emerald-600/30 to-teal-600/30'
   },
   {
     icon: PieChart,
     titleKey: 'taxesAndFeesReport',
     descKey: 'taxesAndFeesReportDesc',
     href: '/dashboard/reports/taxes-and-fees',
-    color: 'text-rose-500',
-    gradient: 'from-rose-500/20 to-pink-500/20'
+    color: 'text-fuchsia-400',
+    gradient: 'from-fuchsia-600/30 to-pink-600/30'
   },
   {
     icon: Settings,
     titleKey: 'evaluations',
     descKey: 'evaluationsDesc',
     href: '/dashboard/reports/evaluations',
-    color: 'text-cyan-500',
-    gradient: 'from-cyan-500/20 to-sky-500/20'
+    color: 'text-cyan-400',
+    gradient: 'from-cyan-600/30 to-sky-600/30'
   },
   {
     icon: UserCheck,
     titleKey: 'tourismAuthorityReport',
     descKey: 'tourismAuthorityReportDesc',
     href: '/dashboard/reports/tourism-authority',
-    color: 'text-fuchsia-500',
-    gradient: 'from-fuchsia-500/20 to-purple-500/20'
+    color: 'text-purple-400',
+    gradient: 'from-purple-600/30 to-indigo-600/30'
   },
   {
     icon: Building,
     titleKey: 'roomStatusByType',
     descKey: 'roomStatusByTypeDesc',
     href: '/dashboard/reports/room-status-by-type',
-    color: 'text-slate-500',
-    gradient: 'from-slate-500/20 to-gray-500/20'
+    color: 'text-slate-400',
+    gradient: 'from-slate-600/30 to-gray-600/30'
   },
   {
     icon: X,
     titleKey: 'roomDiscrepancy',
     descKey: 'roomDiscrepancyDesc',
     href: '/dashboard/reports/room-discrepancy',
-    color: 'text-orange-600',
-    gradient: 'from-orange-600/20 to-red-600/20'
+    color: 'text-orange-400',
+    gradient: 'from-orange-600/30 to-red-600/30'
   },
   {
     icon: FileText,
     titleKey: 'customReport',
     descKey: 'customReportDesc',
     href: '/dashboard/reports/custom',
-    color: 'text-blue-600',
-    gradient: 'from-blue-600/20 to-indigo-600/20'
+    color: 'text-blue-400',
+    gradient: 'from-blue-600/30 to-cyan-600/30'
   },
   {
     icon: Receipt,
     titleKey: 'invoicesReport',
     descKey: 'invoicesReportDesc',
     href: '/dashboard/reports/invoices',
-    color: 'text-purple-600',
-    gradient: 'from-purple-600/20 to-pink-600/20'
+    color: 'text-purple-400',
+    gradient: 'from-purple-600/30 to-pink-600/30'
   },
   {
     icon: Building2,
     titleKey: 'bankReport',
     descKey: 'bankReportDesc',
     href: '/dashboard/reports/bank',
-    color: 'text-green-600',
-    gradient: 'from-green-600/20 to-emerald-600/20'
+    color: 'text-green-400',
+    gradient: 'from-green-600/30 to-emerald-600/30'
   },
   {
     icon: Users,
     titleKey: 'guestsReport',
     descKey: 'guestsReportDesc',
     href: '/dashboard/reports/guests',
-    color: 'text-teal-600',
-    gradient: 'from-teal-600/20 to-cyan-600/20'
+    color: 'text-teal-400',
+    gradient: 'from-teal-600/30 to-cyan-600/30'
   },
 ];
 
@@ -243,18 +243,18 @@ export default function ReportsPage() {
           >
             <Card
               onClick={() => router.push(report.href)}
-              className="group cursor-pointer hover:scale-105 transition-all duration-300 bg-gradient-to-br from-slate-800/50 to-slate-900/50 border-slate-700/50 hover:border-purple-500/50 backdrop-blur-sm"
+              className="group cursor-pointer hover:scale-105 transition-all duration-300 bg-gradient-to-br from-slate-800/80 to-slate-900/80 border-slate-600/50 hover:border-purple-500/70 backdrop-blur-sm shadow-xl hover:shadow-2xl hover:shadow-purple-500/20"
             >
               <CardContent className="p-6">
-                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${report.gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                  <report.icon className={`w-7 h-7 ${report.color}`} />
+                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${report.gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                  <report.icon className={`w-8 h-8 ${report.color} drop-shadow-lg`} />
                 </div>
                 
-                <h3 className="text-lg font-bold text-white mb-2 group-hover:text-purple-400 transition-colors">
+                <h3 className="text-xl font-bold text-white mb-2 group-hover:text-purple-300 transition-colors">
                   {t(report.titleKey as any)}
                 </h3>
                 
-                <p className="text-sm text-slate-400">
+                <p className="text-sm text-slate-300">
                   {t(report.descKey as any)}
                 </p>
               </CardContent>
