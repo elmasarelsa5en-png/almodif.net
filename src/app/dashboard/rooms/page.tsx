@@ -796,9 +796,14 @@ export default function RoomsPage() {
         className={`relative group cursor-pointer transition-all duration-500 hover:scale-110 hover:rotate-1 hover:shadow-2xl hover:shadow-blue-500/30 rounded-2xl overflow-hidden ${
           imageUrl ? '' : config.bgColor
         } active:scale-95 ${isLate ? 'animate-pulse ring-4 ring-red-500' : ''}`}
-        onClick={() => {
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
           console.log('🖱️ Click على الغرفة:', room.number);
           openRoomDetails(room);
+        }}
+        onMouseDown={(e) => {
+          e.stopPropagation();
         }}
         style={imageUrl ? { backgroundImage: `url(${imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
       >
@@ -812,8 +817,8 @@ export default function RoomsPage() {
         {/* Shine effect on hover */}
         <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:animate-shine transition-opacity pointer-events-none"></div>
         
-        {imageUrl && <div className="absolute inset-0 bg-black/60 group-hover:bg-black/70 transition-colors"></div>}
-        <div className={`p-3 flex flex-col justify-between h-full min-h-[140px] ${isLate ? 'pt-8' : ''}`}>
+        {imageUrl && <div className="absolute inset-0 bg-black/60 group-hover:bg-black/70 transition-colors pointer-events-none"></div>}
+        <div className={`p-3 flex flex-col justify-between h-full min-h-[140px] relative z-10 ${isLate ? 'pt-8' : ''}`}>
           <div className="flex justify-between items-start relative z-10">
             <div className="flex items-center gap-2">
               <div className={`w-7 h-7 rounded-md flex items-center justify-center group-hover:scale-125 group-hover:rotate-12 transition-all duration-500 ${
