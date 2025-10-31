@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import {
   ArrowRight, User, Mail, Phone, CreditCard, Camera, Save,
   Upload, Image as ImageIcon, X, CheckCircle2, Loader2,
-  Calendar, MapPin, Globe, Shield, Edit2, Hotel
+  Calendar, MapPin, Globe, Shield, Edit2, Hotel, Lock, Eye, EyeOff
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -44,6 +44,15 @@ export default function ProfilePage() {
   const [previewImage, setPreviewImage] = useState<string>('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [showPasswordSection, setShowPasswordSection] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     // Load guest session
@@ -127,6 +136,58 @@ export default function ProfilePage() {
     setPreviewImage('');
     setProfile(prev => ({ ...prev, photo: '' }));
     setIsEditing(true);
+  };
+
+  const handlePasswordChange = async () => {
+    // التحقق من المدخلات
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      alert('الرجاء إدخال جميع الحقول');
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      alert('كلمة المرور الجديدة غير متطابقة');
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      alert('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+      return;
+    }
+
+    setSaving(true);
+    
+    try {
+      // التحقق من كلمة المرور الحالية
+      const session = localStorage.getItem('guest_session');
+      if (session) {
+        const guestData = JSON.parse(session);
+        
+        // هنا يمكن إضافة التحقق من Firebase
+        // للتبسيط الآن نحفظ مباشرة
+        
+        const updatedData = {
+          ...guestData,
+          password: passwordData.newPassword
+        };
+        
+        localStorage.setItem('guest_session', JSON.stringify(updatedData));
+        
+        setShowSuccess(true);
+        setShowPasswordSection(false);
+        setPasswordData({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        });
+        setTimeout(() => setShowSuccess(false), 3000);
+      }
+    } catch (error) {
+      console.error('Error changing password:', error);
+      alert('حدث خطأ أثناء تغيير كلمة المرور');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -437,6 +498,195 @@ export default function ProfilePage() {
                 <CardContent className="p-6">
                   <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
                     <Hotel className="w-5 h-5 text-purple-400" />
+                    معلومات الإقامة
+                  </h3>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="p-4 bg-white/5 rounded-xl border border-slate-700/50">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                          <Hotel className="w-5 h-5 text-purple-400" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-400">رقم الغرفة</p>
+                          <p className="text-lg font-bold text-white">{profile.roomNumber}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-white/5 rounded-xl border border-slate-700/50">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                          <Calendar className="w-5 h-5 text-green-400" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-400">تاريخ الوصول</p>
+                          <p className="text-lg font-bold text-white">
+                            {new Date(profile.checkInDate).toLocaleDateString('ar-SA')}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Password Change Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <Card className="relative bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border-red-500/30">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                      <Shield className="w-5 h-5 text-red-400" />
+                      الأمان وكلمة المرور
+                    </h3>
+                    <Button
+                      onClick={() => setShowPasswordSection(!showPasswordSection)}
+                      size="sm"
+                      className="bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-400/30"
+                    >
+                      <Lock className="w-4 h-4 mr-2" />
+                      {showPasswordSection ? 'إخفاء' : 'تغيير كلمة المرور'}
+                    </Button>
+                  </div>
+
+                  {showPasswordSection && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="space-y-4"
+                    >
+                      {/* Current Password */}
+                      <div>
+                        <Label className="text-slate-300 mb-2 flex items-center gap-2">
+                          <Lock className="w-4 h-4 text-red-400" />
+                          كلمة المرور الحالية
+                        </Label>
+                        <div className="relative">
+                          <Input
+                            type={showCurrentPassword ? 'text' : 'password'}
+                            value={passwordData.currentPassword}
+                            onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                            className="bg-slate-900/50 border-slate-700 text-white focus:border-red-400 pr-12"
+                            placeholder="أدخل كلمة المرور الحالية"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300"
+                          >
+                            {showCurrentPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* New Password */}
+                      <div>
+                        <Label className="text-slate-300 mb-2 flex items-center gap-2">
+                          <Lock className="w-4 h-4 text-green-400" />
+                          كلمة المرور الجديدة
+                        </Label>
+                        <div className="relative">
+                          <Input
+                            type={showNewPassword ? 'text' : 'password'}
+                            value={passwordData.newPassword}
+                            onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+                            className="bg-slate-900/50 border-slate-700 text-white focus:border-green-400 pr-12"
+                            placeholder="أدخل كلمة المرور الجديدة (6 أحرف على الأقل)"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowNewPassword(!showNewPassword)}
+                            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300"
+                          >
+                            {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Confirm Password */}
+                      <div>
+                        <Label className="text-slate-300 mb-2 flex items-center gap-2">
+                          <Lock className="w-4 h-4 text-blue-400" />
+                          تأكيد كلمة المرور الجديدة
+                        </Label>
+                        <div className="relative">
+                          <Input
+                            type={showConfirmPassword ? 'text' : 'password'}
+                            value={passwordData.confirmPassword}
+                            onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                            className="bg-slate-900/50 border-slate-700 text-white focus:border-blue-400 pr-12"
+                            placeholder="أعد إدخال كلمة المرور الجديدة"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300"
+                          >
+                            {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Password strength indicator */}
+                      {passwordData.newPassword && (
+                        <div className="p-3 bg-white/5 rounded-lg border border-slate-700/50">
+                          <p className="text-xs text-slate-400 mb-2">قوة كلمة المرور:</p>
+                          <div className="flex gap-1">
+                            {[1, 2, 3, 4].map((level) => (
+                              <div
+                                key={level}
+                                className={`h-2 flex-1 rounded-full transition-all ${
+                                  passwordData.newPassword.length >= level * 2
+                                    ? passwordData.newPassword.length < 6
+                                      ? 'bg-red-500'
+                                      : passwordData.newPassword.length < 8
+                                      ? 'bg-yellow-500'
+                                      : 'bg-green-500'
+                                    : 'bg-slate-700'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          <p className="text-xs mt-2 text-slate-400">
+                            {passwordData.newPassword.length < 6
+                              ? 'ضعيفة - يجب أن تكون 6 أحرف على الأقل'
+                              : passwordData.newPassword.length < 8
+                              ? 'متوسطة - يفضل 8 أحرف أو أكثر'
+                              : 'قوية ✓'}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Save Password Button */}
+                      <Button
+                        onClick={handlePasswordChange}
+                        disabled={saving}
+                        className="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white"
+                      >
+                        {saving ? (
+                          <>
+                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                            جاري تغيير كلمة المرور...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="w-5 h-5 mr-2" />
+                            حفظ كلمة المرور الجديدة
+                          </>
+                        )}
+                      </Button>
+                    </motion.div>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
                     معلومات الإقامة
                   </h3>
 

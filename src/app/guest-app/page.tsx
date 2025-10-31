@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { 
   Hotel, Home, Utensils, Coffee, Shirt, Bell, Calendar, 
   Phone, Star, MapPin, Wifi, Car, Sparkles, QrCode,
-  Download, Globe, Smartphone, User, LogOut, CreditCard, MessageSquare
+  Download, Globe, Smartphone, User, LogOut, CreditCard, MessageSquare, ShoppingBag
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -420,6 +420,22 @@ export default function GuestAppHomePage() {
                   className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-100 backdrop-blur-sm border border-amber-400/30"
                 >
                   <Globe className="w-4 h-4" />
+                </Button>
+              </motion.div>
+              
+              <motion.div
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.65 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button
+                  onClick={() => router.push('/guest-app/my-orders')}
+                  size="sm"
+                  className="bg-purple-500/10 hover:bg-purple-500/20 text-purple-100 backdrop-blur-sm border border-purple-400/30"
+                >
+                  <ShoppingBag className="w-4 h-4" />
                 </Button>
               </motion.div>
               
