@@ -430,14 +430,17 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
     return () => window.removeEventListener('resize', checkDesktop);
   }, []);
   
-  const isCollapsed = isDesktop ? false : (externalCollapsed !== undefined ? externalCollapsed : internalCollapsed);
+  // استخدام الحالة الخارجية أو الداخلية
+  const isCollapsed = externalCollapsed !== undefined ? externalCollapsed : internalCollapsed;
+  
   const handleMenuClick = () => {
-    if (!isDesktop && onToggle) {
+    if (onToggle) {
       onToggle();
-    } else if (!isDesktop) {
-      setInternalCollapsed(true);
+    } else {
+      setInternalCollapsed(!internalCollapsed);
     }
   };
+  
   const toggleCollapse = onToggle || (() => setInternalCollapsed(!internalCollapsed));
   const pathname = usePathname();
   const router = useRouter();
@@ -684,13 +687,16 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
               <div key={item.href}>
                 {/* Main Item - Always clickable */}
                 <Link href={item.href} onClick={handleMenuClick}>
-                  <div className={cn(
-                    "flex items-center gap-2 px-2.5 py-2 rounded-lg transition-all duration-200 group relative",
-                    isActive 
-                      ? "bg-gradient-to-r from-blue-500/20 to-indigo-500/20 text-white dark:text-white light:text-purple-900 light:from-purple-200 light:to-pink-200 border border-blue-400/30 dark:border-blue-400/30 light:border-purple-400 shadow-lg" 
-                      : "text-blue-200 dark:text-blue-200 light:text-purple-700 hover:text-white dark:hover:text-white light:hover:text-purple-900 hover:bg-slate-700/50 dark:hover:bg-slate-700/50 light:hover:bg-purple-100",
-                    isCollapsed && "justify-center px-2"
-                  )}>
+                  <div 
+                    className={cn(
+                      "flex items-center gap-2 px-2.5 py-2 rounded-lg transition-all duration-200 group relative",
+                      isActive 
+                        ? "bg-gradient-to-r from-blue-500/20 to-indigo-500/20 text-white dark:text-white light:text-purple-900 light:from-purple-200 light:to-pink-200 border border-blue-400/30 dark:border-blue-400/30 light:border-purple-400 shadow-lg" 
+                        : "text-blue-200 dark:text-blue-200 light:text-purple-700 hover:text-white dark:hover:text-white light:hover:text-purple-900 hover:bg-slate-700/50 dark:hover:bg-slate-700/50 light:hover:bg-purple-100",
+                      isCollapsed && "justify-center px-2"
+                    )}
+                    title={isCollapsed ? t(item.labelKey as any) : undefined}
+                  >
                     <Icon className={cn(
                       "flex-shrink-0 transition-transform group-hover:scale-110",
                       isCollapsed ? "w-6 h-6" : "w-4 h-4"

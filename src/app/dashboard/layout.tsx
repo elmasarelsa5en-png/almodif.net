@@ -18,7 +18,7 @@ export default function DashboardLayout({
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(true); // مقفول افتراضياً على الموبايل فقط
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // مفتوحة افتراضياً
   const [tickerItems, setTickerItems] = useState<string[]>([]);
   const [isDesktop, setIsDesktop] = useState(false);
 
@@ -27,10 +27,6 @@ export default function DashboardLayout({
     const checkDesktop = () => {
       const desktop = window.innerWidth >= 768;
       setIsDesktop(desktop);
-      // في وضع الويب: القائمة مفتوحة دائماً
-      if (desktop) {
-        setSidebarCollapsed(false);
-      }
     };
     
     checkDesktop();
