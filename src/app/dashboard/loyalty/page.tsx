@@ -5,6 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { 
   Award,
   Plus,
@@ -83,6 +92,23 @@ export default function LoyaltyProgramPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterTier, setFilterTier] = useState<string>('all');
   const [activeTab, setActiveTab] = useState<'members' | 'rewards' | 'stats'>('members');
+  
+  // Dialog states
+  const [showNewMemberDialog, setShowNewMemberDialog] = useState(false);
+  const [showAddPointsDialog, setShowAddPointsDialog] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<LoyaltyMembership | null>(null);
+  
+  // Form states
+  const [newMemberForm, setNewMemberForm] = useState({
+    guestId: '',
+    guestName: '',
+    guestEmail: '',
+    guestPhone: '',
+  });
+  const [pointsForm, setPointsForm] = useState({
+    points: 0,
+    reason: '',
+  });
 
   useEffect(() => {
     loadData();
@@ -103,6 +129,37 @@ export default function LoyaltyProgramPage() {
       console.error('Error loading loyalty data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCreateMember = async () => {
+    try {
+      await createLoyaltyMembership({
+        guestId: newMemberForm.guestId,
+        guestName: newMemberForm.guestName,
+        guestEmail: newMemberForm.guestEmail,
+        guestPhone: newMemberForm.guestPhone,
+      });
+      setShowNewMemberDialog(false);
+      setNewMemberForm({ guestId: '', guestName: '', guestEmail: '', guestPhone: '' });
+      await loadData();
+    } catch (error) {
+      console.error('Error creating member:', error);
+      alert('حدث خطأ في إنشاء العضوية');
+    }
+  };
+
+  const handleAddPoints = async () => {
+    if (!selectedMember) return;
+    try {
+      await addPoints(selectedMember.id, pointsForm.points, pointsForm.reason);
+      setShowAddPointsDialog(false);
+      setPointsForm({ points: 0, reason: '' });
+      setSelectedMember(null);
+      await loadData();
+    } catch (error) {
+      console.error('Error adding points:', error);
+      alert('حدث خطأ في إضافة النقاط');
     }
   };
 
@@ -268,7 +325,8 @@ export default function LoyaltyProgramPage() {
                     <option value="diamond">💠 ماسي</option>
                   </select>
 
-                  <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                  <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                    onClick={() => setShowNewMemberDialog(true)}>
                     <Plus className="w-4 h-4 ml-2" />
                     عضو جديد
                   </Button>
@@ -382,7 +440,14 @@ export default function LoyaltyProgramPage() {
                               <Eye className="w-4 h-4 ml-1" />
                               عرض
                             </Button>
-                            <Button size="sm" className="flex-1 bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700">
+                            <Button 
+                              size="sm" 
+                              className="flex-1 bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700"
+                              onClick={() => {
+                                setSelectedMember(member);
+                                setShowAddPointsDialog(true);
+                              }}
+                            >
                               <Plus className="w-4 h-4 ml-1" />
                               نقاط
                             </Button>
@@ -561,6 +626,129 @@ export default function LoyaltyProgramPage() {
             </Card>
           </div>
         )}
+        
+        {/* New Member Dialog */}
+        <Dialog open={showNewMemberDialog} onOpenChange={setShowNewMemberDialog}>
+          <DialogContent className="bg-slate-900 text-white border-white/20">
+            <DialogHeader>
+              <DialogTitle className="text-2xl">إضافة عضو جديد</DialogTitle>
+              <DialogDescription className="text-white/70">
+                أدخل بيانات العضو الجديد في برنامج الولاء
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div>
+                <Label htmlFor="guestId" className="text-white">معرف الضيف</Label>
+                <Input
+                  id="guestId"
+                  value={newMemberForm.guestId}
+                  onChange={(e) => setNewMemberForm({...newMemberForm, guestId: e.target.value})}
+                  className="bg-white/10 border-white/20 text-white"
+                  placeholder="ID-XXX"
+                />
+              </div>
+              <div>
+                <Label htmlFor="guestName" className="text-white">اسم الضيف</Label>
+                <Input
+                  id="guestName"
+                  value={newMemberForm.guestName}
+                  onChange={(e) => setNewMemberForm({...newMemberForm, guestName: e.target.value})}
+                  className="bg-white/10 border-white/20 text-white"
+                  placeholder="أحمد محمد"
+                />
+              </div>
+              <div>
+                <Label htmlFor="guestEmail" className="text-white">البريد الإلكتروني</Label>
+                <Input
+                  id="guestEmail"
+                  type="email"
+                  value={newMemberForm.guestEmail}
+                  onChange={(e) => setNewMemberForm({...newMemberForm, guestEmail: e.target.value})}
+                  className="bg-white/10 border-white/20 text-white"
+                  placeholder="example@email.com"
+                  dir="ltr"
+                />
+              </div>
+              <div>
+                <Label htmlFor="guestPhone" className="text-white">رقم الجوال</Label>
+                <Input
+                  id="guestPhone"
+                  value={newMemberForm.guestPhone}
+                  onChange={(e) => setNewMemberForm({...newMemberForm, guestPhone: e.target.value})}
+                  className="bg-white/10 border-white/20 text-white"
+                  placeholder="05xxxxxxxx"
+                  dir="ltr"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowNewMemberDialog(false)} className="border-white/20 text-white hover:bg-white/10">
+                إلغاء
+              </Button>
+              <Button 
+                onClick={handleCreateMember}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+              >
+                إنشاء العضوية
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Add Points Dialog */}
+        <Dialog open={showAddPointsDialog} onOpenChange={setShowAddPointsDialog}>
+          <DialogContent className="bg-slate-900 text-white border-white/20">
+            <DialogHeader>
+              <DialogTitle className="text-2xl">إضافة نقاط</DialogTitle>
+              <DialogDescription className="text-white/70">
+                {selectedMember && `إضافة نقاط لعضوية ${selectedMember.guestName}`}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div>
+                <Label htmlFor="points" className="text-white">عدد النقاط</Label>
+                <Input
+                  id="points"
+                  type="number"
+                  value={pointsForm.points}
+                  onChange={(e) => setPointsForm({...pointsForm, points: Number(e.target.value)})}
+                  className="bg-white/10 border-white/20 text-white"
+                  placeholder="100"
+                  min="0"
+                />
+              </div>
+              <div>
+                <Label htmlFor="reason" className="text-white">السبب</Label>
+                <Input
+                  id="reason"
+                  value={pointsForm.reason}
+                  onChange={(e) => setPointsForm({...pointsForm, reason: e.target.value})}
+                  className="bg-white/10 border-white/20 text-white"
+                  placeholder="حجز جديد / مكافأة خاصة"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setShowAddPointsDialog(false);
+                  setSelectedMember(null);
+                  setPointsForm({ points: 0, reason: '' });
+                }}
+                className="border-white/20 text-white hover:bg-white/10"
+              >
+                إلغاء
+              </Button>
+              <Button 
+                onClick={handleAddPoints}
+                className="bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700"
+              >
+                إضافة النقاط
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </ProtectedRoute>
   );

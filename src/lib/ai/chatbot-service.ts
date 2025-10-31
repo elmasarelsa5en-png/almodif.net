@@ -225,7 +225,9 @@ export class ChatbotService {
       if (existingConfig.exists()) {
         await updateDoc(configRef, configData);
       } else {
-        await updateDoc(configRef, {
+        // Use setDoc for creating new document
+        const { setDoc } = await import('firebase/firestore');
+        await setDoc(configRef, {
           ...configData,
           createdAt: timestamp,
         });
