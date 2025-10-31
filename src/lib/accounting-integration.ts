@@ -1,16 +1,23 @@
 /**
- * Accounting Integration - adapters & sync helpers
- * - Provides adapters for external accounting providers (Qoyod, Daftra)
- * - Idempotent push of journal entries/invoices
- * - Mapping helpers from internal Vouchers/Promissory Notes -> accounting entries
- *
- * Keep this file lightweight and provider-agnostic. Implement concrete provider logic
- * using the adapter interfaces below.
+ * نظام التكامل المحاسبي - Accounting Integration System
+ * - محولات للأنظمة المحاسبية الخارجية (قيود، دفترة، زوهو)
+ * - دفع القيود والفواتير بشكل آمن (Idempotent)
+ * - تحويل السندات والكمبيالات إلى قيود محاسبية
+ * 
+ * Providers:
+ * - Qoyod (قيود): Saudi cloud accounting system
+ * - Daftra (دفترة): Multi-region cloud accounting
+ * - Zoho Books: International accounting platform
  */
 
-import fetch from 'node-fetch';
 import { BankVoucher } from './bank-vouchers-system';
 import { PromissoryNote } from './promissory-notes-system';
+import { 
+  AccountingConfig, 
+  addToSyncQueue, 
+  addSyncLog,
+  updateAccountingConfig 
+} from './accounting-config';
 
 // -------------------------
 // Types
