@@ -150,7 +150,8 @@ export function mapPromissoryNoteToJournal(note: PromissoryNote, accountMap: Rec
 }
 
 // -------------------------
-// Example adapter: Qoyod (skeleton)
+// Example adapter: Qoyod (قيود) - Real Implementation
+// API Documentation: https://qoyod.com/api-docs
 // -------------------------
 export class QoyodAdapter implements AccountingAdapter {
   config: AccountingConfig;
@@ -161,50 +162,125 @@ export class QoyodAdapter implements AccountingAdapter {
   }
 
   async authenticate() {
-    // Qoyod API auth flow (skeleton)
+    // Qoyod uses API Key authentication
     if (this.config.apiKey) {
       this.token = this.config.apiKey;
       return;
     }
 
-    // example OAuth / token request - provider-specific implementation required
-    // throw if not implemented
-    throw new Error('QoyodAdapter.authenticate not implemented - provide apiKey or implement auth flow.');
+    throw new Error('QoyodAdapter: API Key مطلوب للمصادقة');
   }
 
+  /**
+   * دفع قيد محاسبي إلى قيود
+   * Qoyod API endpoint: POST /accounting/entries
+   */
   async pushJournal(entry: JournalEntry) {
     if (!this.token) await this.authenticate();
 
     const idempotencyKey = makeIdempotencyKey('journal', entry.reference);
 
     return retry(async () => {
-      const res = await fetch(`${this.config.baseUrl}/api/v1/journals`, {
+      // تحويل القيد إلى صيغة Qoyod
+      const qoyodEntry = {
+        entry_number: entry.reference,
+        date: entry.date.split('T')[0], // YYYY-MM-DD
+        description: entry.description || '',
+        journal_type: 'general', // general, sales, purchases
+        items: entry.lines.map(line => ({
+          account_id: line.accountCode,
+          description: line.description || entry.description || '',
+          debit: line.debit || 0,
+          credit: line.credit || 0,
+          tax_code: line.taxCode || null
+        })),
+        reference: entry.externalRef || entry.reference,
+        auto_number: false
+      };
+
+      const res = await fetch(`${this.config.baseUrl}/accounting/entries`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${this.token}`,
-          'Idempotency-Key': idempotencyKey
+          'Accept': 'application/json',
+          'X-Idempotency-Key': idempotencyKey
         },
-        body: JSON.stringify({
-          date: entry.date,
-          description: entry.description,
-          reference: entry.reference,
-          lines: entry.lines
-        })
+        body: JSON.stringify(qoyodEntry)
       });
 
       const json = await res.json();
+      
       if (!res.ok) {
-        return { success: false, error: json };
+        console.error('Qoyod API Error:', json);
+        return { 
+          success: false, 
+          error: json.message || json.error || 'خطأ في الاتصال بقيود'
+        };
       }
 
-      return { success: true, id: json.id };
-    }, 3, 500);
+      return { 
+        success: true, 
+        id: json.data?.id || json.id 
+      };
+    }, 3, 1000);
+  }
+
+  /**
+   * دفع فاتورة إلى قيود
+   * Qoyod API endpoint: POST /invoices
+   */
+  async pushInvoice(payload: any) {
+    if (!this.token) await this.authenticate();
+
+    const idempotencyKey = makeIdempotencyKey('invoice', payload.reference);
+
+    return retry(async () => {
+      const res = await fetch(`${this.config.baseUrl}/invoices`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.token}`,
+          'Accept': 'application/json',
+          'X-Idempotency-Key': idempotencyKey
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const json = await res.json();
+      
+      if (!res.ok) {
+        return { success: false, error: json.message || json.error };
+      }
+
+      return { success: true, id: json.data?.id || json.id };
+    }, 3, 1000);
+  }
+
+  /**
+   * الحصول على حالة الفاتورة
+   */
+  async getInvoiceStatus(id: string) {
+    if (!this.token) await this.authenticate();
+
+    const res = await fetch(`${this.config.baseUrl}/invoices/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${this.token}`,
+        'Accept': 'application/json'
+      }
+    });
+
+    if (!res.ok) {
+      throw new Error('فشل الحصول على حالة الفاتورة');
+    }
+
+    return await res.json();
   }
 }
 
 // -------------------------
-// Example adapter: Daftra (skeleton)
+// Example adapter: Daftra (دفترة) - Real Implementation
+// API Documentation: https://api.daftra.com/v2/docs
 // -------------------------
 export class DaftraAdapter implements AccountingAdapter {
   config: AccountingConfig;
@@ -215,34 +291,138 @@ export class DaftraAdapter implements AccountingAdapter {
   }
 
   async authenticate() {
+    // Daftra uses API Key authentication
     if (this.config.apiKey) {
       this.token = this.config.apiKey;
       return;
     }
-    throw new Error('DaftraAdapter.authenticate not implemented - provide apiKey or implement auth flow.');
+
+    throw new Error('DaftraAdapter: API Key مطلوب للمصادقة');
   }
 
+  /**
+   * دفع قيد محاسبي إلى دفترة
+   * Daftra API endpoint: POST /journal_entries
+   */
   async pushJournal(entry: JournalEntry) {
     if (!this.token) await this.authenticate();
 
     const idempotencyKey = makeIdempotencyKey('journal', entry.reference);
+
     return retry(async () => {
-      const res = await fetch(`${this.config.baseUrl}/journals`, {
+      // تحويل القيد إلى صيغة Daftra
+      const daftraEntry = {
+        reference_number: entry.reference,
+        date: entry.date.split('T')[0], // YYYY-MM-DD
+        notes: entry.description || '',
+        items: entry.lines.map(line => ({
+          account_id: line.accountCode,
+          description: line.description || entry.description || '',
+          debit: line.debit || 0,
+          credit: line.credit || 0,
+          tax_id: line.taxCode || null
+        })),
+        status: 'posted' // draft, posted
+      };
+
+      const res = await fetch(`${this.config.baseUrl}/api/v2/journal_entries`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${this.token}`,
-          'Idempotency-Key': idempotencyKey
+          'Accept': 'application/json',
+          'X-Idempotency-Key': idempotencyKey
         },
-        body: JSON.stringify(entry)
+        body: JSON.stringify(daftraEntry)
       });
 
       const json = await res.json();
+      
       if (!res.ok) {
-        return { success: false, error: json };
+        console.error('Daftra API Error:', json);
+        return { 
+          success: false, 
+          error: json.message || json.error || 'خطأ في الاتصال بدفترة'
+        };
       }
-      return { success: true, id: json.id };
-    }, 3, 500);
+
+      return { 
+        success: true, 
+        id: json.data?.id || json.id 
+      };
+    }, 3, 1000);
+  }
+
+  /**
+   * دفع فاتورة إلى دفترة
+   * Daftra API endpoint: POST /invoices
+   */
+  async pushInvoice(payload: any) {
+    if (!this.token) await this.authenticate();
+
+    const idempotencyKey = makeIdempotencyKey('invoice', payload.reference);
+
+    return retry(async () => {
+      const res = await fetch(`${this.config.baseUrl}/api/v2/invoices`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.token}`,
+          'Accept': 'application/json',
+          'X-Idempotency-Key': idempotencyKey
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const json = await res.json();
+      
+      if (!res.ok) {
+        return { success: false, error: json.message || json.error };
+      }
+
+      return { success: true, id: json.data?.id || json.id };
+    }, 3, 1000);
+  }
+
+  /**
+   * الحصول على حالة الفاتورة
+   */
+  async getInvoiceStatus(id: string) {
+    if (!this.token) await this.authenticate();
+
+    const res = await fetch(`${this.config.baseUrl}/api/v2/invoices/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${this.token}`,
+        'Accept': 'application/json'
+      }
+    });
+
+    if (!res.ok) {
+      throw new Error('فشل الحصول على حالة الفاتورة');
+    }
+
+    return await res.json();
+  }
+
+  /**
+   * سحب دليل الحسابات من دفترة
+   */
+  async fetchChartOfAccounts() {
+    if (!this.token) await this.authenticate();
+
+    const res = await fetch(`${this.config.baseUrl}/api/v2/accounts`, {
+      headers: {
+        'Authorization': `Bearer ${this.token}`,
+        'Accept': 'application/json'
+      }
+    });
+
+    if (!res.ok) {
+      throw new Error('فشل سحب دليل الحسابات');
+    }
+
+    const json = await res.json();
+    return json.data || json;
   }
 }
 
