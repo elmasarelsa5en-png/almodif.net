@@ -122,11 +122,9 @@ export default function RoomsPage() {
 
   // الفحص التلقائي لحالة الغرف بناءً على تاريخ الخروج - كل دقيقة
   useEffect(() => {
+    if (rooms.length === 0) return;
+    
     const checkRoomsStatus = async () => {
-      if (rooms.length === 0) return;
-      
-      console.log('🔍 فحص تلقائي لحالة الغرف...');
-      
       // تحديث حالة الغرف تلقائياً
       const updatedRooms = autoUpdateRoomStatusByCheckout(rooms);
       
@@ -136,44 +134,38 @@ export default function RoomsPage() {
       );
       
       if (hasChanges) {
-        console.log('✅ تم تحديث حالة الغرف تلقائياً');
-        setRooms(updatedRooms);
-        setFilteredRooms(updatedRooms);
-        
-        // حفظ التغييرات في Firebase
+        // حفظ التغييرات في Firebase فقط
         for (const room of updatedRooms) {
           const oldRoom = rooms.find(r => r.id === room.id);
           if (oldRoom && room.status !== oldRoom.status) {
             await saveRoomToFirebase(room);
           }
         }
+        // Firebase subscription سيحدث الـ state تلقائياً
       }
       
       // التحقق من النزلاء المتأخرين
-      const lateRooms = getLateCheckoutRooms(updatedRooms);
-      setLateCheckoutRooms(lateRooms);
-      
-      if (lateRooms.length > 0) {
+      const lateRooms = getLateCheckoutRooms(rooms);
+      if (lateRooms.length > 0 && !showLateCheckoutAlert) {
+        setLateCheckoutRooms(lateRooms);
         setShowLateCheckoutAlert(true);
       }
     };
     
-    // فحص فوري عند التحميل
-    checkRoomsStatus();
-    
-    // فحص كل دقيقة
+    // فحص كل دقيقة فقط (بدون فحص فوري)
     const interval = setInterval(checkRoomsStatus, 60000);
     
     return () => clearInterval(interval);
-  }, [rooms]);
+  }, []); // Empty dependency - يشتغل مرة واحدة فقط
 
   // حساب الديون التلقائي للشقق المشغولة
   useEffect(() => {
+    if (rooms.length === 0) return;
+    
     const calculateDebts = async () => {
       const now = new Date();
-      let hasChanges = false;
       
-      const updatedRooms = await Promise.all(rooms.map(async (room) => {
+      for (const room of rooms) {
         // احسب الديون فقط للشقق المشغولة أو اللي checkout اليوم
         if ((room.status === 'Occupied' || room.status === 'CheckoutToday') && room.bookingDetails?.checkIn?.date) {
           const checkInDate = new Date(room.bookingDetails.checkIn.date);
@@ -186,9 +178,8 @@ export default function RoomsPage() {
           // إجمالي الدين = دين الإقامة + دين الخدمات
           const newCurrentDebt = newRoomDebt + (room.servicesDebt || 0);
           
-          // تحديث فقط لو في تغيير
-          if (room.currentDebt !== newCurrentDebt || room.roomDebt !== newRoomDebt) {
-            hasChanges = true;
+          // تحديث فقط لو في تغيير كبير (أكثر من 10 ريال)
+          if (Math.abs((room.currentDebt || 0) - newCurrentDebt) > 10) {
             const updatedRoom = {
               ...room,
               currentDebt: newCurrentDebt,
@@ -197,45 +188,22 @@ export default function RoomsPage() {
               debtStartDate: room.debtStartDate || room.bookingDetails.checkIn.date
             };
             
-            // احفظ في Firebase
+            // احفظ في Firebase فقط - subscription سيحدث الـ state
             await saveRoomToFirebase(updatedRoom);
-            return updatedRoom;
           }
         }
-        return room;
-      }));
-      
-      if (hasChanges) {
-        setRooms(updatedRooms);
-        setFilteredRooms(updatedRooms);
-        console.log('💰 تم تحديث الديون التلقائي');
       }
     };
     
-    // احسب الديون فوراً
-    calculateDebts();
-    
-    // احسب الديون كل ساعة
+    // احسب الديون كل ساعة فقط
     const interval = setInterval(calculateDebts, 60 * 60 * 1000);
     
     return () => clearInterval(interval);
-  }, [rooms]);
+  }, []); // Empty dependency - يشتغل مرة واحدة فقط
   
   const loadRoomsData = async () => {
     try {
-      console.log('📥 بدء تحميل الغرف من Firebase...');
       const roomsData = await getRoomsFromFirebase();
-      console.log(`✅ تم تحميل ${roomsData.length} غرفة من Firebase`);
-      
-      // طباعة الغرف المشغولة مع بيانات النزلاء
-      const occupiedRooms = roomsData.filter(r => r.status === 'Occupied' || r.status === 'CheckoutToday');
-      console.log('🏨 الغرف المشغولة:', occupiedRooms.map(r => ({
-        number: r.number,
-        status: r.status,
-        guestName: r.guestName,
-        hasGuestName: !!r.guestName
-      })));
-      
       setRooms(roomsData);
       setFilteredRooms(roomsData);
     } catch (error) {
@@ -503,20 +471,12 @@ export default function RoomsPage() {
 
   // فتح تفاصيل الشقة - دائماً نافذة الحجز
   const openRoomDetails = (room: Room) => {
-    console.log('🔵 تم الضغط على الغرفة:', room.number, 'الحالة:', room.status);
-    console.log('👤 بيانات النزيل:', {
-      hasGuestName: !!room.guestName,
-      guestName: room.guestName,
-      guestPhone: room.guestPhone
-    });
-    
     setSelectedRoom(room);
     setNewStatus(room.status);
     setGuestName(room.guestName || '');
     setPaymentAmount(room.balance);
     
     // فتح نافذة الحجز مباشرة (سواء فارغة أو مشغولة)
-    console.log('📋 فتح نافذة الحجز للغرفة:', room.number);
     setIsBookingDialogOpen(true);
   };
 
@@ -785,30 +745,15 @@ export default function RoomsPage() {
     const isCheckoutToday = room.status === 'CheckoutToday';
     const isLate = isCheckoutToday && room.bookingDetails?.checkOut?.date && isLateCheckout(room.bookingDetails.checkOut.date);
 
-    // Debug: طباعة بيانات الغرفة للتحقق
-    if (room.status === 'Occupied' || room.status === 'CheckoutToday') {
-      console.log('🏨 بيانات الغرفة:', {
-        number: room.number,
-        status: room.status,
-        hasGuestName: !!room.guestName,
-        guestName: room.guestName,
-        guestNameLength: room.guestName?.length
-      });
-    }
-
     return (
       <div
-        className={`relative group cursor-pointer transition-transform duration-300 will-change-transform hover:scale-105 hover:rotate-1 hover:shadow-2xl hover:shadow-blue-500/30 rounded-2xl overflow-hidden min-h-[220px] ${
+        className={`relative group cursor-pointer transition-transform duration-200 will-change-transform hover:scale-[1.02] hover:shadow-xl hover:shadow-blue-500/20 rounded-2xl overflow-hidden min-h-[220px] ${
           imageUrl ? '' : config.bgColor
         } active:scale-95 ${isLate ? 'animate-pulse ring-4 ring-red-500' : ''}`}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          console.log('🖱️ Click على الغرفة:', room.number);
           openRoomDetails(room);
-        }}
-        onMouseDown={(e) => {
-          e.stopPropagation();
         }}
         style={imageUrl ? { backgroundImage: `url(${imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
       >

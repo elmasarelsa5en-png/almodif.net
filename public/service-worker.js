@@ -41,6 +41,12 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const url = event.request.url;
+  const method = event.request.method;
+  
+  // ⚠️ تجاهل أي request غير GET (POST, PUT, DELETE, etc)
+  if (method !== 'GET') {
+    return;
+  }
   
   // ⚠️ استثناء Firebase وجميع Google APIs من الـ Service Worker
   if (
