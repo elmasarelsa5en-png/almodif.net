@@ -104,10 +104,13 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="p-6 space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">الإعدادات</h1>
-        <p className="text-muted-foreground mt-2">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6 space-y-8">
+      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-white/20">
+        <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+          <Settings className="w-8 h-8" />
+          الإعدادات
+        </h1>
+        <p className="text-white/70 mt-2 text-lg">
           إدارة إعدادات النظام والتخصيصات
         </p>
       </div>
@@ -115,33 +118,35 @@ export default function SettingsPage() {
       {/* Developer Settings - يظهر فقط لـ akram */}
       {isDeveloper && (
         <div>
-          <div className="flex items-center gap-2 mb-4">
-            <Code2 className="h-5 w-5 text-purple-600" />
-            <h2 className="text-2xl font-bold">إعدادات المطور</h2>
-            <Badge variant="destructive" className="mr-2">Exclusive</Badge>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 rounded-lg bg-purple-500/20">
+              <Code2 className="h-6 w-6 text-purple-300" />
+            </div>
+            <h2 className="text-2xl font-bold text-white">إعدادات المطور</h2>
+            <Badge className="bg-red-500/80 text-white border-0 shadow-lg">Exclusive</Badge>
           </div>
           
           {/* بطاقة إعدادات المطور الرئيسية */}
           <Card 
-            className="hover:shadow-xl transition-all duration-300 cursor-pointer group border-purple-500/30 bg-gradient-to-br from-purple-500/5 to-blue-500/5 mb-8"
+            className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15 hover:shadow-2xl transition-all duration-300 cursor-pointer group shadow-xl mb-8"
             onClick={() => router.push('/dashboard/settings/developer')}
           >
             <CardHeader>
               <div className="flex items-start justify-between">
-                <div className="p-4 rounded-xl bg-gradient-to-br from-purple-600 via-pink-600 to-blue-600 text-white shadow-lg">
+                <div className="p-4 rounded-xl bg-gradient-to-br from-purple-600 via-pink-600 to-blue-600 text-white shadow-lg group-hover:scale-105 transition-transform">
                   <Code2 className="h-8 w-8" />
                 </div>
-                <Badge variant="default" className="text-sm bg-gradient-to-r from-purple-600 to-pink-600 px-3 py-1">
+                <Badge className="text-sm bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 border-0 shadow-md">
                   ⚡ Full Access
                 </Badge>
               </div>
-              <CardTitle className="mt-4 flex items-center justify-between group-hover:text-purple-600 transition-colors text-2xl">
+              <CardTitle className="mt-4 flex items-center justify-between group-hover:text-purple-300 transition-colors text-2xl text-white">
                 إعدادات المطور الكاملة
-                <ChevronRight className="h-6 w-6 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                <ChevronRight className="h-6 w-6 opacity-0 group-hover:opacity-100 group-hover:-translate-x-2 transition-all text-purple-300" />
               </CardTitle>
-              <CardDescription className="text-base mt-3 space-y-2">
-                <p className="font-semibold text-purple-900 dark:text-purple-200">🎯 الوصول الكامل لجميع الأدوات التقنية:</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-1 mt-2 text-sm">
+              <CardDescription className="text-base mt-3 space-y-2 text-white/80">
+                <p className="font-semibold text-purple-200">🎯 الوصول الكامل لجميع الأدوات التقنية:</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-3 text-sm text-white/70">
                   <p>• 🖼️ إدارة صور الصفحة الرئيسية</p>
                   <p>• 📱 التحكم في أقسام Dashboard</p>
                   <p>• 🔥 إعداد Firebase والمزامنة</p>
@@ -159,37 +164,39 @@ export default function SettingsPage() {
 
       {/* Hotel Settings - إعدادات المنشأة */}
       <div>
-        <div className="flex items-center gap-2 mb-4">
-          <Building2 className="h-5 w-5 text-blue-600" />
-          <h2 className="text-2xl font-bold">إعدادات المنشأة</h2>
-          <Badge variant="default" className="mr-2">🏨 Hotel</Badge>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 rounded-lg bg-blue-500/20">
+            <Building2 className="h-6 w-6 text-blue-300" />
+          </div>
+          <h2 className="text-2xl font-bold text-white">إعدادات المنشأة</h2>
+          <Badge className="bg-blue-500/80 text-white border-0 shadow-lg">🏨 Hotel</Badge>
         </div>
         
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {hotelSettings.map((action) => {
             const Icon = action.icon;
             return (
               <Card 
                 key={action.id}
-                className="hover:shadow-lg transition-all duration-300 cursor-pointer group"
+                className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer group shadow-xl"
                 onClick={() => router.push(action.href)}
               >
                 <CardHeader>
                   <div className="flex items-start justify-between">
-                    <div className={`p-3 rounded-lg bg-gradient-to-br ${action.color} text-white`}>
+                    <div className={`p-3 rounded-xl bg-gradient-to-br ${action.color} text-white shadow-lg group-hover:scale-110 transition-transform`}>
                       <Icon className="h-6 w-6" />
                     </div>
                     {action.badge && (
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge className="text-xs bg-white/20 text-white border-0 backdrop-blur-sm">
                         {action.badge}
                       </Badge>
                     )}
                   </div>
-                  <CardTitle className="mt-4 flex items-center justify-between group-hover:text-primary transition-colors">
+                  <CardTitle className="mt-4 flex items-center justify-between group-hover:text-blue-300 transition-colors text-white">
                     {action.title}
-                    <ChevronRight className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <ChevronRight className="h-5 w-5 opacity-0 group-hover:opacity-100 group-hover:-translate-x-2 transition-all text-blue-300" />
                   </CardTitle>
-                  <CardDescription>{action.description}</CardDescription>
+                  <CardDescription className="text-white/70">{action.description}</CardDescription>
                 </CardHeader>
               </Card>
             );
@@ -197,13 +204,13 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <Card className="border-primary/20 bg-primary/5">
+      <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-xl">
         <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Settings className="h-5 w-5 text-primary" />
+          <CardTitle className="text-lg flex items-center gap-2 text-white">
+            <Settings className="h-5 w-5 text-blue-400" />
             ملاحظة مهمة
           </CardTitle>
-          <CardDescription className="text-base leading-relaxed">
+          <CardDescription className="text-base leading-relaxed text-white/80">
             جميع الإعدادات يتم حفظها في Firebase. تأكد من الاتصال بالإنترنت لحفظ التغييرات.
           </CardDescription>
         </CardHeader>
