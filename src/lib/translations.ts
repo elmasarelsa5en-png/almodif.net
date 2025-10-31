@@ -139,6 +139,8 @@ const ar = {
   profileDesc: 'بياناتي',
   settings: 'الإعدادات',
   settingsDesc: 'النظام',
+  paymentGateways: 'بوابات الدفع',
+  paymentGatewaysDesc: 'إعدادات الدفع الإلكتروني',
   logout: 'تسجيل الخروج',
   search: 'ابحث',
   notifications: 'الإشعارات',

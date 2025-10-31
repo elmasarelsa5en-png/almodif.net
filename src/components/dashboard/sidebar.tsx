@@ -533,6 +533,13 @@ const navigationItems: NavigationItem[] = [
         descKey: 'accountingSettingsDesc',
         href: '/dashboard/settings/accounting',
         permission: 'manage_general_settings',
+      },
+      {
+        icon: CreditCard,
+        labelKey: 'paymentGateways',
+        descKey: 'paymentGatewaysDesc',
+        href: '/dashboard/settings/payment-gateways',
+        permission: 'manage_general_settings',
       }
     ]
   },
