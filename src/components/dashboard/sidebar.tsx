@@ -53,7 +53,8 @@ import {
   Star, // أيقونة التقييمات
   Award, // أيقونة برنامج الولاء
   Brain, // أيقونة الذكاء الاصطناعي
-  AlertTriangle // أيقونة كشف الشذوذات
+  AlertTriangle, // أيقونة كشف الشذوذات
+  Clock // أيقونة التقارير المجدولة
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
