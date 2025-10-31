@@ -622,19 +622,26 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
   useEffect(() => {
     const loadSidebarSettings = async () => {
       try {
+        // عرض جميع الأقسام بشكل افتراضي (تم تعطيل التحكم من Firebase)
+        // المستخدم يمكنه إخفاء ما يريد من صفحة الإعدادات
+        const allItems = new Set<string>(navigationItems.map(item => {
+          const pathParts = item.href.split('/').filter(p => p);
+          return pathParts.length > 1 ? pathParts.slice(1).join('-') : (pathParts[0] === 'dashboard' ? 'dashboard' : pathParts[0]);
+        }));
+        setVisibleItems(allItems);
+        
+        /* 
+        // الكود القديم - معطل مؤقتاً لعرض كل الأقسام
         const settingsDoc = await getDoc(doc(db, 'developerSettings', 'sidebarVisibility'));
         
         if (settingsDoc.exists()) {
           const data = settingsDoc.data();
           const hotels = data.hotels || [];
           
-          // البحث عن إعدادات الفندق الحالي (سنستخدم hotel1 كافتراضي حالياً)
-          // في المستقبل: يمكن قراءة hotelId من user data
-          const currentHotelId = 'hotel1'; // (user as any)?.hotelId || 'hotel1';
+          const currentHotelId = 'hotel1';
           const hotelSettings = hotels.find((h: any) => h.hotelId === currentHotelId);
           
           if (hotelSettings) {
-            // إنشاء Set من الأقسام المفعلة فقط
             const enabledItems = new Set<string>(
               hotelSettings.items
                 .filter((item: any) => item.enabled)
@@ -642,27 +649,20 @@ export default function Sidebar({ className, isCollapsed: externalCollapsed, onT
             );
             setVisibleItems(enabledItems);
           } else {
-            // افتراضياً: عرض كل الأقسام
-            setVisibleItems(new Set(navigationItems.map(item => {
-              // استخراج ID من href
-              const pathParts = item.href.split('/').filter(p => p);
-              return pathParts.length > 1 ? pathParts.slice(1).join('-') : (pathParts[0] === 'dashboard' ? 'dashboard' : pathParts[0]);
-            })));
+            setVisibleItems(allItems);
           }
         } else {
-          // لا توجد إعدادات: عرض كل شيء
-          setVisibleItems(new Set(navigationItems.map(item => {
-            const pathParts = item.href.split('/').filter(p => p);
-            return pathParts.length > 1 ? pathParts.slice(1).join('-') : (pathParts[0] === 'dashboard' ? 'dashboard' : pathParts[0]);
-          })));
+          setVisibleItems(allItems);
         }
+        */
       } catch (error) {
         console.error('Error loading sidebar settings:', error);
         // في حالة الخطأ: عرض كل شيء
-        setVisibleItems(new Set(navigationItems.map(item => {
+        const allItems = new Set<string>(navigationItems.map(item => {
           const pathParts = item.href.split('/').filter(p => p);
           return pathParts.length > 1 ? pathParts.slice(1).join('-') : (pathParts[0] === 'dashboard' ? 'dashboard' : pathParts[0]);
-        })));
+        }));
+        setVisibleItems(allItems);
       } finally {
         setLoadingSettings(false);
       }
