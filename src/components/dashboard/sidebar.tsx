@@ -514,6 +514,13 @@ const navigationItems: NavigationItem[] = [
     permission: 'view_reports',
   },
   {
+    icon: Bot,
+    labelKey: 'aiChatbot',
+    descKey: 'aiChatbotDesc',
+    href: '/dashboard/ai-chatbot',
+    permission: 'view_reports',
+  },
+  {
     icon: Settings,
     labelKey: 'settings',
     descKey: 'settingsDesc',
@@ -546,6 +553,13 @@ const navigationItems: NavigationItem[] = [
         labelKey: 'paymentGateways',
         descKey: 'paymentGatewaysDesc',
         href: '/dashboard/settings/payment-gateways',
+        permission: 'manage_general_settings',
+      },
+      {
+        icon: Bot,
+        labelKey: 'aiChatbotConfig',
+        descKey: 'aiChatbotConfigDesc',
+        href: '/dashboard/settings/ai-chatbot-config',
         permission: 'manage_general_settings',
       }
     ]
