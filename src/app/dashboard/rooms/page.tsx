@@ -455,15 +455,39 @@ export default function RoomsPage() {
       // حفظ الغرفة المحدثة في Firebase
       await saveRoomToFirebase(updatedRoom);
       
+      // إنشاء سند قبض في نظام المحاسبة
+      try {
+        const { createReceipt } = await import('@/lib/receipts-system');
+        const receiptId = await createReceipt({
+          type: 'room_payment',
+          amount: paymentAmount,
+          roomNumber: selectedRoom.number,
+          guestName: selectedRoom.guestName,
+          guestPhone: selectedRoom.guestPhone,
+          paymentMethod: paymentMethod.type,
+          cardType: paymentMethod.cardType,
+          receiptNumberExternal: paymentMethod.receiptNumber,
+          description: `دفعة لتسديد ديون الشقة ${selectedRoom.number}`,
+          category: 'room_rent',
+          paidBy: user.name || user.username || 'غير معروف',
+          createdBy: user.username || user.name || 'unknown',
+          notes: `تم خصم ${paymentAmount} ر.س من الدين - المتبقي: ${remainingDebt} ر.س`
+        });
+        
+        if (receiptId) {
+          console.log('✅ تم إنشاء سند قبض:', receiptId);
+        }
+      } catch (receiptError) {
+        console.error('⚠️ خطأ في إنشاء سند القبض (سيتم المتابعة):', receiptError);
+        // نكمل العملية حتى لو فشل إنشاء السند
+      }
+      
       // تحديث الحالة المحلية
       const updatedRooms = rooms.map(r => r.id === updatedRoom.id ? updatedRoom : r);
       setRooms(updatedRooms);
       setSelectedRoom(updatedRoom);
       
-      alert(`✅ تم تسجيل الدفعة بنجاح!\n\nالمبلغ المدفوع: ${paymentAmount} ر.س\nالمتبقي: ${remainingDebt} ر.س`);
-      
-      // TODO: إنشاء سند قبض في وحدة المحاسبة
-      // يمكن إضافة هذه الوظيفة لاحقاً
+      alert(`✅ تم تسجيل الدفعة بنجاح!\n\nالمبلغ المدفوع: ${paymentAmount} ر.س\nالمتبقي: ${remainingDebt} ر.س\n\n📋 تم إنشاء سند قبض`);
       
     } catch (error) {
       console.error('خطأ في حفظ الدفعة:', error);

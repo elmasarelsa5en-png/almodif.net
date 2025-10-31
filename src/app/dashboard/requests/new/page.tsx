@@ -86,6 +86,9 @@ export default function NewRequestPage() {
     description: '', // الحقل الخاص بالملاحظات (سيتم إعادة تسميته)
     priority: 'medium' as 'low' | 'medium' | 'high',
     assignedEmployee: '',
+    addToDebt: false, // إضافة للدين أم لا
+    totalAmount: 0, // المبلغ الإجمالي للطلب
+    paymentMethod: 'debt' as 'debt' | 'cash' | 'card', // طريقة الدفع
   });
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -100,6 +103,19 @@ export default function NewRequestPage() {
       setMenuItems([]);
     }
   }, [selectedCategory]);
+
+  // حساب المبلغ الإجمالي عند تغيير الأصناف المختارة
+  useEffect(() => {
+    if (selectedSubItems.length > 0 && menuItems.length > 0) {
+      const total = selectedSubItems.reduce((sum, itemId) => {
+        const item = menuItems.find(mi => mi.id === itemId);
+        return sum + (item?.price || 0);
+      }, 0);
+      setFormData(prev => ({ ...prev, totalAmount: total }));
+    } else {
+      setFormData(prev => ({ ...prev, totalAmount: 0 }));
+    }
+  }, [selectedSubItems, menuItems]);
 
   const loadMenuItems = async (category: string) => {
     try {
@@ -361,6 +377,41 @@ export default function NewRequestPage() {
 
       if (!docId) {
         throw new Error('فشل حفظ الطلب في Firebase');
+      }
+
+      // إضافة المبلغ لدين الشقة إذا اختار المستخدم ذلك
+      if (formData.paymentMethod === 'debt' && formData.totalAmount > 0 && formData.room) {
+        try {
+          const { getRoomsFromFirebase, saveRoomToFirebase } = await import('@/lib/firebase-sync');
+          const rooms = await getRoomsFromFirebase();
+          const roomToUpdate = rooms.find(r => r.number === formData.room);
+          
+          if (roomToUpdate) {
+            const updatedRoom = {
+              ...roomToUpdate,
+              servicesDebt: (roomToUpdate.servicesDebt || 0) + formData.totalAmount,
+              currentDebt: (roomToUpdate.currentDebt || 0) + formData.totalAmount,
+              lastDebtUpdate: new Date().toISOString(),
+              events: [
+                ...roomToUpdate.events,
+                {
+                  id: Date.now().toString(),
+                  type: 'service_request' as const,
+                  description: `طلب خدمة: ${formData.type} - المبلغ: ${formData.totalAmount} ر.س`,
+                  timestamp: new Date().toISOString(),
+                  user: formData.guest || 'نزيل',
+                  amount: formData.totalAmount
+                }
+              ]
+            };
+            
+            await saveRoomToFirebase(updatedRoom);
+            console.log(`💰 تم إضافة ${formData.totalAmount} ر.س لدين الشقة ${formData.room}`);
+          }
+        } catch (error) {
+          console.error('خطأ في إضافة المبلغ لدين الشقة:', error);
+          // لا نوقف العملية إذا فشل تحديث الدين
+        }
       }
 
       // إرسال إشعار للموظف المحدد
@@ -905,6 +956,70 @@ export default function NewRequestPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Payment Section - يظهر فقط لو فيه أصناف محددة */}
+                {formData.totalAmount > 0 && selectedSubItems.length > 0 && (
+                  <Card className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 backdrop-blur-md border-green-400/30">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-white flex items-center gap-2">
+                        💰 تفاصيل الدفع
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {/* إجمالي المبلغ */}
+                      <div className="bg-white/10 rounded-lg p-4 text-center">
+                        <p className="text-sm text-white/70 mb-1">إجمالي المبلغ</p>
+                        <p className="text-3xl font-bold text-white">{formData.totalAmount} ر.س</p>
+                      </div>
+
+                      {/* طريقة الدفع */}
+                      <div className="space-y-2">
+                        <label className="text-white/80 text-sm font-semibold">طريقة الدفع</label>
+                        <div className="grid grid-cols-3 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'debt' }))}
+                            className={`py-3 px-4 rounded-lg font-semibold transition-all ${
+                              formData.paymentMethod === 'debt'
+                                ? 'bg-red-500/40 border-2 border-red-400 text-red-300'
+                                : 'bg-white/10 border-2 border-white/20 text-white/70 hover:bg-white/20'
+                            }`}
+                          >
+                            📋 إضافة للدين
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'cash' }))}
+                            className={`py-3 px-4 rounded-lg font-semibold transition-all ${
+                              formData.paymentMethod === 'cash'
+                                ? 'bg-green-500/40 border-2 border-green-400 text-green-300'
+                                : 'bg-white/10 border-2 border-white/20 text-white/70 hover:bg-white/20'
+                            }`}
+                          >
+                            💵 نقدي
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'card' }))}
+                            className={`py-3 px-4 rounded-lg font-semibold transition-all ${
+                              formData.paymentMethod === 'card'
+                                ? 'bg-blue-500/40 border-2 border-blue-400 text-blue-300'
+                                : 'bg-white/10 border-2 border-white/20 text-white/70 hover:bg-white/20'
+                            }`}
+                          >
+                            💳 بطاقة
+                          </button>
+                        </div>
+                        {formData.paymentMethod === 'debt' && (
+                          <p className="text-xs text-yellow-300 mt-2">⚠️ سيتم إضافة المبلغ لدين الشقة ويمكن تسديده لاحقاً</p>
+                        )}
+                        {(formData.paymentMethod === 'cash' || formData.paymentMethod === 'card') && (
+                          <p className="text-xs text-green-300 mt-2">✅ تم الدفع فوراً - لن يضاف للدين</p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* Notes/Description */}
                 <div className="space-y-2">
