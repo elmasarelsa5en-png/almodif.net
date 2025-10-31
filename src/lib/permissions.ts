@@ -362,7 +362,6 @@ export const RECEPTION_PERMISSIONS = [
   'view_ratings', 'add_rating',
   'view_loyalty', 'redeem_rewards',
   'view_expense_vouchers', 'create_expense_voucher',
-  'view_payments', 'receive_payment',pense_voucher',
   'view_payments', 'receive_payment',
   'access_sidebar', 'access_top_menu', 'view_dashboard_link', 'view_rooms_link', 'view_requests_link',
 ];

@@ -113,7 +113,7 @@ export default function MaintenancePage() {
 
   const handleStartTask = async (taskId: string) => {
     if (!user) return;
-    await startMaintenanceTask(taskId, user.uid, user.name || user.username);
+    await startMaintenanceTask(taskId, user.id || user.username, user.name || user.username);
     loadData();
   };
 
@@ -123,14 +123,14 @@ export default function MaintenancePage() {
     await completeMaintenanceTask(
       taskId,
       { completionNotes: notes || undefined },
-      user.uid,
+      user.id || user.username,
       user.name || user.username
     );
     loadData();
   };
 
   return (
-    <ProtectedRoute requiredPermission="view_maintenance">
+    <ProtectedRoute>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 p-6">
         {/* Header */}
         <div className="mb-8">

@@ -696,7 +696,19 @@ export async function getVoucherHistory(voucherId: string): Promise<VoucherHisto
       orderBy('timestamp', 'desc')
     );
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as VoucherHistory));
+    return snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        voucherId: data.voucherId,
+        action: data.action,
+        performedBy: data.performedBy,
+        performedByName: data.performedByName,
+        timestamp: data.timestamp,
+        notes: data.notes,
+        amount: data.amount
+      } as VoucherHistory;
+    });
   } catch (error) {
     console.error('Error getting voucher history:', error);
     return [];

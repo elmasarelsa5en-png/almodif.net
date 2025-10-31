@@ -349,9 +349,9 @@ export async function completeMaintenanceTask(
 
     // إنشاء مهمة جديدة إذا كانت متكررة
     if (task.recurrenceType !== 'once' && task.nextScheduledDate) {
+      const { id, ...taskWithoutId } = task;
       await createMaintenanceTask({
-        ...task,
-        id: undefined,
+        ...taskWithoutId,
         status: 'scheduled',
         scheduledDate: task.nextScheduledDate,
         startedAt: undefined,
@@ -631,7 +631,18 @@ export async function getMaintenanceHistory(taskId: string): Promise<Maintenance
       orderBy('timestamp', 'desc')
     );
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MaintenanceHistory));
+    return snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        taskId: data.taskId,
+        action: data.action,
+        performedBy: data.performedBy,
+        performedByName: data.performedByName,
+        timestamp: data.timestamp,
+        notes: data.notes
+      } as MaintenanceHistory;
+    });
   } catch (error) {
     console.error('Error getting maintenance history:', error);
     return [];
