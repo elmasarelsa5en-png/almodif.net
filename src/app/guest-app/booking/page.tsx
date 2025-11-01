@@ -16,6 +16,7 @@ import { useRouter } from 'next/navigation';
 import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
 import { collection, addDoc, query, where, getDocs, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { notificationService } from '@/lib/notifications/notification-service';
 
 interface Room {
   id: string;
@@ -189,6 +190,43 @@ export default function BookingPage() {
       };
 
       const docRef = await addDoc(collection(db, 'bookings'), bookingDoc);
+      
+      // 🔔 إرسال إشعار للإدارة عن الحجز الجديد
+      try {
+        await notificationService.sendNotification('in_app', 'admin', {
+          body: `حجز جديد من ${bookingData.guestName} - غرفة ${selectedRoom.number}`,
+          type: 'booking_confirmation',
+          priority: 'high',
+          metadata: {
+            bookingId: docRef.id,
+            guestName: bookingData.guestName,
+            roomNumber: selectedRoom.number,
+            checkIn: bookingData.checkIn,
+            totalAmount: calculateTotal()
+          }
+        });
+        
+        // تشغيل صوت التنبيه
+        if (typeof window !== 'undefined') {
+          const audio = new Audio('/sounds/notification.mp3');
+          audio.play().catch(err => console.log('Could not play notification sound:', err));
+        }
+      } catch (notifError) {
+        console.error('Error sending notification:', notifError);
+        // لا نوقف عملية الحجز إذا فشل الإشعار
+      }
+      
+      // إرسال إشعار للضيف (WhatsApp/SMS/Email)
+      try {
+        await notificationService.sendBookingConfirmation(
+          docRef.id,
+          bookingData.phone,
+          bookingData.email,
+          bookingData.guestName
+        );
+      } catch (guestNotifError) {
+        console.error('Error sending guest notification:', guestNotifError);
+      }
       
       // حفظ معلومات الضيف في session
       const guestSession = {
