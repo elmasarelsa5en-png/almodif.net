@@ -708,18 +708,18 @@ export default function GuestAppHomePage() {
             >
               <div className="relative bg-gradient-to-r from-slate-800/50 to-slate-900/50 backdrop-blur-xl rounded-3xl overflow-hidden border border-amber-500/20 shadow-2xl p-6">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                  {/* Left Side - Hotel Image */}
+                  {/* Left Side - Hotel Image - BIGGER */}
                   <motion.div
                     initial={{ opacity: 0, x: -50 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3, duration: 0.8 }}
-                    className="lg:col-span-5"
+                    className="lg:col-span-6"
                   >
                     <div className="relative rounded-2xl overflow-hidden shadow-2xl border-2 border-amber-500/30">
                       <img 
                         src="/images/hotel-exterior.jpg"
                         alt="Hotel"
-                        className="w-full h-[350px] object-cover"
+                        className="w-full h-[500px] object-cover"
                         onError={(e) => {
                           const target = e.currentTarget as HTMLImageElement;
                           target.style.display = 'none';
@@ -738,28 +738,28 @@ export default function GuestAppHomePage() {
                       </div>
                       
                       {/* Badge Overlay */}
-                      <div className="absolute top-3 left-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-1.5 rounded-full font-bold shadow-lg flex items-center gap-1.5 text-sm">
-                        <Sparkles className="w-3.5 h-3.5" />
+                      <div className="absolute top-4 left-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-full font-bold shadow-lg flex items-center gap-2">
+                        <Sparkles className="w-4 h-4" />
                         خصم 50%
                       </div>
                       
                       {/* Hotel Info Overlay */}
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-4">
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-5">
                         {hotelSettings.logo && (
-                          <img src={hotelSettings.logo} alt="Logo" className="h-10 mb-2 drop-shadow-lg" />
+                          <img src={hotelSettings.logo} alt="Logo" className="h-12 mb-3 drop-shadow-lg" />
                         )}
-                        <h1 className="text-2xl font-bold text-amber-200 mb-1">
+                        <h1 className="text-3xl font-bold text-amber-200 mb-2">
                           {hotelSettings.hotelName || 'فندق المضيف'}
                         </h1>
-                        <div className="flex items-center gap-1.5 mb-2">
+                        <div className="flex items-center gap-2 mb-2">
                           {[...Array(hotelSettings.rating || 3)].map((_, i) => (
-                            <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                            <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-400" />
                           ))}
                         </div>
                         {guestSession && (
-                          <div className="flex items-center gap-2 text-white text-sm">
-                            <User className="w-4 h-4 text-amber-400" />
-                            <span>{guestSession.name} - الغرفة: {guestSession.roomNumber}</span>
+                          <div className="flex items-center gap-2 text-white">
+                            <User className="w-5 h-5 text-amber-400" />
+                            <span className="text-base">{guestSession.name} - الغرفة: {guestSession.roomNumber}</span>
                           </div>
                         )}
                       </div>
@@ -771,7 +771,7 @@ export default function GuestAppHomePage() {
                     initial={{ opacity: 0, x: 50 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.4, duration: 0.8 }}
-                    className="lg:col-span-7"
+                    className="lg:col-span-6"
                   >
                     <h2 className="text-2xl font-bold text-amber-200 mb-4 flex items-center gap-2">
                       <Sparkles className="w-6 h-6 text-amber-400" />
