@@ -112,7 +112,14 @@ export default function HotelImagesPage() {
       );
       setHeroImages(updatedImages);
 
-      alert('✅ تم رفع الصورة بنجاح!');
+      // حفظ تلقائي في Firebase
+      await setDoc(doc(db, 'settings', 'website-images'), {
+        heroImages: updatedImages,
+        services,
+        updatedAt: Timestamp.now()
+      });
+
+      alert('✅ تم رفع الصورة وحفظها بنجاح!');
     } catch (error) {
       console.error('Error uploading hero image:', error);
       alert('❌ حدث خطأ في رفع الصورة');
@@ -136,7 +143,14 @@ export default function HotelImagesPage() {
       );
       setServices(updatedServices);
 
-      alert('✅ تم رفع صورة الخدمة بنجاح!');
+      // حفظ تلقائي في Firebase
+      await setDoc(doc(db, 'settings', 'website-images'), {
+        heroImages,
+        services: updatedServices,
+        updatedAt: Timestamp.now()
+      });
+
+      alert('✅ تم رفع صورة الخدمة وحفظها بنجاح!');
     } catch (error) {
       console.error('Error uploading service image:', error);
       alert('❌ حدث خطأ في رفع الصورة');
@@ -145,11 +159,24 @@ export default function HotelImagesPage() {
     }
   };
 
-  const handleServiceTitleChange = (serviceId: string, newTitle: string) => {
+  const handleServiceTitleChange = async (serviceId: string, newTitle: string) => {
     const updatedServices = services.map(service =>
       service.id === serviceId ? { ...service, title: newTitle } : service
     );
     setServices(updatedServices);
+    
+    // حفظ تلقائي بعد ثانية واحدة (debounce)
+    setTimeout(async () => {
+      try {
+        await setDoc(doc(db, 'settings', 'website-images'), {
+          heroImages,
+          services: updatedServices,
+          updatedAt: Timestamp.now()
+        });
+      } catch (error) {
+        console.error('Error saving service title:', error);
+      }
+    }, 1000);
   };
 
   const handleSave = async () => {

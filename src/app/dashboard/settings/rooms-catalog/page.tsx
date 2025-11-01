@@ -68,7 +68,7 @@ export default function RoomsCatalogPage() {
       }
 
       try {
-        const roomsCollection = collection(db, 'rooms');
+        const roomsCollection = collection(db, 'rooms_catalog');
         const querySnapshot = await getDocs(roomsCollection);
         
         const loadedRooms: Room[] = [];
@@ -96,7 +96,7 @@ export default function RoomsCatalogPage() {
     }
 
     try {
-      const roomRef = doc(db, 'rooms', room.id);
+      const roomRef = doc(db, 'rooms_catalog', room.id);
       await setDoc(roomRef, room);
       console.log('✅ تم حفظ الغرفة في Firebase');
       return true;
@@ -115,7 +115,7 @@ export default function RoomsCatalogPage() {
     }
 
     try {
-      const roomRef = doc(db, 'rooms', roomId);
+      const roomRef = doc(db, 'rooms_catalog', roomId);
       await deleteDoc(roomRef);
       console.log('✅ تم حذف الغرفة من Firebase');
       return true;
@@ -303,36 +303,42 @@ export default function RoomsCatalogPage() {
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-3">
-            <Home className="h-8 w-8 text-blue-600" />
+          <h1 className="text-4xl font-bold flex items-center gap-3 text-gray-900">
+            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center shadow-lg shadow-amber-500/50">
+              <Home className="h-7 w-7 text-white" />
+            </div>
             كتالوج الغرف والشقق
           </h1>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-gray-600 mt-3 text-lg">
             إدارة الغرف والشقق المتاحة في الفندق (محفوظة في Firebase)
           </p>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {!editingRoom && (
             <>
               <Button 
                 onClick={handleSyncToFirebase}
                 disabled={isSyncing || rooms.length === 0}
                 variant="outline"
-                className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                className="border-2 border-amber-500 text-amber-700 hover:bg-amber-50 font-semibold"
               >
                 {isSyncing ? (
-                  <CloudOff className="h-4 w-4 ml-2 animate-pulse" />
+                  <CloudOff className="h-5 w-5 ml-2 animate-pulse" />
                 ) : (
-                  <Cloud className="h-4 w-4 ml-2" />
+                  <Cloud className="h-5 w-5 ml-2" />
                 )}
                 {isSyncing ? 'جاري المزامنة...' : 'مزامنة مع تطبيق النزلاء'}
               </Button>
               
-              <Button onClick={handleAddNew} size="lg">
-                <Plus className="h-4 w-4 ml-2" />
+              <Button 
+                onClick={handleAddNew} 
+                size="lg"
+                className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold shadow-lg"
+              >
+                <Plus className="h-5 w-5 ml-2" />
                 إضافة غرفة جديدة
               </Button>
             </>
@@ -352,63 +358,71 @@ export default function RoomsCatalogPage() {
       )}
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <Card className="border-2 border-amber-100 hover:shadow-lg transition-shadow">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">إجمالي الغرف</p>
-                <p className="text-2xl font-bold">{rooms.length}</p>
+                <p className="text-sm font-semibold text-gray-600 mb-1">إجمالي الغرف</p>
+                <p className="text-3xl font-bold text-gray-900">{rooms.length}</p>
               </div>
-              <Home className="h-8 w-8 text-blue-600 opacity-20" />
+              <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center">
+                <Home className="h-7 w-7 text-amber-700" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-2 border-green-100 hover:shadow-lg transition-shadow">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">الغرف المتاحة</p>
-                <p className="text-2xl font-bold text-green-600">
+                <p className="text-sm font-semibold text-gray-600 mb-1">الغرف المتاحة</p>
+                <p className="text-3xl font-bold text-green-700">
                   {rooms.filter(r => r.available).length}
                 </p>
               </div>
-              <Check className="h-8 w-8 text-green-600 opacity-20" />
+              <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center">
+                <Check className="h-7 w-7 text-green-700" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-2 border-purple-100 hover:shadow-lg transition-shadow">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">متوسط المساحة</p>
-                <p className="text-2xl font-bold">
+                <p className="text-sm font-semibold text-gray-600 mb-1">متوسط المساحة</p>
+                <p className="text-3xl font-bold text-purple-700">
                   {rooms.length > 0 
                     ? Math.round(rooms.reduce((sum, r) => sum + r.area, 0) / rooms.length)
                     : 0
                   } م²
                 </p>
               </div>
-              <Ruler className="h-8 w-8 text-purple-600 opacity-20" />
+              <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center">
+                <Ruler className="h-7 w-7 text-purple-700" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-2 border-blue-100 hover:shadow-lg transition-shadow">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">متوسط السعر</p>
-                <p className="text-2xl font-bold">
+                <p className="text-sm font-semibold text-gray-600 mb-1">متوسط السعر</p>
+                <p className="text-3xl font-bold text-blue-700">
                   {rooms.length > 0
                     ? Math.round(rooms.reduce((sum, r) => sum + r.price.daily, 0) / rooms.length)
                     : 0
                   } ر.س
                 </p>
               </div>
-              <DollarSign className="h-8 w-8 text-yellow-600 opacity-20" />
+              <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+                <DollarSign className="h-7 w-7 text-blue-700" />
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -759,61 +773,71 @@ export default function RoomsCatalogPage() {
       {/* Rooms List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {rooms.map(room => (
-          <Card key={room.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-            <div className="relative">
+          <Card key={room.id} className="overflow-hidden hover:shadow-2xl transition-all duration-300 border-2 border-gray-100 hover:border-amber-200 group">
+            <div className="relative overflow-hidden">
               {room.images.length > 0 ? (
                 <img 
                   src={room.images[0].url} 
                   alt={room.name}
-                  className="w-full h-48 object-cover"
+                  className="w-full h-56 object-cover group-hover:scale-110 transition-transform duration-500"
                 />
               ) : (
-                <div className="w-full h-48 bg-muted flex items-center justify-center">
-                  <ImageIcon className="h-12 w-12 text-muted-foreground" />
+                <div className="w-full h-56 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                  <ImageIcon className="h-16 w-16 text-gray-400" />
                 </div>
               )}
-              <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              
+              <div className="absolute top-3 right-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg">
                 {room.type}
               </div>
               {!room.available && (
-                <div className="absolute top-2 left-2 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                <div className="absolute top-3 left-3 bg-red-500 text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg">
                   غير متاحة
                 </div>
               )}
             </div>
             
-            <CardContent className="p-4">
-              <h3 className="text-xl font-bold mb-2">{room.name}</h3>
-              <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+            <CardContent className="p-5">
+              <h3 className="text-2xl font-bold mb-2 text-gray-900 group-hover:text-amber-600 transition-colors">{room.name}</h3>
+              <p className="text-sm text-gray-600 mb-4 line-clamp-2 leading-relaxed">
                 {room.description}
               </p>
               
-              <div className="space-y-2 mb-4">
-                <div className="flex items-center gap-2 text-sm">
-                  <Ruler className="h-4 w-4 text-muted-foreground" />
-                  <span>{room.area} م²</span>
+              <div className="space-y-3 mb-5">
+                <div className="flex items-center gap-3 text-sm bg-gray-50 p-2 rounded-lg">
+                  <div className="h-8 w-8 rounded-lg bg-purple-100 flex items-center justify-center">
+                    <Ruler className="h-4 w-4 text-purple-700" />
+                  </div>
+                  <span className="font-semibold text-gray-900">{room.area} م²</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                  <span>حتى {room.maxGuests} نزلاء</span>
+                <div className="flex items-center gap-3 text-sm bg-gray-50 p-2 rounded-lg">
+                  <div className="h-8 w-8 rounded-lg bg-green-100 flex items-center justify-center">
+                    <Users className="h-4 w-4 text-green-700" />
+                  </div>
+                  <span className="font-semibold text-gray-900">حتى {room.maxGuests} نزلاء</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Bed className="h-4 w-4 text-muted-foreground" />
-                  <span>
+                <div className="flex items-center gap-3 text-sm bg-gray-50 p-2 rounded-lg">
+                  <div className="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                    <Bed className="h-4 w-4 text-blue-700" />
+                  </div>
+                  <span className="font-semibold text-gray-900">
                     {room.beds.double > 0 && `${room.beds.double} مزدوج`}
                     {room.beds.single > 0 && ` ${room.beds.single} مفرد`}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-lg font-bold text-blue-600">
-                  <DollarSign className="h-5 w-5" />
-                  <span>{room.price.daily} ر.س / ليلة</span>
-                </div>
+              </div>
+
+              <div className="flex items-center gap-2 mb-5 p-3 bg-gradient-to-r from-amber-50 to-amber-100 rounded-xl border-2 border-amber-200">
+                <DollarSign className="h-6 w-6 text-amber-700" />
+                <span className="text-2xl font-bold text-amber-900">{room.price.daily}</span>
+                <span className="text-amber-700 font-semibold">ر.س / ليلة</span>
               </div>
 
               <div className="flex gap-2">
                 <Button 
                   variant="outline" 
-                  className="flex-1"
+                  className="flex-1 border-2 border-amber-300 text-amber-700 hover:bg-amber-50 font-semibold"
                   onClick={() => {
                     setEditingRoom(room);
                     setIsAddingNew(false);
@@ -824,7 +848,7 @@ export default function RoomsCatalogPage() {
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="text-red-600 hover:bg-red-50"
+                  className="border-2 border-red-300 text-red-700 hover:bg-red-50 font-semibold"
                   onClick={() => handleDelete(room.id)}
                 >
                   <Trash2 className="h-4 w-4" />
