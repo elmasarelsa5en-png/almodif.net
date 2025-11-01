@@ -1,12 +1,13 @@
 ﻿'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Calendar as CalendarIcon, Building2, Users, Save, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar as CalendarIcon, Building2, Users, Save, Plus, ChevronLeft, ChevronRight, Copy, Filter, BarChart3, Sparkles, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { db } from '@/lib/firebase';
 import { collection, doc, setDoc, getDoc, getDocs } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
@@ -58,6 +59,30 @@ export default function CalendarPage() {
   const [showBulkDialog, setShowBulkDialog] = useState(false);
   const [bulkPrice, setBulkPrice] = useState<number>(300);
   const [bulkUnits, setBulkUnits] = useState<number>(5);
+  
+  // Feature dialogs
+  const [showCopyWeekDialog, setShowCopyWeekDialog] = useState(false);
+  const [showCopyMonthDialog, setShowCopyMonthDialog] = useState(false);
+  const [showFilterDialog, setShowFilterDialog] = useState(false);
+  const [showStatsDialog, setShowStatsDialog] = useState(false);
+  const [showHolidaysDialog, setShowHolidaysDialog] = useState(false);
+  const [showDayEditDialog, setShowDayEditDialog] = useState(false);
+  
+  // Filter state
+  const [visiblePlatforms, setVisiblePlatforms] = useState<Set<string>>(
+    new Set(PLATFORMS.map(p => p.id))
+  );
+  
+  // Copy week state
+  const [selectedWeekStart, setSelectedWeekStart] = useState<number>(1);
+  
+  // Copy month state
+  const [targetMonth, setTargetMonth] = useState<Date>(new Date());
+  
+  // Day edit state
+  const [selectedDay, setSelectedDay] = useState<string>('');
+  const [dayEditPrice, setDayEditPrice] = useState<number>(300);
+  const [dayEditUnits, setDayEditUnits] = useState<number>(5);
 
   const monthNames = ['يناير', 'فبراير', 'مارس', 'إبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
   const weekDays = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
@@ -368,6 +393,178 @@ export default function CalendarPage() {
     setSelectionStart(null);
   };
 
+  // Copy Week functionality
+  const copyWeekToMonth = () => {
+    const weekData = calendarData.filter(d => {
+      const day = parseInt(d.date.split('-')[2]);
+      return day >= selectedWeekStart && day < selectedWeekStart + 7;
+    });
+    
+    if (weekData.length === 0) {
+      alert('⚠️ لا توجد بيانات للأسبوع المحدد');
+      return;
+    }
+    
+    const updatedData = [...calendarData];
+    const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+    
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const dayIndex = updatedData.findIndex(d => d.date === dateStr);
+      
+      if (dayIndex !== -1) {
+        const weekDayIndex = (day - selectedWeekStart) % 7;
+        const sourceDay = weekData[weekDayIndex >= 0 ? weekDayIndex : weekDayIndex + 7];
+        
+        if (sourceDay) {
+          updatedData[dayIndex].platforms = sourceDay.platforms.map(p => ({...p}));
+        }
+      }
+    }
+    
+    setCalendarData(updatedData);
+    saveToFirebase(updatedData);
+    setShowCopyWeekDialog(false);
+    alert('✅ تم نسخ الأسبوع بنجاح!');
+  };
+
+  // Copy Month functionality
+  const copyMonthToAnother = async () => {
+    const sourceMonthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+    const targetMonthKey = `${targetMonth.getFullYear()}-${String(targetMonth.getMonth() + 1).padStart(2, '0')}`;
+    
+    if (sourceMonthKey === targetMonthKey) {
+      alert('⚠️ اختر شهراً مختلفاً');
+      return;
+    }
+    
+    try {
+      const sourceDoc = await getDoc(doc(db, 'calendar_availability', sourceMonthKey));
+      
+      if (!sourceDoc.exists()) {
+        alert('⚠️ لا توجد بيانات للشهر الحالي');
+        return;
+      }
+      
+      const sourceData = sourceDoc.data();
+      const targetDaysInMonth = new Date(targetMonth.getFullYear(), targetMonth.getMonth() + 1, 0).getDate();
+      
+      const newData: DayData[] = [];
+      
+      for (let day = 1; day <= targetDaysInMonth; day++) {
+        const dateStr = `${targetMonth.getFullYear()}-${String(targetMonth.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        
+        const sourceDay = sourceData.pricesData?.find((d: DayData) => 
+          parseInt(d.date.split('-')[2]) === day && d.roomTypeId === selectedRoom
+        );
+        
+        if (sourceDay) {
+          newData.push({
+            ...sourceDay,
+            date: dateStr
+          });
+        }
+      }
+      
+      await setDoc(doc(db, 'calendar_availability', targetMonthKey), {
+        pricesData: newData,
+        prices: []
+      }, { merge: true });
+      
+      setShowCopyMonthDialog(false);
+      alert('✅ تم نسخ الشهر بنجاح!');
+    } catch (error) {
+      console.error('❌ خطأ:', error);
+      alert('❌ فشل نسخ الشهر');
+    }
+  };
+
+  // Edit all platforms in a day
+  const openDayEdit = (dateStr: string) => {
+    const dayData = getDayData(dateStr);
+    if (dayData && dayData.platforms.length > 0) {
+      setSelectedDay(dateStr);
+      setDayEditPrice(dayData.platforms[0].price);
+      setDayEditUnits(dayData.platforms[0].units);
+      setShowDayEditDialog(true);
+    }
+  };
+
+  const applyDayEdit = () => {
+    const updatedData = calendarData.map(day => {
+      if (day.date === selectedDay) {
+        return {
+          ...day,
+          platforms: day.platforms.map(p => ({
+            ...p,
+            price: dayEditPrice,
+            units: dayEditUnits
+          }))
+        };
+      }
+      return day;
+    });
+    
+    setCalendarData(updatedData);
+    saveToFirebase(updatedData);
+    setShowDayEditDialog(false);
+    alert('✅ تم تحديث جميع المنصات!');
+  };
+
+  // Calculate statistics
+  const getStats = () => {
+    if (calendarData.length === 0) return null;
+    
+    let totalPrice = 0;
+    let totalUnits = 0;
+    let availableDays = 0;
+    let count = 0;
+    
+    calendarData.forEach(day => {
+      day.platforms.forEach(platform => {
+        if (visiblePlatforms.has(platform.platformId)) {
+          totalPrice += platform.price;
+          totalUnits += platform.units;
+          if (platform.available) availableDays++;
+          count++;
+        }
+      });
+    });
+    
+    return {
+      avgPrice: Math.round(totalPrice / count),
+      avgUnits: Math.round(totalUnits / count),
+      availableDays,
+      totalDays: count,
+      occupancyRate: Math.round((availableDays / count) * 100)
+    };
+  };
+
+  // Holiday presets
+  const applyHolidayPricing = (holidayType: string) => {
+    let multiplier = 1;
+    
+    switch (holidayType) {
+      case 'eid': multiplier = 2; break;
+      case 'weekend': multiplier = 1.5; break;
+      case 'summer': multiplier = 1.3; break;
+      case 'winter': multiplier = 0.8; break;
+    }
+    
+    const updatedData = calendarData.map(day => ({
+      ...day,
+      platforms: day.platforms.map(p => ({
+        ...p,
+        price: Math.round(p.price * multiplier)
+      }))
+    }));
+    
+    setCalendarData(updatedData);
+    saveToFirebase(updatedData);
+    setShowHolidaysDialog(false);
+    alert(`✅ تم تطبيق أسعار ${holidayType === 'eid' ? 'العيد' : holidayType === 'weekend' ? 'نهاية الأسبوع' : holidayType === 'summer' ? 'الصيف' : 'الشتاء'}!`);
+  };
+
   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
 
   return (
@@ -379,6 +576,59 @@ export default function CalendarPage() {
               <CalendarIcon className="w-8 h-8" />
               تقويم الأسعار والتوافر
             </CardTitle>
+            
+            {/* Quick Action Buttons */}
+            <div className="flex flex-wrap gap-2 mt-4">
+              <Button 
+                onClick={() => setShowCopyWeekDialog(true)}
+                variant="outline" 
+                className="text-white border-white/20 hover:bg-white/10"
+                size="sm"
+              >
+                <Copy className="w-4 h-4 ml-2" />
+                نسخ أسبوع
+              </Button>
+              
+              <Button 
+                onClick={() => setShowCopyMonthDialog(true)}
+                variant="outline" 
+                className="text-white border-white/20 hover:bg-white/10"
+                size="sm"
+              >
+                <CalendarIcon className="w-4 h-4 ml-2" />
+                نسخ شهر
+              </Button>
+              
+              <Button 
+                onClick={() => setShowFilterDialog(true)}
+                variant="outline" 
+                className="text-white border-white/20 hover:bg-white/10"
+                size="sm"
+              >
+                <Filter className="w-4 h-4 ml-2" />
+                فلترة المنصات
+              </Button>
+              
+              <Button 
+                onClick={() => setShowStatsDialog(true)}
+                variant="outline" 
+                className="text-white border-white/20 hover:bg-white/10"
+                size="sm"
+              >
+                <BarChart3 className="w-4 h-4 ml-2" />
+                الإحصائيات
+              </Button>
+              
+              <Button 
+                onClick={() => setShowHolidaysDialog(true)}
+                variant="outline" 
+                className="text-white border-white/20 hover:bg-white/10"
+                size="sm"
+              >
+                <Sparkles className="w-4 h-4 ml-2" />
+                أسعار المناسبات
+              </Button>
+            </div>
           </CardHeader>
         </Card>
 
@@ -450,11 +700,11 @@ export default function CalendarPage() {
             <CardContent className="p-0">
               {calendarData.length > 0 ? (
                 <div className="overflow-x-auto">
-                  <div className="grid border-b border-white/20 bg-white/5" style={{ gridTemplateColumns: `150px repeat(${PLATFORMS.length}, 120px)` }}>
+                  <div className="grid border-b border-white/20 bg-white/5" style={{ gridTemplateColumns: `150px repeat(${PLATFORMS.filter(p => visiblePlatforms.has(p.id)).length}, 120px)` }}>
                     <div className="p-3 border-l border-white/20 text-white font-bold sticky right-0 bg-slate-800">
                       التاريخ
                     </div>
-                    {PLATFORMS.map(platform => (
+                    {PLATFORMS.filter(p => visiblePlatforms.has(p.id)).map(platform => (
                       <div key={platform.id} className="p-3 border-l border-white/20 text-white text-center text-sm font-bold">
                         {platform.name}
                       </div>
@@ -476,14 +726,19 @@ export default function CalendarPage() {
                             "grid border-b border-white/10",
                             isWeekend && "bg-orange-500/5"
                           )}
-                          style={{ gridTemplateColumns: `150px repeat(${PLATFORMS.length}, 120px)` }}
+                          style={{ gridTemplateColumns: `150px repeat(${PLATFORMS.filter(p => visiblePlatforms.has(p.id)).length}, 120px)` }}
                         >
-                          <div className="p-3 border-l border-white/20 sticky right-0 bg-slate-800/90">
+                          <div 
+                            className="p-3 border-l border-white/20 sticky right-0 bg-slate-800/90 cursor-pointer hover:bg-slate-700/90"
+                            onClick={() => openDayEdit(dateStr)}
+                            title="اضغط لتعديل جميع المنصات في هذا اليوم"
+                          >
                             <div className="text-white font-bold text-lg">{day}</div>
                             <div className="text-white/60 text-xs">{weekDays[dayOfWeek]}</div>
+                            <div className="text-blue-400 text-xs mt-1">✏️ تعديل الكل</div>
                           </div>
 
-                          {PLATFORMS.map(platform => {
+                          {PLATFORMS.filter(p => visiblePlatforms.has(p.id)).map(platform => {
                             const platformData = dayData?.platforms.find(p => p.platformId === platform.id);
                             const cellId = getCellId(dateStr, platform.id);
                             const isSelected = selectedCells.has(cellId);
@@ -607,6 +862,315 @@ export default function CalendarPage() {
               className="bg-blue-500 hover:bg-blue-600 text-white"
             >
               تطبيق على الكل
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Copy Week Dialog */}
+      <Dialog open={showCopyWeekDialog} onOpenChange={setShowCopyWeekDialog}>
+        <DialogContent className="bg-slate-800 text-white border-white/20">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">نسخ أسبوع إلى الشهر كامل</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <Label className="text-white">اختر اليوم الأول من الأسبوع (1-30)</Label>
+            <Input
+              type="number"
+              min="1"
+              max={daysInMonth - 6}
+              value={selectedWeekStart}
+              onChange={(e) => setSelectedWeekStart(Number(e.target.value))}
+              className="bg-white/10 border-white/20 text-white"
+            />
+            <p className="text-sm text-white/60">
+              سيتم نسخ الأيام من {selectedWeekStart} إلى {selectedWeekStart + 6} على باقي الشهر
+            </p>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              onClick={() => setShowCopyWeekDialog(false)}
+              variant="outline"
+              className="border-white/20 text-white hover:bg-white/10"
+            >
+              إلغاء
+            </Button>
+            <Button
+              onClick={copyWeekToMonth}
+              className="bg-purple-500 hover:bg-purple-600 text-white"
+            >
+              <Copy className="w-4 h-4 ml-2" />
+              نسخ الأسبوع
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Copy Month Dialog */}
+      <Dialog open={showCopyMonthDialog} onOpenChange={setShowCopyMonthDialog}>
+        <DialogContent className="bg-slate-800 text-white border-white/20">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">نسخ الشهر الحالي إلى شهر آخر</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label className="text-white">الشهر المستهدف</Label>
+              <select
+                value={targetMonth.getMonth()}
+                onChange={(e) => {
+                  const newDate = new Date(targetMonth);
+                  newDate.setMonth(Number(e.target.value));
+                  setTargetMonth(newDate);
+                }}
+                className="w-full p-2 bg-white/10 border border-white/20 text-white rounded"
+              >
+                {monthNames.map((name, idx) => (
+                  <option key={idx} value={idx} className="bg-slate-800">{name}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label className="text-white">السنة</Label>
+              <Input
+                type="number"
+                min="2024"
+                max="2030"
+                value={targetMonth.getFullYear()}
+                onChange={(e) => {
+                  const newDate = new Date(targetMonth);
+                  newDate.setFullYear(Number(e.target.value));
+                  setTargetMonth(newDate);
+                }}
+                className="bg-white/10 border-white/20 text-white"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              onClick={() => setShowCopyMonthDialog(false)}
+              variant="outline"
+              className="border-white/20 text-white hover:bg-white/10"
+            >
+              إلغاء
+            </Button>
+            <Button
+              onClick={copyMonthToAnother}
+              className="bg-purple-500 hover:bg-purple-600 text-white"
+            >
+              <CalendarIcon className="w-4 h-4 ml-2" />
+              نسخ الشهر
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Filter Platforms Dialog */}
+      <Dialog open={showFilterDialog} onOpenChange={setShowFilterDialog}>
+        <DialogContent className="bg-slate-800 text-white border-white/20">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">فلترة المنصات</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-3 py-4">
+            {PLATFORMS.map(platform => (
+              <div key={platform.id} className="flex items-center gap-3">
+                <Checkbox
+                  id={platform.id}
+                  checked={visiblePlatforms.has(platform.id)}
+                  onCheckedChange={(checked) => {
+                    const newSet = new Set(visiblePlatforms);
+                    if (checked) {
+                      newSet.add(platform.id);
+                    } else {
+                      newSet.delete(platform.id);
+                    }
+                    setVisiblePlatforms(newSet);
+                  }}
+                  className="border-white/20"
+                />
+                <Label htmlFor={platform.id} className="text-white cursor-pointer">
+                  {platform.name}
+                </Label>
+              </div>
+            ))}
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              onClick={() => setVisiblePlatforms(new Set(PLATFORMS.map(p => p.id)))}
+              variant="outline"
+              className="border-white/20 text-white hover:bg-white/10"
+            >
+              <Eye className="w-4 h-4 ml-2" />
+              إظهار الكل
+            </Button>
+            <Button
+              onClick={() => setShowFilterDialog(false)}
+              className="bg-blue-500 hover:bg-blue-600 text-white"
+            >
+              تطبيق
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Statistics Dialog */}
+      <Dialog open={showStatsDialog} onOpenChange={setShowStatsDialog}>
+        <DialogContent className="bg-slate-800 text-white border-white/20">
+          <DialogHeader>
+            <DialogTitle className="text-2xl flex items-center gap-2">
+              <BarChart3 className="w-6 h-6" />
+              إحصائيات الشهر
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {getStats() && (
+              <>
+                <div className="p-4 bg-blue-500/20 rounded-lg">
+                  <div className="text-sm text-white/60">متوسط السعر</div>
+                  <div className="text-3xl font-bold text-white">{getStats()?.avgPrice} ريال</div>
+                </div>
+                
+                <div className="p-4 bg-green-500/20 rounded-lg">
+                  <div className="text-sm text-white/60">متوسط الوحدات المتاحة</div>
+                  <div className="text-3xl font-bold text-white">{getStats()?.avgUnits} وحدة</div>
+                </div>
+                
+                <div className="p-4 bg-purple-500/20 rounded-lg">
+                  <div className="text-sm text-white/60">نسبة التوافر</div>
+                  <div className="text-3xl font-bold text-white">{getStats()?.occupancyRate}%</div>
+                </div>
+                
+                <div className="p-4 bg-orange-500/20 rounded-lg">
+                  <div className="text-sm text-white/60">الأيام المتاحة</div>
+                  <div className="text-3xl font-bold text-white">{getStats()?.availableDays} / {getStats()?.totalDays}</div>
+                </div>
+              </>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              onClick={() => setShowStatsDialog(false)}
+              className="bg-blue-500 hover:bg-blue-600 text-white"
+            >
+              إغلاق
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Holidays Dialog */}
+      <Dialog open={showHolidaysDialog} onOpenChange={setShowHolidaysDialog}>
+        <DialogContent className="bg-slate-800 text-white border-white/20">
+          <DialogHeader>
+            <DialogTitle className="text-2xl flex items-center gap-2">
+              <Sparkles className="w-6 h-6" />
+              أسعار المناسبات الخاصة
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-3 py-4">
+            <Button
+              onClick={() => applyHolidayPricing('eid')}
+              className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
+            >
+              <Sparkles className="w-4 h-4 ml-2" />
+              أسعار العيد (× 2)
+            </Button>
+            
+            <Button
+              onClick={() => applyHolidayPricing('weekend')}
+              className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+            >
+              نهاية الأسبوع (× 1.5)
+            </Button>
+            
+            <Button
+              onClick={() => applyHolidayPricing('summer')}
+              className="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600"
+            >
+              الصيف (× 1.3)
+            </Button>
+            
+            <Button
+              onClick={() => applyHolidayPricing('winter')}
+              className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600"
+            >
+              الشتاء (× 0.8)
+            </Button>
+          </div>
+
+          <DialogFooter>
+            <Button
+              onClick={() => setShowHolidaysDialog(false)}
+              variant="outline"
+              className="border-white/20 text-white hover:bg-white/10"
+            >
+              إلغاء
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Day Edit All Platforms Dialog */}
+      <Dialog open={showDayEditDialog} onOpenChange={setShowDayEditDialog}>
+        <DialogContent className="bg-slate-800 text-white border-white/20">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">
+              تعديل جميع المنصات - {selectedDay}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="dayPrice" className="text-white">
+                السعر لجميع المنصات (ريال)
+              </Label>
+              <Input
+                id="dayPrice"
+                type="number"
+                value={dayEditPrice}
+                onChange={(e) => setDayEditPrice(Number(e.target.value))}
+                className="bg-white/10 border-white/20 text-white"
+                min="0"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="dayUnits" className="text-white">
+                عدد الوحدات لجميع المنصات
+              </Label>
+              <Input
+                id="dayUnits"
+                type="number"
+                value={dayEditUnits}
+                onChange={(e) => setDayEditUnits(Number(e.target.value))}
+                className="bg-white/10 border-white/20 text-white"
+                min="0"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              onClick={() => setShowDayEditDialog(false)}
+              variant="outline"
+              className="border-white/20 text-white hover:bg-white/10"
+            >
+              إلغاء
+            </Button>
+            <Button
+              onClick={applyDayEdit}
+              className="bg-green-500 hover:bg-green-600 text-white"
+            >
+              تطبيق على جميع المنصات
             </Button>
           </DialogFooter>
         </DialogContent>
