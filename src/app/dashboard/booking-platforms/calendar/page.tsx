@@ -5,6 +5,8 @@ import { Calendar as CalendarIcon, Building2, Users, Save, Plus, ChevronLeft, Ch
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { db } from '@/lib/firebase';
 import { collection, doc, setDoc, getDoc, getDocs } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
@@ -48,6 +50,14 @@ export default function CalendarPage() {
   const [selectedRoom, setSelectedRoom] = useState<string>('');
   const [calendarData, setCalendarData] = useState<DayData[]>([]);
   const [loading, setLoading] = useState(false);
+  
+  // Mouse selection states
+  const [isSelecting, setIsSelecting] = useState(false);
+  const [selectedCells, setSelectedCells] = useState<Set<string>>(new Set());
+  const [selectionStart, setSelectionStart] = useState<{date: string, platform: string} | null>(null);
+  const [showBulkDialog, setShowBulkDialog] = useState(false);
+  const [bulkPrice, setBulkPrice] = useState<number>(300);
+  const [bulkUnits, setBulkUnits] = useState<number>(5);
 
   const monthNames = ['يناير', 'فبراير', 'مارس', 'إبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
   const weekDays = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
@@ -57,10 +67,22 @@ export default function CalendarPage() {
   }, []);
 
   useEffect(() => {
-    if (selectedRoom) {
+    if (currentDate && selectedRoom) {
       loadCalendarData();
     }
   }, [currentDate, selectedRoom]);
+
+  // Global mouse up handler
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      if (isSelecting) {
+        handleMouseUp();
+      }
+    };
+
+    document.addEventListener('mouseup', handleGlobalMouseUp);
+    return () => document.removeEventListener('mouseup', handleGlobalMouseUp);
+  }, [isSelecting, selectedCells]);
 
   const loadRoomTypes = async () => {
     try {
@@ -254,6 +276,74 @@ export default function CalendarPage() {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
   };
 
+  // Mouse selection handlers
+  const getCellId = (date: string, platformId: string) => `${date}-${platformId}`;
+
+  const handleMouseDown = (date: string, platformId: string) => {
+    setIsSelecting(true);
+    setSelectionStart({ date, platform: platformId });
+    const cellId = getCellId(date, platformId);
+    setSelectedCells(new Set([cellId]));
+  };
+
+  const handleMouseEnter = (date: string, platformId: string) => {
+    if (!isSelecting || !selectionStart) return;
+    
+    // Only select cells in the same platform
+    if (selectionStart.platform !== platformId) return;
+
+    const cellId = getCellId(date, platformId);
+    setSelectedCells(prev => new Set([...prev, cellId]));
+  };
+
+  const handleMouseUp = () => {
+    if (isSelecting && selectedCells.size > 0) {
+      setIsSelecting(false);
+      
+      // Get first selected cell data to use as default values
+      const firstCell = Array.from(selectedCells)[0];
+      const [dateStr, platformId] = firstCell.split('-');
+      const dayData = getDayData(dateStr);
+      const platformData = dayData?.platforms.find(p => p.platformId === platformId);
+      
+      if (platformData) {
+        setBulkPrice(platformData.price);
+        setBulkUnits(platformData.units);
+      }
+      
+      setShowBulkDialog(true);
+    }
+  };
+
+  const applyBulkEdit = () => {
+    const updatedData = [...calendarData];
+    
+    selectedCells.forEach(cellId => {
+      const [dateStr, platformId] = cellId.split('-');
+      const dayIndex = updatedData.findIndex(d => d.date === dateStr);
+      
+      if (dayIndex !== -1) {
+        const platformIndex = updatedData[dayIndex].platforms.findIndex(p => p.platformId === platformId);
+        if (platformIndex !== -1) {
+          updatedData[dayIndex].platforms[platformIndex].price = bulkPrice;
+          updatedData[dayIndex].platforms[platformIndex].units = bulkUnits;
+        }
+      }
+    });
+    
+    setCalendarData(updatedData);
+    saveToFirebase();
+    setShowBulkDialog(false);
+    setSelectedCells(new Set());
+    setSelectionStart(null);
+  };
+
+  const cancelBulkEdit = () => {
+    setShowBulkDialog(false);
+    setSelectedCells(new Set());
+    setSelectionStart(null);
+  };
+
   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
 
   return (
@@ -371,22 +461,29 @@ export default function CalendarPage() {
 
                           {PLATFORMS.map(platform => {
                             const platformData = dayData?.platforms.find(p => p.platformId === platform.id);
+                            const cellId = getCellId(dateStr, platform.id);
+                            const isSelected = selectedCells.has(cellId);
 
                             return (
                               <div
                                 key={platform.id}
                                 className={cn(
-                                  "p-2 border-l border-white/10",
-                                  !platformData?.available && "bg-red-500/10"
+                                  "p-2 border-l border-white/10 cursor-pointer transition-colors select-none",
+                                  !platformData?.available && "bg-red-500/10",
+                                  isSelected && "bg-blue-500/30 ring-2 ring-blue-400"
                                 )}
+                                onMouseDown={() => handleMouseDown(dateStr, platform.id)}
+                                onMouseEnter={() => handleMouseEnter(dateStr, platform.id)}
+                                onMouseUp={handleMouseUp}
                               >
                                 {platformData && (
-                                  <div className="space-y-1">
+                                  <div className="space-y-1 pointer-events-none">
                                     <Input
                                       type="number"
                                       value={platformData.price}
                                       onChange={(e) => updatePrice(dateStr, platform.id, Number(e.target.value))}
-                                      className="h-8 text-sm bg-white/10 border-white/20 text-white text-center"
+                                      className="h-8 text-sm bg-white/10 border-white/20 text-white text-center pointer-events-auto"
+                                      onClick={(e) => e.stopPropagation()}
                                     />
                                     
                                     <div className="flex items-center justify-center gap-1 text-white/80 text-xs">
@@ -395,10 +492,13 @@ export default function CalendarPage() {
                                     </div>
 
                                     <Button
-                                      onClick={() => toggleAvailability(dateStr, platform.id)}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleAvailability(dateStr, platform.id);
+                                      }}
                                       size="sm"
                                       className={cn(
-                                        "w-full h-6 text-xs",
+                                        "w-full h-6 text-xs pointer-events-auto",
                                         platformData.available
                                           ? "bg-green-500/20 hover:bg-green-500/30 text-green-300"
                                           : "bg-red-500/20 hover:bg-red-500/30 text-red-300"
@@ -430,6 +530,63 @@ export default function CalendarPage() {
           </Card>
         )}
       </div>
+
+      {/* Bulk Edit Dialog */}
+      <Dialog open={showBulkDialog} onOpenChange={setShowBulkDialog}>
+        <DialogContent className="bg-slate-800 text-white border-white/20">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">
+              تعديل جماعي - {selectedCells.size} خلية محددة
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="bulkPrice" className="text-white">
+                السعر (ريال)
+              </Label>
+              <Input
+                id="bulkPrice"
+                type="number"
+                value={bulkPrice}
+                onChange={(e) => setBulkPrice(Number(e.target.value))}
+                className="bg-white/10 border-white/20 text-white"
+                min="0"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="bulkUnits" className="text-white">
+                عدد الوحدات المتاحة
+              </Label>
+              <Input
+                id="bulkUnits"
+                type="number"
+                value={bulkUnits}
+                onChange={(e) => setBulkUnits(Number(e.target.value))}
+                className="bg-white/10 border-white/20 text-white"
+                min="0"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              onClick={cancelBulkEdit}
+              variant="outline"
+              className="border-white/20 text-white hover:bg-white/10"
+            >
+              إلغاء
+            </Button>
+            <Button
+              onClick={applyBulkEdit}
+              className="bg-blue-500 hover:bg-blue-600 text-white"
+            >
+              تطبيق على الكل
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
