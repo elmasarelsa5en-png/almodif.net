@@ -24,7 +24,7 @@ import { CallDialog } from '@/components/call-dialog';
 import { IncomingCallDialog } from '@/components/incoming-call-dialog';
 import { CallHistoryDialog } from '@/components/call-history-dialog';
 import { RequestDialog } from '@/components/request-dialog';
-import { webrtcService, CallSignal } from '@/lib/webrtc-service';
+import { nativeWebRTCService, CallSignal } from '@/lib/native-webrtc-service';
 
 interface Employee {
   id: string;
@@ -231,31 +231,15 @@ export default function ChatPage() {
 
       console.log('📞 Setting up incoming call listener for:', userId);
 
-      // Initialize peer connection with retry
-      webrtcService.initializePeerWithRetry(userId).catch(err => {
-        console.error('❌ Failed to initialize peer for incoming calls:', err);
-        const errorMsg = webrtcService.getErrorMessage(err);
-        // Show subtle notification instead of alert
-        if ('Notification' in window && Notification.permission === 'granted') {
-          new Notification('خطأ في نظام المكالمات', {
-            body: errorMsg.split('\n')[0], // First line only
-            icon: '/images/logo.png'
-          });
-        }
-      });
-
-      // Set callback for incoming calls
-      webrtcService.onIncomingCall((signal) => {
+      // Native WebRTC doesn't need peer initialization - just listen for signals
+      nativeWebRTCService.listenForCallSignals(userId, (signal) => {
         console.log('📞 Incoming call from:', signal.fromName);
         setIncomingCallSignal(signal);
         setIsIncomingCallDialogOpen(true);
       });
 
-      // Start listening
-      webrtcService.startListeningForIncomingCalls(userId);
-
       return () => {
-        // Don't cleanup peer - keep it alive for future calls
+        nativeWebRTCService.stopListeningForCallSignals();
       };
     }
   }, [user]);
@@ -963,38 +947,14 @@ export default function ChatPage() {
       );
 
       if (callerEmployee) {
-        // Step 1: Initialize peer connection FIRST (before updating signal)
-        const currentUserId = user?.username || user?.email;
-        if (!currentUserId) {
-          alert('خطأ: لم يتم العثور على معرف المستخدم');
-          return;
-        }
-
-        let receiverPeerId: string;
-        try {
-          receiverPeerId = await webrtcService.initializePeerWithRetry(currentUserId);
-          console.log('✅ Receiver peer initialized with ID:', receiverPeerId);
-        } catch (error) {
-          console.error('❌ Failed to initialize receiver peer:', error);
-          alert('فشل تهيئة الاتصال. حاول مرة أخرى.');
-          return;
-        }
-
-        // Step 2: Get local media stream
-        const stream = await webrtcService.answerCall(
+        // Step 1: Answer the call and get local stream
+        const stream = await nativeWebRTCService.answerCall(
           incomingCallSignal.id,
           incomingCallSignal.type
         );
         console.log('✅ Call answered, stream:', stream);
 
-        // Step 3: Update signal with BOTH status and receiverPeerId at the SAME TIME
-        await updateDoc(doc(db, 'call_signals', incomingCallSignal.id), {
-          status: 'accepted',
-          receiverPeerId: receiverPeerId
-        });
-        console.log('✅ Updated signal with accepted status and receiver peer ID');
-
-        // Step 4: Open call dialog in receiver mode
+        // Step 2: Open call dialog in receiver mode
         setIsIncomingCall(true);
         setActiveCallSignalId(incomingCallSignal.id);
         setSelectedEmployee(callerEmployee);
@@ -1020,7 +980,7 @@ export default function ChatPage() {
 
     // Update signal status to rejected
     try {
-      await webrtcService.rejectCall(incomingCallSignal.id);
+      await nativeWebRTCService.rejectCall(incomingCallSignal.id);
       console.log('✅ Call rejected');
     } catch (error) {
       console.error('❌ Failed to reject call:', error);

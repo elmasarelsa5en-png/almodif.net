@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Phone, Video, X, Mic, MicOff, VideoOff, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { webrtcService } from '@/lib/webrtc-service';
+import { nativeWebRTCService } from '@/lib/native-webrtc-service';
 import { playRingback, stopRingback, playEndTone, playMuteTone } from '@/lib/sound-manager';
 import { useAuth } from '@/contexts/auth-context';
 
@@ -95,16 +95,11 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
       console.log('👤 User Name:', currentUserName);
       console.log('📞 Calling:', employeeId);
 
-      // Initialize peer connection
-      console.log('⏳ Initializing peer connection...');
-      await webrtcService.initializePeerWithRetry(currentUserId);
-      console.log('✅ Peer connection initialized');
-      
       setCallStatus('connecting');
 
-      // Start call and create signal
+      // Start call and create signal (gets local stream automatically)
       console.log('📤 Creating call signal...');
-      const signalId = await webrtcService.startCall(
+      const signalId = await nativeWebRTCService.startCall(
         employeeId,
         currentUserId,
         currentUserName || 'مستخدم',
@@ -116,7 +111,7 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
       setCallStatus('ringing');
 
       // Get local stream and display it
-      const localStream = webrtcService.getLocalStream();
+      const localStream = nativeWebRTCService.getLocalStream();
       console.log('📹 Local stream:', localStream ? 'Available' : 'Not available');
       
       if (localStream && localVideoRef.current) {
@@ -124,37 +119,22 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
         console.log('✅ Local video displayed');
       }
 
+      // Set up remote stream callback
+      nativeWebRTCService.onRemoteStream((remoteStream) => {
+        console.log('✅ Received remote stream');
+        if (remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = remoteStream;
+        }
+        setCallStatus('connected');
+      });
+
       // Listen for call status changes from receiver
-      webrtcService.listenForCallStatus(
+      nativeWebRTCService.listenForCallStatus(
         signalId,
         // onAccepted
-        async (receiverPeerId?: string) => {
+        () => {
           console.log('✅ Call accepted by receiver!');
-          console.log('🔑 Receiver peer ID:', receiverPeerId);
-          
-          if (!receiverPeerId) {
-            console.error('❌ No receiver peer ID received');
-            setCallStatus('ended');
-            alert('فشل الاتصال - لم يتم العثور على معرف الطرف الآخر');
-            return;
-          }
-          
-          try {
-            // Connect to receiver's peer using their peer ID
-            const call = await webrtcService.connectToPeer(receiverPeerId, localStream!);
-            
-            // Get remote stream
-            call.on('stream', (remoteStream) => {
-              console.log('✅ Received remote stream');
-              if (remoteVideoRef.current) {
-                remoteVideoRef.current.srcObject = remoteStream;
-              }
-              setCallStatus('connected');
-            });
-          } catch (error) {
-            console.error('❌ Failed to connect:', error);
-            setCallStatus('ended');
-          }
+          // Native WebRTC handles connection automatically via signaling
         },
         // onRejected
         () => {
@@ -174,7 +154,7 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
       console.error('❌ Error starting call:', error);
       
       // Use webrtcService to get user-friendly error message
-      const errorMessage = webrtcService.getErrorMessage(error);
+      const errorMessage = nativeWebRTCService.getErrorMessage(error);
       
       // Show error but don't close dialog - let user see what happened and try again
       setCallStatus('ended');
@@ -191,14 +171,14 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
       setCurrentSignalId(signalId || null);
 
       // Display local stream that was already obtained when answering
-      const localStream = webrtcService.getLocalStream();
+      const localStream = nativeWebRTCService.getLocalStream();
       if (localStream && localVideoRef.current) {
         localVideoRef.current.srcObject = localStream;
         console.log('✅ Displayed receiver local video');
       }
 
       // Register callback to receive remote stream
-      webrtcService.onRemoteStream((remoteStream) => {
+      nativeWebRTCService.onRemoteStream((remoteStream) => {
         console.log('✅ Receiver got remote stream');
         if (remoteVideoRef.current) {
           remoteVideoRef.current.srcObject = remoteStream;
@@ -207,12 +187,12 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
         setCallStatus('connected');
       });
 
-      // The peer connection will be automatically handled by webrtcService.handleIncomingCall
+      // The peer connection will be automatically handled by nativeWebRTCService.handleIncomingCall
       // which is triggered when the caller connects to the receiver's peer ID
 
     } catch (error: any) {
       console.error('❌ Error setting up receiver mode:', error);
-      const errorMessage = webrtcService.getErrorMessage(error);
+      const errorMessage = nativeWebRTCService.getErrorMessage(error);
       setCallStatus('ended');
       alert(errorMessage);
     }
@@ -221,24 +201,24 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
   const cleanup = () => {
     console.log('🧹 Cleanup called, status:', callStatus);
     if (currentSignalId) {
-      webrtcService.endCall(currentSignalId);
+      nativeWebRTCService.endCall(currentSignalId);
     }
     // Clear remote stream callback
-    webrtcService.clearRemoteStreamCallback();
-    // Don't call webrtcService.cleanup() here - keep peer alive for reconnection
+    nativeWebRTCService.clearRemoteStreamCallback();
+    // Don't call nativeWebRTCService.cleanup() here - keep peer alive for reconnection
     setCallStatus('ended');
     setCallDuration(0);
     setCurrentSignalId(null);
   };
 
   const toggleMute = () => {
-    const muted = webrtcService.toggleMute();
+    const muted = nativeWebRTCService.toggleMute();
     setIsMuted(muted);
     try { playMuteTone(); } catch (e) { }
   };
 
   const toggleVideo = () => {
-    const videoOff = webrtcService.toggleVideo();
+    const videoOff = nativeWebRTCService.toggleVideo();
     setIsVideoOff(videoOff);
   };
 
