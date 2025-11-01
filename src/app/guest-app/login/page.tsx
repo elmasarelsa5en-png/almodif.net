@@ -161,7 +161,7 @@ export default function GuestLoginPage() {
       }
 
       // ✅ إنشاء الحساب مباشرة (بدون OTP مؤقتاً)
-      await addDoc(guestsRef, {
+      const docRef = await addDoc(guestsRef, {
         name: registerData.name,
         phone: registerData.phone,
         nationalId: registerData.nationalId,
@@ -174,6 +174,50 @@ export default function GuestLoginPage() {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       });
+
+      // 🔔 إرسال إشعار لموظف الاستقبال + إنشاء طلب تسجيل
+      try {
+        const { notificationService } = await import('@/lib/notifications/notification-service');
+        
+        // إنشاء طلب تسجيل جديد في قاعدة بيانات الطلبات
+        await addDoc(collection(db, 'requests'), {
+          type: 'تسجيل ضيف جديد',
+          guestId: docRef.id,
+          guestName: registerData.name,
+          guestPhone: registerData.phone,
+          guestNationalId: registerData.nationalId,
+          guestDateOfBirth: registerData.dateOfBirth,
+          guestNationality: registerData.nationality,
+          description: `طلب تسجيل دخول جديد من ${registerData.name}\nرقم الهوية: ${registerData.nationalId}\nرقم الهاتف: ${registerData.phone}\nتاريخ الميلاد: ${registerData.dateOfBirth}\nالجنسية: ${registerData.nationality}`,
+          status: 'pending',
+          priority: 'high',
+          roomNumber: null,
+          assignedRoom: null,
+          createdAt: new Date().toISOString(),
+          source: 'guest-app-registration'
+        });
+        
+        await notificationService.sendNotification('in_app', 'reception', {
+          body: `طلب تسجيل جديد من ${registerData.name}\nرقم الهوية: ${registerData.nationalId}\nرقم الهاتف: ${registerData.phone}`,
+          type: 'custom',
+          priority: 'high',
+          metadata: {
+            guestId: docRef.id,
+            guestName: registerData.name,
+            nationalId: registerData.nationalId,
+            phone: registerData.phone,
+            action: 'assign_room'
+          }
+        });
+        
+        // تشغيل صوت تنبيه
+        if (typeof window !== 'undefined') {
+          const audio = new Audio('/sounds/notification.mp3');
+          audio.play().catch(err => console.log('Could not play sound:', err));
+        }
+      } catch (notifError) {
+        console.error('Error sending notification to reception:', notifError);
+      }
 
       setSuccess('✅ تم إنشاء الحساب بنجاح! سيتم تخصيص غرفة لك من قبل الإدارة.');
       

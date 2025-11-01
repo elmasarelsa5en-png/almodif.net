@@ -29,6 +29,7 @@ import { Input } from '@/components/ui/input';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { RatingDialog } from '@/components/RatingDialog';
+import { RegistrationRequestsSection } from '@/components/RegistrationRequestsSection';
 import { 
   subscribeToRequests, 
   updateRequest, 
@@ -415,8 +416,11 @@ export default function RequestsPage() {
             </Card>
           </div>
 
-          {/* Search and Filters */}
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-white/20 space-y-4">
+          {/* Registration Requests Section - NEW */}
+          <RegistrationRequestsSection />
+
+          {/* Search and Filter */}
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-white/20">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="relative">
                 <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 w-5 h-5" />
