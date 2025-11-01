@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>توليد الأصوات للمكالمات</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 40px;
+      text-align: center;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: rgba(0,0,0,0.3);
+      padding: 30px;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+    }
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      color: white;
+      padding: 15px 30px;
+      margin: 10px;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    }
+    .audio-item {
+      background: rgba(255,255,255,0.1);
+      padding: 20px;
+      margin: 15px 0;
+      border-radius: 10px;
+    }
+    audio {
+      width: 100%;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔊 مولد أصوات المكالمات</h1>
+    <p>هذه الصفحة تولد ملفات صوتية بسيطة للمكالمات</p>
+    
+    <div class="audio-item">
+      <h3>🔔 نغمة الرنين (Ringtone)</h3>
+      <button onclick="playRingtone()">تشغيل</button>
+      <button onclick="downloadRingtone()">تحميل</button>
+      <audio id="ringtone-audio" controls></audio>
+    </div>
+
+    <div class="audio-item">
+      <h3>📞 نغمة الانتظار (Ringback)</h3>
+      <button onclick="playRingback()">تشغيل</button>
+      <button onclick="downloadRingback()">تحميل</button>
+      <audio id="ringback-audio" controls></audio>
+    </div>
+
+    <div class="audio-item">
+      <h3>❌ نغمة الإنهاء (End Tone)</h3>
+      <button onclick="playEndTone()">تشغيل</button>
+      <button onclick="downloadEndTone()">تحميل</button>
+      <audio id="end-audio" controls></audio>
+    </div>
+
+    <div class="audio-item">
+      <h3>🔇 نغمة الكتم (Mute)</h3>
+      <button onclick="playMuteTone()">تشغيل</button>
+      <button onclick="downloadMuteTone()">تحميل</button>
+      <audio id="mute-audio" controls></audio>
+    </div>
+  </div>
+
+  <script>
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+    function generateRingtone() {
+      const sampleRate = 22050;
+      const duration = 2; // 2 seconds
+      const numSamples = sampleRate * duration;
+      const buffer = audioContext.createBuffer(1, numSamples, sampleRate);
+      const channel = buffer.getChannelData(0);
+
+      for (let i = 0; i < numSamples; i++) {
+        const t = i / sampleRate;
+        const period = Math.floor(t / 0.5); // 0.5s on, 0.5s off
+        if (period % 2 === 0) {
+          // Ring tone: 800Hz + 440Hz
+          channel[i] = 0.3 * (Math.sin(2 * Math.PI * 800 * t) + Math.sin(2 * Math.PI * 440 * t));
+        } else {
+          channel[i] = 0; // silence
+        }
+      }
+      return buffer;
+    }
+
+    function generateRingback() {
+      const sampleRate = 22050;
+      const duration = 2;
+      const numSamples = sampleRate * duration;
+      const buffer = audioContext.createBuffer(1, numSamples, sampleRate);
+      const channel = buffer.getChannelData(0);
+
+      for (let i = 0; i < numSamples; i++) {
+        const t = i / sampleRate;
+        // 400Hz continuous tone
+        channel[i] = 0.2 * Math.sin(2 * Math.PI * 400 * t);
+      }
+      return buffer;
+    }
+
+    function generateEndTone() {
+      const sampleRate = 22050;
+      const duration = 0.3;
+      const numSamples = sampleRate * duration;
+      const buffer = audioContext.createBuffer(1, numSamples, sampleRate);
+      const channel = buffer.getChannelData(0);
+
+      for (let i = 0; i < numSamples; i++) {
+        const t = i / sampleRate;
+        const envelope = 1 - (t / duration); // fade out
+        channel[i] = 0.3 * envelope * Math.sin(2 * Math.PI * 600 * t);
+      }
+      return buffer;
+    }
+
+    function generateMuteTone() {
+      const sampleRate = 22050;
+      const duration = 0.12;
+      const numSamples = sampleRate * duration;
+      const buffer = audioContext.createBuffer(1, numSamples, sampleRate);
+      const channel = buffer.getChannelData(0);
+
+      for (let i = 0; i < numSamples; i++) {
+        const t = i / sampleRate;
+        channel[i] = 0.15 * Math.sin(2 * Math.PI * 200 * t);
+      }
+      return buffer;
+    }
+
+    function bufferToWav(buffer) {
+      const numChannels = 1;
+      const sampleRate = buffer.sampleRate;
+      const format = 1; // PCM
+      const bitDepth = 16;
+
+      const bytesPerSample = bitDepth / 8;
+      const blockAlign = numChannels * bytesPerSample;
+
+      const data = buffer.getChannelData(0);
+      const dataLength = data.length * bytesPerSample;
+      const bufferLength = 44 + dataLength;
+
+      const arrayBuffer = new ArrayBuffer(bufferLength);
+      const view = new DataView(arrayBuffer);
+
+      // WAV header
+      const writeString = (offset, string) => {
+        for (let i = 0; i < string.length; i++) {
+          view.setUint8(offset + i, string.charCodeAt(i));
+        }
+      };
+
+      writeString(0, 'RIFF');
+      view.setUint32(4, bufferLength - 8, true);
+      writeString(8, 'WAVE');
+      writeString(12, 'fmt ');
+      view.setUint32(16, 16, true);
+      view.setUint16(20, format, true);
+      view.setUint16(22, numChannels, true);
+      view.setUint32(24, sampleRate, true);
+      view.setUint32(28, sampleRate * blockAlign, true);
+      view.setUint16(32, blockAlign, true);
+      view.setUint16(34, bitDepth, true);
+      writeString(36, 'data');
+      view.setUint32(40, dataLength, true);
+
+      // Write PCM samples
+      let offset = 44;
+      for (let i = 0; i < data.length; i++) {
+        const sample = Math.max(-1, Math.min(1, data[i]));
+        view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+        offset += 2;
+      }
+
+      return new Blob([arrayBuffer], { type: 'audio/wav' });
+    }
+
+    function playBuffer(buffer, audioElement) {
+      const source = audioContext.createBufferSource();
+      source.buffer = buffer;
+      source.connect(audioContext.destination);
+      source.start();
+
+      const blob = bufferToWav(buffer);
+      const url = URL.createObjectURL(blob);
+      audioElement.src = url;
+    }
+
+    function downloadBuffer(buffer, filename) {
+      const blob = bufferToWav(buffer);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function playRingtone() {
+      const buffer = generateRingtone();
+      playBuffer(buffer, document.getElementById('ringtone-audio'));
+    }
+
+    function downloadRingtone() {
+      const buffer = generateRingtone();
+      downloadBuffer(buffer, 'ringtone.wav');
+    }
+
+    function playRingback() {
+      const buffer = generateRingback();
+      playBuffer(buffer, document.getElementById('ringback-audio'));
+    }
+
+    function downloadRingback() {
+      const buffer = generateRingback();
+      downloadBuffer(buffer, 'ringback.wav');
+    }
+
+    function playEndTone() {
+      const buffer = generateEndTone();
+      playBuffer(buffer, document.getElementById('end-audio'));
+    }
+
+    function downloadEndTone() {
+      const buffer = generateEndTone();
+      downloadBuffer(buffer, 'end-tone.wav');
+    }
+
+    function playMuteTone() {
+      const buffer = generateMuteTone();
+      playBuffer(buffer, document.getElementById('mute-audio'));
+    }
+
+    function downloadMuteTone() {
+      const buffer = generateMuteTone();
+      downloadBuffer(buffer, 'mute-tone.wav');
+    }
+
+    // Auto-generate on page load
+    window.addEventListener('load', () => {
+      console.log('✅ Sound generator ready!');
+    });
+  </script>
+</body>
+</html>

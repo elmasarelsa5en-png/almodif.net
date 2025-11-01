@@ -1,3 +1,8 @@
+// Audio elements for playing sounds (better mobile support)
+let ringtoneAudio: HTMLAudioElement | null = null;
+let ringbackAudio: HTMLAudioElement | null = null;
+
+// Fallback WebAudio for browsers without audio file support
 let audioContext: AudioContext | null = null;
 let ringtoneOsc: OscillatorNode | null = null;
 let ringtoneGain: GainNode | null = null;
@@ -13,10 +18,53 @@ function ensureAudioContext() {
   return audioContext;
 }
 
+function createRingtoneAudio(): HTMLAudioElement {
+  const audio = new Audio();
+  // Generate simple ringtone with data URI (fallback if no file exists)
+  const ctx = ensureAudioContext();
+  const duration = 2;
+  const sampleRate = ctx.sampleRate;
+  const numSamples = sampleRate * duration;
+  
+  // For now, use oscillator fallback - can be replaced with actual audio files
+  audio.loop = true;
+  audio.volume = 0.3;
+  return audio;
+}
+
+function createRingbackAudio(): HTMLAudioElement {
+  const audio = new Audio();
+  audio.loop = true;
+  audio.volume = 0.2;
+  return audio;
+}
+
 export function playRingtone() {
   try {
-    const ctx = ensureAudioContext();
     stopRingtone();
+    
+    // Try to use HTMLAudioElement first (better for mobile)
+    try {
+      // Check if audio files exist, otherwise use WebAudio fallback
+      ringtoneAudio = new Audio('/sounds/ringtone.wav');
+      ringtoneAudio.loop = true;
+      ringtoneAudio.volume = 0.3;
+      ringtoneAudio.play().catch(() => {
+        // Fallback to WebAudio if file not found
+        playRingtoneWebAudio();
+      });
+      console.log('🔊 Playing ringtone from file');
+    } catch (e) {
+      playRingtoneWebAudio();
+    }
+  } catch (e) {
+    console.error('sound-manager: playRingtone failed', e);
+  }
+}
+
+function playRingtoneWebAudio() {
+  try {
+    const ctx = ensureAudioContext();
 
     ringtoneOsc = ctx.createOscillator();
     ringtoneGain = ctx.createGain();
@@ -36,13 +84,23 @@ export function playRingtone() {
       ringtoneGain!.gain.setTargetAtTime(on ? 0.25 : 0.0, ctx.currentTime, 0.02);
       on = !on;
     }, 1000) as unknown as number;
+    
+    console.log('🔊 Playing ringtone with WebAudio fallback');
   } catch (e) {
-    console.error('sound-manager: playRingtone failed', e);
+    console.error('sound-manager: playRingtoneWebAudio failed', e);
   }
 }
 
 export function stopRingtone() {
   try {
+    // Stop HTMLAudioElement
+    if (ringtoneAudio) {
+      ringtoneAudio.pause();
+      ringtoneAudio.currentTime = 0;
+      ringtoneAudio = null;
+    }
+    
+    // Stop WebAudio oscillator
     if (ringtoneInterval) {
       clearInterval(ringtoneInterval);
       ringtoneInterval = null;
@@ -63,8 +121,29 @@ export function stopRingtone() {
 
 export function playRingback() {
   try {
-    const ctx = ensureAudioContext();
     stopRingback();
+
+    // Try HTMLAudioElement first
+    try {
+      ringbackAudio = new Audio('/sounds/ringback.wav');
+      ringbackAudio.loop = true;
+      ringbackAudio.volume = 0.2;
+      ringbackAudio.play().catch(() => {
+        // Fallback to WebAudio
+        playRingbackWebAudio();
+      });
+      console.log('🔊 Playing ringback from file');
+    } catch (e) {
+      playRingbackWebAudio();
+    }
+  } catch (e) {
+    console.error('sound-manager: playRingback failed', e);
+  }
+}
+
+function playRingbackWebAudio() {
+  try {
+    const ctx = ensureAudioContext();
 
     ringbackOsc = ctx.createOscillator();
     ringbackGain = ctx.createGain();
@@ -76,13 +155,23 @@ export function playRingback() {
     ringbackOsc.connect(ringbackGain);
     ringbackGain.connect(ctx.destination);
     ringbackOsc.start();
+    
+    console.log('🔊 Playing ringback with WebAudio fallback');
   } catch (e) {
-    console.error('sound-manager: playRingback failed', e);
+    console.error('sound-manager: playRingbackWebAudio failed', e);
   }
 }
 
 export function stopRingback() {
   try {
+    // Stop HTMLAudioElement
+    if (ringbackAudio) {
+      ringbackAudio.pause();
+      ringbackAudio.currentTime = 0;
+      ringbackAudio = null;
+    }
+    
+    // Stop WebAudio oscillator
     if (ringbackOsc) {
       try { ringbackOsc.stop(); } catch (e) {}
       ringbackOsc.disconnect();
@@ -99,6 +188,20 @@ export function stopRingback() {
 
 export function playEndTone() {
   try {
+    // Try to use audio file first
+    const audio = new Audio('/sounds/end-tone.wav');
+    audio.volume = 0.3;
+    audio.play().catch(() => {
+      // Fallback to WebAudio
+      playEndToneWebAudio();
+    });
+  } catch (e) {
+    playEndToneWebAudio();
+  }
+}
+
+function playEndToneWebAudio() {
+  try {
     const ctx = ensureAudioContext();
     const o = ctx.createOscillator();
     const g = ctx.createGain();
@@ -110,11 +213,25 @@ export function playEndTone() {
     o.start();
     setTimeout(() => { try { o.stop(); } catch (e) {} }, 300);
   } catch (e) {
-    console.error('sound-manager: playEndTone failed', e);
+    console.error('sound-manager: playEndToneWebAudio failed', e);
   }
 }
 
 export function playMuteTone() {
+  try {
+    // Try to use audio file first
+    const audio = new Audio('/sounds/mute-tone.wav');
+    audio.volume = 0.15;
+    audio.play().catch(() => {
+      // Fallback to WebAudio
+      playMuteToneWebAudio();
+    });
+  } catch (e) {
+    playMuteToneWebAudio();
+  }
+}
+
+function playMuteToneWebAudio() {
   try {
     const ctx = ensureAudioContext();
     const o = ctx.createOscillator();
@@ -127,7 +244,7 @@ export function playMuteTone() {
     o.start();
     setTimeout(() => { try { o.stop(); } catch (e) {} }, 120);
   } catch (e) {
-    console.error('sound-manager: playMuteTone failed', e);
+    console.error('sound-manager: playMuteToneWebAudio failed', e);
   }
 }
 
