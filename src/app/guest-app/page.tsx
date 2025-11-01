@@ -708,18 +708,18 @@ export default function GuestAppHomePage() {
             >
               <div className="relative bg-gradient-to-r from-slate-800/50 to-slate-900/50 backdrop-blur-xl rounded-3xl overflow-hidden border border-amber-500/20 shadow-2xl p-6">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                  {/* Left Side - Hotel Image - BIGGER */}
+                  {/* Left Side - Hotel Image - EVEN BIGGER */}
                   <motion.div
                     initial={{ opacity: 0, x: -50 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3, duration: 0.8 }}
-                    className="lg:col-span-6"
+                    className="lg:col-span-7"
                   >
                     <div className="relative rounded-2xl overflow-hidden shadow-2xl border-2 border-amber-500/30">
                       <img 
                         src="/images/hotel-exterior.jpg"
                         alt="Hotel"
-                        className="w-full h-[500px] object-cover"
+                        className="w-full h-[600px] object-cover"
                         onError={(e) => {
                           const target = e.currentTarget as HTMLImageElement;
                           target.style.display = 'none';
@@ -737,29 +737,23 @@ export default function GuestAppHomePage() {
                         </div>
                       </div>
                       
-                      {/* Badge Overlay */}
-                      <div className="absolute top-4 left-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-full font-bold shadow-lg flex items-center gap-2">
-                        <Sparkles className="w-4 h-4" />
-                        خصم 50%
-                      </div>
-                      
                       {/* Hotel Info Overlay */}
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-5">
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-6">
                         {hotelSettings.logo && (
-                          <img src={hotelSettings.logo} alt="Logo" className="h-12 mb-3 drop-shadow-lg" />
+                          <img src={hotelSettings.logo} alt="Logo" className="h-14 mb-3 drop-shadow-lg" />
                         )}
-                        <h1 className="text-3xl font-bold text-amber-200 mb-2">
+                        <h1 className="text-4xl font-bold text-amber-200 mb-2">
                           {hotelSettings.hotelName || 'فندق المضيف'}
                         </h1>
-                        <div className="flex items-center gap-2 mb-2">
+                        <div className="flex items-center gap-2 mb-3">
                           {[...Array(hotelSettings.rating || 3)].map((_, i) => (
-                            <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-400" />
+                            <Star key={i} className="w-6 h-6 fill-amber-400 text-amber-400" />
                           ))}
                         </div>
                         {guestSession && (
-                          <div className="flex items-center gap-2 text-white">
+                          <div className="flex items-center gap-2 text-white text-lg">
                             <User className="w-5 h-5 text-amber-400" />
-                            <span className="text-base">{guestSession.name} - الغرفة: {guestSession.roomNumber}</span>
+                            <span>{guestSession.name} - الغرفة: {guestSession.roomNumber}</span>
                           </div>
                         )}
                       </div>
@@ -771,7 +765,7 @@ export default function GuestAppHomePage() {
                     initial={{ opacity: 0, x: 50 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.4, duration: 0.8 }}
-                    className="lg:col-span-6"
+                    className="lg:col-span-5"
                   >
                     <h2 className="text-2xl font-bold text-amber-200 mb-4 flex items-center gap-2">
                       <Sparkles className="w-6 h-6 text-amber-400" />
