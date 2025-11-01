@@ -129,6 +129,19 @@ export default function BookingPage() {
             return null;
           }
 
+          // صور افتراضية احتياطية حسب نوع الغرفة
+          const defaultImages = data.type === 'شقة' ? [
+            'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=600&fit=crop',
+            'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&h=600&fit=crop',
+            'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&h=600&fit=crop',
+            'https://images.unsplash.com/photo-1536376072261-38c75010e6c9?w=800&h=600&fit=crop'
+          ] : [
+            'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop',
+            'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&h=600&fit=crop',
+            'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800&h=600&fit=crop',
+            'https://images.unsplash.com/photo-1596436889106-be35e843f974?w=800&h=600&fit=crop'
+          ];
+
           return {
             id: roomId,
             number: data.name || data.roomNumber || '',
@@ -137,13 +150,18 @@ export default function BookingPage() {
             capacity: data.maxGuests || data.capacity || 2,
             amenities: data.amenities || [],
             available: availability.available,
-            images: data.images || [],
+            images: (data.images && data.images.length > 0) ? data.images : defaultImages,
             description: data.description || data.details || ''
           };
         })
         .filter(room => room !== null) as Room[];
       
       setRooms(roomsData);
+      
+      console.log('📦 تم تحميل الغرف المتاحة:', roomsData.length);
+      roomsData.forEach(room => {
+        console.log(`🏨 ${room.number}: ${room.images?.length || 0} صور - النوع: ${room.type}`);
+      });
       
       if (roomsData.length === 0) {
         console.log('No rooms available from calendar today');
