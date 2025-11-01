@@ -91,8 +91,8 @@ export default function PlatformsCalendarPage() {
   const [bulkEditPlatformDialog, setBulkEditPlatformDialog] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<string>('website');
   const [bulkEditData, setBulkEditData] = useState({
-    startDay: 1,
-    endDay: 1,
+    startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
+    endDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0],
     price: 250,
     availableUnits: 5,
     available: true
@@ -322,9 +322,12 @@ export default function PlatformsCalendarPage() {
   };
 
   const applyBulkUpdateForPlatform = async () => {
-    const { startDay, endDay, price, availableUnits, available } = bulkEditData;
+    const { startDate, endDate, price, availableUnits, available } = bulkEditData;
     
-    if (startDay > endDay) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    if (start > end) {
       alert('❌ تاريخ البداية يجب أن يكون قبل تاريخ النهاية');
       return;
     }
@@ -337,16 +340,11 @@ export default function PlatformsCalendarPage() {
     // تطبيق التحديثات على الأيام المحددة للمنصة المحددة
     const updatedPrices = pricesData.map(item => {
       const itemDate = new Date(item.date);
-      const itemDay = itemDate.getDate();
-      const itemMonth = itemDate.getMonth();
-      const itemYear = itemDate.getFullYear();
-
-      // التحقق من أن التاريخ في الشهر الحالي وضمن النطاق
+      
+      // التحقق من أن التاريخ ضمن النطاق المحدد
       if (
-        itemYear === currentDate.getFullYear() &&
-        itemMonth === currentDate.getMonth() &&
-        itemDay >= startDay &&
-        itemDay <= endDay &&
+        itemDate >= start &&
+        itemDate <= end &&
         item.roomTypeId === selectedRoom
       ) {
         return {
@@ -361,26 +359,52 @@ export default function PlatformsCalendarPage() {
       return item;
     });
 
-    // تحديث الـ state
+    console.log('🔄 Updated prices data:', updatedPrices);
+
+    // تحديث الـ state أولاً
     setPricesData(updatedPrices);
 
-    // حفظ في Firebase مباشرة
+    // حفظ في Firebase مباشرة مع البيانات الجديدة
     try {
-      const monthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
-      await setDoc(doc(db, 'calendar_availability', monthKey), {
-        month: monthKey,
-        year: currentDate.getFullYear(),
-        monthNumber: currentDate.getMonth() + 1,
-        prices: updatedPrices,
-        updatedAt: new Date().toISOString()
+      // نحسب كل الأشهر المؤثرة
+      const monthsToUpdate = new Set<string>();
+      updatedPrices.forEach(item => {
+        const itemDate = new Date(item.date);
+        if (itemDate >= start && itemDate <= end) {
+          const monthKey = `${itemDate.getFullYear()}-${String(itemDate.getMonth() + 1).padStart(2, '0')}`;
+          monthsToUpdate.add(monthKey);
+        }
       });
 
+      // حفظ كل شهر متأثر
+      for (const monthKey of monthsToUpdate) {
+        const [year, month] = monthKey.split('-');
+        const monthPrices = updatedPrices.filter(item => {
+          const itemDate = new Date(item.date);
+          return itemDate.getFullYear() === parseInt(year) && 
+                 (itemDate.getMonth() + 1) === parseInt(month);
+        });
+
+        await setDoc(doc(db, 'calendar_availability', monthKey), {
+          month: monthKey,
+          year: parseInt(year),
+          monthNumber: parseInt(month),
+          prices: monthPrices,
+          updatedAt: new Date().toISOString()
+        });
+        
+        console.log(`✅ Saved month ${monthKey} with ${monthPrices.length} prices`);
+      }
+
       const platformName = platforms.find(p => p.id === selectedPlatform)?.name || selectedPlatform;
-      const daysCount = endDay - startDay + 1;
+      const daysCount = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
       setSuccessMessage(`✅ تم حفظ ${daysCount} يوم في ${platformName}`);
       setTimeout(() => setSuccessMessage(null), 3000);
+      
+      // إعادة تحميل البيانات لضمان التحديث
+      await loadCalendarData();
     } catch (error) {
-      console.error('Error saving:', error);
+      console.error('❌ Error saving:', error);
       alert('❌ فشل في الحفظ. حاول مرة أخرى.');
     }
 
@@ -560,9 +584,11 @@ export default function PlatformsCalendarPage() {
 
             <Button
               onClick={() => {
+                const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+                const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
                 setBulkEditData({
-                  startDay: 1,
-                  endDay: new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate(),
+                  startDate: startOfMonth.toISOString().split('T')[0],
+                  endDate: endOfMonth.toISOString().split('T')[0],
                   price: 250,
                   availableUnits: 5,
                   available: true
@@ -1186,22 +1212,18 @@ export default function PlatformsCalendarPage() {
               <div className="space-y-2">
                 <label className="text-sm font-medium text-white">من يوم</label>
                 <Input
-                  type="number"
-                  min="1"
-                  max={new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate()}
-                  value={bulkEditData.startDay}
-                  onChange={(e) => setBulkEditData({ ...bulkEditData, startDay: parseInt(e.target.value) || 1 })}
+                  type="date"
+                  value={bulkEditData.startDate}
+                  onChange={(e) => setBulkEditData({ ...bulkEditData, startDate: e.target.value })}
                   className="bg-slate-800 border-slate-600 text-white"
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-white">إلى يوم</label>
                 <Input
-                  type="number"
-                  min="1"
-                  max={new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate()}
-                  value={bulkEditData.endDay}
-                  onChange={(e) => setBulkEditData({ ...bulkEditData, endDay: parseInt(e.target.value) || 1 })}
+                  type="date"
+                  value={bulkEditData.endDate}
+                  onChange={(e) => setBulkEditData({ ...bulkEditData, endDate: e.target.value })}
                   className="bg-slate-800 border-slate-600 text-white"
                 />
               </div>
@@ -1259,8 +1281,9 @@ export default function PlatformsCalendarPage() {
             {/* Summary */}
             <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
               <p className="text-blue-300 text-sm">
-                ✨ سيتم تحديث <strong>{bulkEditData.endDay - bulkEditData.startDay + 1}</strong> يوم 
-                في <strong>{platforms.find(p => p.id === selectedPlatform)?.name}</strong>
+                ✨ سيتم تحديث من <strong>{new Date(bulkEditData.startDate).toLocaleDateString('ar-SA')}</strong>
+                {' '} إلى <strong>{new Date(bulkEditData.endDate).toLocaleDateString('ar-SA')}</strong>
+                {' '} في <strong>{platforms.find(p => p.id === selectedPlatform)?.name}</strong>
               </p>
             </div>
           </div>
