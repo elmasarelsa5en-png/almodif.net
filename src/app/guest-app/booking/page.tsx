@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useRouter } from 'next/navigation';
 import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
-import { collection, addDoc, query, where, getDocs, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, Timestamp, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { notificationService } from '@/lib/notifications/notification-service';
 
@@ -48,6 +48,8 @@ export default function BookingPage() {
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [companions, setCompanions] = useState<Companion[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState<{ [key: string]: number }>({});
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginMessage, setLoginMessage] = useState('');
   const [bookingData, setBookingData] = useState({
     guestName: '',
     phone: '',
@@ -68,48 +70,75 @@ export default function BookingPage() {
     try {
       setLoading(true);
       
-      // Try to load from Firebase first
-      const roomsRef = collection(db, 'rooms');
-      const q = query(roomsRef, where('available', '==', true));
-      const snapshot = await getDocs(q);
+      // 1. Load room types from catalog (الأنواع والصور والأوصاف)
+      const catalogRef = collection(db, 'rooms_catalog');
+      const catalogSnapshot = await getDocs(catalogRef);
       
-      if (!snapshot.empty) {
-        const roomsData: Room[] = snapshot.docs.map(doc => {
-          const data = doc.data();
+      if (catalogSnapshot.empty) {
+        console.warn('No rooms found in catalog');
+        setLoading(false);
+        return;
+      }
+
+      // 2. Load today's availability from calendar
+      const today = new Date();
+      const monthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+      const calendarDoc = await getDoc(doc(db, 'calendar_availability', monthKey));
+      
+      let availabilityData: any = {};
+      if (calendarDoc.exists()) {
+        const prices = calendarDoc.data().prices || [];
+        const todayStr = today.toISOString().split('T')[0];
+        
+        // استخراج البيانات المتاحة على موقع الفندق اليوم
+        prices.forEach((dayPrice: any) => {
+          if (dayPrice.date === todayStr) {
+            const websitePlatform = dayPrice.platforms?.find((p: any) => p.platformId === 'website');
+            if (websitePlatform && websitePlatform.available && websitePlatform.availableUnits > 0) {
+              availabilityData[dayPrice.roomTypeId] = {
+                available: true,
+                price: websitePlatform.price,
+                units: websitePlatform.availableUnits
+              };
+            }
+          }
+        });
+      }
+
+      // 3. Combine catalog data with availability
+      const roomsData: Room[] = catalogSnapshot.docs
+        .map(docSnap => {
+          const data = docSnap.data();
+          const roomId = docSnap.id;
+          
+          // تحقق من التوفر في التقويم
+          const availability = availabilityData[roomId];
+          
+          // إذا لم تكن متاحة في التقويم، لا تعرضها
+          if (!availability) {
+            return null;
+          }
+
           return {
-            id: doc.id,
-            number: data.name || data.number || '',
+            id: roomId,
+            number: data.name || data.roomNumber || '',
             type: data.type || 'غرفة',
-            price: data.price?.daily || data.pricePerNight || 0,
+            price: availability.price || data.basePrice || data.price || 0,
             capacity: data.maxGuests || data.capacity || 2,
             amenities: data.amenities || [],
-            available: data.available !== false,
-            images: data.images?.map((img: any) => img.url) || [],
-            description: data.description
+            available: availability.available,
+            images: data.images || [],
+            description: data.description || data.details || ''
           };
-        });
-        setRooms(roomsData);
-      } else {
-        // Fallback: Load from localStorage (old rooms)
-        const localRooms = localStorage.getItem('hotelRooms');
-        if (localRooms) {
-          const parsedRooms = JSON.parse(localRooms);
-          const roomsData: Room[] = parsedRooms
-            .filter((r: any) => r.available)
-            .map((r: any) => ({
-              id: r.id,
-              number: r.name,
-              type: r.type,
-              price: r.price.daily,
-              capacity: r.maxGuests,
-              amenities: r.amenities,
-              available: true,
-              images: r.images?.map((img: any) => img.url) || [],
-              description: r.description
-            }));
-          setRooms(roomsData);
-        }
+        })
+        .filter(room => room !== null) as Room[];
+      
+      setRooms(roomsData);
+      
+      if (roomsData.length === 0) {
+        console.log('No rooms available from calendar today');
       }
+      
     } catch (error) {
       console.error('Error loading rooms:', error);
     } finally {
@@ -122,9 +151,9 @@ export default function BookingPage() {
     const guestSession = localStorage.getItem('guest_session');
     
     if (!guestSession) {
-      // عرض رسالة وتوجيه لصفحة تسجيل الدخول
-      alert('⚠️ يجب تسجيل الدخول أولاً للمتابعة في عملية الحجز');
-      router.push('/guest-app/login');
+      // عرض modal فاخر
+      setLoginMessage('يجب تسجيل الدخول أولاً للمتابعة في عملية الحجز');
+      setShowLoginModal(true);
       return;
     }
 
@@ -132,14 +161,14 @@ export default function BookingPage() {
     try {
       const guestData = JSON.parse(guestSession);
       if (guestData.status !== 'checked-in') {
-        alert('⚠️ يجب تسجيل الدخول كضيف نشط للحجز');
-        router.push('/guest-app/login');
+        setLoginMessage('يجب تسجيل الدخول كضيف نشط للحجز');
+        setShowLoginModal(true);
         return;
       }
     } catch (error) {
       console.error('Error parsing guest session:', error);
-      alert('⚠️ يجب تسجيل الدخول أولاً');
-      router.push('/guest-app/login');
+      setLoginMessage('يجب تسجيل الدخول أولاً للمتابعة');
+      setShowLoginModal(true);
       return;
     }
 
@@ -1011,6 +1040,94 @@ export default function BookingPage() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Login Required Modal - Luxury Design */}
+      <AnimatePresence>
+        {showLoginModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowLoginModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: "spring", duration: 0.5 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative max-w-md w-full"
+            >
+              <Card className="bg-gradient-to-br from-amber-500/95 via-orange-500/95 to-red-500/95 backdrop-blur-xl border-2 border-amber-300/50 shadow-2xl">
+                <CardContent className="p-8 text-center">
+                  {/* Close Button */}
+                  <button
+                    onClick={() => setShowLoginModal(false)}
+                    className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+
+                  {/* Warning Icon with Animation */}
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                    className="mb-6 inline-flex items-center justify-center w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm border-4 border-white/30"
+                  >
+                    <motion.div
+                      animate={{ rotate: [0, -10, 10, -10, 0] }}
+                      transition={{ duration: 0.5, delay: 0.3 }}
+                    >
+                      <User className="w-10 h-10 text-white" />
+                    </motion.div>
+                  </motion.div>
+
+                  {/* Title */}
+                  <h3 className="text-2xl font-bold text-white mb-3">
+                    تسجيل الدخول مطلوب
+                  </h3>
+
+                  {/* Message */}
+                  <p className="text-white/90 text-lg mb-8 leading-relaxed">
+                    {loginMessage}
+                  </p>
+
+                  {/* Action Buttons */}
+                  <div className="space-y-3">
+                    <Button
+                      onClick={() => {
+                        setShowLoginModal(false);
+                        router.push('/guest-app/login');
+                      }}
+                      size="lg"
+                      className="w-full bg-white text-amber-600 hover:bg-gray-100 font-bold py-6 text-lg shadow-xl hover:shadow-2xl transition-all"
+                    >
+                      <User className="w-5 h-5 ml-2" />
+                      تسجيل الدخول الآن
+                    </Button>
+                    
+                    <Button
+                      onClick={() => setShowLoginModal(false)}
+                      size="lg"
+                      variant="outline"
+                      className="w-full border-2 border-white/30 text-white hover:bg-white/10 py-6 text-lg backdrop-blur-sm"
+                    >
+                      إلغاء
+                    </Button>
+                  </div>
+
+                  {/* Info Note */}
+                  <p className="mt-6 text-white/70 text-sm">
+                    💡 يمكنك إنشاء حساب جديد من صفحة تسجيل الدخول
+                  </p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

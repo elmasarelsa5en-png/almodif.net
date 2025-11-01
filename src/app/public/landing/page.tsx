@@ -164,13 +164,13 @@ export default function PublicLandingPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Navigation Bar - Luxury Style */}
-      <nav className="fixed top-0 left-0 right-0 bg-white/98 backdrop-blur-lg border-b border-gray-100 shadow-sm z-50">
+      {/* Navigation Bar - Transparent Overlay Style */}
+      <nav className="fixed top-0 left-0 right-0 bg-gradient-to-b from-black/70 via-black/50 to-transparent backdrop-blur-md z-50">
         <div className="max-w-7xl mx-auto px-6 py-5">
           <div className="flex items-center justify-between">
             {/* Logo */}
             <div className="flex items-center gap-3">
-              <div className="relative w-12 h-12 rounded-lg overflow-hidden shadow-lg ring-2 ring-amber-500/20">
+              <div className="relative w-12 h-12 rounded-lg overflow-hidden shadow-xl ring-2 ring-white/30">
                 <img 
                   src="/images/seven-son-logo.jpeg" 
                   alt="Seven-Son Hotel Logo"
@@ -187,27 +187,27 @@ export default function PublicLandingPage() {
                 />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">سيفن سون</h1>
-                <p className="text-xs text-amber-600 font-semibold">SEVEN SON HOTEL</p>
+                <h1 className="text-2xl font-bold text-white drop-shadow-lg">سيفن سون</h1>
+                <p className="text-xs text-amber-400 font-semibold drop-shadow-md">SEVEN SON HOTEL</p>
               </div>
             </div>
             
             {/* Navigation Links */}
             <div className="hidden md:flex items-center gap-8">
-              <Link href="#about" className="text-gray-900 hover:text-amber-600 transition font-bold text-lg">
+              <Link href="#about" className="text-white hover:text-amber-400 transition font-bold text-lg drop-shadow-md">
                 عن الفندق
               </Link>
-              <Link href="/guest-app/booking" className="text-gray-900 hover:text-amber-600 transition font-bold text-lg">
+              <Link href="/guest-app/booking" className="text-white hover:text-amber-400 transition font-bold text-lg drop-shadow-md">
                 الغرف والأجنحة
               </Link>
-              <Link href="#services" className="text-gray-900 hover:text-amber-600 transition font-bold text-lg">
+              <Link href="#services" className="text-white hover:text-amber-400 transition font-bold text-lg drop-shadow-md">
                 الخدمات
               </Link>
-              <Link href="/public/faq" className="text-gray-900 hover:text-amber-600 transition font-bold text-lg">
+              <Link href="/public/faq" className="text-white hover:text-amber-400 transition font-bold text-lg drop-shadow-md">
                 الأسئلة الشائعة
               </Link>
               <Link href="/guest-app/booking">
-                <Button className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white px-10 py-6 rounded-full shadow-lg hover:shadow-xl transition-all font-bold text-lg">
+                <Button className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white px-10 py-6 rounded-full shadow-2xl hover:shadow-amber-500/50 transition-all font-bold text-lg">
                   <Calendar className="h-5 w-5 ml-2" />
                   احجز الآن
                 </Button>

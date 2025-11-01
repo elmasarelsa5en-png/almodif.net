@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   Calendar as CalendarIcon,
@@ -26,6 +26,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { db } from '@/lib/firebase';
+import { collection, doc, setDoc, getDoc, getDocs } from 'firebase/firestore';
 import {
   Dialog,
   DialogContent,
@@ -113,8 +115,29 @@ export default function PlatformsCalendarPage() {
     });
   };
 
-  // بيانات تجريبية للأسعار
-  const [pricesData, setPricesData] = useState<DayPrice[]>(() => {
+  // Load calendar data from Firebase
+  useEffect(() => {
+    loadCalendarData();
+  }, [currentDate]);
+
+  const loadCalendarData = async () => {
+    try {
+      const monthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+      const calendarDoc = await getDoc(doc(db, 'calendar_availability', monthKey));
+      
+      if (calendarDoc.exists()) {
+        setPricesData(calendarDoc.data().prices || []);
+      } else {
+        // إنشاء بيانات افتراضية للشهر الجديد
+        initializeMonthData();
+      }
+    } catch (error) {
+      console.error('Error loading calendar data:', error);
+      initializeMonthData();
+    }
+  };
+
+  const initializeMonthData = () => {
     const data: DayPrice[] = [];
     const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
     
@@ -128,17 +151,40 @@ export default function PlatformsCalendarPage() {
           roomTypeId: room.id,
           platforms: platforms.map(platform => ({
             platformId: platform.id,
-            price: Math.floor(Math.random() * (800 - 200) + 200),
-            available: Math.random() > 0.1,
-            availableUnits: Math.floor(Math.random() * 10) + 1, // 1-10 شقق
+            price: 300, // سعر افتراضي
+            available: true, // متاح افتراضياً
+            availableUnits: 5, // 5 شقق متاحة افتراضياً
             minStay: 1
           }))
         });
       });
     }
     
-    return data;
-  });
+    setPricesData(data);
+  };
+
+  // Save calendar data to Firebase
+  const saveCalendarData = async () => {
+    try {
+      const monthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+      await setDoc(doc(db, 'calendar_availability', monthKey), {
+        month: monthKey,
+        year: currentDate.getFullYear(),
+        monthNumber: currentDate.getMonth() + 1,
+        prices: pricesData,
+        updatedAt: new Date().toISOString()
+      });
+      
+      setSuccessMessage('✅ تم حفظ بيانات التقويم بنجاح!');
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (error) {
+      console.error('Error saving calendar data:', error);
+      setValidationWarning('❌ فشل حفظ البيانات');
+    }
+  };
+
+  // بيانات تجريبية للأسعار (removed - now using Firebase)
+  const [pricesData, setPricesData] = useState<DayPrice[]>([]);
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
@@ -185,6 +231,9 @@ export default function PlatformsCalendarPage() {
       }
       return item;
     }));
+    
+    // حفظ تلقائي
+    setTimeout(() => saveCalendarData(), 500);
   };
 
   const toggleAvailability = (day: number, platformId: string) => {
@@ -202,6 +251,9 @@ export default function PlatformsCalendarPage() {
       }
       return item;
     }));
+    
+    // حفظ تلقائي
+    setTimeout(() => saveCalendarData(), 500);
   };
 
   // التحقق من صحة القيم المدخلة

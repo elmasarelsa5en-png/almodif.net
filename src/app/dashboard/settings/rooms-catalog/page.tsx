@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { 
   Plus, Edit, Trash2, Save, X, Upload, Image as ImageIcon,
-  Bed, Home, Ruler, DollarSign, Users, Star, Check, AlertCircle, Cloud, CloudOff
+  Bed, Home, Ruler, DollarSign, Users, Star, Check, AlertCircle, Cloud, CloudOff,
+  ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { syncRoomsToFirebase } from '@/lib/rooms-manager';
 import { db, storage } from '@/lib/firebase';
@@ -57,6 +58,7 @@ export default function RoomsCatalogPage() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [roomImageIndex, setRoomImageIndex] = useState<{ [key: string]: number }>({});
 
   // جلب الغرف من Firebase مباشرة
   useEffect(() => {
@@ -776,11 +778,70 @@ export default function RoomsCatalogPage() {
           <Card key={room.id} className="overflow-hidden hover:shadow-2xl transition-all duration-300 border-2 border-gray-100 hover:border-amber-200 group">
             <div className="relative overflow-hidden">
               {room.images.length > 0 ? (
-                <img 
-                  src={room.images[0].url} 
-                  alt={room.name}
-                  className="w-full h-56 object-cover group-hover:scale-110 transition-transform duration-500"
-                />
+                <div className="relative h-56">
+                  {/* Current Image */}
+                  <img 
+                    src={room.images[roomImageIndex[room.id] || 0].url} 
+                    alt={room.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                  
+                  {/* Navigation Arrows - Only if more than 1 image */}
+                  {room.images.length > 1 && (
+                    <>
+                      {/* Previous Button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setRoomImageIndex(prev => ({
+                            ...prev,
+                            [room.id]: ((prev[room.id] || 0) - 1 + room.images.length) % room.images.length
+                          }));
+                        }}
+                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 z-10"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                      
+                      {/* Next Button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setRoomImageIndex(prev => ({
+                            ...prev,
+                            [room.id]: ((prev[room.id] || 0) + 1) % room.images.length
+                          }));
+                        }}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 z-10"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+
+                      {/* Image Counter */}
+                      <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-medium">
+                        {(roomImageIndex[room.id] || 0) + 1} / {room.images.length}
+                      </div>
+
+                      {/* Dots Indicator */}
+                      <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex gap-1.5">
+                        {room.images.map((_, i) => (
+                          <button
+                            key={i}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setRoomImageIndex(prev => ({ ...prev, [room.id]: i }));
+                            }}
+                            className={`transition-all ${
+                              i === (roomImageIndex[room.id] || 0)
+                                ? 'w-6 h-1.5 bg-white'
+                                : 'w-1.5 h-1.5 bg-white/50 hover:bg-white/70'
+                            } rounded-full backdrop-blur-sm`}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
               ) : (
                 <div className="w-full h-56 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
                   <ImageIcon className="h-16 w-16 text-gray-400" />
