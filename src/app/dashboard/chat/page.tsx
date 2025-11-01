@@ -967,6 +967,25 @@ export default function ChatPage() {
       );
 
       if (callerEmployee) {
+        // Initialize peer connection first (if not already initialized)
+        const currentUserId = user?.username || user?.email;
+        if (currentUserId) {
+          try {
+            const receiverPeerId = await webrtcService.initializePeerWithRetry(currentUserId);
+            console.log('✅ Receiver peer initialized with ID:', receiverPeerId);
+            
+            // Update the call signal with receiver's peer ID so caller can connect
+            await updateDoc(doc(db, 'call_signals', incomingCallSignal.id), {
+              receiverPeerId: receiverPeerId
+            });
+            console.log('✅ Updated signal with receiver peer ID');
+          } catch (error) {
+            console.error('❌ Failed to initialize receiver peer:', error);
+            alert('فشل تهيئة الاتصال. حاول مرة أخرى.');
+            return;
+          }
+        }
+
         // Set receiver mode states
         setIsIncomingCall(true);
         setActiveCallSignalId(incomingCallSignal.id);
@@ -976,7 +995,7 @@ export default function ChatPage() {
         setCallType(incomingCallSignal.type);
         setIsCallDialogOpen(true);
 
-        // Answer the call using webrtcService
+        // Answer the call using webrtcService (gets local stream)
         const stream = await webrtcService.answerCall(
           incomingCallSignal.id,
           incomingCallSignal.type

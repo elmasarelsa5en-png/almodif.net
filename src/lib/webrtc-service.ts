@@ -268,7 +268,7 @@ class WebRTCService {
    */
   listenForCallStatus(
     signalId: string, 
-    onAccepted: () => void,
+    onAccepted: (receiverPeerId?: string) => void,
     onRejected: () => void,
     onEnded: () => void
   ) {
@@ -281,7 +281,8 @@ class WebRTCService {
       console.log('📡 Call status changed:', data.status);
 
       if (data.status === 'accepted') {
-        onAccepted();
+        // Pass the receiver's peer ID to the callback
+        onAccepted(data.receiverPeerId);
       } else if (data.status === 'rejected') {
         onRejected();
       } else if (data.status === 'ended') {

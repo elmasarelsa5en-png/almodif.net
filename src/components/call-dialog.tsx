@@ -128,11 +128,20 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
       webrtcService.listenForCallStatus(
         signalId,
         // onAccepted
-        async () => {
+        async (receiverPeerId?: string) => {
           console.log('✅ Call accepted by receiver!');
+          console.log('🔑 Receiver peer ID:', receiverPeerId);
+          
+          if (!receiverPeerId) {
+            console.error('❌ No receiver peer ID received');
+            setCallStatus('ended');
+            alert('فشل الاتصال - لم يتم العثور على معرف الطرف الآخر');
+            return;
+          }
+          
           try {
-            // Connect to peer
-            const call = await webrtcService.connectToPeer(employeeId, localStream!);
+            // Connect to receiver's peer using their peer ID
+            const call = await webrtcService.connectToPeer(receiverPeerId, localStream!);
             
             // Get remote stream
             call.on('stream', (remoteStream) => {
