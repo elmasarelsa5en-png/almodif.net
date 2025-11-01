@@ -159,23 +159,20 @@ class WebRTCService {
         console.log('🔌 Initializing PeerJS with ID:', uniqueId);
         console.log('👤 Original userId:', userId, '→ Sanitized:', sanitizedUserId);
 
-        // Try using a different PeerJS server configuration
-        // Option 1: Use PeerServer Cloud (alternative reliable server)
+        // Use default PeerJS cloud server (free and most compatible)
+        // Note: If WebSocket fails, it might be network/firewall issue
         this.peer = new Peer(uniqueId, {
-          host: 'peerjs-server.herokuapp.com',
-          secure: true,
-          port: 443,
-          path: '/',
+          // Don't specify host/port to use default cloud server
           config: {
             iceServers: [
+              // Google STUN servers (free)
               { urls: 'stun:stun.l.google.com:19302' },
               { urls: 'stun:stun1.l.google.com:19302' },
               { urls: 'stun:stun2.l.google.com:19302' },
-              { urls: 'stun:stun3.l.google.com:19302' },
-              { urls: 'stun:stun4.l.google.com:19302' },
-              // Add more public STUN servers for better connectivity
+              // Mozilla STUN server (free)
               { urls: 'stun:stun.services.mozilla.com' },
-              { urls: 'stun:stun.stunprotocol.org:3478' },
+              // Open STUN servers (free)
+              { urls: 'stun:stunprotocol.org:3478' },
             ],
             iceTransportPolicy: 'all',
             iceCandidatePoolSize: 10
