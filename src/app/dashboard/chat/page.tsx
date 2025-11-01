@@ -227,9 +227,17 @@ export default function ChatPage() {
 
       console.log('📞 Setting up incoming call listener for:', userId);
 
-      // Initialize peer connection
-      webrtcService.initializePeer(userId).catch(err => {
+      // Initialize peer connection with retry
+      webrtcService.initializePeerWithRetry(userId).catch(err => {
         console.error('❌ Failed to initialize peer for incoming calls:', err);
+        const errorMsg = webrtcService.getErrorMessage(err);
+        // Show subtle notification instead of alert
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification('خطأ في نظام المكالمات', {
+            body: errorMsg.split('\n')[0], // First line only
+            icon: '/images/logo.png'
+          });
+        }
       });
 
       // Set callback for incoming calls

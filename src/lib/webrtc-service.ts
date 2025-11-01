@@ -19,6 +19,81 @@ class WebRTCService {
   private localStream: MediaStream | null = null;
   private callSignalUnsubscribe: (() => void) | null = null;
   private incomingCallCallback: ((signal: CallSignal) => void) | null = null;
+  private retryCount: number = 0;
+  private maxRetries: number = 3;
+  private retryDelay: number = 2000; // Start with 2 seconds
+
+  /**
+   * Initialize PeerJS connection with retry logic
+   */
+  async initializePeerWithRetry(userId: string, attempt: number = 1): Promise<string> {
+    try {
+      console.log(`🔄 Attempting to initialize peer (attempt ${attempt}/${this.maxRetries})`);
+      return await this.initializePeer(userId);
+    } catch (error: any) {
+      if (attempt < this.maxRetries) {
+        const delay = this.retryDelay * Math.pow(2, attempt - 1); // Exponential backoff
+        console.warn(`⏳ Retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return this.initializePeerWithRetry(userId, attempt + 1);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Get user-friendly error message in Arabic
+   */
+  getErrorMessage(error: any): string {
+    if (!error) return 'حدث خطأ غير معروف';
+
+    const errorString = error.toString().toLowerCase();
+    const errorType = error.type?.toLowerCase() || '';
+    const errorMessage = error.message?.toLowerCase() || '';
+
+    // Network errors
+    if (errorString.includes('network') || errorString.includes('fetch') || 
+        errorMessage.includes('failed to fetch')) {
+      return '❌ خطأ في الاتصال بالإنترنت\n\nالرجاء التحقق من:\n• اتصال الإنترنت\n• جدار الحماية (Firewall)\n• إعدادات الشبكة';
+    }
+
+    // Timeout errors
+    if (errorString.includes('timeout') || errorMessage.includes('المهلة')) {
+      return '⏱️ انتهت المهلة الزمنية\n\nالأسباب المحتملة:\n• اتصال الإنترنت بطيء\n• خادم المكالمات مشغول\n• جرب مرة أخرى بعد قليل';
+    }
+
+    // Permission errors
+    if (errorString.includes('permission') || errorString.includes('denied') ||
+        errorMessage.includes('permission')) {
+      return '🎤 تم رفض الوصول للكاميرا/الميكروفون\n\nالحل:\n• اضغط على أيقونة القفل في المتصفح\n• امنح الموقع إذن الوصول\n• أعد تحميل الصفحة';
+    }
+
+    // Browser errors
+    if (errorString.includes('webrtc') || errorMessage.includes('not supported')) {
+      return '🌐 المتصفح لا يدعم المكالمات\n\nالحل:\n• استخدم متصفح حديث (Chrome, Edge, Firefox)\n• حدّث المتصفح لآخر إصدار';
+    }
+
+    // PeerJS specific errors
+    if (errorType === 'peer-unavailable') {
+      return '📵 الطرف الآخر غير متصل\n\nالرجاء:\n• التأكد من أن الطرف الآخر متصل بالإنترنت\n• المحاولة مرة أخرى بعد قليل';
+    }
+
+    if (errorType === 'server-error' || errorType === 'socket-error') {
+      return '🔧 خطأ في خادم المكالمات\n\nالحل:\n• جرب مرة أخرى بعد دقيقة\n• إذا استمرت المشكلة اتصل بالدعم الفني';
+    }
+
+    // SSL/HTTPS errors
+    if (errorString.includes('ssl') || errorString.includes('https')) {
+      return '🔒 خطأ في الاتصال الآمن\n\nالحل:\n• تأكد من استخدام HTTPS\n• تحقق من شهادة SSL للموقع';
+    }
+
+    // Generic error with message
+    if (error.message) {
+      return `⚠️ حدث خطأ:\n${error.message}\n\nجرب إعادة تحميل الصفحة`;
+    }
+
+    return '❌ حدث خطأ غير متوقع\n\nالرجاء:\n• إعادة تحميل الصفحة\n• المحاولة مرة أخرى\n• الاتصال بالدعم الفني إذا استمرت المشكلة';
+  }
 
   /**
    * Initialize PeerJS connection
@@ -79,9 +154,15 @@ class WebRTCService {
           reject(error);
         });
 
-        // Additional event listeners for debugging
+        // Additional event listeners for debugging and reconnection
         this.peer.on('disconnected', () => {
-          console.warn('⚠️ PeerJS disconnected');
+          console.warn('⚠️ PeerJS disconnected - attempting reconnection...');
+          // Try to reconnect
+          try {
+            this.peer?.reconnect();
+          } catch (e) {
+            console.error('Failed to reconnect:', e);
+          }
         });
 
         this.peer.on('close', () => {

@@ -88,7 +88,7 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
 
       // Initialize peer connection
       console.log('⏳ Initializing peer connection...');
-      await webrtcService.initializePeer(currentUserId);
+      await webrtcService.initializePeerWithRetry(currentUserId);
       console.log('✅ Peer connection initialized');
       
       setCallStatus('connecting');
@@ -155,17 +155,8 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
     } catch (error: any) {
       console.error('❌ Error starting call:', error);
       
-      let errorMessage = 'فشل بدء المكالمة';
-      
-      if (error?.message?.includes('timeout') || error?.message?.includes('المهلة')) {
-        errorMessage = 'فشل الاتصال بالخادم: انتهت المهلة الزمنية.\nتأكد من اتصال الإنترنت.';
-      } else if (error?.message?.includes('server') || error?.message?.includes('Lost connection')) {
-        errorMessage = 'فشل الاتصال بخادم المكالمات.\nجاري المحاولة مرة أخرى...';
-      } else if (error?.message?.includes('permission') || error?.message?.includes('denied')) {
-        errorMessage = 'تم رفض الوصول للكاميرا/الميكروفون.\nيرجى السماح بالوصول من إعدادات المتصفح.';
-      } else if (error?.message) {
-        errorMessage = `خطأ: ${error.message}`;
-      }
+      // Use webrtcService to get user-friendly error message
+      const errorMessage = webrtcService.getErrorMessage(error);
       
       // Show error but don't close dialog - let user see what happened and try again
       setCallStatus('ended');
