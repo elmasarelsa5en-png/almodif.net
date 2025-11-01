@@ -367,13 +367,18 @@ export default function GuestLoginPage() {
                   src="/images/seven-son-logo.jpeg"
                   alt="Seven-Son Hotel"
                   className="w-32 h-32 object-contain rounded-2xl"
+                  onLoad={() => {
+                    console.log('✅ Seven-Son logo loaded successfully');
+                  }}
                   onError={(e) => {
+                    console.error('❌ Failed to load Seven-Son logo from /images/seven-son-logo.jpeg');
                     const target = e.currentTarget as HTMLImageElement;
                     target.style.display = 'none';
                     // Fallback to icon if image fails
                     const parent = target.parentElement;
                     if (parent) {
-                      parent.innerHTML = '<div class="w-32 h-32 flex items-center justify-center"><svg class="w-20 h-20 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg></div>';
+                      parent.innerHTML = '<div class="w-32 h-32 flex items-center justify-center bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 rounded-2xl"><svg class="w-20 h-20 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg></div>';
+                      console.log('⚠️ Showing fallback hotel icon');
                     }
                   }}
                 />
