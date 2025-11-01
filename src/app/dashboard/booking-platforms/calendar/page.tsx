@@ -91,6 +91,15 @@ export default function PlatformsCalendarPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [pendingAvailability, setPendingAvailability] = useState<boolean>(true);
   const [platformsSettingsDialog, setPlatformsSettingsDialog] = useState(false);
+  const [bulkEditPlatformDialog, setBulkEditPlatformDialog] = useState(false);
+  const [selectedPlatform, setSelectedPlatform] = useState<string>('website');
+  const [bulkEditData, setBulkEditData] = useState({
+    startDay: 1,
+    endDay: 1,
+    price: 250,
+    availableUnits: 5,
+    available: true
+  });
   const [visiblePlatforms, setVisiblePlatforms] = useState<string[]>(() => {
     // Load from localStorage or use default
     const saved = localStorage.getItem('visible_platforms');
@@ -276,6 +285,55 @@ export default function PlatformsCalendarPage() {
     return null;
   };
 
+  const applyBulkUpdateForPlatform = () => {
+    const { startDay, endDay, price, availableUnits, available } = bulkEditData;
+    
+    if (startDay > endDay) {
+      alert('❌ تاريخ البداية يجب أن يكون قبل تاريخ النهاية');
+      return;
+    }
+
+    const warning = validateInputs(price, availableUnits);
+    if (warning && !confirm(warning + '\n\nهل تريد المتابعة؟')) {
+      return;
+    }
+
+    // تطبيق التحديثات على الأيام المحددة للمنصة المحددة
+    setPricesData(prev => prev.map(item => {
+      const itemDate = new Date(item.date);
+      const itemDay = itemDate.getDate();
+      const itemMonth = itemDate.getMonth();
+      const itemYear = itemDate.getFullYear();
+
+      // التحقق من أن التاريخ في الشهر الحالي وضمن النطاق
+      if (
+        itemYear === currentDate.getFullYear() &&
+        itemMonth === currentDate.getMonth() &&
+        itemDay >= startDay &&
+        itemDay <= endDay &&
+        item.roomTypeId === selectedRoom
+      ) {
+        return {
+          ...item,
+          platforms: item.platforms.map(p => 
+            p.platformId === selectedPlatform
+              ? { ...p, price, available, availableUnits }
+              : p
+          )
+        };
+      }
+      return item;
+    }));
+
+    const platformName = platforms.find(p => p.id === selectedPlatform)?.name || selectedPlatform;
+    const daysCount = endDay - startDay + 1;
+    setSuccessMessage(`✅ تم تحديث ${daysCount} يوم في ${platformName}`);
+    setTimeout(() => setSuccessMessage(null), 3000);
+
+    setBulkEditPlatformDialog(false);
+    saveCalendarData();
+  };
+
   const applyBulkUpdate = (price: number, available: boolean, availableUnits: number) => {
     // التحقق من القيم
     const warning = validateInputs(price, availableUnits);
@@ -445,6 +503,23 @@ export default function PlatformsCalendarPage() {
             >
               <Eye className="w-4 h-4 ml-2" />
               إعدادات المنصات ({activePlatforms.length}/{platforms.length})
+            </Button>
+
+            <Button
+              onClick={() => {
+                setBulkEditData({
+                  startDay: 1,
+                  endDay: new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate(),
+                  price: 250,
+                  availableUnits: 5,
+                  available: true
+                });
+                setBulkEditPlatformDialog(true);
+              }}
+              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
+            >
+              <DollarSign className="w-4 h-4 ml-2" />
+              تعديل منصة واحدة
             </Button>
             
             <Button
@@ -965,6 +1040,139 @@ export default function PlatformsCalendarPage() {
                 تم
               </Button>
             </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Edit Platform Dialog */}
+      <Dialog open={bulkEditPlatformDialog} onOpenChange={setBulkEditPlatformDialog}>
+        <DialogContent className="sm:max-w-[500px] bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-white flex items-center gap-2">
+              <DollarSign className="w-6 h-6 text-blue-400" />
+              تعديل جماعي لمنصة واحدة
+            </DialogTitle>
+            <DialogDescription className="text-slate-300">
+              حدد نطاق الأيام والمنصة والسعر للتحديث
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* Platform Selection */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-white">المنصة</label>
+              <select
+                value={selectedPlatform}
+                onChange={(e) => setSelectedPlatform(e.target.value)}
+                className="w-full h-10 px-3 rounded-md border border-slate-600 bg-slate-800 text-white"
+              >
+                {platforms.map(platform => (
+                  <option key={platform.id} value={platform.id}>
+                    {platform.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Date Range */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-white">من يوم</label>
+                <Input
+                  type="number"
+                  min="1"
+                  max={new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate()}
+                  value={bulkEditData.startDay}
+                  onChange={(e) => setBulkEditData({ ...bulkEditData, startDay: parseInt(e.target.value) || 1 })}
+                  className="bg-slate-800 border-slate-600 text-white"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-white">إلى يوم</label>
+                <Input
+                  type="number"
+                  min="1"
+                  max={new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate()}
+                  value={bulkEditData.endDay}
+                  onChange={(e) => setBulkEditData({ ...bulkEditData, endDay: parseInt(e.target.value) || 1 })}
+                  className="bg-slate-800 border-slate-600 text-white"
+                />
+              </div>
+            </div>
+
+            {/* Price */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-white">السعر (ر.س)</label>
+              <Input
+                type="number"
+                value={bulkEditData.price}
+                onChange={(e) => setBulkEditData({ ...bulkEditData, price: parseInt(e.target.value) || 0 })}
+                className="bg-slate-800 border-slate-600 text-white"
+                placeholder="250"
+              />
+            </div>
+
+            {/* Available Units */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-white">عدد الوحدات المتاحة</label>
+              <Input
+                type="number"
+                value={bulkEditData.availableUnits}
+                onChange={(e) => setBulkEditData({ ...bulkEditData, availableUnits: parseInt(e.target.value) || 0 })}
+                className="bg-slate-800 border-slate-600 text-white"
+                placeholder="5"
+              />
+            </div>
+
+            {/* Availability Toggle */}
+            <div className="flex items-center justify-between p-3 bg-slate-800 rounded-lg border border-slate-600">
+              <span className="text-white font-medium">متاح للحجز</span>
+              <Button
+                onClick={() => setBulkEditData({ ...bulkEditData, available: !bulkEditData.available })}
+                className={`${
+                  bulkEditData.available
+                    ? 'bg-green-500 hover:bg-green-600'
+                    : 'bg-red-500 hover:bg-red-600'
+                } text-white`}
+              >
+                {bulkEditData.available ? (
+                  <>
+                    <Check className="w-4 h-4 ml-2" />
+                    متاح
+                  </>
+                ) : (
+                  <>
+                    <X className="w-4 h-4 ml-2" />
+                    غير متاح
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {/* Summary */}
+            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+              <p className="text-blue-300 text-sm">
+                ✨ سيتم تحديث <strong>{bulkEditData.endDay - bulkEditData.startDay + 1}</strong> يوم 
+                في <strong>{platforms.find(p => p.id === selectedPlatform)?.name}</strong>
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              onClick={() => setBulkEditPlatformDialog(false)}
+              variant="outline"
+              className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+            >
+              إلغاء
+            </Button>
+            <Button
+              onClick={applyBulkUpdateForPlatform}
+              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
+            >
+              <Save className="w-4 h-4 ml-2" />
+              تطبيق التحديثات
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -441,29 +441,29 @@ export default function BookingPage() {
                                 {/* Navigation Arrows - Only show if more than 1 image */}
                                 {room.images.length > 1 && (
                                   <>
-                                    {/* Previous Button */}
+                                    {/* Previous Button - Always Visible */}
                                     <button
                                       onClick={(e) => prevImage(room.id, room.images!.length, e)}
-                                      className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 z-10"
+                                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/70 hover:bg-black/90 text-white p-4 rounded-full backdrop-blur-sm transition-all shadow-2xl z-20 border-2 border-white/30"
                                     >
-                                      <ArrowRight className="w-5 h-5" />
+                                      <ArrowRight className="w-6 h-6" />
                                     </button>
                                     
-                                    {/* Next Button */}
+                                    {/* Next Button - Always Visible */}
                                     <button
                                       onClick={(e) => nextImage(room.id, room.images!.length, e)}
-                                      className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 z-10"
+                                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/70 hover:bg-black/90 text-white p-4 rounded-full backdrop-blur-sm transition-all shadow-2xl z-20 border-2 border-white/30"
                                     >
-                                      <ArrowRight className="w-5 h-5 rotate-180" />
+                                      <ArrowRight className="w-6 h-6 rotate-180" />
                                     </button>
 
-                                    {/* Image Counter */}
-                                    <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-sm font-medium">
+                                    {/* Image Counter - More Prominent */}
+                                    <div className="absolute top-4 right-4 bg-gradient-to-r from-purple-600 to-blue-600 backdrop-blur-sm text-white px-4 py-2 rounded-full text-base font-bold shadow-lg z-10">
                                       {(currentImageIndex[room.id] || 0) + 1} / {room.images.length}
                                     </div>
 
-                                    {/* Dots Indicator */}
-                                    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+                                    {/* Dots Indicator - Larger and Always Visible */}
+                                    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-10">
                                       {room.images.map((_, i) => (
                                         <button
                                           key={i}
@@ -473,9 +473,9 @@ export default function BookingPage() {
                                           }}
                                           className={`transition-all ${
                                             i === (currentImageIndex[room.id] || 0)
-                                              ? 'w-8 h-2 bg-white'
-                                              : 'w-2 h-2 bg-white/50 hover:bg-white/70'
-                                          } rounded-full backdrop-blur-sm`}
+                                              ? 'w-10 h-3 bg-white shadow-lg'
+                                              : 'w-3 h-3 bg-white/60 hover:bg-white/90'
+                                          } rounded-full backdrop-blur-sm border border-white/30`}
                                         />
                                       ))}
                                     </div>
