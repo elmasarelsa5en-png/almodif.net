@@ -99,12 +99,33 @@ export default function HotelImagesPage() {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // التحقق من نوع الملف
+    if (!file.type.startsWith('image/')) {
+      alert('❌ يرجى اختيار صورة فقط');
+      return;
+    }
+
+    // التحقق من حجم الملف (أقل من 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('❌ حجم الصورة كبير جداً. يرجى اختيار صورة أقل من 5MB');
+      return;
+    }
+
     setUploadingHero(true);
     try {
+      console.log('📤 بدء رفع الصورة:', file.name, 'الحجم:', (file.size / 1024).toFixed(2), 'KB');
+      
       // رفع الصورة إلى Firebase Storage
-      const storageRef = ref(storage, `website-images/hero/${imageId}-${Date.now()}.jpg`);
+      const fileName = `${imageId}-${Date.now()}.${file.type.split('/')[1]}`;
+      const storageRef = ref(storage, `website-images/hero/${fileName}`);
+      
+      console.log('📁 مسار التخزين:', `website-images/hero/${fileName}`);
+      
       await uploadBytes(storageRef, file);
+      console.log('✅ تم رفع الصورة بنجاح');
+      
       const url = await getDownloadURL(storageRef);
+      console.log('🔗 URL الصورة:', url);
 
       // تحديث الصورة في القائمة
       const updatedImages = heroImages.map(img =>
@@ -120,11 +141,14 @@ export default function HotelImagesPage() {
       });
 
       alert('✅ تم رفع الصورة وحفظها بنجاح!');
-    } catch (error) {
-      console.error('Error uploading hero image:', error);
-      alert('❌ حدث خطأ في رفع الصورة');
+    } catch (error: any) {
+      console.error('❌ خطأ في رفع الصورة:', error);
+      console.error('تفاصيل الخطأ:', error.message);
+      alert(`❌ حدث خطأ في رفع الصورة: ${error.message || 'خطأ غير معروف'}`);
     } finally {
       setUploadingHero(false);
+      // إعادة تعيين input
+      event.target.value = '';
     }
   };
 
@@ -132,9 +156,25 @@ export default function HotelImagesPage() {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // التحقق من نوع الملف
+    if (!file.type.startsWith('image/')) {
+      alert('❌ يرجى اختيار صورة فقط');
+      return;
+    }
+
+    // التحقق من حجم الملف (أقل من 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('❌ حجم الصورة كبير جداً. يرجى اختيار صورة أقل من 5MB');
+      return;
+    }
+
     setUploadingService(serviceId);
     try {
-      const storageRef = ref(storage, `website-images/services/${serviceId}-${Date.now()}.jpg`);
+      console.log('📤 بدء رفع صورة الخدمة:', file.name);
+      
+      const fileName = `${serviceId}-${Date.now()}.${file.type.split('/')[1]}`;
+      const storageRef = ref(storage, `website-images/services/${fileName}`);
+      
       await uploadBytes(storageRef, file);
       const url = await getDownloadURL(storageRef);
 
@@ -151,11 +191,12 @@ export default function HotelImagesPage() {
       });
 
       alert('✅ تم رفع صورة الخدمة وحفظها بنجاح!');
-    } catch (error) {
-      console.error('Error uploading service image:', error);
-      alert('❌ حدث خطأ في رفع الصورة');
+    } catch (error: any) {
+      console.error('❌ خطأ في رفع صورة الخدمة:', error);
+      alert(`❌ حدث خطأ في رفع الصورة: ${error.message || 'خطأ غير معروف'}`);
     } finally {
       setUploadingService(null);
+      event.target.value = '';
     }
   };
 
@@ -305,17 +346,15 @@ export default function HotelImagesPage() {
                       />
                       <Button
                         size="sm"
-                        className="bg-white text-gray-900 hover:bg-gray-100 pointer-events-none"
+                        className="bg-white text-gray-900 hover:bg-gray-100"
                         type="button"
-                        asChild
+                        onClick={() => document.getElementById(`hero-upload-${image.id}`)?.click()}
                       >
-                        <span className="pointer-events-auto cursor-pointer">
-                          {uploadingHero ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Upload className="h-4 w-4" />
-                          )}
-                        </span>
+                        {uploadingHero ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Upload className="h-4 w-4" />
+                        )}
                       </Button>
                     </label>
                     <Button
@@ -360,17 +399,15 @@ export default function HotelImagesPage() {
                       />
                       <Button
                         size="sm"
-                        className="bg-white text-gray-900 hover:bg-gray-100 pointer-events-none"
+                        className="bg-white text-gray-900 hover:bg-gray-100"
                         type="button"
-                        asChild
+                        onClick={() => document.getElementById(`service-upload-${service.id}`)?.click()}
                       >
-                        <span className="pointer-events-auto cursor-pointer">
-                          {uploadingService === service.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Upload className="h-4 w-4" />
-                          )}
-                        </span>
+                        {uploadingService === service.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Upload className="h-4 w-4" />
+                        )}
                       </Button>
                     </label>
                     <Button
