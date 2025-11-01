@@ -87,22 +87,32 @@ export default function BookingPage() {
       
       let availabilityData: any = {};
       if (calendarDoc.exists()) {
-        const prices = calendarDoc.data().prices || [];
+        const data = calendarDoc.data();
+        const prices = data.prices || [];
         const todayStr = today.toISOString().split('T')[0];
+        const todayDay = today.getDate();
         
-        // استخراج البيانات المتاحة على موقع الفندق اليوم
-        prices.forEach((dayPrice: any) => {
-          if (dayPrice.date === todayStr) {
-            const websitePlatform = dayPrice.platforms?.find((p: any) => p.platformId === 'website');
-            if (websitePlatform && websitePlatform.available && websitePlatform.availableUnits > 0) {
-              availabilityData[dayPrice.roomTypeId] = {
+        // البحث عن بيانات اليوم الحالي
+        const todayData = prices.find((p: any) => p.day === todayDay);
+        
+        if (todayData && todayData.platforms) {
+          todayData.platforms.forEach((platform: any) => {
+            // فقط المنصة "website" والمتاحة
+            if (platform.platformId === 'website' && platform.available && platform.units > 0) {
+              availabilityData[platform.roomTypeId] = {
                 available: true,
-                price: websitePlatform.price,
-                units: websitePlatform.availableUnits
+                price: platform.price,
+                units: platform.units
               };
             }
-          }
-        });
+          });
+          
+          console.log('📅 بيانات التوافر من التقويم:', availabilityData);
+        } else {
+          console.log('⚠️ لا توجد بيانات لليوم الحالي في التقويم');
+        }
+      } else {
+        console.log('⚠️ لا يوجد تقويم لهذا الشهر');
       }
 
       // 3. Combine catalog data with availability

@@ -153,8 +153,9 @@ export default function PublicLandingPage() {
             
             if (todayData.platforms && Array.isArray(todayData.platforms)) {
               todayData.platforms.forEach((platform: any) => {
-                if (platform.name === 'website' && platform.available && platform.units > 0) {
-                  availableRoomIds.add(platform.roomId);
+                // استخدام platformId بدلاً من name و roomTypeId بدلاً من roomId
+                if (platform.platformId === 'website' && platform.available && platform.units > 0) {
+                  availableRoomIds.add(platform.roomTypeId);
                 }
               });
             }
