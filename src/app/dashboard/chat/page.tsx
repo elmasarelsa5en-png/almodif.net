@@ -21,7 +21,9 @@ import {
 } from '@/lib/chat-file-manager';
 import { setupPushNotifications } from '@/lib/push-notifications';
 import { CallDialog } from '@/components/call-dialog';
+import { IncomingCallDialog } from '@/components/incoming-call-dialog';
 import { RequestDialog } from '@/components/request-dialog';
+import { webrtcService, CallSignal } from '@/lib/webrtc-service';
 
 interface Employee {
   id: string;
@@ -79,6 +81,8 @@ export default function ChatPage() {
   const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false);
   const [showChatList, setShowChatList] = useState(true);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [incomingCallSignal, setIncomingCallSignal] = useState<CallSignal | null>(null);
+  const [isIncomingCallDialogOpen, setIsIncomingCallDialogOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const unsubscribeRef = useRef<(() => void) | null>(null);
   const allChatsUnsubscribeRef = useRef<(() => void) | null>(null);
@@ -212,6 +216,35 @@ export default function ChatPage() {
           });
         }
       }
+    }
+  }, [user]);
+
+  // Listen for incoming calls
+  useEffect(() => {
+    if (user) {
+      const userId = user.username || user.email;
+      if (!userId) return;
+
+      console.log('📞 Setting up incoming call listener for:', userId);
+
+      // Initialize peer connection
+      webrtcService.initializePeer(userId).catch(err => {
+        console.error('❌ Failed to initialize peer for incoming calls:', err);
+      });
+
+      // Set callback for incoming calls
+      webrtcService.onIncomingCall((signal) => {
+        console.log('📞 Incoming call from:', signal.fromName);
+        setIncomingCallSignal(signal);
+        setIsIncomingCallDialogOpen(true);
+      });
+
+      // Start listening
+      webrtcService.startListeningForIncomingCalls(userId);
+
+      return () => {
+        // Don't cleanup peer - keep it alive for future calls
+      };
     }
   }, [user]);
 
@@ -899,6 +932,70 @@ export default function ChatPage() {
     console.log('🎤 Recording cancelled');
   };
 
+  // Handle incoming call acceptance
+  const handleAcceptCall = async () => {
+    if (!incomingCallSignal) return;
+
+    console.log('✅ Accepting call from:', incomingCallSignal.fromName);
+    
+    // Close incoming call dialog
+    setIsIncomingCallDialogOpen(false);
+
+    // Update signal status to accepted
+    try {
+      await updateDoc(doc(db, 'call_signals', incomingCallSignal.id), {
+        status: 'accepted'
+      });
+
+      // Find the caller employee
+      const callerEmployee = employees.find(emp => 
+        emp.id === incomingCallSignal.from || 
+        emp.username === incomingCallSignal.from ||
+        emp.email === incomingCallSignal.from
+      );
+
+      if (callerEmployee) {
+        // Open call dialog
+        setSelectedEmployee(callerEmployee);
+        setCallType(incomingCallSignal.type);
+        setIsCallDialogOpen(true);
+
+        // Answer the call using webrtcService
+        const stream = await webrtcService.answerCall(
+          incomingCallSignal.id,
+          incomingCallSignal.type
+        );
+        
+        console.log('✅ Call answered, stream:', stream);
+      }
+    } catch (error) {
+      console.error('❌ Failed to accept call:', error);
+      alert('فشل قبول المكالمة. حاول مرة أخرى.');
+    }
+
+    setIncomingCallSignal(null);
+  };
+
+  // Handle incoming call rejection
+  const handleRejectCall = async () => {
+    if (!incomingCallSignal) return;
+
+    console.log('❌ Rejecting call from:', incomingCallSignal.fromName);
+    
+    // Close incoming call dialog
+    setIsIncomingCallDialogOpen(false);
+
+    // Update signal status to rejected
+    try {
+      await webrtcService.rejectCall(incomingCallSignal.id);
+      console.log('✅ Call rejected');
+    } catch (error) {
+      console.error('❌ Failed to reject call:', error);
+    }
+
+    setIncomingCallSignal(null);
+  };
+
   // تنسيق مدة التسجيل
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -1450,6 +1547,17 @@ export default function ChatPage() {
           employeeName={selectedEmployee.name}
           employeeId={selectedEmployee.id}
           callType={callType}
+        />
+      )}
+
+      {/* Incoming Call Dialog */}
+      {incomingCallSignal && (
+        <IncomingCallDialog
+          isOpen={isIncomingCallDialogOpen}
+          callerName={incomingCallSignal.fromName}
+          callType={incomingCallSignal.type}
+          onAccept={handleAcceptCall}
+          onReject={handleRejectCall}
         />
       )}
 

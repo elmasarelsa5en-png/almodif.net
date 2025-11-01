@@ -18,6 +18,7 @@ class WebRTCService {
   private currentCall: MediaConnection | null = null;
   private localStream: MediaStream | null = null;
   private callSignalUnsubscribe: (() => void) | null = null;
+  private incomingCallCallback: ((signal: CallSignal) => void) | null = null;
 
   /**
    * Initialize PeerJS connection
@@ -360,6 +361,49 @@ class WebRTCService {
       this.peer.destroy();
       this.peer = null;
     }
+  }
+
+  /**
+   * Set callback for incoming calls
+   */
+  onIncomingCall(callback: (signal: CallSignal) => void) {
+    this.incomingCallCallback = callback;
+  }
+
+  /**
+   * Start listening for incoming calls
+   */
+  startListeningForIncomingCalls(userId: string) {
+    console.log('👂 Listening for incoming calls for:', userId);
+    
+    // Stop previous listener
+    this.stopListeningForCallSignals();
+
+    // Listen for call signals where I'm the receiver
+    const q = query(
+      collection(db, 'call_signals'),
+      where('to', '==', userId),
+      where('status', '==', 'ringing')
+    );
+
+    this.callSignalUnsubscribe = onSnapshot(q, (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === 'added') {
+          const signal = {
+            id: change.doc.id,
+            ...change.doc.data(),
+            timestamp: change.doc.data().timestamp?.toDate() || new Date()
+          } as CallSignal;
+
+          console.log('📞 Incoming call signal received:', signal);
+
+          // Trigger callback
+          if (this.incomingCallCallback) {
+            this.incomingCallCallback(signal);
+          }
+        }
+      });
+    });
   }
 }
 
