@@ -48,6 +48,11 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
       setCallStatus('initializing');
       console.log('📞 Starting WebRTC call...');
 
+      // Check if browser supports WebRTC
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('متصفحك لا يدعم المكالمات (WebRTC غير مدعوم)');
+      }
+
       const currentUserId = user?.username || user?.email;
       const currentUserName = user?.name || currentUserId;
 
@@ -55,26 +60,37 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
         throw new Error('User not found');
       }
 
+      console.log('🔑 User ID:', currentUserId);
+      console.log('👤 User Name:', currentUserName);
+      console.log('📞 Calling:', employeeId);
+
       // Initialize peer connection
+      console.log('⏳ Initializing peer connection...');
       await webrtcService.initializePeer(currentUserId);
+      console.log('✅ Peer connection initialized');
       
       setCallStatus('connecting');
 
       // Start call and create signal
+      console.log('📤 Creating call signal...');
       const signalId = await webrtcService.startCall(
         employeeId,
         currentUserId,
         currentUserName || 'مستخدم',
         callType
       );
+      console.log('✅ Call signal created:', signalId);
 
       setCurrentSignalId(signalId);
       setCallStatus('ringing');
 
       // Get local stream and display it
       const localStream = webrtcService.getLocalStream();
+      console.log('📹 Local stream:', localStream ? 'Available' : 'Not available');
+      
       if (localStream && localVideoRef.current) {
         localVideoRef.current.srcObject = localStream;
+        console.log('✅ Local video displayed');
       }
 
       // Wait for call to be answered (listen to signal status changes)

@@ -38,12 +38,8 @@ class WebRTCService {
         
         console.log('🔌 Initializing PeerJS with ID:', uniqueId);
 
-        // Create peer with user ID using PeerJS cloud service (free tier)
+        // Create peer WITHOUT custom server (use PeerJS default cloud - most reliable)
         this.peer = new Peer(uniqueId, {
-          host: '0.peerjs.com',
-          secure: true,
-          port: 443,
-          path: '/',
           config: {
             iceServers: [
               { urls: 'stun:stun.l.google.com:19302' },
@@ -53,7 +49,7 @@ class WebRTCService {
               { urls: 'stun:stun4.l.google.com:19302' },
             ]
           },
-          debug: 2 // Enable debug logs
+          debug: 3 // Enable verbose debug logs
         });
 
         this.peer.on('open', (id) => {
@@ -63,41 +59,20 @@ class WebRTCService {
         });
 
         this.peer.on('error', (error) => {
+          clearTimeout(timeout);
           console.error('❌ PeerJS error:', error);
-          
-          // Try alternative: create peer without custom server (use default PeerJS cloud)
-          if (error.type === 'network' || error.type === 'server-error') {
-            console.log('🔄 Trying fallback to default PeerJS cloud...');
-            
-            // Cleanup old peer
-            if (this.peer) {
-              this.peer.destroy();
-            }
-            
-            // Create new peer with default cloud server
-            this.peer = new Peer(userId, {
-              config: {
-                iceServers: [
-                  { urls: 'stun:stun.l.google.com:19302' },
-                  { urls: 'stun:stun1.l.google.com:19302' },
-                  { urls: 'stun:stun2.l.google.com:19302' },
-                ]
-              },
-              debug: 2
-            });
-            
-            this.peer.on('open', (id) => {
-              console.log('✅ PeerJS connected with fallback ID:', id);
-              resolve(id);
-            });
-            
-            this.peer.on('error', (fallbackError) => {
-              console.error('❌ Fallback also failed:', fallbackError);
-              reject(fallbackError);
-            });
-          } else {
-            reject(error);
-          }
+          console.error('Error type:', error.type);
+          console.error('Error message:', error.message);
+          reject(error);
+        });
+
+        // Additional event listeners for debugging
+        this.peer.on('disconnected', () => {
+          console.warn('⚠️ PeerJS disconnected');
+        });
+
+        this.peer.on('close', () => {
+          console.warn('⚠️ PeerJS connection closed');
         });
 
         // Listen for incoming calls
