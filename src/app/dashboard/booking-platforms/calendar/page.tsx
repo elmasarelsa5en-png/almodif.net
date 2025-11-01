@@ -124,6 +124,9 @@ export default function PlatformsCalendarPage() {
     });
   };
 
+  // State للبيانات - يجب تعريفه قبل استخدامه في useEffect
+  const [pricesData, setPricesData] = useState<DayPrice[]>([]);
+
   // Load calendar data from Firebase
   useEffect(() => {
     loadCalendarData();
@@ -202,9 +205,6 @@ export default function PlatformsCalendarPage() {
       setValidationWarning('❌ فشل حفظ البيانات');
     }
   };
-
-  // بيانات تجريبية للأسعار (removed - now using Firebase)
-  const [pricesData, setPricesData] = useState<DayPrice[]>([]);
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();

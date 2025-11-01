@@ -47,6 +47,10 @@ interface Room {
   available: boolean;
 }
 
+interface RoomWithImageIndex extends Room {
+  currentImageIndex: number;
+}
+
 interface HeroImage {
   id: string;
   url: string;
@@ -66,6 +70,7 @@ export default function PublicLandingPage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [heroImages, setHeroImages] = useState<HeroImage[]>([]);
   const [services, setServices] = useState<ServiceImage[]>([]);
+  const [roomImageIndexes, setRoomImageIndexes] = useState<{ [key: string]: number }>({});
   
   // Hotel Info
   const hotelName = 'فندق سيفن سون';
@@ -114,7 +119,7 @@ export default function PublicLandingPage() {
 
   const loadData = async () => {
     try {
-      // تحميل الغرف
+      // تحميل الغرف من rooms_catalog
       const roomsSnapshot = await getDocs(collection(db, 'rooms_catalog'));
       const roomsData = roomsSnapshot.docs.map(doc => ({
         id: doc.id,
@@ -122,17 +127,69 @@ export default function PublicLandingPage() {
       })) as Room[];
       
       console.log('📊 إجمالي الغرف في الكتالوج:', roomsData.length);
-      console.log('🏨 الغرف المحملة:', roomsData);
       
-      // عرض الغرف المتاحة، وإذا لم توجد اعرض كل الغرف
-      const availableRooms = roomsData.filter(room => room.available);
-      if (availableRooms.length > 0) {
+      // تحميل availability من calendar للشهر الحالي
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const monthKey = `${year}-${month}`;
+      const day = today.getDate();
+      
+      try {
+        const calendarDoc = await getDoc(doc(db, 'calendar_availability', monthKey));
+        
+        if (calendarDoc.exists()) {
+          const calendarData = calendarDoc.data();
+          const prices = calendarData.prices || [];
+          
+          // البحث عن اليوم الحالي
+          const todayData = prices.find((p: any) => p.day === day);
+          
+          if (todayData) {
+            console.log('📅 بيانات اليوم:', todayData);
+            
+            // الغرف المتاحة على منصة website فقط
+            const availableRoomIds = new Set<string>();
+            
+            if (todayData.platforms && Array.isArray(todayData.platforms)) {
+              todayData.platforms.forEach((platform: any) => {
+                if (platform.name === 'website' && platform.available && platform.units > 0) {
+                  availableRoomIds.add(platform.roomId);
+                }
+              });
+            }
+            
+            console.log('✅ الغرف المتاحة على الموقع:', Array.from(availableRoomIds));
+            
+            // تصفية الغرف المتاحة فقط
+            const availableRooms = roomsData.filter(room => availableRoomIds.has(room.id));
+            
+            if (availableRooms.length > 0) {
+              setRooms(availableRooms);
+              console.log('🏨 عدد الغرف المتاحة:', availableRooms.length);
+            } else {
+              // في حالة عدم وجود غرف متاحة في التقويم، اعرض الغرف المتاحة من الكتالوج
+              const catalogAvailable = roomsData.filter(room => room.available);
+              setRooms(catalogAvailable);
+              console.log('⚠️ لا توجد غرف في التقويم، عرض من الكتالوج:', catalogAvailable.length);
+            }
+          } else {
+            // اليوم غير موجود في التقويم، اعرض كل الغرف المتاحة
+            const availableRooms = roomsData.filter(room => room.available);
+            setRooms(availableRooms);
+            console.log('⚠️ اليوم غير موجود في التقويم، عرض الغرف المتاحة:', availableRooms.length);
+          }
+        } else {
+          // الشهر غير موجود في التقويم، اعرض كل الغرف المتاحة
+          const availableRooms = roomsData.filter(room => room.available);
+          setRooms(availableRooms);
+          console.log('⚠️ التقويم غير موجود، عرض الغرف المتاحة:', availableRooms.length);
+        }
+      } catch (calendarError) {
+        console.error('❌ خطأ في تحميل التقويم:', calendarError);
+        // في حالة الخطأ، اعرض الغرف المتاحة من الكتالوج
+        const availableRooms = roomsData.filter(room => room.available);
         setRooms(availableRooms);
-        console.log('✅ عدد الغرف المتاحة:', availableRooms.length);
-      } else {
-        // إذا لم توجد غرف متاحة، اعرض كل الغرف
-        setRooms(roomsData);
-        console.log('⚠️ لا توجد غرف متاحة، عرض جميع الغرف:', roomsData.length);
       }
 
       // تحميل الصور من Firebase
@@ -160,6 +217,20 @@ export default function PublicLandingPage() {
 
   const prevImage = () => {
     setCurrentImageIndex((prev) => (prev - 1 + heroImages.length) % heroImages.length);
+  };
+
+  const nextRoomImage = (roomId: string, totalImages: number) => {
+    setRoomImageIndexes(prev => ({
+      ...prev,
+      [roomId]: ((prev[roomId] || 0) + 1) % totalImages
+    }));
+  };
+
+  const prevRoomImage = (roomId: string, totalImages: number) => {
+    setRoomImageIndexes(prev => ({
+      ...prev,
+      [roomId]: ((prev[roomId] || 0) - 1 + totalImages) % totalImages
+    }));
   };
 
   return (
@@ -320,6 +391,252 @@ export default function PublicLandingPage() {
             <ChevronLeft className="h-6 w-6 rotate-90" />
             <span className="text-sm">استكشف المزيد</span>
           </div>
+        </div>
+      </section>
+
+      {/* Rooms & Suites - Luxury Showcase - MOVED HERE */}
+      <section id="rooms" className="relative py-24 overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <Image
+            src="https://images.unsplash.com/photo-1566073771259-6a8506099945"
+            alt="Hotel Rooms"
+            fill
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-amber-900/90 via-orange-800/85 to-amber-900/90" />
+        </div>
+        
+        <div className="relative z-10 max-w-7xl mx-auto px-6">
+          {/* Section Header */}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-2 rounded-full mb-4">
+              <Building className="h-4 w-4 text-amber-300" />
+              <span className="text-white font-semibold text-sm">غرفنا</span>
+            </div>
+            <h2 className="text-5xl font-bold text-white mb-6">
+              الغرف والأجنحة الفاخرة
+            </h2>
+            <div className="w-24 h-1 bg-gradient-to-r from-amber-300 to-amber-400 mx-auto mb-6"></div>
+            <p className="text-xl text-amber-100 max-w-2xl mx-auto">
+              اختر من بين مجموعة متنوعة من الغرف والأجنحة المصممة بعناية لتوفير أقصى درجات الراحة والفخامة
+            </p>
+          </div>
+
+          {loading ? (
+            <div className="text-center py-20">
+              <div className="relative">
+                <div className="animate-spin rounded-full h-20 w-20 border-b-4 border-amber-500 mx-auto"></div>
+                <Star className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-8 w-8 text-amber-500 animate-pulse" />
+              </div>
+              <p className="mt-6 text-gray-600 text-lg">جاري تحميل الغرف الفاخرة...</p>
+            </div>
+          ) : rooms.length === 0 ? (
+            <div className="text-center py-20">
+              <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Building className="h-10 w-10 text-gray-400" />
+              </div>
+              <p className="text-gray-500 text-xl">لا توجد غرف متاحة حالياً</p>
+              <p className="text-gray-400 mt-2">يرجى التواصل معنا للاستفسار</p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
+              {rooms.map((room, index) => {
+                const currentRoomImageIndex = roomImageIndexes[room.id] || 0;
+                const hasMultipleImages = room.images && room.images.length > 1;
+                
+                return (
+                  <div
+                    key={room.id}
+                    className="group bg-white rounded-3xl overflow-hidden shadow-2xl hover:shadow-[0_20px_60px_rgba(0,0,0,0.3)] transition-all duration-500 hover:-translate-y-3 border border-gray-100"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    {/* Room Image with Slider */}
+                    <div className="relative h-80 overflow-hidden">
+                      {room.images && room.images.length > 0 ? (
+                        <>
+                          <Image
+                            src={room.images[currentRoomImageIndex].url}
+                            alt={room.name}
+                            fill
+                            className="object-cover group-hover:scale-110 transition-transform duration-700"
+                          />
+                          
+                          {/* Image Navigation - Always Visible for Multiple Images */}
+                          {hasMultipleImages && (
+                            <>
+                              <button
+                                onClick={() => prevRoomImage(room.id, room.images.length)}
+                                className="absolute left-3 top-1/2 -translate-y-1/2 z-20 bg-black/70 hover:bg-black/90 backdrop-blur-sm p-3 rounded-full transition-all shadow-xl border-2 border-white/30"
+                                aria-label="Previous image"
+                              >
+                                <ChevronRight className="h-5 w-5 text-white" />
+                              </button>
+                              <button
+                                onClick={() => nextRoomImage(room.id, room.images.length)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 z-20 bg-black/70 hover:bg-black/90 backdrop-blur-sm p-3 rounded-full transition-all shadow-xl border-2 border-white/30"
+                                aria-label="Next image"
+                              >
+                                <ChevronLeft className="h-5 w-5 text-white" />
+                              </button>
+                              
+                              {/* Image Counter Badge */}
+                              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-xl">
+                                {currentRoomImageIndex + 1} / {room.images.length}
+                              </div>
+                              
+                              {/* Image Dots */}
+                              <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-10 flex gap-2">
+                                {room.images.map((_, imgIdx) => (
+                                  <button
+                                    key={imgIdx}
+                                    onClick={() => setRoomImageIndexes(prev => ({...prev, [room.id]: imgIdx}))}
+                                    className={`transition-all ${
+                                      imgIdx === currentRoomImageIndex
+                                        ? 'bg-white w-10 h-3'
+                                        : 'bg-white/50 hover:bg-white/80 w-3 h-3'
+                                    } rounded-full`}
+                                    aria-label={`Go to image ${imgIdx + 1}`}
+                                  />
+                                ))}
+                              </div>
+                            </>
+                          )}
+                        </>
+                      ) : (
+                        <div className="flex items-center justify-center h-full bg-gradient-to-br from-gray-100 to-gray-200">
+                          <Star className="h-24 w-24 text-gray-300" />
+                        </div>
+                      )}
+                      
+                      {/* Dark Gradient Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                      
+                      {/* Price Badge - Prominent */}
+                      <div className="absolute top-4 left-4 z-20">
+                        <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white px-6 py-3 rounded-2xl shadow-2xl border-2 border-white/20">
+                          <p className="text-xs font-semibold opacity-90">يبدأ من</p>
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-3xl font-bold">{room.price.daily}</span>
+                            <span className="text-sm">ر.س</span>
+                          </div>
+                          <p className="text-xs opacity-90">/ ليلة</p>
+                        </div>
+                      </div>
+                      
+                      {/* Room Type Badge */}
+                      <div className="absolute top-4 right-4 z-20 bg-white/95 backdrop-blur-sm text-gray-800 px-5 py-2 rounded-full font-bold text-sm shadow-lg">
+                        {room.type}
+                      </div>
+                      
+                      {/* Bottom Info Bar */}
+                      <div className="absolute bottom-0 left-0 right-0 z-10 p-5 bg-gradient-to-t from-black/80 to-transparent">
+                        <h3 className="text-2xl font-bold text-white mb-1 drop-shadow-lg">
+                          {room.name}
+                        </h3>
+                        {room.nameEn && (
+                          <p className="text-white/80 text-sm font-medium drop-shadow-md" dir="ltr">
+                            {room.nameEn}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Room Details */}
+                    <div className="p-6">
+                      <p className="text-gray-600 mb-6 line-clamp-2 leading-relaxed text-base">
+                        {room.description}
+                      </p>
+
+                      {/* Room Info Grid - Enhanced */}
+                      <div className="grid grid-cols-2 gap-4 mb-6">
+                        <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl border-2 border-blue-200 text-center">
+                          <Home className="h-5 w-5 text-blue-600 mx-auto mb-2" />
+                          <p className="text-xs text-blue-600 font-semibold mb-1">المساحة</p>
+                          <p className="text-xl font-bold text-blue-900">{room.area} م²</p>
+                        </div>
+                        <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl border-2 border-green-200 text-center">
+                          <Star className="h-5 w-5 text-green-600 mx-auto mb-2" />
+                          <p className="text-xs text-green-600 font-semibold mb-1">السعة</p>
+                          <p className="text-xl font-bold text-green-900">{room.maxGuests} أشخاص</p>
+                        </div>
+                      </div>
+
+                      {/* Amenities - Enhanced */}
+                      {room.amenities && room.amenities.length > 0 && (
+                        <div className="mb-6">
+                          <p className="text-sm text-gray-700 font-bold mb-3 flex items-center gap-2">
+                            <Sparkles className="h-4 w-4 text-amber-500" />
+                            المرافق المميزة
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {room.amenities.slice(0, 4).map((amenity: any, idx: number) => (
+                              <span
+                                key={idx}
+                                className="text-xs bg-amber-50 text-amber-700 px-4 py-2 rounded-full border-2 border-amber-200 font-semibold"
+                              >
+                                {amenity}
+                              </span>
+                            ))}
+                            {room.amenities.length > 4 && (
+                              <span className="text-xs bg-gray-100 text-gray-700 px-4 py-2 rounded-full border-2 border-gray-300 font-semibold">
+                                +{room.amenities.length - 4} المزيد
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Weekly/Monthly Offers */}
+                      {(room.price.weekly || room.price.monthly) && (
+                        <div className="mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border-2 border-green-200">
+                          <p className="text-xs text-green-700 font-bold mb-2 flex items-center gap-2">
+                            <Sparkles className="h-3 w-3" />
+                            عروض خاصة متاحة
+                          </p>
+                          <div className="flex gap-4 text-sm">
+                            {room.price.weekly && (
+                              <div>
+                                <span className="text-green-600 font-semibold">أسبوعي: </span>
+                                <span className="text-green-900 font-bold">{room.price.weekly} ر.س</span>
+                              </div>
+                            )}
+                            {room.price.monthly && (
+                              <div>
+                                <span className="text-green-600 font-semibold">شهري: </span>
+                                <span className="text-green-900 font-bold">{room.price.monthly} ر.س</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* CTA Button - Enhanced */}
+                      <Link href="/guest-app/login">
+                        <Button className="w-full bg-gradient-to-r from-amber-500 via-amber-600 to-amber-500 hover:from-amber-600 hover:via-amber-700 hover:to-amber-600 text-white py-7 text-lg font-bold rounded-2xl shadow-xl hover:shadow-2xl transition-all border-2 border-amber-400 hover:scale-[1.02]">
+                          <Calendar className="mr-2 h-6 w-6" />
+                          احجز الآن
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Bottom CTA */}
+          {rooms.length > 0 && (
+            <div className="text-center mt-16">
+              <p className="text-gray-600 mb-6 text-lg">لم تجد ما تبحث عنه؟</p>
+              <Link href="/public/faq">
+                <Button size="lg" variant="outline" className="border-2 border-gray-300 hover:border-amber-500 hover:text-amber-600 px-8 py-6 rounded-full">
+                  <MessageCircle className="mr-2 h-5 w-5" />
+                  تحدث مع فريق الحجوزات
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 
@@ -524,192 +841,6 @@ export default function PublicLandingPage() {
               </Button>
             </Link>
           </div>
-        </div>
-      </section>
-
-      {/* Rooms & Suites - Luxury Showcase */}
-      <section id="rooms" className="relative py-24 overflow-hidden">
-        {/* Background Image */}
-        <div className="absolute inset-0">
-          <Image
-            src="https://images.unsplash.com/photo-1566073771259-6a8506099945"
-            alt="Hotel Rooms"
-            fill
-            className="object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-br from-amber-900/90 via-orange-800/85 to-amber-900/90" />
-        </div>
-        
-        <div className="relative z-10 max-w-7xl mx-auto px-6">
-          {/* Section Header */}
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-2 rounded-full mb-4">
-              <Building className="h-4 w-4 text-amber-300" />
-              <span className="text-white font-semibold text-sm">غرفنا</span>
-            </div>
-            <h2 className="text-5xl font-bold text-white mb-6">
-              الغرف والأجنحة الفاخرة
-            </h2>
-            <div className="w-24 h-1 bg-gradient-to-r from-amber-300 to-amber-400 mx-auto mb-6"></div>
-            <p className="text-xl text-amber-100 max-w-2xl mx-auto">
-              اختر من بين مجموعة متنوعة من الغرف والأجنحة المصممة بعناية لتوفير أقصى درجات الراحة والفخامة
-            </p>
-          </div>
-
-          {loading ? (
-            <div className="text-center py-20">
-              <div className="relative">
-                <div className="animate-spin rounded-full h-20 w-20 border-b-4 border-amber-500 mx-auto"></div>
-                <Star className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-8 w-8 text-amber-500 animate-pulse" />
-              </div>
-              <p className="mt-6 text-gray-600 text-lg">جاري تحميل الغرف الفاخرة...</p>
-            </div>
-          ) : rooms.length === 0 ? (
-            <div className="text-center py-20">
-              <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Building className="h-10 w-10 text-gray-400" />
-              </div>
-              <p className="text-gray-500 text-xl">لا توجد غرف متاحة حالياً</p>
-              <p className="text-gray-400 mt-2">يرجى التواصل معنا للاستفسار</p>
-            </div>
-          ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {rooms.map((room, index) => (
-                <div
-                  key={room.id}
-                  className="group bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2"
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  {/* Room Image */}
-                  <div className="relative h-72 overflow-hidden">
-                    {room.images && room.images.length > 0 ? (
-                      <Image
-                        src={room.images[0].url}
-                        alt={room.name}
-                        fill
-                        className="object-cover group-hover:scale-110 transition-transform duration-700"
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center h-full bg-gradient-to-br from-gray-100 to-gray-200">
-                        <Star className="h-20 w-20 text-gray-300" />
-                      </div>
-                    )}
-                    
-                    {/* Overlay Gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    
-                    {/* Room Type Badge */}
-                    <div className="absolute top-6 right-6 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-5 py-2 rounded-full font-bold text-sm shadow-lg">
-                      {room.type}
-                    </div>
-                    
-                    {/* Quick View Button */}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                      <div className="bg-white/20 backdrop-blur-md p-4 rounded-full">
-                        <Eye className="h-8 w-8 text-white" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Room Details */}
-                  <div className="p-7">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2 group-hover:text-amber-600 transition">
-                      {room.name}
-                    </h3>
-                    {room.nameEn && (
-                      <p className="text-gray-400 text-sm mb-4 font-medium" dir="ltr">
-                        {room.nameEn}
-                      </p>
-                    )}
-                    <p className="text-gray-600 mb-5 line-clamp-2 leading-relaxed">
-                      {room.description}
-                    </p>
-
-                    {/* Room Info Cards */}
-                    <div className="grid grid-cols-2 gap-3 mb-5">
-                      <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl border border-blue-200">
-                        <p className="text-xs text-blue-600 font-semibold mb-1">المساحة</p>
-                        <p className="text-lg font-bold text-blue-900">{room.area} م²</p>
-                      </div>
-                      <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl border border-green-200">
-                        <p className="text-xs text-green-600 font-semibold mb-1">السعة</p>
-                        <p className="text-lg font-bold text-green-900">{room.maxGuests} أشخاص</p>
-                      </div>
-                    </div>
-
-                    {/* Amenities */}
-                    {room.amenities && room.amenities.length > 0 && (
-                      <div className="mb-5">
-                        <p className="text-xs text-gray-500 font-semibold mb-3 flex items-center gap-2">
-                          <Sparkles className="h-3 w-3" />
-                          المرافق المتوفرة
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {room.amenities.slice(0, 3).map((amenity: any, idx: number) => {
-                            return (
-                              <span
-                                key={idx}
-                                className="text-xs bg-amber-50 text-amber-700 px-3 py-1.5 rounded-full border border-amber-200 font-medium"
-                              >
-                                {amenity}
-                              </span>
-                            );
-                          })}
-                          {room.amenities.length > 3 && (
-                            <span className="text-xs bg-gray-100 text-gray-600 px-3 py-1.5 rounded-full border border-gray-200 font-medium">
-                              +{room.amenities.length - 3} المزيد
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Price & CTA */}
-                    <div className="border-t border-gray-100 pt-5">
-                      <div className="flex items-end justify-between mb-5">
-                        <div>
-                          <p className="text-xs text-gray-500 mb-1">السعر يبدأ من</p>
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-4xl font-bold bg-gradient-to-r from-amber-600 to-amber-500 bg-clip-text text-transparent">
-                              {room.price.daily}
-                            </span>
-                            <span className="text-gray-500 font-medium">ر.س</span>
-                          </div>
-                          <p className="text-xs text-gray-400 mt-1">لليلة الواحدة</p>
-                        </div>
-                        {room.price.weekly && (
-                          <div className="text-right bg-green-50 px-3 py-2 rounded-lg">
-                            <p className="text-xs text-green-600 font-semibold">عرض أسبوعي</p>
-                            <p className="text-sm font-bold text-green-900">{room.price.weekly} ر.س</p>
-                          </div>
-                        )}
-                      </div>
-
-                      <Link href="/guest-app/login">
-                        <Button className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white py-6 text-base font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all">
-                          <Calendar className="mr-2 h-5 w-5" />
-                          احجز هذه الغرفة
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Bottom CTA */}
-          {rooms.length > 0 && (
-            <div className="text-center mt-16">
-              <p className="text-gray-600 mb-6 text-lg">لم تجد ما تبحث عنه؟</p>
-              <Link href="/public/faq">
-                <Button size="lg" variant="outline" className="border-2 border-gray-300 hover:border-amber-500 hover:text-amber-600 px-8 py-6 rounded-full">
-                  <MessageCircle className="mr-2 h-5 w-5" />
-                  تحدث مع فريق الحجوزات
-                </Button>
-              </Link>
-            </div>
-          )}
         </div>
       </section>
 
