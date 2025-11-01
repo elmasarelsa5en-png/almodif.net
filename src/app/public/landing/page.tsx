@@ -113,7 +113,20 @@ export default function PublicLandingPage() {
         id: doc.id,
         ...doc.data()
       })) as Room[];
-      setRooms(roomsData.filter(room => room.available));
+      
+      console.log('📊 إجمالي الغرف في الكتالوج:', roomsData.length);
+      console.log('🏨 الغرف المحملة:', roomsData);
+      
+      // عرض الغرف المتاحة، وإذا لم توجد اعرض كل الغرف
+      const availableRooms = roomsData.filter(room => room.available);
+      if (availableRooms.length > 0) {
+        setRooms(availableRooms);
+        console.log('✅ عدد الغرف المتاحة:', availableRooms.length);
+      } else {
+        // إذا لم توجد غرف متاحة، اعرض كل الغرف
+        setRooms(roomsData);
+        console.log('⚠️ لا توجد غرف متاحة، عرض جميع الغرف:', roomsData.length);
+      }
 
       // تحميل الصور من Firebase
       const imagesDoc = await getDoc(doc(db, 'settings', 'website-images'));
@@ -126,7 +139,7 @@ export default function PublicLandingPage() {
         setServices(getDefaultServices());
       }
     } catch (error) {
-      console.error('خطأ في تحميل البيانات:', error);
+      console.error('❌ خطأ في تحميل البيانات:', error);
       setHeroImages(getDefaultHeroImages());
       setServices(getDefaultServices());
     } finally {
