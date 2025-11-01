@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Send, Search, Phone, Video, MoreVertical, Smile, Paperclip,
   CheckCheck, Check, Circle, Loader2, MessageSquare, Users, AlertCircle,
-  Image as ImageIcon, Mic, MicOff, X, Play, Pause, Download, FileText, Trash2, ArrowLeft
+  Image as ImageIcon, Mic, MicOff, X, Play, Pause, Download, FileText, Trash2, ArrowLeft, History
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +22,7 @@ import {
 import { setupPushNotifications } from '@/lib/push-notifications';
 import { CallDialog } from '@/components/call-dialog';
 import { IncomingCallDialog } from '@/components/incoming-call-dialog';
+import { CallHistoryDialog } from '@/components/call-history-dialog';
 import { RequestDialog } from '@/components/request-dialog';
 import { webrtcService, CallSignal } from '@/lib/webrtc-service';
 
@@ -78,6 +79,7 @@ export default function ChatPage() {
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [isCallDialogOpen, setIsCallDialogOpen] = useState(false);
   const [callType, setCallType] = useState<'audio' | 'video'>('audio');
+  const [isCallHistoryOpen, setIsCallHistoryOpen] = useState(false);
   const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false);
   const [showChatList, setShowChatList] = useState(true);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
@@ -1233,6 +1235,15 @@ export default function ChatPage() {
                   <Button 
                     variant='ghost' 
                     size='sm' 
+                    onClick={() => setIsCallHistoryOpen(true)}
+                    className='text-white hover:bg-slate-700/50 rounded-full w-9 h-9 md:w-11 md:h-11 p-0 transition-all hover:scale-110'
+                    title='سجل المكالمات'
+                  >
+                    <History className='w-5 h-5 md:w-6 md:h-6' />
+                  </Button>
+                  <Button 
+                    variant='ghost' 
+                    size='sm' 
                     onClick={() => setIsRequestDialogOpen(true)}
                     className='text-white hover:bg-slate-700/50 rounded-full w-9 h-9 md:w-11 md:h-11 p-0 transition-all hover:scale-110'
                     title='إرسال طلب'
@@ -1555,6 +1566,17 @@ export default function ChatPage() {
           employeeName={selectedEmployee.name}
           employeeId={selectedEmployee.id}
           callType={callType}
+        />
+      )}
+
+      {/* Call History Dialog */}
+      {selectedEmployee && user && (
+        <CallHistoryDialog
+          open={isCallHistoryOpen}
+          onOpenChange={setIsCallHistoryOpen}
+          userId={user.username}
+          userName={selectedEmployee.name}
+          otherUserId={selectedEmployee.id}
         />
       )}
 

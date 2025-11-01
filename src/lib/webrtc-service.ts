@@ -1,5 +1,5 @@
 import Peer, { MediaConnection } from 'peerjs';
-import { collection, addDoc, onSnapshot, query, where, updateDoc, doc, serverTimestamp, deleteDoc } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, query, where, updateDoc, doc, serverTimestamp, deleteDoc, getDocs, orderBy, limit, getDoc } from 'firebase/firestore';
 import { db } from './firebase';
 
 export interface CallSignal {
@@ -11,6 +11,18 @@ export interface CallSignal {
   status: 'ringing' | 'accepted' | 'rejected' | 'ended';
   timestamp: Date;
   peerId?: string;
+}
+
+export interface CallHistory {
+  id: string;
+  from: string;
+  to: string;
+  fromName: string;
+  type: 'audio' | 'video';
+  status: 'accepted' | 'rejected' | 'ended' | 'missed';
+  startedAt: Date;
+  endedAt: Date;
+  duration: number; // in seconds
 }
 
 class WebRTCService {
@@ -403,14 +415,36 @@ class WebRTCService {
         this.currentCall = null;
       }
 
-      // Update signal status
+      // Update signal status and save to call history
       if (signalId) {
-        await updateDoc(doc(db, 'call_signals', signalId), {
-          status: 'ended'
-        });
+        const signalDoc = doc(db, 'call_signals', signalId);
+        const signalSnap = await getDoc(signalDoc);
+        
+        if (signalSnap.exists()) {
+          const signalData = signalSnap.data();
+          
+          // Update signal status
+          await updateDoc(signalDoc, {
+            status: 'ended',
+            endedAt: serverTimestamp()
+          });
+
+          // Save to call history
+          await addDoc(collection(db, 'call_history'), {
+            from: signalData.from,
+            to: signalData.to,
+            fromName: signalData.fromName,
+            type: signalData.type,
+            status: signalData.status || 'ended',
+            startedAt: signalData.timestamp,
+            endedAt: serverTimestamp(),
+            duration: null // Will be calculated on read
+          });
+
+          console.log('📞 Call ended and saved to history');
+        }
       }
 
-      console.log('📞 Call ended successfully');
     } catch (error) {
       console.error('❌ Failed to end call:', error);
     }
@@ -456,6 +490,135 @@ class WebRTCService {
    */
   getCurrentCall(): MediaConnection | null {
     return this.currentCall;
+  }
+
+  /**
+   * Get call history for a user
+   */
+  async getCallHistory(userId: string, maxResults: number = 50): Promise<CallHistory[]> {
+    try {
+      const q = query(
+        collection(db, 'call_history'),
+        where('from', '==', userId),
+        orderBy('startedAt', 'desc'),
+        limit(maxResults)
+      );
+
+      const q2 = query(
+        collection(db, 'call_history'),
+        where('to', '==', userId),
+        orderBy('startedAt', 'desc'),
+        limit(maxResults)
+      );
+
+      const [outgoingSnap, incomingSnap] = await Promise.all([
+        getDocs(q),
+        getDocs(q2)
+      ]);
+
+      const calls: CallHistory[] = [];
+
+      outgoingSnap.forEach(doc => {
+        const data = doc.data();
+        const startedAt = data.startedAt?.toDate() || new Date();
+        const endedAt = data.endedAt?.toDate() || new Date();
+        const duration = Math.floor((endedAt.getTime() - startedAt.getTime()) / 1000);
+
+        calls.push({
+          id: doc.id,
+          from: data.from,
+          to: data.to,
+          fromName: data.fromName,
+          type: data.type,
+          status: data.status,
+          startedAt,
+          endedAt,
+          duration
+        });
+      });
+
+      incomingSnap.forEach(doc => {
+        const data = doc.data();
+        const startedAt = data.startedAt?.toDate() || new Date();
+        const endedAt = data.endedAt?.toDate() || new Date();
+        const duration = Math.floor((endedAt.getTime() - startedAt.getTime()) / 1000);
+
+        calls.push({
+          id: doc.id,
+          from: data.from,
+          to: data.to,
+          fromName: data.fromName,
+          type: data.type,
+          status: data.status,
+          startedAt,
+          endedAt,
+          duration
+        });
+      });
+
+      // Sort by date (most recent first)
+      calls.sort((a, b) => b.startedAt.getTime() - a.startedAt.getTime());
+
+      return calls.slice(0, maxResults);
+    } catch (error) {
+      console.error('❌ Failed to get call history:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get call history between two users
+   */
+  async getCallHistoryBetween(userId1: string, userId2: string): Promise<CallHistory[]> {
+    try {
+      const q1 = query(
+        collection(db, 'call_history'),
+        where('from', '==', userId1),
+        where('to', '==', userId2),
+        orderBy('startedAt', 'desc')
+      );
+
+      const q2 = query(
+        collection(db, 'call_history'),
+        where('from', '==', userId2),
+        where('to', '==', userId1),
+        orderBy('startedAt', 'desc')
+      );
+
+      const [snap1, snap2] = await Promise.all([
+        getDocs(q1),
+        getDocs(q2)
+      ]);
+
+      const calls: CallHistory[] = [];
+
+      [...snap1.docs, ...snap2.docs].forEach(doc => {
+        const data = doc.data();
+        const startedAt = data.startedAt?.toDate() || new Date();
+        const endedAt = data.endedAt?.toDate() || new Date();
+        const duration = Math.floor((endedAt.getTime() - startedAt.getTime()) / 1000);
+
+        calls.push({
+          id: doc.id,
+          from: data.from,
+          to: data.to,
+          fromName: data.fromName,
+          type: data.type,
+          status: data.status,
+          startedAt,
+          endedAt,
+          duration
+        });
+      });
+
+      // Sort by date (most recent first)
+      calls.sort((a, b) => b.startedAt.getTime() - a.startedAt.getTime());
+
+      return calls;
+    } catch (error) {
+      console.error('❌ Failed to get call history between users:', error);
+      return [];
+    }
   }
 
   /**
