@@ -279,7 +279,7 @@ export default function PublicLandingPage() {
                 الأسئلة الشائعة
               </Link>
               <Link href="/guest-app/login">
-                <Button variant="outline" className="border-2 border-white/30 hover:border-white hover:bg-white/10 text-white px-6 py-5 rounded-full shadow-xl transition-all font-bold text-base">
+                <Button variant="outline" className="border-2 border-white/50 hover:border-white bg-transparent hover:bg-white/20 text-white px-6 py-5 rounded-full shadow-xl transition-all font-bold text-base">
                   تسجيل الدخول
                 </Button>
               </Link>
@@ -477,7 +477,7 @@ export default function PublicLandingPage() {
                     </Button>
                   </Link>
                   <Link href="/public/faq">
-                    <Button variant="outline" className="border-2 border-white text-white hover:bg-white/10 px-8 py-6 rounded-full">
+                    <Button variant="outline" className="border-2 border-white/50 bg-transparent hover:bg-white/20 text-white px-8 py-6 rounded-full font-bold">
                       استفسارات
                     </Button>
                   </Link>
@@ -643,7 +643,7 @@ export default function PublicLandingPage() {
               </Button>
             </Link>
             <Link href="tel:+966504755400">
-              <Button size="lg" variant="outline" className="border-3 border-white text-white hover:bg-white/20 backdrop-blur-md px-12 py-8 text-xl font-bold rounded-full">
+              <Button size="lg" variant="outline" className="border-3 border-white/70 bg-transparent hover:bg-white/30 backdrop-blur-md text-white px-12 py-8 text-xl font-bold rounded-full">
                 <Phone className="mr-3 h-7 w-7" />
                 اتصل بنا مباشرة
               </Button>
