@@ -361,12 +361,12 @@ export default function GuestLoginPage() {
               {/* Glow Effect */}
               <div className="absolute -inset-4 bg-gradient-to-br from-amber-500/40 via-orange-500/30 to-red-500/20 rounded-[32px] blur-2xl"></div>
               
-              {/* Seven-Son Logo - No Padding, Fill Container */}
-              <div className="relative bg-slate-900/80 backdrop-blur-sm rounded-[28px] overflow-hidden shadow-2xl border border-amber-500/20">
+              {/* Seven-Son Logo - Larger to fill container */}
+              <div className="relative bg-slate-900/80 backdrop-blur-sm rounded-[28px] overflow-hidden shadow-2xl border border-amber-500/20 w-32 h-32">
                 <img 
                   src="/images/seven-son-logo.jpeg"
                   alt="Seven-Son Hotel"
-                  className="w-32 h-32 object-cover rounded-2xl"
+                  className="w-full h-full object-cover scale-125"
                   onLoad={() => {
                     console.log('✅ Seven-Son logo loaded successfully');
                   }}
@@ -377,7 +377,7 @@ export default function GuestLoginPage() {
                     // Fallback to icon if image fails
                     const parent = target.parentElement;
                     if (parent) {
-                      parent.innerHTML = '<div class="w-32 h-32 flex items-center justify-center bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 rounded-2xl"><svg class="w-20 h-20 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg></div>';
+                      parent.innerHTML = '<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600"><svg class="w-20 h-20 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg></div>';
                       console.log('⚠️ Showing fallback hotel icon');
                     }
                   }}
@@ -413,14 +413,6 @@ export default function GuestLoginPage() {
           >
             Seven-Son Hotel
           </motion.h2>
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="text-slate-200 drop-shadow-md"
-          >
-            أهلاً بك في تطبيق الضيف
-          </motion.p>
         </div>
 
         {/* Glass Card with Backdrop Blur */}
