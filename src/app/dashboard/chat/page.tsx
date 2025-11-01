@@ -352,9 +352,10 @@ export default function ChatPage() {
           for (const chatDoc of querySnapshot.docs) {
             const chatData = chatDoc.data();
             if (chatData.participants.includes(employee.id)) {
-              const messagesRef = collection(db, 'chats', chatDoc.id, 'messages');
+              const messagesRef = collection(db, 'messages');
               const messagesQuery = query(
                 messagesRef,
+                where('chatId', '==', chatDoc.id),
                 where('senderId', '==', employee.id),
                 where('read', '==', false)
               );
@@ -404,12 +405,13 @@ export default function ChatPage() {
             if (chatData.participants.includes(employee.id)) {
               console.log('📨 Setting up last message listener for:', employee.name, 'chat:', chatDoc.id);
               
-              // استخدام real-time listener لآخر رسالة
-              const messagesRef = collection(db, 'chats', chatDoc.id, 'messages');
+              // استخدام real-time listener لآخر رسالة من messages collection
+              const messagesRef = collection(db, 'messages');
               const lastMessageQuery = query(
                 messagesRef,
+                where('chatId', '==', chatDoc.id),
                 orderBy('timestamp', 'desc'),
-                limit(1) // نجيب آخر رسالة بس
+                limit(1)
               );
               
               const unsubscribe = onSnapshot(lastMessageQuery, (snapshot) => {
