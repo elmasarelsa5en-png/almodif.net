@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -44,48 +44,91 @@ interface Room {
   available: boolean;
 }
 
+interface HeroImage {
+  id: string;
+  url: string;
+  title: string;
+}
+
+interface ServiceImage {
+  id: string;
+  url: string;
+  title: string;
+  icon: string;
+}
+
 export default function PublicLandingPage() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [heroImages, setHeroImages] = useState<HeroImage[]>([]);
+  const [services, setServices] = useState<ServiceImage[]>([]);
 
-  // صور رئيسية للفندق (Hero Slider)
-  const heroImages = [
+  // صور افتراضية في حالة عدم وجود صور في Firebase
+  const getDefaultHeroImages = (): HeroImage[] => [
     {
-      url: '/images/hotel-exterior.jpg',
-      title: 'فندق سيفن سون',
-      subtitle: 'تجربة فندقية استثنائية في قلب أبها'
+      id: '1',
+      url: 'https://images.unsplash.com/photo-1566073771259-6a8506099945',
+      title: 'فندق سيفن سون - تجربة استثنائية'
     },
     {
-      url: '/images/seven-son-logo.jpeg',
-      title: 'الضيافة الفاخرة',
-      subtitle: 'راحتك هي أولويتنا'
+      id: '2',
+      url: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b',
+      title: 'الضيافة الفاخرة'
+    },
+    {
+      id: '3',
+      url: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb',
+      title: 'راحتك هي أولويتنا'
     }
   ];
 
+  const getDefaultServices = (): ServiceImage[] => [
+    { id: '1', url: 'https://images.unsplash.com/photo-1566073771259-6a8506099945', title: 'واي فاي مجاني', icon: 'Wifi' },
+    { id: '2', url: 'https://images.unsplash.com/photo-1584132967334-10e028bd69f7', title: 'خدمة الغرف 24/7', icon: 'Clock' },
+    { id: '3', url: 'https://images.unsplash.com/photo-1578683010236-d716f9a3f461', title: 'مسبح خاص', icon: 'Waves' },
+    { id: '4', url: 'https://images.unsplash.com/photo-1540541338287-41700207dee6', title: 'مطعم فاخر', icon: 'Utensils' },
+    { id: '5', url: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d', title: 'موقف سيارات', icon: 'Car' },
+    { id: '6', url: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa', title: 'صالة رياضية', icon: 'Dumbbell' },
+    { id: '7', url: 'https://images.unsplash.com/photo-1600891964092-4316c288032e', title: 'سبا وساونا', icon: 'Sparkles' },
+    { id: '8', url: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5', title: 'قاعة اجتماعات', icon: 'Users' }
+  ];
+
   useEffect(() => {
-    loadRooms();
+    loadData();
     
     // Auto-slide hero images
     const interval = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
+      setCurrentImageIndex((prev) => (prev + 1) % (heroImages.length || 3));
     }, 5000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [heroImages.length]);
 
-  const loadRooms = async () => {
+  const loadData = async () => {
     try {
+      // تحميل الغرف
       const roomsSnapshot = await getDocs(collection(db, 'rooms_catalog'));
       const roomsData = roomsSnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as Room[];
-      
-      // عرض الغرف المتاحة فقط
       setRooms(roomsData.filter(room => room.available));
+
+      // تحميل الصور من Firebase
+      const imagesDoc = await getDoc(doc(db, 'settings', 'website-images'));
+      if (imagesDoc.exists()) {
+        const data = imagesDoc.data();
+        setHeroImages(data.heroImages || getDefaultHeroImages());
+        setServices(data.services || getDefaultServices());
+      } else {
+        setHeroImages(getDefaultHeroImages());
+        setServices(getDefaultServices());
+      }
     } catch (error) {
-      console.error('خطأ في تحميل الغرف:', error);
+      console.error('خطأ في تحميل البيانات:', error);
+      setHeroImages(getDefaultHeroImages());
+      setServices(getDefaultServices());
     } finally {
       setLoading(false);
     }
@@ -274,24 +317,25 @@ export default function PublicLandingPage() {
             الخدمات والمرافق
           </h2>
           <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {[
-              { icon: Wifi, label: 'إنترنت فائق السرعة', color: 'bg-blue-100 text-blue-600' },
-              { icon: Coffee, label: 'كافيه ومطعم', color: 'bg-amber-100 text-amber-600' },
-              { icon: Utensils, label: 'خدمة الغرف 24/7', color: 'bg-green-100 text-green-600' },
-              { icon: Car, label: 'مواقف مجانية', color: 'bg-gray-100 text-gray-600' },
-              { icon: Dumbbell, label: 'صالة رياضية', color: 'bg-red-100 text-red-600' },
-              { icon: Waves, label: 'حمام سباحة', color: 'bg-cyan-100 text-cyan-600' },
-              { icon: ShieldCheck, label: 'أمن وحراسة', color: 'bg-indigo-100 text-indigo-600' },
-              { icon: Clock, label: 'استقبال 24 ساعة', color: 'bg-purple-100 text-purple-600' }
-            ].map((service, index) => (
+            {services.map((service) => (
               <div
-                key={index}
-                className="bg-white rounded-xl p-6 text-center shadow-lg hover:shadow-xl transition transform hover:-translate-y-1"
+                key={service.id}
+                className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 group"
               >
-                <div className={`${service.color.split(' ')[0]} w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4`}>
-                  <service.icon className={`h-8 w-8 ${service.color.split(' ')[1]}`} />
+                <div className="relative h-40 overflow-hidden">
+                  <Image
+                    src={service.url}
+                    alt={service.title}
+                    fill
+                    className="object-cover group-hover:scale-110 transition-transform duration-300"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <p className="font-bold text-white text-lg text-center drop-shadow-lg">
+                      {service.title}
+                    </p>
+                  </div>
                 </div>
-                <p className="font-semibold text-gray-900">{service.label}</p>
               </div>
             ))}
           </div>

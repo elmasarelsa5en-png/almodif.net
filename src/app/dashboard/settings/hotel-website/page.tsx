@@ -8,13 +8,23 @@ import {
   Globe,
   BookOpen,
   Smartphone,
-  Home
+  Home,
+  ImageIcon
 } from 'lucide-react';
 
 export default function HotelWebsiteSettingsPage() {
   const router = useRouter();
 
   const websiteSettings = [
+    {
+      id: 'website-images',
+      title: 'صور الموقع',
+      description: 'رفع وتعديل صور الغلاف والخدمات في صفحة الزائرين',
+      icon: ImageIcon,
+      color: 'from-pink-500 via-rose-500 to-red-500',
+      href: '/dashboard/settings/hotel-website/images',
+      badge: '🖼️ جديد'
+    },
     {
       id: 'rooms-catalog',
       title: 'كتالوج الغرف',
@@ -53,7 +63,7 @@ export default function HotelWebsiteSettingsPage() {
       </div>
 
       {/* Settings Cards */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {websiteSettings.map((setting) => {
           const Icon = setting.icon;
           return (
@@ -94,6 +104,7 @@ export default function HotelWebsiteSettingsPage() {
             معلومات مهمة
           </CardTitle>
           <CardDescription className="text-base leading-relaxed space-y-2">
+            <p>• <strong>صور الموقع:</strong> رفع وتعديل صور الغلاف والخدمات</p>
             <p>• <strong>كتالوج الغرف:</strong> يظهر في تطبيق النزلاء للحجز المباشر</p>
             <p>• <strong>إعدادات التطبيق:</strong> تخصيص الشعار ورسالة الترحيب والخدمات</p>
             <p>• جميع التعديلات تُحفظ في Firebase وتظهر فوراً للنزلاء</p>
