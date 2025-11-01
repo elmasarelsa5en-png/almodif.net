@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إنشاء صوت إرسال رسالة</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        .info {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔊 إنشاء صوت إرسال رسالة (تكة WhatsApp)</h1>
+        
+        <div class="info">
+            <p>✨ هذه الصفحة ستنشئ صوت "تكة" خفيف جداً مثل صوت إرسال رسالة في WhatsApp</p>
+            <p>🎵 الصوت سيكون قصير جداً (50ms) وعلى تردد مرتفع (1200Hz)</p>
+        </div>
+
+        <button onclick="createAndDownloadSound()">📥 إنشاء وتحميل الصوت</button>
+        <button onclick="testSound()">🔊 تجربة الصوت</button>
+
+        <div id="status"></div>
+    </div>
+
+    <script>
+        let audioBuffer = null;
+
+        function createMessageSentSound() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const sampleRate = audioContext.sampleRate;
+            const duration = 0.05; // 50ms فقط - صوت سريع جداً
+            const numSamples = sampleRate * duration;
+            
+            // إنشاء buffer
+            const buffer = audioContext.createBuffer(1, numSamples, sampleRate);
+            const channelData = buffer.getChannelData(0);
+            
+            // توليد صوت "تكة" بسيط
+            const frequency = 1200; // تردد مرتفع قليلاً
+            
+            for (let i = 0; i < numSamples; i++) {
+                const t = i / sampleRate;
+                // Envelope - يبدأ قوي وينخفض بسرعة
+                const envelope = Math.exp(-t * 50); // Decay سريع
+                // موجة sine بسيطة
+                channelData[i] = Math.sin(2 * Math.PI * frequency * t) * envelope * 0.3;
+            }
+            
+            audioBuffer = buffer;
+            return buffer;
+        }
+
+        function bufferToWav(buffer) {
+            const numChannels = buffer.numberOfChannels;
+            const sampleRate = buffer.sampleRate;
+            const format = 1; // PCM
+            const bitDepth = 16;
+            
+            const bytesPerSample = bitDepth / 8;
+            const blockAlign = numChannels * bytesPerSample;
+            
+            const data = buffer.getChannelData(0);
+            const dataLength = data.length * bytesPerSample;
+            const bufferLength = 44 + dataLength;
+            
+            const arrayBuffer = new ArrayBuffer(bufferLength);
+            const view = new DataView(arrayBuffer);
+            
+            // WAV header
+            const writeString = (offset, string) => {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            };
+            
+            writeString(0, 'RIFF');
+            view.setUint32(4, bufferLength - 8, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, format, true);
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * blockAlign, true);
+            view.setUint16(32, blockAlign, true);
+            view.setUint16(34, bitDepth, true);
+            writeString(36, 'data');
+            view.setUint32(40, dataLength, true);
+            
+            // PCM data
+            let offset = 44;
+            for (let i = 0; i < data.length; i++) {
+                const sample = Math.max(-1, Math.min(1, data[i]));
+                view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+                offset += 2;
+            }
+            
+            return arrayBuffer;
+        }
+
+        function createAndDownloadSound() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = '<p style="color: yellow;">⏳ جاري إنشاء الصوت...</p>';
+            
+            try {
+                const buffer = createMessageSentSound();
+                const wavBuffer = bufferToWav(buffer);
+                const blob = new Blob([wavBuffer], { type: 'audio/wav' });
+                
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'message-sent.mp3'; // سيتم حفظه كـ WAV في الحقيقة
+                a.click();
+                
+                statusDiv.innerHTML = '<p style="color: lime;">✅ تم إنشاء الصوت بنجاح! تحقق من التحميلات.</p>';
+            } catch (error) {
+                statusDiv.innerHTML = '<p style="color: red;">❌ خطأ: ' + error.message + '</p>';
+            }
+        }
+
+        function testSound() {
+            const statusDiv = document.getElementById('status');
+            
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const buffer = createMessageSentSound();
+                
+                const source = audioContext.createBufferSource();
+                source.buffer = buffer;
+                
+                // Volume control
+                const gainNode = audioContext.createGain();
+                gainNode.gain.value = 0.2; // صوت خفيف
+                
+                source.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                source.start();
+                
+                statusDiv.innerHTML = '<p style="color: lime;">🔊 تم تشغيل الصوت!</p>';
+            } catch (error) {
+                statusDiv.innerHTML = '<p style="color: red;">❌ خطأ: ' + error.message + '</p>';
+            }
+        }
+    </script>
+</body>
+</html>

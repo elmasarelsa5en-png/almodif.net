@@ -757,6 +757,15 @@ export default function ChatPage() {
       });
       console.log('✅ Chat updated successfully');
 
+      // ✅ تشغيل صوت "تكة" صغير عند إرسال الرسالة بنجاح (مثل WhatsApp)
+      try {
+        const sendAudio = new Audio('/sounds/message-sent.mp3');
+        sendAudio.volume = 0.15; // صوت خفيف جداً
+        sendAudio.play().catch(err => console.log('🔇 Send sound failed:', err));
+      } catch (soundError) {
+        console.log('🔇 Send sound error:', soundError);
+      }
+
     } catch (error: any) {
       console.error('❌ Error sending message:', error);
       console.error('Error details:', {
