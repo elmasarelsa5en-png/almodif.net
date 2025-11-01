@@ -293,7 +293,45 @@ export default function RoomsPage() {
         
         // إظهار رسالة نجاح
         if (isCheckout) {
-          alert('✅ تم إنهاء إقامة النزيل وتحديث حالة الغرفة بنجاح');
+          // ✅ إنشاء طلب تنظيف تلقائي عند checkout
+          try {
+            console.log('🧹 إنشاء طلب تنظيف تلقائي...');
+            const { db } = await import('@/lib/firebase');
+            const { collection, addDoc, serverTimestamp } = await import('firebase/firestore');
+            
+            const cleaningRequest = {
+              room: selectedRoom.number,
+              guest: selectedRoom.guestName || 'ضيف سابق',
+              phone: selectedRoom.guestPhone || '',
+              type: 'تنظيف',
+              notes: `تنظيف بعد خروج النزيل - الشقة ${selectedRoom.number}`,
+              description: `الشقة خرج منها النزيل وتحتاج تنظيف شامل وتجهيز للنزيل القادم`,
+              priority: 'high' as const,
+              assignedEmployee: '', // طلب عام لكل الموظفين
+              status: 'pending' as const,
+              createdAt: serverTimestamp(),
+              createdBy: user.name || user.username,
+              isPublic: true, // طلب عام يظهر لجميع الموظفين
+              acceptedBy: null, // سيتم تحديثه عندما يقبل موظف الطلب
+              acceptedAt: null
+            };
+
+            await addDoc(collection(db, 'requests'), cleaningRequest);
+            console.log('✅ تم إنشاء طلب التنظيف بنجاح');
+            
+            // 🔔 تشغيل صوت إشعار للموظفين
+            try {
+              const { playNotificationSound } = await import('@/lib/notification-sounds');
+              playNotificationSound('new-request');
+            } catch (soundError) {
+              console.error('⚠️ خطأ في تشغيل صوت الإشعار:', soundError);
+            }
+            
+          } catch (error) {
+            console.error('❌ خطأ في إنشاء طلب التنظيف:', error);
+          }
+          
+          alert('✅ تم إنهاء إقامة النزيل وتحديث حالة الغرفة بنجاح\n🧹 تم إنشاء طلب تنظيف تلقائي');
         } else {
           alert('✅ تم تغيير حالة الشقة بنجاح');
         }

@@ -60,12 +60,28 @@ class NativeWebRTCService {
 
     // Handle incoming remote stream
     this.peerConnection.ontrack = (event) => {
-      console.log('✅ Received remote track');
+      console.log('✅ ontrack event fired!');
+      console.log('📊 Track kind:', event.track.kind);
+      console.log('📊 Track enabled:', event.track.enabled);
+      console.log('📊 Track muted:', event.track.muted);
+      console.log('📊 Track readyState:', event.track.readyState);
+      console.log('📊 Streams count:', event.streams?.length);
+      
       if (event.streams && event.streams[0]) {
+        const remoteStream = event.streams[0];
         console.log('📥 Remote stream received');
+        console.log('📊 Remote stream tracks:', remoteStream.getTracks().length);
+        console.log('📊 Audio tracks:', remoteStream.getAudioTracks().length);
+        console.log('📊 Video tracks:', remoteStream.getVideoTracks().length);
+        
         if (this.remoteStreamCallback) {
-          this.remoteStreamCallback(event.streams[0]);
+          console.log('📞 Calling remote stream callback');
+          this.remoteStreamCallback(remoteStream);
+        } else {
+          console.warn('⚠️ No remote stream callback registered!');
         }
+      } else {
+        console.warn('⚠️ No streams in track event');
       }
     };
 
@@ -76,6 +92,20 @@ class NativeWebRTCService {
 
     this.peerConnection.oniceconnectionstatechange = () => {
       console.log('🧊 ICE connection state:', this.peerConnection?.iceConnectionState);
+      if (this.peerConnection?.iceConnectionState === 'failed') {
+        console.error('❌ ICE connection failed - trying to restart');
+        this.peerConnection?.restartIce();
+      }
+    };
+
+    // Handle negotiation needed
+    this.peerConnection.onnegotiationneeded = async () => {
+      console.log('🔄 Negotiation needed');
+    };
+
+    // Handle signaling state changes
+    this.peerConnection.onsignalingstatechange = () => {
+      console.log('📡 Signaling state:', this.peerConnection?.signalingState);
     };
   }
 
@@ -99,6 +129,9 @@ class NativeWebRTCService {
 
       this.localStream = stream;
 
+      console.log('🎤 Got local stream');
+      console.log('📊 Stream tracks:', stream.getTracks().map(t => `${t.kind}: ${t.label} (${t.readyState})`));
+
       // Create call signal in Firestore
       const signalRef = await addDoc(collection(db, 'call_signals'), {
         from: fromUserId,
@@ -117,8 +150,12 @@ class NativeWebRTCService {
 
       // Add local stream to peer connection
       stream.getTracks().forEach(track => {
+        console.log('➕ Adding track to peer connection:', track.kind, track.label);
         this.peerConnection!.addTrack(track, stream);
       });
+
+      console.log('📊 Local stream tracks added:', stream.getTracks().length);
+      console.log('📊 Peer connection senders:', this.peerConnection!.getSenders().length);
 
       // Listen for ICE candidates from answerer
       this.listenForIceCandidates(callId, 'answerer');
@@ -167,7 +204,16 @@ class NativeWebRTCService {
     try {
       console.log('📝 Creating SDP offer');
       
-      const offer = await this.peerConnection!.createOffer();
+      // Offer options to ensure audio/video are enabled
+      const offerOptions: RTCOfferOptions = {
+        offerToReceiveAudio: true,
+        offerToReceiveVideo: true,
+      };
+      
+      const offer = await this.peerConnection!.createOffer(offerOptions);
+      
+      console.log('📋 Offer SDP:', offer.sdp?.substring(0, 200) + '...');
+      
       await this.peerConnection!.setLocalDescription(offer);
 
       // Save offer to Firestore
@@ -224,24 +270,38 @@ class NativeWebRTCService {
 
       this.localStream = stream;
 
+      console.log('🎤 Got local stream (answerer)');
+      console.log('📊 Stream tracks (answerer):', stream.getTracks().map(t => `${t.kind}: ${t.label} (${t.readyState})`));
+
       // Initialize peer connection
       this.initializePeerConnection(signalId, false);
 
       // Add local stream to peer connection
       stream.getTracks().forEach(track => {
+        console.log('➕ Adding track to peer connection (answerer):', track.kind, track.label);
         this.peerConnection!.addTrack(track, stream);
       });
+
+      console.log('📊 Local stream tracks added (answerer):', stream.getTracks().length);
+      console.log('📊 Peer connection senders (answerer):', this.peerConnection!.getSenders().length);
 
       // Listen for ICE candidates from offerer
       this.listenForIceCandidates(signalId, 'offerer');
 
-      // Wait for offer and create answer
+      // Wait for offer and create answer (BEFORE updating status)
       this.listenForOfferAndCreateAnswer(signalId);
 
-      // Update signal status
+      // Longer delay to ensure listener is ready (increased from 100ms to 300ms)
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      console.log('✅ Answerer ready - listener registered');
+
+      // Update signal status (this triggers caller to send offer)
       await updateDoc(doc(db, 'call_signals', signalId), {
         status: 'accepted'
       });
+
+      console.log('✅ Status updated to accepted - waiting for offer');
 
       return stream;
 
@@ -270,7 +330,14 @@ class NativeWebRTCService {
 
           // Create answer
           console.log('📝 Creating SDP answer');
-          const answer = await this.peerConnection!.createAnswer();
+          
+          // Answer options to ensure audio/video are enabled
+          const answerOptions: RTCAnswerOptions = {};
+          
+          const answer = await this.peerConnection!.createAnswer(answerOptions);
+          
+          console.log('📋 Answer SDP:', answer.sdp?.substring(0, 200) + '...');
+          
           await this.peerConnection!.setLocalDescription(answer);
 
           // Send answer to Firestore

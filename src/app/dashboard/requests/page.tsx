@@ -36,6 +36,7 @@ import {
   deleteRequest as deleteRequestFromFirebase,
   GuestRequest 
 } from '@/lib/firebase-data';
+import { playNotificationSound } from '@/lib/notification-sounds';
 
 const STATUS_CONFIG = {
   pending: { label: 'قيد الانتظار', color: 'bg-yellow-500/20 text-yellow-300', icon: '⏳' },
@@ -113,8 +114,8 @@ export default function RequestsPage() {
       if (previousRequestCount > 0 && requestsData.length > previousRequestCount) {
         console.log('🔔 NEW REQUEST DETECTED! Playing sound...');
         
-        // New request detected - play sound
-        playNotificationSound();
+        // New request detected - play sound for new guest requests
+        playNotificationSound('new-request');
         
         // Show browser notification if permitted
         if ('Notification' in window && Notification.permission === 'granted') {
