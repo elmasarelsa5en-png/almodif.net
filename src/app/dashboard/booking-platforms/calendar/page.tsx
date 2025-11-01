@@ -129,6 +129,17 @@ export default function PlatformsCalendarPage() {
     loadCalendarData();
   }, [currentDate]);
 
+  // Auto-save when pricesData changes
+  useEffect(() => {
+    if (pricesData.length > 0) {
+      const timeoutId = setTimeout(() => {
+        saveCalendarData();
+      }, 1000); // حفظ بعد ثانية من آخر تعديل
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [pricesData]);
+
   const loadCalendarData = async () => {
     try {
       const monthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
@@ -241,8 +252,7 @@ export default function PlatformsCalendarPage() {
       return item;
     }));
     
-    // حفظ تلقائي
-    setTimeout(() => saveCalendarData(), 500);
+    // الحفظ التلقائي سيتم عبر useEffect
   };
 
   const toggleAvailability = (day: number, platformId: string) => {
@@ -261,8 +271,7 @@ export default function PlatformsCalendarPage() {
       return item;
     }));
     
-    // حفظ تلقائي
-    setTimeout(() => saveCalendarData(), 500);
+    // الحفظ التلقائي سيتم عبر useEffect
   };
 
   // التحقق من صحة القيم المدخلة
@@ -285,7 +294,7 @@ export default function PlatformsCalendarPage() {
     return null;
   };
 
-  const applyBulkUpdateForPlatform = () => {
+  const applyBulkUpdateForPlatform = async () => {
     const { startDay, endDay, price, availableUnits, available } = bulkEditData;
     
     if (startDay > endDay) {
@@ -299,7 +308,7 @@ export default function PlatformsCalendarPage() {
     }
 
     // تطبيق التحديثات على الأيام المحددة للمنصة المحددة
-    setPricesData(prev => prev.map(item => {
+    const updatedPrices = pricesData.map(item => {
       const itemDate = new Date(item.date);
       const itemDay = itemDate.getDate();
       const itemMonth = itemDate.getMonth();
@@ -323,15 +332,32 @@ export default function PlatformsCalendarPage() {
         };
       }
       return item;
-    }));
+    });
 
-    const platformName = platforms.find(p => p.id === selectedPlatform)?.name || selectedPlatform;
-    const daysCount = endDay - startDay + 1;
-    setSuccessMessage(`✅ تم تحديث ${daysCount} يوم في ${platformName}`);
-    setTimeout(() => setSuccessMessage(null), 3000);
+    // تحديث الـ state
+    setPricesData(updatedPrices);
+
+    // حفظ في Firebase مباشرة
+    try {
+      const monthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+      await setDoc(doc(db, 'calendar_availability', monthKey), {
+        month: monthKey,
+        year: currentDate.getFullYear(),
+        monthNumber: currentDate.getMonth() + 1,
+        prices: updatedPrices,
+        updatedAt: new Date().toISOString()
+      });
+
+      const platformName = platforms.find(p => p.id === selectedPlatform)?.name || selectedPlatform;
+      const daysCount = endDay - startDay + 1;
+      setSuccessMessage(`✅ تم حفظ ${daysCount} يوم في ${platformName}`);
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (error) {
+      console.error('Error saving:', error);
+      alert('❌ فشل في الحفظ. حاول مرة أخرى.');
+    }
 
     setBulkEditPlatformDialog(false);
-    saveCalendarData();
   };
 
   const applyBulkUpdate = (price: number, available: boolean, availableUnits: number) => {
