@@ -315,8 +315,12 @@ export default function CalendarPage() {
     }
   };
 
-  const applyBulkEdit = () => {
+  const applyBulkEdit = async () => {
     const updatedData = [...calendarData];
+    
+    console.log('🔵 عدد الخلايا المحددة:', selectedCells.size);
+    console.log('💰 السعر الجديد:', bulkPrice);
+    console.log('🏠 عدد الوحدات:', bulkUnits);
     
     selectedCells.forEach(cellId => {
       const [dateStr, platformId] = cellId.split('-');
@@ -325,14 +329,16 @@ export default function CalendarPage() {
       if (dayIndex !== -1) {
         const platformIndex = updatedData[dayIndex].platforms.findIndex(p => p.platformId === platformId);
         if (platformIndex !== -1) {
+          console.log(`✅ تحديث ${dateStr} - المنصة ${platformId}`);
           updatedData[dayIndex].platforms[platformIndex].price = bulkPrice;
           updatedData[dayIndex].platforms[platformIndex].units = bulkUnits;
         }
       }
     });
     
+    console.log('📊 البيانات المحدثة:', updatedData.length, 'يوم');
     setCalendarData(updatedData);
-    saveToFirebase();
+    await saveToFirebase(updatedData);
     setShowBulkDialog(false);
     setSelectedCells(new Set());
     setSelectionStart(null);
