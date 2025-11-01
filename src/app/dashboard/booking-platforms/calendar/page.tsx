@@ -161,18 +161,16 @@ export default function PlatformsCalendarPage() {
 
   // Load calendar data from Firebase
   useEffect(() => {
-    if (selectedRoom && roomTypes.length > 0) { // انتظار تحميل الغرف أولاً
-      console.log('📆 useEffect triggered - Room:', selectedRoom, 'RoomTypes:', roomTypes.length);
+    if (roomTypes.length > 0) { // تحميل البيانات بمجرد توفر الغرف
+      console.log('📆 useEffect triggered - RoomTypes:', roomTypes.length, 'Selected:', selectedRoom);
       loadCalendarData();
     }
-  }, [currentDate, selectedRoom, roomTypes]);
+  }, [currentDate, roomTypes]); // إزالة selectedRoom من dependencies
 
   // Auto-save when pricesData changes
   useEffect(() => {
     if (pricesData.length > 0) {
-      console.log('💾 Auto-save triggered -', pricesData.length, 'entries');
       const timeoutId = setTimeout(() => {
-        console.log('⏱️ Saving after 1 second delay...');
         saveCalendarData();
       }, 1000); // حفظ بعد ثانية من آخر تعديل
 
@@ -434,16 +432,6 @@ export default function PlatformsCalendarPage() {
     
     const dayPrice = pricesData.find(d => d.date === dateStr && d.roomTypeId === selectedRoom);
     
-    if (day === 1) { // log للأول يوم بس عشان مش نملى الconsole
-      console.log('🔍 getDayData - Day:', day, 'Date:', dateStr, 'Room:', selectedRoom, 'Found:', !!dayPrice);
-      console.log('📊 Total pricesData entries:', pricesData.length);
-      console.log('📊 Sample entry:', pricesData[0]);
-      if (!dayPrice) {
-        const matchingDate = pricesData.filter(d => d.date === dateStr);
-        console.log('📅 Entries for this date:', matchingDate.length, matchingDate.map(d => d.roomTypeId));
-      }
-    }
-    
     return dayPrice?.platforms.find(p => p.platformId === platformId);
   };
 
@@ -453,8 +441,6 @@ export default function PlatformsCalendarPage() {
     const month = String(currentDate.getMonth() + 1).padStart(2, '0');
     const dayStr = String(day).padStart(2, '0');
     const dateStr = `${year}-${month}-${dayStr}`;
-    
-    console.log('💰 Updating price - Day:', day, 'Date:', dateStr, 'Platform:', platformId, 'New Price:', newPrice);
     
     setPricesData(prev => prev.map(item => {
       if (item.date === dateStr && item.roomTypeId === selectedRoom) {
@@ -765,7 +751,7 @@ export default function PlatformsCalendarPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            {pricesData.length === 0 && (
+            {pricesData.length === 0 && roomTypes.length > 0 && (
               <Button
                 onClick={() => {
                   console.log('🔧 Manual initialization triggered');
