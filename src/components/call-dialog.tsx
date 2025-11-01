@@ -178,116 +178,200 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white border-cyan-500/30">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-cyan-400">
-            {callType === 'video' ? '📹 مكالمة فيديو' : '📞 مكالمة صوتية'}
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent className="max-w-5xl bg-gradient-to-br from-slate-900 via-purple-900/50 to-slate-900 text-white border-0 p-0 overflow-hidden">
+        {/* Background Effect */}
+        <div className="absolute inset-0 bg-black/30 backdrop-blur-sm">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-cyan-500/10"></div>
+          {callStatus === 'ringing' && (
+            <div className="absolute inset-0 bg-purple-500/5 animate-pulse"></div>
+          )}
+        </div>
 
-        <div className="space-y-4">
-          {/* اسم المتصل والحالة */}
-          <div className="text-center py-6">
-            <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-4xl font-bold">
-              {employeeName.charAt(0)}
-            </div>
-            <h3 className="text-2xl font-bold mb-2">{employeeName}</h3>
-            <p className="text-cyan-300 flex items-center justify-center gap-2">
-              {callStatus === 'initializing' && (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>جاري التهيئة...</span>
-                </>
-              )}
-              {callStatus === 'connecting' && (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>جاري الاتصال...</span>
-                </>
-              )}
-              {callStatus === 'ringing' && (
-                <>
-                  <Phone className="w-4 h-4 animate-bounce" />
-                  <span>يرن...</span>
-                </>
-              )}
-              {callStatus === 'connected' && `⏱️ ${formatDuration(callDuration)}`}
-              {callStatus === 'ended' && '❌ انتهت المكالمة'}
-            </p>
-          </div>
-
-          {/* عرض الفيديو */}
-          {callType === 'video' && (
-            <div className="relative bg-black rounded-xl overflow-hidden" style={{ height: '400px' }}>
-              {/* Remote video (full screen) */}
-              <video
-                ref={remoteVideoRef}
-                autoPlay
-                playsInline
-                className="w-full h-full object-cover"
-              />
+        <div className="relative z-10">
+          {/* Header with Status */}
+          <div className="px-6 py-4 border-b border-white/10 backdrop-blur-md bg-black/20">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {callType === 'video' ? (
+                  <Video className="w-6 h-6 text-purple-400" />
+                ) : (
+                  <Phone className="w-6 h-6 text-cyan-400" />
+                )}
+                <span className="text-lg font-semibold">
+                  {callType === 'video' ? 'مكالمة فيديو' : 'مكالمة صوتية'}
+                </span>
+              </div>
               
-              {/* Local video (picture-in-picture) */}
-              <div className="absolute bottom-4 right-4 w-48 h-36 bg-slate-800 rounded-lg overflow-hidden border-2 border-cyan-500/50 shadow-lg">
-                <video
-                  ref={localVideoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="w-full h-full object-cover"
-                />
-                {isVideoOff && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-slate-900">
-                    <VideoOff className="w-12 h-12 text-gray-400" />
-                  </div>
+              {/* Status Badge */}
+              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-black/30 backdrop-blur-sm">
+                {callStatus === 'initializing' && (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-yellow-400" />
+                    <span className="text-sm text-yellow-400">جاري التهيئة</span>
+                  </>
+                )}
+                {callStatus === 'connecting' && (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
+                    <span className="text-sm text-blue-400">جاري الاتصال</span>
+                  </>
+                )}
+                {callStatus === 'ringing' && (
+                  <>
+                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-ping"></div>
+                    <Phone className="w-4 h-4 text-purple-400 animate-bounce" />
+                    <span className="text-sm text-purple-400">يرن...</span>
+                  </>
+                )}
+                {callStatus === 'connected' && (
+                  <>
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span className="text-sm text-green-400 font-mono">{formatDuration(callDuration)}</span>
+                  </>
+                )}
+                {callStatus === 'ended' && (
+                  <>
+                    <X className="w-4 h-4 text-red-400" />
+                    <span className="text-sm text-red-400">انتهت</span>
+                  </>
                 )}
               </div>
             </div>
-          )}
+          </div>
 
-          {/* أزرار التحكم */}
-          <div className="flex items-center justify-center gap-4 py-4">
+          <div className="p-6 space-y-6">
+            {/* Caller Info - Only show if not video call or video is off */}
+            {(callType === 'audio' || (callType === 'video' && callStatus !== 'connected')) && (
+              <div className="text-center py-8">
+                {/* Animated Avatar */}
+                <div className="relative inline-block mb-6">
+                  {/* Pulsing rings */}
+                  {callStatus === 'ringing' && (
+                    <>
+                      <div className="absolute inset-0 rounded-full bg-purple-400/30 animate-ping" style={{ animationDuration: '2s' }}></div>
+                      <div className="absolute inset-0 rounded-full bg-purple-400/20 animate-ping" style={{ animationDuration: '3s', animationDelay: '1s' }}></div>
+                    </>
+                  )}
+                  
+                  {/* Avatar */}
+                  <div className="relative w-32 h-32 rounded-full bg-gradient-to-br from-purple-500 via-blue-500 to-cyan-500 p-1">
+                    <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-5xl font-bold">
+                      {employeeName.charAt(0)}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Name */}
+                <h3 className="text-3xl font-bold mb-2 bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                  {employeeName}
+                </h3>
+              </div>
+            )}
+
+            {/* عرض الفيديو */}
+            {callType === 'video' && (
+              <div className="relative bg-black rounded-2xl overflow-hidden shadow-2xl border border-white/10" style={{ height: '500px' }}>
+                {/* Remote video (full screen) */}
+                <video
+                  ref={remoteVideoRef}
+                  autoPlay
+                  playsInline
+                  className="w-full h-full object-cover"
+                />
+                
+                {/* Connection overlay when not connected */}
+                {callStatus !== 'connected' && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-900/90 to-purple-900/90 backdrop-blur-sm">
+                    <div className="text-center">
+                      <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center text-4xl font-bold animate-pulse">
+                        {employeeName.charAt(0)}
+                      </div>
+                      <p className="text-xl text-white/80">
+                        {callStatus === 'ringing' ? 'في انتظار الرد...' : 'جاري الاتصال...'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Local video (picture-in-picture) */}
+                <div className="absolute bottom-6 right-6 w-48 h-36 bg-slate-900 rounded-xl overflow-hidden border-2 border-purple-500/50 shadow-2xl transform transition-all hover:scale-105">
+                  <video
+                    ref={localVideoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full h-full object-cover"
+                  />
+                  {isVideoOff && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-slate-900">
+                      <VideoOff className="w-12 h-12 text-gray-400" />
+                    </div>
+                  )}
+                </div>
+
+                {/* User name badge on video */}
+                {callStatus === 'connected' && (
+                  <div className="absolute top-6 left-6 px-4 py-2 rounded-full bg-black/50 backdrop-blur-md border border-white/10">
+                    <p className="text-sm font-semibold">{employeeName}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* أزرار التحكم */}
+            <div className="flex items-center justify-center gap-4 py-6">
             {/* كتم الصوت */}
-            <Button
-              size="lg"
+            <button
               onClick={toggleMute}
-              className={`w-16 h-16 rounded-full ${
+              className={`group relative w-16 h-16 rounded-full transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-110 active:scale-95 ${
                 isMuted 
-                  ? 'bg-red-600 hover:bg-red-700' 
-                  : 'bg-slate-700 hover:bg-slate-600'
+                  ? 'bg-red-500 hover:bg-red-600' 
+                  : 'bg-slate-700/80 hover:bg-slate-600 backdrop-blur-md'
               }`}
+              title={isMuted ? 'إلغاء كتم الصوت' : 'كتم الصوت'}
             >
-              {isMuted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
-            </Button>
+              {isMuted ? <MicOff className="w-7 h-7 text-white absolute inset-0 m-auto" /> : <Mic className="w-7 h-7 text-white absolute inset-0 m-auto" />}
+              <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+                {isMuted ? 'إلغاء الكتم' : 'كتم'}
+              </span>
+            </button>
 
             {/* إيقاف الفيديو */}
             {callType === 'video' && (
-              <Button
-                size="lg"
+              <button
                 onClick={toggleVideo}
-                className={`w-16 h-16 rounded-full ${
+                className={`group relative w-16 h-16 rounded-full transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-110 active:scale-95 ${
                   isVideoOff 
-                    ? 'bg-red-600 hover:bg-red-700' 
-                    : 'bg-slate-700 hover:bg-slate-600'
+                    ? 'bg-red-500 hover:bg-red-600' 
+                    : 'bg-slate-700/80 hover:bg-slate-600 backdrop-blur-md'
                 }`}
+                title={isVideoOff ? 'تشغيل الكاميرا' : 'إيقاف الكاميرا'}
               >
-                {isVideoOff ? <VideoOff className="w-6 h-6" /> : <Video className="w-6 h-6" />}
-              </Button>
+                {isVideoOff ? <VideoOff className="w-7 h-7 text-white absolute inset-0 m-auto" /> : <Video className="w-7 h-7 text-white absolute inset-0 m-auto" />}
+                <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+                  {isVideoOff ? 'تشغيل' : 'إيقاف'}
+                </span>
+              </button>
             )}
 
             {/* إنهاء المكالمة */}
-            <Button
-              size="lg"
+            <button
               onClick={endCall}
-              className="w-16 h-16 rounded-full bg-red-600 hover:bg-red-700"
+              className="group relative w-20 h-20 rounded-full bg-gradient-to-br from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 transition-all duration-200 shadow-lg hover:shadow-2xl hover:scale-110 active:scale-95"
+              title="إنهاء المكالمة"
             >
-              <X className="w-6 h-6" />
-            </Button>
+              <X className="w-9 h-9 text-white absolute inset-0 m-auto" />
+              <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+                إنهاء
+              </span>
+            </button>
           </div>
 
-          <p className="text-center text-sm text-gray-400">
-            ✅ مكالمة حقيقية عبر WebRTC + PeerJS. الصوت والفيديو يعملان بشكل فعلي.
+          {/* Info message */}
+          <p className="text-center text-sm text-white/50 pb-4">
+            ✅ مكالمة حقيقية عبر WebRTC + PeerJS
           </p>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
