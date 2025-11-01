@@ -378,6 +378,25 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
               </div>
             )}
 
+            {/* 🔊 Hidden audio elements for audio-only calls */}
+            {callType === 'audio' && (
+              <div className="hidden">
+                <video
+                  ref={remoteVideoRef}
+                  autoPlay
+                  playsInline
+                  className="hidden"
+                />
+                <video
+                  ref={localVideoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="hidden"
+                />
+              </div>
+            )}
+
             {/* أزرار التحكم */}
             <div className="flex items-center justify-center gap-4 py-6">
             {/* كتم الصوت */}
