@@ -608,14 +608,17 @@ export default function ChatPage() {
         const messagesList: Message[] = [];
         const newMessageIds = new Set<string>();
         let hasNewMessages = false;
+        const currentUserId = user?.username || user?.email;
         
         snapshot.forEach((doc) => {
           const data = doc.data();
           newMessageIds.add(doc.id);
           
           // تحديد إذا كانت رسالة جديدة (غير موجودة في المجموعة السابقة)
-          if (!previousMessageIds.has(doc.id)) {
+          // ✅ فقط إذا كانت من شخص آخر (ليست من المستخدم الحالي)
+          if (!previousMessageIds.has(doc.id) && data.senderId !== currentUserId) {
             hasNewMessages = true;
+            console.log('🆕 New message from other user detected:', data.senderId);
           }
           
           messagesList.push({
