@@ -647,6 +647,138 @@ export default function CalendarPage() {
           </CardHeader>
         </Card>
 
+        {/* Booking Platforms Cards */}
+        <Card className="bg-white/10 backdrop-blur-md border-white/20">
+          <CardHeader>
+            <CardTitle className="text-white text-2xl flex items-center gap-3">
+              <Building2 className="w-6 h-6" />
+              منصات الحجز النشطة
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+              {PLATFORMS.map(platform => {
+                // Calculate stats for this platform
+                let totalRooms = 0;
+                let availableCount = 0;
+                let avgPrice = 0;
+                let priceCount = 0;
+                
+                if (selectedRoom && calendarData.length > 0) {
+                  calendarData.forEach(day => {
+                    const platformData = day.platforms.find(p => p.platformId === platform.id);
+                    if (platformData) {
+                      totalRooms += platformData.units;
+                      if (platformData.available) availableCount++;
+                      avgPrice += platformData.price;
+                      priceCount++;
+                    }
+                  });
+                  avgPrice = priceCount > 0 ? Math.round(avgPrice / priceCount) : 0;
+                }
+
+                const isVisible = visiblePlatforms.has(platform.id);
+                const availabilityRate = priceCount > 0 ? Math.round((availableCount / priceCount) * 100) : 0;
+
+                return (
+                  <div
+                    key={platform.id}
+                    onClick={() => {
+                      const newSet = new Set(visiblePlatforms);
+                      if (isVisible) {
+                        newSet.delete(platform.id);
+                      } else {
+                        newSet.add(platform.id);
+                      }
+                      setVisiblePlatforms(newSet);
+                    }}
+                    className={cn(
+                      "group relative p-4 rounded-xl cursor-pointer transition-all duration-300 hover:scale-105",
+                      "border-2",
+                      isVisible
+                        ? "bg-gradient-to-br from-blue-500/30 to-purple-500/30 border-blue-400/50 shadow-lg shadow-blue-500/20"
+                        : "bg-white/5 border-white/10 hover:border-white/30"
+                    )}
+                  >
+                    {/* Visibility Badge */}
+                    <div className="absolute top-2 left-2">
+                      {isVisible ? (
+                        <Eye className="w-4 h-4 text-blue-300" />
+                      ) : (
+                        <EyeOff className="w-4 h-4 text-white/30" />
+                      )}
+                    </div>
+
+                    {/* Platform Name */}
+                    <div className="text-center mb-3 mt-4">
+                      <div className={cn(
+                        "font-bold text-sm mb-1",
+                        isVisible ? "text-white" : "text-white/50"
+                      )}>
+                        {platform.name}
+                      </div>
+                      
+                      {selectedRoom && priceCount > 0 && (
+                        <>
+                          {/* Average Price */}
+                          <div className={cn(
+                            "text-xs mb-2",
+                            isVisible ? "text-blue-200" : "text-white/40"
+                          )}>
+                            متوسط: {avgPrice} ر.س
+                          </div>
+
+                          {/* Availability Bar */}
+                          <div className="w-full bg-white/10 rounded-full h-2 mb-1">
+                            <div
+                              className={cn(
+                                "h-2 rounded-full transition-all",
+                                availabilityRate > 70 ? "bg-green-500" :
+                                availabilityRate > 40 ? "bg-yellow-500" :
+                                "bg-red-500"
+                              )}
+                              style={{ width: `${availabilityRate}%` }}
+                            />
+                          </div>
+                          
+                          {/* Stats */}
+                          <div className={cn(
+                            "text-xs",
+                            isVisible ? "text-white/80" : "text-white/30"
+                          )}>
+                            {availableCount}/{priceCount} متاح
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Click Hint */}
+                    <div className={cn(
+                      "text-center text-xs mt-2 transition-opacity",
+                      isVisible ? "text-blue-300" : "text-white/30",
+                      "group-hover:opacity-100 opacity-0"
+                    )}>
+                      {isVisible ? "إخفاء" : "إظهار"}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {selectedRoom && calendarData.length === 0 && (
+              <div className="text-center text-white/60 py-8">
+                قم بتهيئة الشهر أولاً لعرض إحصائيات المنصات
+              </div>
+            )}
+
+            {!selectedRoom && (
+              <div className="text-center text-white/60 py-8">
+                اختر نوع الوحدة أولاً لعرض إحصائيات المنصات
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         <Card className="bg-white/10 backdrop-blur-md border-white/20">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
