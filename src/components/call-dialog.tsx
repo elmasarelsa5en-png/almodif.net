@@ -14,9 +14,11 @@ interface CallDialogProps {
   employeeName: string;
   employeeId: string;
   callType: 'audio' | 'video';
+  isReceiver?: boolean; // true if this is an incoming call being answered
+  signalId?: string; // the call signal ID (for receiver)
 }
 
-export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType }: CallDialogProps) {
+export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType, isReceiver = false, signalId }: CallDialogProps) {
   const { user } = useAuth();
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
@@ -31,7 +33,14 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
     
     if (isOpen && user && !isInitialized) {
       isInitialized = true;
-      startCall();
+      
+      if (isReceiver && signalId) {
+        // Receiver mode: set up to receive remote stream
+        setupReceiverMode();
+      } else {
+        // Caller mode: initiate the call
+        startCall();
+      }
     }
     
     // Don't cleanup automatically - only cleanup when user explicitly ends call
@@ -165,11 +174,48 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
     }
   };
 
+  // Setup receiver mode (when answering an incoming call)
+  const setupReceiverMode = async () => {
+    try {
+      console.log('📞 Setting up receiver mode for call:', signalId);
+      setCallStatus('connecting');
+      setCurrentSignalId(signalId || null);
+
+      // Display local stream that was already obtained when answering
+      const localStream = webrtcService.getLocalStream();
+      if (localStream && localVideoRef.current) {
+        localVideoRef.current.srcObject = localStream;
+        console.log('✅ Displayed receiver local video');
+      }
+
+      // Register callback to receive remote stream
+      webrtcService.onRemoteStream((remoteStream) => {
+        console.log('✅ Receiver got remote stream');
+        if (remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = remoteStream;
+          console.log('✅ Displayed remote video for receiver');
+        }
+        setCallStatus('connected');
+      });
+
+      // The peer connection will be automatically handled by webrtcService.handleIncomingCall
+      // which is triggered when the caller connects to the receiver's peer ID
+
+    } catch (error: any) {
+      console.error('❌ Error setting up receiver mode:', error);
+      const errorMessage = webrtcService.getErrorMessage(error);
+      setCallStatus('ended');
+      alert(errorMessage);
+    }
+  };
+
   const cleanup = () => {
     console.log('🧹 Cleanup called, status:', callStatus);
     if (currentSignalId) {
       webrtcService.endCall(currentSignalId);
     }
+    // Clear remote stream callback
+    webrtcService.clearRemoteStreamCallback();
     // Don't call webrtcService.cleanup() here - keep peer alive for reconnection
     setCallStatus('ended');
     setCallDuration(0);

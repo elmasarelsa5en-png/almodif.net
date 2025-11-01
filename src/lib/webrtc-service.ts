@@ -31,6 +31,7 @@ class WebRTCService {
   private localStream: MediaStream | null = null;
   private callSignalUnsubscribe: (() => void) | null = null;
   private incomingCallCallback: ((signal: CallSignal) => void) | null = null;
+  private remoteStreamCallback: ((stream: MediaStream) => void) | null = null;
   private retryCount: number = 0;
   private maxRetries: number = 3;
   private retryDelay: number = 2000; // Start with 2 seconds
@@ -359,16 +360,34 @@ class WebRTCService {
    * Handle incoming call
    */
   private handleIncomingCall(call: MediaConnection) {
+    console.log('📞 Handling incoming call from:', call.peer);
     this.currentCall = call;
 
     // Answer with local stream
     if (this.localStream) {
+      console.log('✅ Answering call with local stream');
       call.answer(this.localStream);
       
       call.on('stream', (remoteStream) => {
         console.log('✅ Received remote stream from incoming call');
-        // Emit event or callback to update UI
+        // Pass remote stream to UI via callback
+        if (this.remoteStreamCallback) {
+          console.log('📤 Passing remote stream to UI');
+          this.remoteStreamCallback(remoteStream);
+        } else {
+          console.warn('⚠️ No remote stream callback registered');
+        }
       });
+
+      call.on('close', () => {
+        console.log('📞 Incoming call ended');
+      });
+
+      call.on('error', (error) => {
+        console.error('❌ Incoming call error:', error);
+      });
+    } else {
+      console.error('❌ No local stream available to answer call');
     }
   }
 
@@ -511,6 +530,22 @@ class WebRTCService {
    */
   getLocalStream(): MediaStream | null {
     return this.localStream;
+  }
+
+  /**
+   * Set callback for remote stream (for receiver)
+   */
+  onRemoteStream(callback: (stream: MediaStream) => void) {
+    console.log('📝 Registered remote stream callback');
+    this.remoteStreamCallback = callback;
+  }
+
+  /**
+   * Clear remote stream callback
+   */
+  clearRemoteStreamCallback() {
+    console.log('🗑️ Cleared remote stream callback');
+    this.remoteStreamCallback = null;
   }
 
   /**

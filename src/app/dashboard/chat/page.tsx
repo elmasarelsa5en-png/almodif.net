@@ -79,6 +79,8 @@ export default function ChatPage() {
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [isCallDialogOpen, setIsCallDialogOpen] = useState(false);
   const [callType, setCallType] = useState<'audio' | 'video'>('audio');
+  const [isIncomingCall, setIsIncomingCall] = useState(false);
+  const [activeCallSignalId, setActiveCallSignalId] = useState<string | null>(null);
   const [isCallHistoryOpen, setIsCallHistoryOpen] = useState(false);
   const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false);
   const [showChatList, setShowChatList] = useState(true);
@@ -965,7 +967,11 @@ export default function ChatPage() {
       );
 
       if (callerEmployee) {
-        // Open call dialog
+        // Set receiver mode states
+        setIsIncomingCall(true);
+        setActiveCallSignalId(incomingCallSignal.id);
+        
+        // Open call dialog in receiver mode
         setSelectedEmployee(callerEmployee);
         setCallType(incomingCallSignal.type);
         setIsCallDialogOpen(true);
@@ -1213,6 +1219,8 @@ export default function ChatPage() {
                     size='sm' 
                     onClick={() => {
                       setCallType('audio');
+                      setIsIncomingCall(false);
+                      setActiveCallSignalId(null);
                       setIsCallDialogOpen(true);
                     }}
                     className='text-white hover:bg-slate-700/50 rounded-full w-9 h-9 md:w-11 md:h-11 p-0 transition-all hover:scale-110'
@@ -1225,6 +1233,8 @@ export default function ChatPage() {
                     size='sm' 
                     onClick={() => {
                       setCallType('video');
+                      setIsIncomingCall(false);
+                      setActiveCallSignalId(null);
                       setIsCallDialogOpen(true);
                     }}
                     className='text-white hover:bg-slate-700/50 rounded-full w-9 h-9 md:w-11 md:h-11 p-0 transition-all hover:scale-110'
@@ -1562,10 +1572,16 @@ export default function ChatPage() {
       {selectedEmployee && (
         <CallDialog
           isOpen={isCallDialogOpen}
-          onClose={() => setIsCallDialogOpen(false)}
+          onClose={() => {
+            setIsCallDialogOpen(false);
+            setIsIncomingCall(false);
+            setActiveCallSignalId(null);
+          }}
           employeeName={selectedEmployee.name}
           employeeId={selectedEmployee.id}
           callType={callType}
+          isReceiver={isIncomingCall}
+          signalId={activeCallSignalId || undefined}
         />
       )}
 
