@@ -160,39 +160,38 @@ export default function GuestLoginPage() {
         return;
       }
 
-      // ✅ إنشاء رمز OTP وإرساله
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      setGeneratedOtp(otp);
-      setOtpExpiry(new Date(Date.now() + 10 * 60 * 1000)); // 10 دقائق
-      setPendingGuestData(registerData);
-
-      // إرسال OTP عبر WhatsApp
-      const otpResponse = await fetch('/api/send-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          phone: registerData.phone,
-          code: otp,
-          type: 'verification'
-        })
+      // ✅ إنشاء الحساب مباشرة (بدون OTP مؤقتاً)
+      await addDoc(guestsRef, {
+        name: registerData.name,
+        phone: registerData.phone,
+        nationalId: registerData.nationalId,
+        nationalIdCopy: registerData.nationalIdCopy || '',
+        dateOfBirth: registerData.dateOfBirth,
+        nationality: registerData.nationality,
+        password: registerData.password,
+        status: 'pending', // بانتظار تخصيص غرفة من الإدارة
+        verified: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       });
 
-      const responseData = await otpResponse.json();
+      setSuccess('✅ تم إنشاء الحساب بنجاح! سيتم تخصيص غرفة لك من قبل الإدارة.');
+      
+      // العودة لصفحة تسجيل الدخول بعد 2 ثانية
+      setTimeout(() => {
+        setMode('login');
+        setSuccess('');
+        // ملء بيانات تسجيل الدخول
+        setLoginData({
+          nationalId: registerData.nationalId,
+          password: registerData.password
+        });
+      }, 2000);
 
-      if (!otpResponse.ok) {
-        throw new Error(responseData.message || 'فشل إرسال رمز التحقق');
-      }
-
-      setSuccess('✅ تم إرسال رمز التحقق على الواتساب!');
-      setMode('verify-otp');
-      setLoading(false);
     } catch (error: any) {
       console.error('Registration error:', error);
-      if (error.message.includes('fetch') || error.message.includes('Failed to fetch')) {
-        setError('❌ خدمة الواتساب غير متاحة. شغّل start-whatsapp-service.bat أولاً');
-      } else {
-        setError(error.message || 'حدث خطأ أثناء التسجيل');
-      }
+      setError('حدث خطأ أثناء التسجيل. يرجى المحاولة مرة أخرى.');
+    } finally {
       setLoading(false);
     }
   };
