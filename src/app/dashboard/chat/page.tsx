@@ -949,6 +949,7 @@ export default function ChatPage() {
     if (!incomingCallSignal) return;
 
     console.log('✅ Accepting call from:', incomingCallSignal.fromName);
+    console.log('🎯 Starting receiver initialization process...');
     
     // Close incoming call dialog
     setIsIncomingCallDialogOpen(false);
