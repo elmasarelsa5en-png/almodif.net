@@ -302,18 +302,20 @@ export default function HotelImagesPage() {
                         accept="image/*"
                         className="hidden"
                         onChange={(e) => handleHeroImageUpload(e, image.id)}
-                        disabled={uploadingHero}
                       />
                       <Button
                         size="sm"
-                        className="bg-white text-gray-900 hover:bg-gray-100"
-                        disabled={uploadingHero}
+                        className="bg-white text-gray-900 hover:bg-gray-100 pointer-events-none"
+                        type="button"
+                        asChild
                       >
-                        {uploadingHero ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Upload className="h-4 w-4" />
-                        )}
+                        <span className="pointer-events-auto cursor-pointer">
+                          {uploadingHero ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Upload className="h-4 w-4" />
+                          )}
+                        </span>
                       </Button>
                     </label>
                     <Button
@@ -355,18 +357,20 @@ export default function HotelImagesPage() {
                         accept="image/*"
                         className="hidden"
                         onChange={(e) => handleServiceImageUpload(e, service.id)}
-                        disabled={uploadingService === service.id}
                       />
                       <Button
                         size="sm"
-                        className="bg-white text-gray-900 hover:bg-gray-100"
-                        disabled={uploadingService === service.id}
+                        className="bg-white text-gray-900 hover:bg-gray-100 pointer-events-none"
+                        type="button"
+                        asChild
                       >
-                        {uploadingService === service.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Upload className="h-4 w-4" />
-                        )}
+                        <span className="pointer-events-auto cursor-pointer">
+                          {uploadingService === service.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Upload className="h-4 w-4" />
+                          )}
+                        </span>
                       </Button>
                     </label>
                     <Button

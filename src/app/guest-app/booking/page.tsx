@@ -47,6 +47,7 @@ export default function BookingPage() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [companions, setCompanions] = useState<Companion[]>([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState<{ [key: string]: number }>({});
   const [bookingData, setBookingData] = useState({
     guestName: '',
     phone: '',
@@ -117,6 +118,32 @@ export default function BookingPage() {
   };
 
   const handleRoomSelect = (room: Room) => {
+    // التحقق من تسجيل الدخول أولاً
+    const guestSession = localStorage.getItem('guest_session');
+    
+    if (!guestSession) {
+      // عرض رسالة وتوجيه لصفحة تسجيل الدخول
+      alert('⚠️ يجب تسجيل الدخول أولاً للمتابعة في عملية الحجز');
+      router.push('/guest-app/login');
+      return;
+    }
+
+    // التحقق من حالة الضيف
+    try {
+      const guestData = JSON.parse(guestSession);
+      if (guestData.status !== 'checked-in') {
+        alert('⚠️ يجب تسجيل الدخول كضيف نشط للحجز');
+        router.push('/guest-app/login');
+        return;
+      }
+    } catch (error) {
+      console.error('Error parsing guest session:', error);
+      alert('⚠️ يجب تسجيل الدخول أولاً');
+      router.push('/guest-app/login');
+      return;
+    }
+
+    // المتابعة في عملية الحجز
     setSelectedRoom(room);
     setStep(2);
   };
@@ -145,6 +172,22 @@ export default function BookingPage() {
 
   const removeCompanion = (id: string) => {
     setCompanions(companions.filter(comp => comp.id !== id));
+  };
+
+  const nextImage = (roomId: string, totalImages: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentImageIndex(prev => ({
+      ...prev,
+      [roomId]: ((prev[roomId] || 0) + 1) % totalImages
+    }));
+  };
+
+  const prevImage = (roomId: string, totalImages: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentImageIndex(prev => ({
+      ...prev,
+      [roomId]: ((prev[roomId] || 0) - 1 + totalImages) % totalImages
+    }));
   };
 
   const calculateNights = () => {
@@ -359,18 +402,57 @@ export default function BookingPage() {
                           <div className="relative h-80 bg-gradient-to-br from-blue-500 to-purple-600 overflow-hidden">
                             {room.images && room.images.length > 0 ? (
                               <div className="relative h-full">
+                                {/* Current Image */}
                                 <img 
-                                  src={room.images[0]} 
-                                  alt={room.number}
+                                  src={room.images[currentImageIndex[room.id] || 0]} 
+                                  alt={`${room.number} - صورة ${(currentImageIndex[room.id] || 0) + 1}`}
                                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                                 />
+                                
+                                {/* Navigation Arrows - Only show if more than 1 image */}
                                 {room.images.length > 1 && (
-                                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
-                                    {room.images.slice(0, 4).map((_, i) => (
-                                      <div key={i} className="w-2 h-2 rounded-full bg-white/50 backdrop-blur-sm" />
-                                    ))}
-                                  </div>
+                                  <>
+                                    {/* Previous Button */}
+                                    <button
+                                      onClick={(e) => prevImage(room.id, room.images!.length, e)}
+                                      className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 z-10"
+                                    >
+                                      <ArrowRight className="w-5 h-5" />
+                                    </button>
+                                    
+                                    {/* Next Button */}
+                                    <button
+                                      onClick={(e) => nextImage(room.id, room.images!.length, e)}
+                                      className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 z-10"
+                                    >
+                                      <ArrowRight className="w-5 h-5 rotate-180" />
+                                    </button>
+
+                                    {/* Image Counter */}
+                                    <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-sm font-medium">
+                                      {(currentImageIndex[room.id] || 0) + 1} / {room.images.length}
+                                    </div>
+
+                                    {/* Dots Indicator */}
+                                    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+                                      {room.images.map((_, i) => (
+                                        <button
+                                          key={i}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setCurrentImageIndex(prev => ({ ...prev, [room.id]: i }));
+                                          }}
+                                          className={`transition-all ${
+                                            i === (currentImageIndex[room.id] || 0)
+                                              ? 'w-8 h-2 bg-white'
+                                              : 'w-2 h-2 bg-white/50 hover:bg-white/70'
+                                          } rounded-full backdrop-blur-sm`}
+                                        />
+                                      ))}
+                                    </div>
+                                  </>
                                 )}
+                                
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                               </div>
                             ) : (

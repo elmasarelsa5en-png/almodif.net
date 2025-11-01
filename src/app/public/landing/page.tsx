@@ -170,8 +170,21 @@ export default function PublicLandingPage() {
           <div className="flex items-center justify-between">
             {/* Logo */}
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-amber-500 via-yellow-500 to-amber-600 rounded-lg flex items-center justify-center shadow-lg">
-                <Star className="h-7 w-7 text-white" />
+              <div className="relative w-12 h-12 rounded-lg overflow-hidden shadow-lg ring-2 ring-amber-500/20">
+                <img 
+                  src="/images/seven-son-logo.jpeg" 
+                  alt="Seven-Son Hotel Logo"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // Fallback to gradient with star icon
+                    const target = e.currentTarget as HTMLImageElement;
+                    target.style.display = 'none';
+                    const parent = target.parentElement;
+                    if (parent) {
+                      parent.innerHTML = '<div class="w-full h-full bg-gradient-to-br from-amber-500 via-yellow-500 to-amber-600 flex items-center justify-center"><svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg></div>';
+                    }
+                  }}
+                />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">سيفن سون</h1>
@@ -184,7 +197,7 @@ export default function PublicLandingPage() {
               <Link href="#about" className="text-gray-900 hover:text-amber-600 transition font-bold text-lg">
                 عن الفندق
               </Link>
-              <Link href="#rooms" className="text-gray-900 hover:text-amber-600 transition font-bold text-lg">
+              <Link href="/guest-app/booking" className="text-gray-900 hover:text-amber-600 transition font-bold text-lg">
                 الغرف والأجنحة
               </Link>
               <Link href="#services" className="text-gray-900 hover:text-amber-600 transition font-bold text-lg">
@@ -193,7 +206,7 @@ export default function PublicLandingPage() {
               <Link href="/public/faq" className="text-gray-900 hover:text-amber-600 transition font-bold text-lg">
                 الأسئلة الشائعة
               </Link>
-              <Link href="/guest-app/login">
+              <Link href="/guest-app/booking">
                 <Button className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white px-10 py-6 rounded-full shadow-lg hover:shadow-xl transition-all font-bold text-lg">
                   <Calendar className="h-5 w-5 ml-2" />
                   احجز الآن
@@ -249,14 +262,14 @@ export default function PublicLandingPage() {
                   </p>
                   
                   {/* CTA Buttons */}
-                  <div className="flex gap-4 flex-wrap">
-                    <Link href="/guest-app/login">
+                  <div className="flex flex-col sm:flex-row gap-4 mt-8">
+                    <Link href="/guest-app/booking">
                       <Button size="lg" className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white px-10 py-7 text-lg rounded-full shadow-2xl hover:shadow-amber-500/50 transition-all">
                         <Calendar className="mr-2 h-6 w-6" />
                         احجز إقامتك الآن
                       </Button>
                     </Link>
-                    <Link href="#rooms">
+                    <Link href="/guest-app/booking">
                       <Button size="lg" variant="outline" className="border-3 border-amber-400 bg-white/95 text-amber-900 hover:bg-amber-50 backdrop-blur-sm px-10 py-7 text-lg rounded-full font-bold shadow-xl">
                         استكشف الغرف
                         <ChevronLeft className="ml-2 h-6 w-6" />
