@@ -69,18 +69,15 @@ const platforms = [
   { id: 'elmasarelsa5en', name: 'المسار الساخن', icon: Building2, color: 'from-red-500 to-red-600', visible: true },
 ];
 
-const roomTypes: RoomType[] = [
-  { id: 'room1', name: 'غرفة', nameEn: 'Room' },
-  { id: 'room-lounge', name: 'غرفة وصالة', nameEn: 'Room & Lounge' },
-  { id: 'room2', name: 'غرفتين', nameEn: '2 Rooms' },
-  { id: 'room2-lounge', name: 'غرفتين وصالة', nameEn: '2 Rooms & Lounge' },
-  { id: 'room3', name: '3 غرف', nameEn: '3 Rooms' },
-];
+// سيتم تحميل الغرف من Firebase بدلاً من hardcode
+// const roomTypes: RoomType[] = [...];
 
 export default function PlatformsCalendarPage() {
   const router = useRouter();
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedRoom, setSelectedRoom] = useState<string>(roomTypes[0].id);
+  const [roomTypes, setRoomTypes] = useState<RoomType[]>([]); // تحميل من Firebase
+  const [selectedRoom, setSelectedRoom] = useState<string>('');
+  const [loadingRooms, setLoadingRooms] = useState(true);
   const [editingCell, setEditingCell] = useState<{ date: string; platformId: string } | null>(null);
   const [bulkEditDialog, setBulkEditDialog] = useState(false);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
@@ -127,10 +124,40 @@ export default function PlatformsCalendarPage() {
   // State للبيانات - يجب تعريفه قبل استخدامه في useEffect
   const [pricesData, setPricesData] = useState<DayPrice[]>([]);
 
+  // تحميل الغرف من Firebase
+  useEffect(() => {
+    loadRoomTypes();
+  }, []);
+
+  const loadRoomTypes = async () => {
+    try {
+      setLoadingRooms(true);
+      const roomsSnapshot = await getDocs(collection(db, 'rooms_catalog'));
+      const rooms = roomsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        name: doc.data().name,
+        nameEn: doc.data().nameEn || doc.data().name
+      })) as RoomType[];
+      
+      console.log('📦 تم تحميل الغرف:', rooms);
+      setRoomTypes(rooms);
+      
+      if (rooms.length > 0) {
+        setSelectedRoom(rooms[0].id); // اختيار أول غرفة افتراضياً
+      }
+    } catch (error) {
+      console.error('❌ خطأ في تحميل الغرف:', error);
+    } finally {
+      setLoadingRooms(false);
+    }
+  };
+
   // Load calendar data from Firebase
   useEffect(() => {
-    loadCalendarData();
-  }, [currentDate]);
+    if (selectedRoom) { // تحميل فقط بعد اختيار غرفة
+      loadCalendarData();
+    }
+  }, [currentDate, selectedRoom]);
 
   // Auto-save when pricesData changes
   useEffect(() => {
@@ -559,31 +586,85 @@ export default function PlatformsCalendarPage() {
           </div>
         </div>
 
-        {/* Room Type Selection */}
-        <Card className="bg-white/5 backdrop-blur-md border-white/10">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 overflow-x-auto">
-              <span className="text-white/70 text-sm whitespace-nowrap">نوع الوحدة:</span>
-              {roomTypes.map((room) => (
-                <Button
-                  key={room.id}
-                  onClick={() => setSelectedRoom(room.id)}
-                  variant={selectedRoom === room.id ? "default" : "outline"}
-                  className={cn(
-                    "whitespace-nowrap",
-                    selectedRoom === room.id
-                      ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
-                      : "bg-white/10 border-white/20 text-white hover:bg-white/20"
-                  )}
+        {/* Room Type Selection - Enhanced */}
+        <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-md border-white/20 shadow-2xl">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-white flex items-center gap-3">
+              <Building2 className="w-6 h-6 text-blue-400" />
+              <span className="text-xl">اختر نوع الوحدة</span>
+              {loadingRooms && (
+                <span className="text-sm text-white/50 animate-pulse">(جاري التحميل...)</span>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            {loadingRooms ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400"></div>
+              </div>
+            ) : roomTypes.length === 0 ? (
+              <div className="text-center py-8">
+                <Building2 className="w-16 h-16 text-white/30 mx-auto mb-3" />
+                <p className="text-white/60">لا توجد غرف محملة من الكتالوج</p>
+                <Button 
+                  onClick={loadRoomTypes}
+                  variant="outline"
+                  className="mt-4 border-white/20 text-white hover:bg-white/10"
                 >
-                  {room.name}
+                  إعادة المحاولة
                 </Button>
-              ))}
-            </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                {roomTypes.map((room) => (
+                  <button
+                    key={room.id}
+                    onClick={() => setSelectedRoom(room.id)}
+                    className={cn(
+                      "group relative p-4 rounded-xl transition-all duration-300 border-2",
+                      "hover:scale-105 hover:shadow-2xl",
+                      selectedRoom === room.id
+                        ? "bg-gradient-to-br from-blue-500 to-blue-600 border-blue-400 shadow-lg shadow-blue-500/50"
+                        : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/30"
+                    )}
+                  >
+                    {/* Badge للتحديد */}
+                    {selectedRoom === room.id && (
+                      <div className="absolute -top-2 -right-2 bg-green-500 rounded-full p-1 shadow-lg">
+                        <Check className="w-4 h-4 text-white" />
+                      </div>
+                    )}
+                    
+                    <div className="flex flex-col items-center gap-2 text-center">
+                      <Building2 className={cn(
+                        "w-8 h-8 transition-colors",
+                        selectedRoom === room.id ? "text-white" : "text-blue-400 group-hover:text-blue-300"
+                      )} />
+                      <div>
+                        <p className={cn(
+                          "font-bold text-base",
+                          selectedRoom === room.id ? "text-white" : "text-white/90"
+                        )}>
+                          {room.name}
+                        </p>
+                        {room.nameEn && (
+                          <p className={cn(
+                            "text-xs mt-1",
+                            selectedRoom === room.id ? "text-white/80" : "text-white/50"
+                          )} dir="ltr">
+                            {room.nameEn}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Calendar Navigation */}
+        {/* Calendar Card */}
         <Card className="bg-white/5 backdrop-blur-md border-white/10">
           <CardHeader className="border-b border-white/10">
             <div className="flex items-center justify-between">
