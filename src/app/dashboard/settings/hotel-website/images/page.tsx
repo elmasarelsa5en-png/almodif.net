@@ -16,7 +16,11 @@ import {
   Loader2,
   Eye,
   Save,
-  RefreshCw
+  RefreshCw,
+  Film,
+  Sparkles,
+  Edit3,
+  CheckCircle
 } from 'lucide-react';
 
 interface HeroImage {
@@ -39,6 +43,7 @@ export default function HotelImagesPage() {
   const [services, setServices] = useState<ServiceImage[]>([]);
   const [uploadingHero, setUploadingHero] = useState(false);
   const [uploadingService, setUploadingService] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState<string | null>(null);
 
   useEffect(() => {
     loadImages();
@@ -152,6 +157,24 @@ export default function HotelImagesPage() {
     }
   };
 
+  const handleHeroTitleChange = async (imageId: string, newTitle: string) => {
+    const updatedImages = heroImages.map(img =>
+      img.id === imageId ? { ...img, title: newTitle } : img
+    );
+    setHeroImages(updatedImages);
+    
+    // حفظ تلقائي
+    try {
+      await setDoc(doc(db, 'settings', 'website-images'), {
+        heroImages: updatedImages,
+        services,
+        updatedAt: Timestamp.now()
+      });
+    } catch (error) {
+      console.error('Error saving hero title:', error);
+    }
+  };
+
   const handleServiceImageUpload = async (event: React.ChangeEvent<HTMLInputElement>, serviceId: string) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -250,206 +273,297 @@ export default function HotelImagesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">جاري تحميل الصور...</p>
+          <Loader2 className="h-16 w-16 animate-spin text-blue-400 mx-auto mb-4" />
+          <p className="text-gray-300 text-lg font-medium">جاري تحميل الصور...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                🖼️ إدارة صور الموقع
-              </h1>
-              <p className="text-gray-600 text-lg">
-                رفع وتعديل صور صفحة الزائرين (Landing Page)
-              </p>
+          <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/50">
+                <ImageIcon className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-4xl font-bold text-white mb-1">
+                  إدارة صور الموقع
+                </h1>
+                <p className="text-blue-200 text-lg">
+                  رفع وتعديل صور صفحة الزائرين (Landing Page)
+                </p>
+              </div>
             </div>
             <div className="flex gap-3">
               <Button
                 onClick={resetToDefaults}
-                variant="outline"
-                className="border-2"
+                className="bg-white/10 hover:bg-white/20 text-white border-2 border-white/20 hover:border-white/40 transition-all"
               >
-                <RefreshCw className="ml-2 h-4 w-4" />
+                <RefreshCw className="ml-2 h-5 w-5" />
                 استعادة الافتراضي
               </Button>
               <Button
                 onClick={handleSave}
                 disabled={saving}
-                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg shadow-green-500/50 font-bold"
               >
                 {saving ? (
                   <>
-                    <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="ml-2 h-5 w-5 animate-spin" />
                     جاري الحفظ...
                   </>
                 ) : (
                   <>
-                    <Save className="ml-2 h-4 w-4" />
+                    <Save className="ml-2 h-5 w-5" />
                     حفظ جميع التعديلات
                   </>
                 )}
               </Button>
             </div>
           </div>
-        </div>
 
-        {/* Instructions */}
-        <Card className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 mb-8">
-          <div className="flex items-start gap-4">
-            <div className="bg-white/20 p-3 rounded-lg">
-              <ImageIcon className="h-6 w-6" />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold mb-2">إرشادات:</h3>
-              <ul className="space-y-1 text-blue-50">
-                <li>• اضغط "رفع صورة" لتغيير أي صورة</li>
-                <li>• الصور المثالية: 1920x1080 بكسل (أو نسبة 16:9)</li>
-                <li>• احرص على صور واضحة وعالية الجودة</li>
-                <li>• يمكنك تعديل عنوان كل خدمة</li>
-                <li>• لا تنسَ الضغط على "حفظ" بعد التعديلات</li>
-              </ul>
+          {/* Instructions Card */}
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-500/20 to-purple-600/20 p-[2px]">
+            <div className="bg-slate-900/90 backdrop-blur-xl rounded-2xl p-6">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white mb-3">إرشادات الاستخدام:</h3>
+                  <div className="grid md:grid-cols-2 gap-3 text-blue-100">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
+                      <span>اضغط "رفع صورة" لتغيير أي صورة</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
+                      <span>الصور المثالية: 1920x1080 بكسل (نسبة 16:9)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
+                      <span>يمكنك تعديل العنوان مباشرة بالضغط على أيقونة القلم</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
+                      <span>لا تنسَ الضغط على "حفظ" بعد التعديلات</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </Card>
+        </div>
 
         {/* Hero Images Section */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-            🎬 صور الشريحة المتحركة (Hero Slider)
-          </h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            {heroImages.map((image) => (
-              <Card key={image.id} className="overflow-hidden group">
-                <div className="relative">
-                  <img
-                    src={image.url}
-                    alt={image.title}
-                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                    <label className="cursor-pointer">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => handleHeroImageUpload(e, image.id)}
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+              <Film className="w-6 h-6 text-white" />
+            </div>
+            <h2 className="text-3xl font-bold text-white">صور الشريحة المتحركة (Hero Slider)</h2>
+          </div>
+
+          <div className="space-y-4">
+            {heroImages.map((image, index) => (
+              <div
+                key={image.id}
+                className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-600/20 p-[2px] group"
+              >
+                <div className="bg-slate-900/90 backdrop-blur-xl rounded-2xl p-6">
+                  <div className="flex flex-col lg:flex-row items-start lg:items-center gap-6">
+                    {/* Image Preview */}
+                    <div className="relative w-full lg:w-80 h-48 rounded-xl overflow-hidden shadow-2xl flex-shrink-0">
+                      <img
+                        src={image.url}
+                        alt={image.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                      <Button
-                        size="sm"
-                        className="bg-white text-gray-900 hover:bg-gray-100"
-                        type="button"
-                        onClick={() => document.getElementById(`hero-upload-${image.id}`)?.click()}
-                      >
-                        {uploadingHero ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Upload className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </label>
-                    <Button
-                      size="sm"
-                      onClick={() => window.open(image.url, '_blank')}
-                      className="bg-white text-gray-900 hover:bg-gray-100"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                      <div className="absolute bottom-3 left-3 right-3">
+                        <p className="text-white font-bold text-lg drop-shadow-lg">
+                          {image.title}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Controls */}
+                    <div className="flex-1 w-full space-y-4">
+                      {/* Title Editor */}
+                      <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+                        <label className="block text-blue-300 text-sm font-bold mb-2">
+                          عنوان الصورة:
+                        </label>
+                        <div className="flex items-center gap-2">
+                          {editingTitle === image.id ? (
+                            <>
+                              <Input
+                                value={image.title}
+                                onChange={(e) => handleHeroTitleChange(image.id, e.target.value)}
+                                className="flex-1 bg-white/10 border-white/20 text-white font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50"
+                                placeholder="أدخل عنوان الصورة"
+                                autoFocus
+                              />
+                              <Button
+                                onClick={() => setEditingTitle(null)}
+                                size="sm"
+                                className="bg-green-500/20 hover:bg-green-500/40 text-green-400 border-green-500/50"
+                              >
+                                <Check className="w-4 h-4" />
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              <div className="flex-1 text-white font-medium bg-white/5 px-4 py-2 rounded-lg">
+                                {image.title}
+                              </div>
+                              <Button
+                                onClick={() => setEditingTitle(image.id)}
+                                size="sm"
+                                className="bg-blue-500/20 hover:bg-blue-500/40 text-blue-400 border-blue-500/50"
+                              >
+                                <Edit3 className="w-4 h-4" />
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Upload Button */}
+                      <label className="block cursor-pointer">
+                        <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6 text-center hover:from-blue-700 hover:to-purple-700 transition-all group/upload">
+                          <div className="absolute inset-0 bg-white/10 opacity-0 group-hover/upload:opacity-100 transition-opacity"></div>
+                          <div className="relative flex items-center justify-center gap-3">
+                            {uploadingHero ? (
+                              <>
+                                <Loader2 className="w-6 h-6 text-white animate-spin" />
+                                <span className="text-white font-bold text-lg">جاري رفع الصورة...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Upload className="w-6 h-6 text-white" />
+                                <span className="text-white font-bold text-lg">رفع صورة جديدة</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleHeroImageUpload(e, image.id)}
+                          disabled={uploadingHero}
+                        />
+                      </label>
+                    </div>
                   </div>
                 </div>
-                <div className="p-4">
-                  <p className="text-sm font-semibold text-gray-700">{image.title}</p>
-                  <p className="text-xs text-gray-500 mt-1 truncate" dir="ltr">{image.url}</p>
-                </div>
-              </Card>
+              </div>
             ))}
           </div>
         </div>
 
         {/* Services Images Section */}
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-            ⭐ صور الخدمات
-          </h2>
-          <div className="grid md:grid-cols-4 gap-4">
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/30">
+              <Sparkles className="w-6 h-6 text-white" />
+            </div>
+            <h2 className="text-3xl font-bold text-white">صور الخدمات</h2>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-4">
             {services.map((service) => (
-              <Card key={service.id} className="overflow-hidden group">
-                <div className="relative">
-                  <img
-                    src={service.url}
-                    alt={service.title}
-                    className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                    <label className="cursor-pointer">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => handleServiceImageUpload(e, service.id)}
+              <div
+                key={service.id}
+                className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-600/20 p-[2px] group"
+              >
+                <div className="bg-slate-900/90 backdrop-blur-xl rounded-2xl p-4">
+                  <div className="flex items-center gap-4">
+                    {/* Image Preview */}
+                    <div className="relative w-32 h-24 rounded-lg overflow-hidden shadow-lg flex-shrink-0">
+                      <img
+                        src={service.url}
+                        alt={service.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                      <Button
-                        size="sm"
-                        className="bg-white text-gray-900 hover:bg-gray-100"
-                        type="button"
-                        onClick={() => document.getElementById(`service-upload-${service.id}`)?.click()}
-                      >
-                        {uploadingService === service.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Upload className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </label>
-                    <Button
-                      size="sm"
-                      onClick={() => window.open(service.url, '_blank')}
-                      className="bg-white text-gray-900 hover:bg-gray-100"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
+                    </div>
+
+                    {/* Controls */}
+                    <div className="flex-1 space-y-3">
+                      {/* Title Editor */}
+                      <Input
+                        value={service.title}
+                        onChange={(e) => handleServiceTitleChange(service.id, e.target.value)}
+                        className="bg-white/10 border-white/20 text-white font-medium focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50"
+                        placeholder="اسم الخدمة"
+                      />
+
+                      {/* Upload Button */}
+                      <label className="block cursor-pointer">
+                        <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg px-4 py-2 text-center hover:from-purple-700 hover:to-pink-700 transition-all">
+                          <div className="flex items-center justify-center gap-2">
+                            {uploadingService === service.id ? (
+                              <>
+                                <Loader2 className="w-4 h-4 text-white animate-spin" />
+                                <span className="text-white font-bold text-sm">جاري الرفع...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Upload className="w-4 h-4 text-white" />
+                                <span className="text-white font-bold text-sm">رفع صورة</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleServiceImageUpload(e, service.id)}
+                          disabled={uploadingService === service.id}
+                        />
+                      </label>
+                    </div>
                   </div>
                 </div>
-                <div className="p-3">
-                  <Input
-                    value={service.title}
-                    onChange={(e) => handleServiceTitleChange(service.id, e.target.value)}
-                    className="text-sm font-semibold border-gray-300 focus:border-blue-500"
-                    placeholder="اسم الخدمة"
-                  />
-                </div>
-              </Card>
+              </div>
             ))}
           </div>
         </div>
 
-        {/* Preview Link */}
-        <Card className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-6 mt-8">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div>
-              <h3 className="text-xl font-bold mb-2">معاينة التغييرات</h3>
-              <p className="text-indigo-100">
-                لمشاهدة التغييرات مباشرة، احفظ أولاً ثم افتح صفحة الزائرين
-              </p>
+        {/* Preview Card */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-600/20 p-[2px]">
+          <div className="bg-slate-900/90 backdrop-blur-xl rounded-2xl p-6">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                  <Eye className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white">معاينة التغييرات</h3>
+                  <p className="text-indigo-200 mt-1">
+                    لمشاهدة التغييرات مباشرة، احفظ أولاً ثم افتح صفحة الزائرين
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={() => window.open('/public/landing', '_blank')}
+                className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-lg shadow-indigo-500/50 font-bold"
+              >
+                <Eye className="ml-2 h-5 w-5" />
+                معاينة الصفحة
+              </Button>
             </div>
-            <Button
-              onClick={() => window.open('/public/landing', '_blank')}
-              className="bg-white text-indigo-600 hover:bg-indigo-50"
-            >
-              <Eye className="ml-2 h-4 w-4" />
-              معاينة الصفحة
-            </Button>
           </div>
-        </Card>
+        </div>
       </div>
     </div>
   );
