@@ -436,6 +436,12 @@ export default function PlatformsCalendarPage() {
     
     if (day === 1) { // log للأول يوم بس عشان مش نملى الconsole
       console.log('🔍 getDayData - Day:', day, 'Date:', dateStr, 'Room:', selectedRoom, 'Found:', !!dayPrice);
+      console.log('📊 Total pricesData entries:', pricesData.length);
+      console.log('📊 Sample entry:', pricesData[0]);
+      if (!dayPrice) {
+        const matchingDate = pricesData.filter(d => d.date === dateStr);
+        console.log('📅 Entries for this date:', matchingDate.length, matchingDate.map(d => d.roomTypeId));
+      }
     }
     
     return dayPrice?.platforms.find(p => p.platformId === platformId);
