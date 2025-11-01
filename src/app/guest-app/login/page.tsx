@@ -101,11 +101,12 @@ export default function GuestLoginPage() {
         return;
       }
 
-      if (guestData.status === 'pending') {
-        setError('حسابك بانتظار تخصيص غرفة من قبل الإدارة. يرجى التواصل مع الاستقبال');
-        setLoading(false);
-        return;
-      }
+      // ✅ السماح بالدخول حتى لو الحساب pending (بدون غرفة)
+      // if (guestData.status === 'pending') {
+      //   setError('حسابك بانتظار تخصيص غرفة من قبل الإدارة. يرجى التواصل مع الاستقبال');
+      //   setLoading(false);
+      //   return;
+      // }
 
       // ✅ جلب رقم الغرفة من قاعدة بيانات الغرف
       const roomsRef = collection(db, 'rooms');
@@ -117,10 +118,16 @@ export default function GuestLoginPage() {
         guestData.roomNumber = roomData.number || roomData.roomNumber;
       }
 
-      // حفظ الجلسة
+      // حفظ الجلسة (حتى لو بدون غرفة)
       localStorage.setItem('guest_session', JSON.stringify(guestData));
       
-      setSuccess('تم تسجيل الدخول بنجاح!');
+      // رسالة نجاح مختلفة حسب الحالة
+      if (guestData.status === 'pending' || !guestData.roomNumber) {
+        setSuccess('تم تسجيل الدخول! حسابك بانتظار تخصيص غرفة.');
+      } else {
+        setSuccess('تم تسجيل الدخول بنجاح!');
+      }
+      
       setTimeout(() => {
         router.push('/guest-app');
       }, 1000);

@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
 import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
+import { GuestRoomAlert } from '@/components/GuestRoomAlert';
 import { db } from '@/lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
@@ -699,6 +700,17 @@ export default function GuestAppHomePage() {
           </div>
         ) : (
           <>
+            {/* Guest Room Alert - إذا مفيش غرفة */}
+            {guestSession && (guestSession.status === 'pending' || !guestSession.roomNumber) && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1, duration: 0.5 }}
+              >
+                <GuestRoomAlert guestName={guestSession.name} />
+              </motion.div>
+            )}
+
             {/* Compact Hero + Services Section */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
