@@ -293,8 +293,9 @@ export default function PlatformsCalendarPage() {
       const pricesByDay: any = {};
       
       data.forEach(dayPrice => {
-        const date = new Date(dayPrice.date);
-        const day = date.getDate();
+        // استخراج رقم اليوم من التاريخ النصي
+        const dateParts = dayPrice.date.split('-');
+        const day = parseInt(dateParts[2], 10);
         
         if (!pricesByDay[day]) {
           pricesByDay[day] = {
@@ -310,16 +311,16 @@ export default function PlatformsCalendarPage() {
             platformId: platform.platformId,
             roomId: dayPrice.roomTypeId,
             roomTypeId: dayPrice.roomTypeId,
-            price: platform.price,
-            available: platform.available,
-            units: platform.availableUnits,
-            availableUnits: platform.availableUnits,
+            price: platform.price || 0,
+            available: platform.available ?? true,
+            units: platform.availableUnits || 0,
+            availableUnits: platform.availableUnits || 0,
             minStay: platform.minStay || 1
           });
         });
       });
       
-      const pricesArray = Object.values(pricesByDay);
+      const pricesArray = Object.values(pricesByDay).filter((item: any) => item && item.day);
       
       await setDoc(doc(db, 'calendar_availability', monthKey), {
         month: monthKey,
@@ -330,7 +331,7 @@ export default function PlatformsCalendarPage() {
         updatedAt: new Date().toISOString(),
         initialized: true
       });
-      console.log('💾 Saved initial calendar data to Firebase');
+      console.log(`💾 تم حفظ ${pricesArray.length} يوم بنجاح إلى Firebase في initializeMonthData`);
     } catch (error) {
       console.error('❌ Error saving initial data:', error);
     }
@@ -346,8 +347,9 @@ export default function PlatformsCalendarPage() {
       const pricesByDay: any = {};
       
       pricesData.forEach(dayPrice => {
-        const date = new Date(dayPrice.date);
-        const day = date.getDate();
+        // استخراج رقم اليوم من التاريخ النصي (YYYY-MM-DD)
+        const dateParts = dayPrice.date.split('-');
+        const day = parseInt(dateParts[2], 10);
         
         if (!pricesByDay[day]) {
           pricesByDay[day] = {
@@ -359,23 +361,28 @@ export default function PlatformsCalendarPage() {
         
         // إضافة بيانات كل منصة لهذا اليوم
         dayPrice.platforms.forEach(platform => {
-          const platformData = platforms.find(p => p.id === platform.platformId);
           pricesByDay[day].platforms.push({
             name: platform.platformId, // اسم المنصة (website, booking, etc.)
             platformId: platform.platformId, // للتوافق مع الكود القديم
             roomId: dayPrice.roomTypeId, // معرّف نوع الغرفة
             roomTypeId: dayPrice.roomTypeId, // للتوافق
-            price: platform.price,
-            available: platform.available,
-            units: platform.availableUnits,
-            availableUnits: platform.availableUnits, // للتوافق
+            price: platform.price || 0,
+            available: platform.available ?? true,
+            units: platform.availableUnits || 0,
+            availableUnits: platform.availableUnits || 0, // للتوافق
             minStay: platform.minStay || 1
           });
         });
       });
       
-      // تحويل الكائن إلى مصفوفة
-      const pricesArray = Object.values(pricesByDay);
+      // تحويل الكائن إلى مصفوفة وتصفية أي قيم undefined
+      const pricesArray = Object.values(pricesByDay).filter((item: any) => item && item.day);
+      
+      // التحقق من وجود بيانات قبل الحفظ
+      if (pricesArray.length === 0) {
+        console.warn('⚠️ No data to save');
+        return;
+      }
       
       await setDoc(doc(db, 'calendar_availability', monthKey), {
         month: monthKey,
