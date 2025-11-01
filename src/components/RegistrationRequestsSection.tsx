@@ -109,10 +109,55 @@ export function RegistrationRequestsSection() {
       audio.loop = false;
       audio.play().catch(err => {
         console.log('Could not play sound:', err);
-        // محاولة بديلة بصوت النظام
-        const beep = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGWi77eeaTRAMT6fj7rFeGAU4jtTxy3keGwc+k9XyfykKJnXG79qFOAQZXrLo6qdWEQo/neHwv24fBSt+y/DadzsIGGa56+iVSw4MT6Xh7K9cFwU2jdPvyXUcBzmQ1PDaizsHJnPA7tmBNgQYWq/m6qJUEAo+m+DutlweBS19yO/XdDsHF2S36+aSSw0LSqPg661aFgU1i9Hvx3QbBzaO0+/JdRsFN47U78p2HAg6kdXwy3oeCCRzvO3Vfz0FGFux5emhUhAKPp3g77RaHAUsfsjv1nM6BxdjtOjjkUoNDEmi4O6sWhYFNIrQ7sdyGwc1jdLux3McBziO0+/JdBwHO5HU8Mt5HQcjcrzt1nw+BRhZr+PqoFAPCj6c3+6zWRsFLH7I7tVyOQcXYrPk45BKDAxHo+DgrFkaBS+JzuzGcRsHNYzS7sdwHAc4jtPvyHQaBzuP0+/KeBwHJnO87dV6PgUYWK7i6Z9PDgo9m9/rslcaBSx9xu3TcDkHF2Gx4+GQSQoLRqDd6atYGAQuidHpv2saBTWL0O7FbxsFN4zR78hxGwg5jdPuyHQZBzyP0u7KeBoHI3K67NR4PgUXV6zh6J5ODgk8md/psFcaBCt8xe3RbjgHF2Cv4d+OSAoLQ5/b56lXGAQriNDov2kaBTSKz+7CbhsFNo3P78ZvGwc4jdHvx3EaBzuO0u7JchsHI3G569N3PgUXVqvi6J1NDgk8md/or1YaBCt7w+3PbTgGF1+u3t2NRwoLQp7a5qdWFwQriM/lvmcZBTOJzu26bBoFNo3P7sRuGgc3jNHux28aBzuO0e7JcRkHI3C46tJ2PQUXVang6JxNDgk7mN7nrlQZBCp6w+vObTgGF16t3NuLRQgKP5zZ5qlUFgQqhczkwGYYBTKIzeu5ahkFNIrO7cJtGgc2jNDuxG0ZBzqO0O3JcBkHI267 69F1PAQWVang2JtMDgk6ld7mq1MYBC17wenlbDcGF12r29mJRAcJPprY46hSFQQphczjvmQYBTGHy+m3aRgEMovN68FqGAQ1is3tw2waBy+EyOu8aBkEMovO7MNrGAYzi9DuxGsaBjOMze/Gbh0HJnK47NF0OwQWU6ng15pLDgk4k93lqlIXBCx5v+jinzAGF1yo2deIQwYJO5fW4aZREwQng8rhvGMXBTCFyui1ZhcEMovL6r5oFwQ0is7sw2oZBjKKze/EaxoGM4zO78VrGQYyitDtxGsaBjOM0O/Gbh0FJnG169B0OgQWUqjf1plKDgk2kdzkolAWBCt4v+LinzAGF1qm2NSHQgYJOpXV36RQEwQngsrgumIWBS+EyOezZBYEMYnK6bxnFwQzi83rwmoZBjKJze7DaxkGMozP7sVsGQYxitDtxmsZBzKL0O7GbRwFJm+169BzOgQVUKjf1ZdJDQk1j9vnn08WBCt2vuLemC8GFlml1tKGQAYIOJTT3aFPEwQmgcnfuV8VBS6Cxuexa
-BUEMIfI6btlFgQyiMno");
-        beep.play().catch(() => {});
+        // محاولة بديلة: استخدام Web Audio API لتوليد صوت
+        try {
+          const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+          
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+          
+          // صوت بتردد 800Hz
+          oscillator.frequency.value = 800;
+          oscillator.type = 'sine';
+          
+          // مدة 0.5 ثانية
+          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+          
+          oscillator.start(audioContext.currentTime);
+          oscillator.stop(audioContext.currentTime + 0.5);
+          
+          // تكرار الصوت 3 مرات
+          setTimeout(() => {
+            const osc2 = audioContext.createOscillator();
+            const gain2 = audioContext.createGain();
+            osc2.connect(gain2);
+            gain2.connect(audioContext.destination);
+            osc2.frequency.value = 1000;
+            osc2.type = 'sine';
+            gain2.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            osc2.start(audioContext.currentTime);
+            osc2.stop(audioContext.currentTime + 0.5);
+          }, 600);
+          
+          setTimeout(() => {
+            const osc3 = audioContext.createOscillator();
+            const gain3 = audioContext.createGain();
+            osc3.connect(gain3);
+            gain3.connect(audioContext.destination);
+            osc3.frequency.value = 1200;
+            osc3.type = 'sine';
+            gain3.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gain3.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            osc3.start(audioContext.currentTime);
+            osc3.stop(audioContext.currentTime + 0.5);
+          }, 1200);
+        } catch (audioErr) {
+          console.log('Could not play fallback sound:', audioErr);
+        }
       });
     } catch (error) {
       console.error('Error playing sound:', error);
@@ -399,7 +444,6 @@ BUEMIfI6btlFgQyiMno");
                   <Button
                     onClick={() => handleReject(request)}
                     disabled={processing[request.id]}
-                    variant="destructive"
                     className="bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/50"
                   >
                     <X className="w-4 h-4 ml-2" />
