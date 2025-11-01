@@ -29,10 +29,13 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
     if (isOpen && user) {
       startCall();
     }
+    // Cleanup only when component unmounts (not on every re-render)
     return () => {
-      cleanup();
+      if (!isOpen) {
+        cleanup();
+      }
     };
-  }, [isOpen, user]);
+  }, [isOpen]); // Remove 'user' from dependencies to prevent re-initialization
 
   useEffect(() => {
     if (callStatus === 'connected') {
@@ -137,7 +140,11 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
   };
 
   const cleanup = () => {
-    webrtcService.endCall(currentSignalId || undefined);
+    console.log('🧹 Cleanup called, status:', callStatus);
+    if (currentSignalId) {
+      webrtcService.endCall(currentSignalId);
+    }
+    // Don't call webrtcService.cleanup() here - keep peer alive for reconnection
     setCallStatus('ended');
     setCallDuration(0);
     setCurrentSignalId(null);

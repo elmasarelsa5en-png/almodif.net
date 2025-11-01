@@ -24,13 +24,10 @@ class WebRTCService {
    */
   initializePeer(userId: string): Promise<string> {
     return new Promise((resolve, reject) => {
-      // Add timeout (15 seconds)
+      // Add timeout (30 seconds - increased for slower connections)
       const timeout = setTimeout(() => {
-        if (this.peer) {
-          this.peer.destroy();
-        }
         reject(new Error('فشل الاتصال بالخادم: انتهت المهلة الزمنية'));
-      }, 15000);
+      }, 30000); // Don't destroy peer here - let it keep trying
 
       try {
         // Generate unique peer ID to avoid conflicts
