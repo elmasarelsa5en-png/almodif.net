@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار WebRTC</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #1a1a2e;
+            color: white;
+        }
+        .container {
+            background: #16213e;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        video {
+            width: 100%;
+            max-width: 400px;
+            background: #000;
+            border-radius: 10px;
+            margin: 10px;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .log {
+            background: #0f3460;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #667eea;
+            padding-left: 10px;
+        }
+        .error { color: #ff6b6b; }
+        .success { color: #51cf66; }
+        .info { color: #74c0fc; }
+        .warning { color: #ffd43b; }
+        .videos {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .video-container {
+            text-align: center;
+        }
+        h3 {
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔬 اختبار WebRTC - تشخيص المكالمات</h1>
+    
+    <div class="container">
+        <h3>📹 الفيديو المحلي والبعيد</h3>
+        <div class="videos">
+            <div class="video-container">
+                <h4>📹 أنت (Local)</h4>
+                <video id="localVideo" autoplay muted playsinline></video>
+                <div>
+                    <span id="localTracks">Tracks: 0</span>
+                </div>
+            </div>
+            <div class="video-container">
+                <h4>📹 الطرف الآخر (Remote)</h4>
+                <video id="remoteVideo" autoplay playsinline></video>
+                <div>
+                    <span id="remoteTracks">Tracks: 0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h3>🎛️ التحكم</h3>
+        <button onclick="testGetUserMedia()">1️⃣ اختبار الميكروفون والكاميرا</button>
+        <button onclick="testICEServers()">2️⃣ اختبار STUN Servers</button>
+        <button onclick="testFullConnection()">3️⃣ اختبار اتصال كامل (محلي)</button>
+        <button onclick="clearLogs()">🗑️ مسح السجل</button>
+    </div>
+
+    <div class="container">
+        <h3>📊 حالة الاتصال</h3>
+        <div>
+            <strong>ICE Connection State:</strong> <span id="iceState">-</span><br>
+            <strong>Connection State:</strong> <span id="connState">-</span><br>
+            <strong>Signaling State:</strong> <span id="sigState">-</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <h3>📝 سجل الأحداث</h3>
+        <div id="logs" class="log"></div>
+    </div>
+
+    <script>
+        let localStream = null;
+        let remoteStream = null;
+        let pc1 = null;
+        let pc2 = null;
+
+        const STUN_SERVERS = [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' },
+        ];
+
+        function log(message, type = 'info') {
+            const logsDiv = document.getElementById('logs');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logsDiv.insertBefore(entry, logsDiv.firstChild);
+            console.log(message);
+        }
+
+        function clearLogs() {
+            document.getElementById('logs').innerHTML = '';
+            log('تم مسح السجل', 'info');
+        }
+
+        async function testGetUserMedia() {
+            try {
+                log('🎤 طلب الوصول للميكروفون والكاميرا...', 'info');
+                
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    audio: true,
+                    video: true
+                });
+                
+                localStream = stream;
+                const localVideo = document.getElementById('localVideo');
+                localVideo.srcObject = stream;
+                
+                const audioTracks = stream.getAudioTracks();
+                const videoTracks = stream.getVideoTracks();
+                
+                log(`✅ تم الحصول على Stream بنجاح!`, 'success');
+                log(`🎤 Audio tracks: ${audioTracks.length}`, 'success');
+                log(`📹 Video tracks: ${videoTracks.length}`, 'success');
+                
+                audioTracks.forEach(track => {
+                    log(`  - Audio: ${track.label} (${track.readyState})`, 'info');
+                });
+                
+                videoTracks.forEach(track => {
+                    log(`  - Video: ${track.label} (${track.readyState})`, 'info');
+                });
+                
+                document.getElementById('localTracks').textContent = 
+                    `Tracks: ${audioTracks.length} audio, ${videoTracks.length} video`;
+                
+            } catch (error) {
+                log(`❌ خطأ في getUserMedia: ${error.message}`, 'error');
+                log(`   ${error.name}: ${error.message}`, 'error');
+            }
+        }
+
+        async function testICEServers() {
+            try {
+                log('🧊 اختبار STUN servers...', 'info');
+                
+                const pc = new RTCPeerConnection({ iceServers: STUN_SERVERS });
+                
+                pc.onicecandidate = (event) => {
+                    if (event.candidate) {
+                        log(`✅ ICE Candidate: ${event.candidate.candidate.substring(0, 50)}...`, 'success');
+                    } else {
+                        log('✅ ICE gathering مكتمل', 'success');
+                    }
+                };
+                
+                // إنشاء data channel لتشغيل ICE gathering
+                pc.createDataChannel('test');
+                
+                const offer = await pc.createOffer();
+                await pc.setLocalDescription(offer);
+                
+                log('✅ تم إنشاء offer بنجاح', 'success');
+                
+                setTimeout(() => {
+                    pc.close();
+                    log('🔒 تم إغلاق الاتصال', 'info');
+                }, 5000);
+                
+            } catch (error) {
+                log(`❌ خطأ في اختبار STUN: ${error.message}`, 'error');
+            }
+        }
+
+        async function testFullConnection() {
+            try {
+                log('🔗 بدء اختبار اتصال كامل...', 'info');
+                
+                // تنظيف أي اتصال سابق
+                if (pc1) pc1.close();
+                if (pc2) pc2.close();
+                
+                // إنشاء peer connections
+                pc1 = new RTCPeerConnection({ iceServers: STUN_SERVERS });
+                pc2 = new RTCPeerConnection({ iceServers: STUN_SERVERS });
+                
+                log('✅ تم إنشاء RTCPeerConnection × 2', 'success');
+                
+                // Event listeners
+                pc1.onicecandidate = e => {
+                    if (e.candidate) {
+                        log('📤 PC1 -> PC2: ICE candidate', 'info');
+                        pc2.addIceCandidate(e.candidate);
+                    }
+                };
+                
+                pc2.onicecandidate = e => {
+                    if (e.candidate) {
+                        log('📤 PC2 -> PC1: ICE candidate', 'info');
+                        pc1.addIceCandidate(e.candidate);
+                    }
+                };
+                
+                pc1.oniceconnectionstatechange = () => {
+                    log(`🧊 PC1 ICE State: ${pc1.iceConnectionState}`, 'info');
+                    document.getElementById('iceState').textContent = pc1.iceConnectionState;
+                };
+                
+                pc1.onconnectionstatechange = () => {
+                    log(`🔄 PC1 Connection State: ${pc1.connectionState}`, 'info');
+                    document.getElementById('connState').textContent = pc1.connectionState;
+                };
+                
+                pc1.onsignalingstatechange = () => {
+                    log(`📡 PC1 Signaling State: ${pc1.signalingState}`, 'info');
+                    document.getElementById('sigState').textContent = pc1.signalingState;
+                };
+                
+                pc2.ontrack = (event) => {
+                    log(`✅ PC2 استقبل track: ${event.track.kind}`, 'success');
+                    log(`   Track details: ${event.track.label} (${event.track.readyState})`, 'info');
+                    
+                    if (event.streams && event.streams[0]) {
+                        const remoteVideo = document.getElementById('remoteVideo');
+                        remoteVideo.srcObject = event.streams[0];
+                        
+                        const tracks = event.streams[0].getTracks();
+                        document.getElementById('remoteTracks').textContent = 
+                            `Tracks: ${event.streams[0].getAudioTracks().length} audio, ${event.streams[0].getVideoTracks().length} video`;
+                        
+                        log(`📥 Remote stream متصل (${tracks.length} tracks)`, 'success');
+                    }
+                };
+                
+                // إضافة local stream
+                if (!localStream) {
+                    log('⚠️ لا يوجد local stream، سيتم الحصول عليه...', 'warning');
+                    await testGetUserMedia();
+                }
+                
+                log('➕ إضافة tracks إلى PC1...', 'info');
+                localStream.getTracks().forEach(track => {
+                    log(`  ➕ ${track.kind}: ${track.label}`, 'info');
+                    pc1.addTrack(track, localStream);
+                });
+                
+                // إنشاء offer
+                log('📝 إنشاء offer...', 'info');
+                const offer = await pc1.createOffer({
+                    offerToReceiveAudio: true,
+                    offerToReceiveVideo: true
+                });
+                
+                log('✅ Offer تم إنشاؤه', 'success');
+                log(`   SDP type: ${offer.type}`, 'info');
+                
+                await pc1.setLocalDescription(offer);
+                log('✅ PC1 setLocalDescription(offer)', 'success');
+                
+                await pc2.setRemoteDescription(offer);
+                log('✅ PC2 setRemoteDescription(offer)', 'success');
+                
+                // إنشاء answer
+                log('📝 إنشاء answer...', 'info');
+                const answer = await pc2.createAnswer();
+                log('✅ Answer تم إنشاؤه', 'success');
+                
+                await pc2.setLocalDescription(answer);
+                log('✅ PC2 setLocalDescription(answer)', 'success');
+                
+                await pc1.setRemoteDescription(answer);
+                log('✅ PC1 setRemoteDescription(answer)', 'success');
+                
+                log('🎉 تم إنشاء الاتصال بنجاح! انتظر الاتصال...', 'success');
+                
+            } catch (error) {
+                log(`❌ خطأ في الاتصال: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        // تنظيف عند إغلاق الصفحة
+        window.addEventListener('beforeunload', () => {
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            if (pc1) pc1.close();
+            if (pc2) pc2.close();
+        });
+    </script>
+</body>
+</html>
