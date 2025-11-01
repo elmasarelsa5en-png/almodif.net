@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Phone, Video, X, Mic, MicOff, VideoOff, Loader2 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Phone, Video, X, Mic, MicOff, VideoOff, Loader2, Minimize2, Maximize2 } from 'lucide-react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { nativeWebRTCService } from '@/lib/native-webrtc-service';
 import { playRingback, stopRingback, playEndTone, playMuteTone } from '@/lib/sound-manager';
@@ -14,8 +14,8 @@ interface CallDialogProps {
   employeeName: string;
   employeeId: string;
   callType: 'audio' | 'video';
-  isReceiver?: boolean; // true if this is an incoming call being answered
-  signalId?: string; // the call signal ID (for receiver)
+  isReceiver?: boolean;
+  signalId?: string;
 }
 
 export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType, isReceiver = false, signalId }: CallDialogProps) {
@@ -25,6 +25,7 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
   const [callStatus, setCallStatus] = useState<'initializing' | 'connecting' | 'ringing' | 'connected' | 'ended'>('initializing');
   const [callDuration, setCallDuration] = useState(0);
   const [currentSignalId, setCurrentSignalId] = useState<string | null>(null);
+  const [isMinimized, setIsMinimized] = useState(false);
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
@@ -236,8 +237,83 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // إذا كانت المكالمة minimized، اعرض mini bar
+  if (isMinimized && isOpen) {
+    return (
+      <div className="fixed bottom-4 right-4 z-50 animate-slide-up">
+        <div className="bg-gradient-to-r from-slate-900 via-purple-900 to-slate-900 rounded-2xl shadow-2xl border border-purple-500/30 backdrop-blur-xl p-4 min-w-[320px]">
+          <div className="flex items-center gap-4">
+            {/* Avatar */}
+            <div className="relative">
+              {callStatus === 'ringing' && (
+                <div className="absolute inset-0 rounded-full bg-purple-400/30 animate-ping"></div>
+              )}
+              <div className="relative w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center text-xl font-bold">
+                {employeeName.charAt(0)}
+              </div>
+            </div>
+
+            {/* Info */}
+            <div className="flex-1">
+              <h4 className="font-semibold text-white">{employeeName}</h4>
+              <div className="flex items-center gap-2 text-sm">
+                {callType === 'video' ? (
+                  <Video className="w-4 h-4 text-purple-400" />
+                ) : (
+                  <Phone className="w-4 h-4 text-cyan-400" />
+                )}
+                <span className="text-gray-300">
+                  {callStatus === 'connected' ? formatDuration(callDuration) : 
+                   callStatus === 'ringing' ? 'يرن...' : 'جاري الاتصال...'}
+                </span>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="flex items-center gap-2">
+              {/* Mute */}
+              <button
+                onClick={toggleMute}
+                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                  isMuted ? 'bg-red-500 hover:bg-red-600' : 'bg-slate-700 hover:bg-slate-600'
+                }`}
+                title={isMuted ? 'إلغاء كتم الصوت' : 'كتم الصوت'}
+              >
+                {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+              </button>
+
+              {/* Maximize */}
+              <button
+                onClick={() => setIsMinimized(false)}
+                className="w-10 h-10 rounded-full bg-blue-500 hover:bg-blue-600 flex items-center justify-center transition-all"
+                title="تكبير"
+              >
+                <Maximize2 className="w-5 h-5" />
+              </button>
+
+              {/* End Call */}
+              <button
+                onClick={endCall}
+                className="w-10 h-10 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center transition-all"
+                title="إنهاء المكالمة"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Hidden video elements for audio/video streaming */}
+          <div className="hidden">
+            <video ref={remoteVideoRef} autoPlay playsInline />
+            <video ref={localVideoRef} autoPlay playsInline muted />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen && !isMinimized} onOpenChange={onClose}>
       <DialogContent className="max-w-5xl bg-gradient-to-br from-slate-900 via-purple-900/50 to-slate-900 text-white border-0 p-0 overflow-hidden">
         {/* Background Effect */}
         <div className="absolute inset-0 bg-black/30 backdrop-blur-sm">
@@ -262,39 +338,50 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
                 </span>
               </div>
               
-              {/* Status Badge */}
-              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-black/30 backdrop-blur-sm">
-                {callStatus === 'initializing' && (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin text-yellow-400" />
-                    <span className="text-sm text-yellow-400">جاري التهيئة</span>
-                  </>
-                )}
-                {callStatus === 'connecting' && (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
-                    <span className="text-sm text-blue-400">جاري الاتصال</span>
-                  </>
-                )}
-                {callStatus === 'ringing' && (
-                  <>
-                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-ping"></div>
-                    <Phone className="w-4 h-4 text-purple-400 animate-bounce" />
-                    <span className="text-sm text-purple-400">يرن...</span>
-                  </>
-                )}
-                {callStatus === 'connected' && (
-                  <>
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                    <span className="text-sm text-green-400 font-mono">{formatDuration(callDuration)}</span>
-                  </>
-                )}
-                {callStatus === 'ended' && (
-                  <>
-                    <X className="w-4 h-4 text-red-400" />
-                    <span className="text-sm text-red-400">انتهت</span>
-                  </>
-                )}
+              <div className="flex items-center gap-3">
+                {/* Status Badge */}
+                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-black/30 backdrop-blur-sm">
+                  {callStatus === 'initializing' && (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-yellow-400" />
+                      <span className="text-sm text-yellow-400">جاري التهيئة</span>
+                    </>
+                  )}
+                  {callStatus === 'connecting' && (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
+                      <span className="text-sm text-blue-400">جاري الاتصال</span>
+                    </>
+                  )}
+                  {callStatus === 'ringing' && (
+                    <>
+                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-ping"></div>
+                      <Phone className="w-4 h-4 text-purple-400 animate-bounce" />
+                      <span className="text-sm text-purple-400">يرن...</span>
+                    </>
+                  )}
+                  {callStatus === 'connected' && (
+                    <>
+                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                      <span className="text-sm text-green-400 font-mono">{formatDuration(callDuration)}</span>
+                    </>
+                  )}
+                  {callStatus === 'ended' && (
+                    <>
+                      <X className="w-4 h-4 text-red-400" />
+                      <span className="text-sm text-red-400">انتهت</span>
+                    </>
+                  )}
+                </div>
+
+                {/* Minimize Button */}
+                <button
+                  onClick={() => setIsMinimized(true)}
+                  className="p-2 rounded-full hover:bg-white/10 transition-colors"
+                  title="تصغير"
+                >
+                  <Minimize2 className="w-5 h-5" />
+                </button>
               </div>
             </div>
           </div>
@@ -398,58 +485,68 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
             )}
 
             {/* أزرار التحكم */}
-            <div className="flex items-center justify-center gap-4 py-6">
-            {/* كتم الصوت */}
-            <button
-              onClick={toggleMute}
-              className={`group relative w-16 h-16 rounded-full transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-110 active:scale-95 ${
-                isMuted 
-                  ? 'bg-red-500 hover:bg-red-600' 
-                  : 'bg-slate-700/80 hover:bg-slate-600 backdrop-blur-md'
-              }`}
-              title={isMuted ? 'إلغاء كتم الصوت' : 'كتم الصوت'}
-            >
-              {isMuted ? <MicOff className="w-7 h-7 text-white absolute inset-0 m-auto" /> : <Mic className="w-7 h-7 text-white absolute inset-0 m-auto" />}
-              <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
-                {isMuted ? 'إلغاء الكتم' : 'كتم'}
-              </span>
-            </button>
-
-            {/* إيقاف الفيديو */}
-            {callType === 'video' && (
+            <div className="flex items-center justify-center gap-6 py-6">
+              {/* كتم الصوت */}
               <button
-                onClick={toggleVideo}
-                className={`group relative w-16 h-16 rounded-full transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-110 active:scale-95 ${
-                  isVideoOff 
-                    ? 'bg-red-500 hover:bg-red-600' 
-                    : 'bg-slate-700/80 hover:bg-slate-600 backdrop-blur-md'
+                onClick={toggleMute}
+                className={`group relative w-16 h-16 rounded-full transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-110 active:scale-95 ${
+                  isMuted 
+                    ? 'bg-gradient-to-br from-red-500 to-red-700 hover:from-red-600 hover:to-red-800' 
+                    : 'bg-gradient-to-br from-slate-700 to-slate-800 hover:from-slate-600 hover:to-slate-700 backdrop-blur-md'
                 }`}
-                title={isVideoOff ? 'تشغيل الكاميرا' : 'إيقاف الكاميرا'}
+                title={isMuted ? 'إلغاء كتم الصوت' : 'كتم الصوت'}
               >
-                {isVideoOff ? <VideoOff className="w-7 h-7 text-white absolute inset-0 m-auto" /> : <Video className="w-7 h-7 text-white absolute inset-0 m-auto" />}
-                <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
-                  {isVideoOff ? 'تشغيل' : 'إيقاف'}
+                {isMuted ? <MicOff className="w-7 h-7 text-white absolute inset-0 m-auto drop-shadow-lg" /> : <Mic className="w-7 h-7 text-white absolute inset-0 m-auto drop-shadow-lg" />}
+                <span className="absolute -bottom-10 left-1/2 -translate-x-1/2 text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 px-3 py-1 rounded-full">
+                  {isMuted ? 'إلغاء الكتم' : 'كتم'}
                 </span>
+                {isMuted && (
+                  <div className="absolute inset-0 rounded-full bg-red-500/20 animate-ping"></div>
+                )}
               </button>
-            )}
 
-            {/* إنهاء المكالمة */}
-            <button
-              onClick={endCall}
-              className="group relative w-20 h-20 rounded-full bg-gradient-to-br from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 transition-all duration-200 shadow-lg hover:shadow-2xl hover:scale-110 active:scale-95"
-              title="إنهاء المكالمة"
-            >
-              <X className="w-9 h-9 text-white absolute inset-0 m-auto" />
-              <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
-                إنهاء
-              </span>
-            </button>
-          </div>
+              {/* إيقاف الفيديو */}
+              {callType === 'video' && (
+                <button
+                  onClick={toggleVideo}
+                  className={`group relative w-16 h-16 rounded-full transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-110 active:scale-95 ${
+                    isVideoOff 
+                      ? 'bg-gradient-to-br from-red-500 to-red-700 hover:from-red-600 hover:to-red-800' 
+                      : 'bg-gradient-to-br from-slate-700 to-slate-800 hover:from-slate-600 hover:to-slate-700 backdrop-blur-md'
+                  }`}
+                  title={isVideoOff ? 'تشغيل الكاميرا' : 'إيقاف الكاميرا'}
+                >
+                  {isVideoOff ? <VideoOff className="w-7 h-7 text-white absolute inset-0 m-auto drop-shadow-lg" /> : <Video className="w-7 h-7 text-white absolute inset-0 m-auto drop-shadow-lg" />}
+                  <span className="absolute -bottom-10 left-1/2 -translate-x-1/2 text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 px-3 py-1 rounded-full">
+                    {isVideoOff ? 'تشغيل' : 'إيقاف'}
+                  </span>
+                  {isVideoOff && (
+                    <div className="absolute inset-0 rounded-full bg-red-500/20 animate-ping"></div>
+                  )}
+                </button>
+              )}
 
-          {/* Info message */}
-          <p className="text-center text-sm text-white/50 pb-4">
-            ✅ مكالمة حقيقية عبر WebRTC + PeerJS
-          </p>
+              {/* إنهاء المكالمة */}
+              <button
+                onClick={endCall}
+                className="group relative w-20 h-20 rounded-full bg-gradient-to-br from-red-500 via-red-600 to-red-700 hover:from-red-600 hover:via-red-700 hover:to-red-800 transition-all duration-300 shadow-2xl hover:shadow-red-500/50 hover:scale-110 active:scale-95"
+                title="إنهاء المكالمة"
+              >
+                <Phone className="w-9 h-9 text-white absolute inset-0 m-auto rotate-[135deg] drop-shadow-2xl" />
+                <span className="absolute -bottom-10 left-1/2 -translate-x-1/2 text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 px-3 py-1 rounded-full">
+                  إنهاء
+                </span>
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-red-400/30 to-transparent"></div>
+              </button>
+            </div>
+
+            {/* Info message */}
+            <div className="text-center pb-4">
+              <p className="text-sm text-white/40 flex items-center justify-center gap-2">
+                <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                مكالمة مشفرة نهاية-لنهاية عبر WebRTC
+              </p>
+            </div>
           </div>
         </div>
       </DialogContent>
