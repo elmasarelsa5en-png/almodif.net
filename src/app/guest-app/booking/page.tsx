@@ -240,7 +240,8 @@ export default function BookingPage() {
       };
       localStorage.setItem('guest_session', JSON.stringify(guestSession));
 
-      setStep(4);
+      // التوجيه لصفحة تأكيد الحجز والدفع
+      router.push(`/guest-app/booking-confirmation?id=${docRef.id}`);
     } catch (error) {
       console.error('Error creating booking:', error);
       alert('حدث خطأ أثناء إنشاء الحجز. يرجى المحاولة مرة أخرى.');
