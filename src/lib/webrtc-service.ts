@@ -24,10 +24,23 @@ class WebRTCService {
    */
   initializePeer(userId: string): Promise<string> {
     return new Promise((resolve, reject) => {
+      // Add timeout (15 seconds)
+      const timeout = setTimeout(() => {
+        if (this.peer) {
+          this.peer.destroy();
+        }
+        reject(new Error('فشل الاتصال بالخادم: انتهت المهلة الزمنية'));
+      }, 15000);
+
       try {
-        // Create peer with user ID
-        this.peer = new Peer(userId, {
-          host: 'peerjs-server.herokuapp.com',
+        // Generate unique peer ID to avoid conflicts
+        const uniqueId = `${userId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        
+        console.log('🔌 Initializing PeerJS with ID:', uniqueId);
+
+        // Create peer with user ID using PeerJS cloud service (free tier)
+        this.peer = new Peer(uniqueId, {
+          host: '0.peerjs.com',
           secure: true,
           port: 443,
           path: '/',
@@ -35,18 +48,56 @@ class WebRTCService {
             iceServers: [
               { urls: 'stun:stun.l.google.com:19302' },
               { urls: 'stun:stun1.l.google.com:19302' },
+              { urls: 'stun:stun2.l.google.com:19302' },
+              { urls: 'stun:stun3.l.google.com:19302' },
+              { urls: 'stun:stun4.l.google.com:19302' },
             ]
-          }
+          },
+          debug: 2 // Enable debug logs
         });
 
         this.peer.on('open', (id) => {
+          clearTimeout(timeout);
           console.log('✅ PeerJS connected with ID:', id);
           resolve(id);
         });
 
         this.peer.on('error', (error) => {
           console.error('❌ PeerJS error:', error);
-          reject(error);
+          
+          // Try alternative: create peer without custom server (use default PeerJS cloud)
+          if (error.type === 'network' || error.type === 'server-error') {
+            console.log('🔄 Trying fallback to default PeerJS cloud...');
+            
+            // Cleanup old peer
+            if (this.peer) {
+              this.peer.destroy();
+            }
+            
+            // Create new peer with default cloud server
+            this.peer = new Peer(userId, {
+              config: {
+                iceServers: [
+                  { urls: 'stun:stun.l.google.com:19302' },
+                  { urls: 'stun:stun1.l.google.com:19302' },
+                  { urls: 'stun:stun2.l.google.com:19302' },
+                ]
+              },
+              debug: 2
+            });
+            
+            this.peer.on('open', (id) => {
+              console.log('✅ PeerJS connected with fallback ID:', id);
+              resolve(id);
+            });
+            
+            this.peer.on('error', (fallbackError) => {
+              console.error('❌ Fallback also failed:', fallbackError);
+              reject(fallbackError);
+            });
+          } else {
+            reject(error);
+          }
         });
 
         // Listen for incoming calls
