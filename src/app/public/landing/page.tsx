@@ -268,7 +268,7 @@ export default function PublicLandingPage() {
               <Link href="#about" className="text-white hover:text-amber-400 transition font-bold text-lg drop-shadow-md">
                 عن الفندق
               </Link>
-              <Link href="/guest-app/booking" className="text-white hover:text-amber-400 transition font-bold text-lg drop-shadow-md">
+              <Link href="/public/rooms" className="text-white hover:text-amber-400 transition font-bold text-lg drop-shadow-md">
                 الغرف والأجنحة
               </Link>
               <Link href="#services" className="text-white hover:text-amber-400 transition font-bold text-lg drop-shadow-md">
