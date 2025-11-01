@@ -154,15 +154,18 @@ export default function PlatformsCalendarPage() {
 
   // Load calendar data from Firebase
   useEffect(() => {
-    if (selectedRoom) { // تحميل فقط بعد اختيار غرفة
+    if (selectedRoom && roomTypes.length > 0) { // انتظار تحميل الغرف أولاً
+      console.log('📆 useEffect triggered - Room:', selectedRoom, 'RoomTypes:', roomTypes.length);
       loadCalendarData();
     }
-  }, [currentDate, selectedRoom]);
+  }, [currentDate, selectedRoom, roomTypes]);
 
   // Auto-save when pricesData changes
   useEffect(() => {
     if (pricesData.length > 0) {
+      console.log('💾 Auto-save triggered -', pricesData.length, 'entries');
       const timeoutId = setTimeout(() => {
+        console.log('⏱️ Saving after 1 second delay...');
         saveCalendarData();
       }, 1000); // حفظ بعد ثانية من آخر تعديل
 
@@ -173,23 +176,38 @@ export default function PlatformsCalendarPage() {
   const loadCalendarData = async () => {
     try {
       const monthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+      console.log('🔍 Loading calendar for:', monthKey, 'Room:', selectedRoom);
+      
       const calendarDoc = await getDoc(doc(db, 'calendar_availability', monthKey));
       
       if (calendarDoc.exists()) {
-        setPricesData(calendarDoc.data().prices || []);
+        const data = calendarDoc.data();
+        console.log('✅ Calendar data found:', data.prices?.length, 'entries');
+        setPricesData(data.prices || []);
       } else {
+        console.log('⚠️ No calendar data found, initializing...');
         // إنشاء بيانات افتراضية للشهر الجديد
-        initializeMonthData();
+        await initializeMonthData();
       }
     } catch (error) {
-      console.error('Error loading calendar data:', error);
-      initializeMonthData();
+      console.error('❌ Error loading calendar data:', error);
+      await initializeMonthData();
     }
   };
 
-  const initializeMonthData = () => {
+  const initializeMonthData = async () => {
+    console.log('🔧 Initializing month data for room types:', roomTypes.length);
+    
+    // التأكد من وجود غرف
+    if (roomTypes.length === 0) {
+      console.log('⚠️ No room types available, waiting...');
+      return;
+    }
+
     const data: DayPrice[] = [];
     const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+    
+    console.log(`📅 Creating ${daysInMonth} days for ${roomTypes.length} room types`);
     
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
@@ -210,7 +228,24 @@ export default function PlatformsCalendarPage() {
       });
     }
     
+    console.log(`✅ Initialized ${data.length} price entries`);
     setPricesData(data);
+    
+    // حفظ البيانات المبدئية في Firebase
+    try {
+      const monthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+      await setDoc(doc(db, 'calendar_availability', monthKey), {
+        month: monthKey,
+        year: currentDate.getFullYear(),
+        monthNumber: currentDate.getMonth() + 1,
+        prices: data,
+        updatedAt: new Date().toISOString(),
+        initialized: true
+      });
+      console.log('💾 Saved initial calendar data to Firebase');
+    } catch (error) {
+      console.error('❌ Error saving initial data:', error);
+    }
   };
 
   // Save calendar data to Firebase
@@ -260,12 +295,19 @@ export default function PlatformsCalendarPage() {
     const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
     const dateStr = date.toISOString().split('T')[0];
     const dayPrice = pricesData.find(d => d.date === dateStr && d.roomTypeId === selectedRoom);
+    
+    if (day === 1) { // log للأول يوم بس عشان مش نملى الconsole
+      console.log('🔍 getDayData - Day:', day, 'Date:', dateStr, 'Room:', selectedRoom, 'Found:', !!dayPrice);
+    }
+    
     return dayPrice?.platforms.find(p => p.platformId === platformId);
   };
 
   const updatePrice = (day: number, platformId: string, newPrice: number) => {
     const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
     const dateStr = date.toISOString().split('T')[0];
+    
+    console.log('💰 Updating price - Day:', day, 'Date:', dateStr, 'Platform:', platformId, 'New Price:', newPrice);
     
     setPricesData(prev => prev.map(item => {
       if (item.date === dateStr && item.roomTypeId === selectedRoom) {
@@ -285,6 +327,8 @@ export default function PlatformsCalendarPage() {
   const toggleAvailability = (day: number, platformId: string) => {
     const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
     const dateStr = date.toISOString().split('T')[0];
+    
+    console.log('✅ Toggling availability - Day:', day, 'Date:', dateStr, 'Platform:', platformId);
     
     setPricesData(prev => prev.map(item => {
       if (item.date === dateStr && item.roomTypeId === selectedRoom) {
