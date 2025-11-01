@@ -321,18 +321,36 @@ export default function CalendarPage() {
     console.log('🔵 عدد الخلايا المحددة:', selectedCells.size);
     console.log('💰 السعر الجديد:', bulkPrice);
     console.log('🏠 عدد الوحدات:', bulkUnits);
+    console.log('📋 الخلايا المحددة:', Array.from(selectedCells));
     
     selectedCells.forEach(cellId => {
-      const [dateStr, platformId] = cellId.split('-');
+      console.log('🔍 معالجة الخلية:', cellId);
+      const parts = cellId.split('-');
+      console.log('📦 الأجزاء:', parts);
+      
+      // التاريخ يتكون من 3 أجزاء (YYYY-MM-DD)، المنصة هي الجزء الرابع
+      const dateStr = `${parts[0]}-${parts[1]}-${parts[2]}`;
+      const platformId = parts[3];
+      
+      console.log('📅 التاريخ:', dateStr);
+      console.log('🏢 المنصة:', platformId);
+      
       const dayIndex = updatedData.findIndex(d => d.date === dateStr);
+      console.log('📊 مؤشر اليوم:', dayIndex);
       
       if (dayIndex !== -1) {
         const platformIndex = updatedData[dayIndex].platforms.findIndex(p => p.platformId === platformId);
+        console.log('🎯 مؤشر المنصة:', platformIndex);
+        
         if (platformIndex !== -1) {
           console.log(`✅ تحديث ${dateStr} - المنصة ${platformId}`);
           updatedData[dayIndex].platforms[platformIndex].price = bulkPrice;
           updatedData[dayIndex].platforms[platformIndex].units = bulkUnits;
+        } else {
+          console.log(`❌ المنصة ${platformId} غير موجودة`);
         }
+      } else {
+        console.log(`❌ التاريخ ${dateStr} غير موجود`);
       }
     });
     
