@@ -159,8 +159,14 @@ class WebRTCService {
         console.log('🔌 Initializing PeerJS with ID:', uniqueId);
         console.log('👤 Original userId:', userId, '→ Sanitized:', sanitizedUserId);
 
-        // Create peer WITHOUT custom server (use PeerJS default cloud - most reliable)
+        // Create peer with configuration
+        // Using default PeerJS cloud server with STUN servers for NAT traversal
         this.peer = new Peer(uniqueId, {
+          // Use default PeerJS cloud server (most reliable)
+          // host: '0.peerjs.com', // Explicitly set default server
+          // port: 443,
+          // path: '/',
+          // secure: true,
           config: {
             iceServers: [
               { urls: 'stun:stun.l.google.com:19302' },
@@ -168,9 +174,12 @@ class WebRTCService {
               { urls: 'stun:stun2.l.google.com:19302' },
               { urls: 'stun:stun3.l.google.com:19302' },
               { urls: 'stun:stun4.l.google.com:19302' },
-            ]
+            ],
+            // Add more ICE connection options
+            iceTransportPolicy: 'all', // Use both STUN and TURN
+            iceCandidatePoolSize: 10 // Gather more ICE candidates
           },
-          debug: 3 // Enable verbose debug logs
+          debug: 2 // Reduce debug level (3 is too verbose)
         });
 
         // Check if peer is already open (sometimes 'open' event doesn't fire)
@@ -324,16 +333,44 @@ class WebRTCService {
    * Make the actual peer connection after signal is accepted
    */
   async connectToPeer(peerId: string, stream: MediaStream): Promise<MediaConnection> {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       if (!this.peer) {
         reject(new Error('Peer not initialized'));
         return;
       }
 
+      // Check if peer is disconnected and try to reconnect
+      if (this.peer.disconnected) {
+        console.warn('⚠️ Peer is disconnected, attempting to reconnect...');
+        try {
+          this.peer.reconnect();
+          // Wait a bit for reconnection
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        } catch (e) {
+          console.error('❌ Failed to reconnect peer:', e);
+          reject(new Error('Peer is disconnected and could not reconnect'));
+          return;
+        }
+      }
+
+      // Check if peer is destroyed
+      if (this.peer.destroyed) {
+        console.error('❌ Peer is destroyed, cannot make call');
+        reject(new Error('Peer is destroyed'));
+        return;
+      }
+
       try {
         console.log('🔗 Connecting to peer:', peerId);
+        console.log('📊 Current peer state - disconnected:', this.peer.disconnected, 'destroyed:', this.peer.destroyed);
         
         const call = this.peer.call(peerId, stream);
+        
+        if (!call) {
+          reject(new Error('Failed to create call'));
+          return;
+        }
+        
         this.currentCall = call;
 
         call.on('stream', (remoteStream) => {
