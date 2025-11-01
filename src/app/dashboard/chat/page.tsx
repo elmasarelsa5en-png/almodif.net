@@ -959,6 +959,18 @@ export default function ChatPage() {
       );
 
       if (callerEmployee) {
+        console.log('📞 Preparing to answer call from:', callerEmployee.name);
+        
+        // ✅ CRITICAL: Register remote stream callback BEFORE answering
+        // This ensures we don't miss the ontrack event
+        nativeWebRTCService.onRemoteStream((remoteStream) => {
+          console.log('✅ [Early Registration] Remote stream received in answerer');
+          console.log('📊 Remote stream tracks:', remoteStream.getTracks().length);
+          console.log('📊 Audio tracks:', remoteStream.getAudioTracks().length);
+          console.log('📊 Video tracks:', remoteStream.getVideoTracks().length);
+          // The CallDialog will handle displaying the stream
+        });
+        
         // Step 1: Answer the call and get local stream
         const stream = await nativeWebRTCService.answerCall(
           incomingCallSignal.id,

@@ -285,16 +285,19 @@ class NativeWebRTCService {
       console.log('📊 Local stream tracks added (answerer):', stream.getTracks().length);
       console.log('📊 Peer connection senders (answerer):', this.peerConnection!.getSenders().length);
 
+      // Wait a bit to ensure tracks are fully attached
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       // Listen for ICE candidates from offerer
       this.listenForIceCandidates(signalId, 'offerer');
 
       // Wait for offer and create answer (BEFORE updating status)
       this.listenForOfferAndCreateAnswer(signalId);
 
-      // Longer delay to ensure listener is ready (increased from 100ms to 300ms)
+      // Longer delay to ensure listener is ready
       await new Promise(resolve => setTimeout(resolve, 300));
 
-      console.log('✅ Answerer ready - listener registered');
+      console.log('✅ Answerer ready - listener registered - tracks attached');
 
       // Update signal status (this triggers caller to send offer)
       await updateDoc(doc(db, 'call_signals', signalId), {

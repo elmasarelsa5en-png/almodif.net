@@ -97,6 +97,17 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
 
       setCallStatus('connecting');
 
+      // ✅ CRITICAL: Register remote stream callback BEFORE starting call
+      nativeWebRTCService.onRemoteStream((remoteStream) => {
+        console.log('✅ [Early Registration] Caller received remote stream');
+        console.log('📊 Remote stream tracks:', remoteStream.getTracks().length);
+        if (remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = remoteStream;
+          console.log('✅ Remote video displayed for caller');
+        }
+        setCallStatus('connected');
+      });
+
       // Start call and create signal (gets local stream automatically)
       console.log('📤 Creating call signal...');
       const signalId = await nativeWebRTCService.startCall(
@@ -118,15 +129,6 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
         localVideoRef.current.srcObject = localStream;
         console.log('✅ Local video displayed');
       }
-
-      // Set up remote stream callback
-      nativeWebRTCService.onRemoteStream((remoteStream) => {
-        console.log('✅ Received remote stream');
-        if (remoteVideoRef.current) {
-          remoteVideoRef.current.srcObject = remoteStream;
-        }
-        setCallStatus('connected');
-      });
 
       // Listen for call status changes from receiver
       nativeWebRTCService.listenForCallStatus(
