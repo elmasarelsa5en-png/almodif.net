@@ -1143,9 +1143,6 @@ export default function ChatPage() {
                             {/* رسالة نصية */}
                             {message.type === 'text' && message.text && (
                               <p className='text-sm md:text-base leading-relaxed whitespace-pre-wrap break-words'>{message.text}</p>
-                            )}                            {/* رسالة نصية */}
-                            {message.type === 'text' && message.text && (
-                              <p className='text-base leading-relaxed whitespace-pre-wrap break-words'>{message.text}</p>
                             )}
                           
                           {/* صورة */}
