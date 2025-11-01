@@ -572,62 +572,77 @@ export default function CalendarPage() {
       <div className="max-w-[95%] mx-auto space-y-6">
         <Card className="bg-white/10 backdrop-blur-md border-white/20">
           <CardHeader>
-            <CardTitle className="text-white text-3xl flex items-center gap-3">
+            <CardTitle className="text-white text-3xl flex items-center gap-3 mb-6">
               <CalendarIcon className="w-8 h-8" />
               تقويم الأسعار والتوافر
             </CardTitle>
             
-            {/* Quick Action Buttons */}
-            <div className="flex flex-wrap gap-2 mt-4">
-              <Button 
+            {/* Quick Action Cards - Grid Layout */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+              <div 
                 onClick={() => setShowCopyWeekDialog(true)}
-                variant="outline" 
-                className="text-white border-white/20 hover:bg-white/10"
-                size="sm"
+                className="group relative p-4 bg-gradient-to-br from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 border border-white/20 rounded-xl cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl"
               >
-                <Copy className="w-4 h-4 ml-2" />
-                نسخ أسبوع
-              </Button>
+                <div className="flex flex-col items-center gap-2 text-center">
+                  <div className="p-3 bg-white/10 rounded-full group-hover:bg-white/20 transition-colors">
+                    <Copy className="w-6 h-6 text-purple-300" />
+                  </div>
+                  <div className="text-white font-bold text-sm">نسخ أسبوع</div>
+                  <div className="text-white/60 text-xs">تكرار أسبوع للشهر</div>
+                </div>
+              </div>
               
-              <Button 
+              <div 
                 onClick={() => setShowCopyMonthDialog(true)}
-                variant="outline" 
-                className="text-white border-white/20 hover:bg-white/10"
-                size="sm"
+                className="group relative p-4 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 hover:from-blue-500/30 hover:to-cyan-500/30 border border-white/20 rounded-xl cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl"
               >
-                <CalendarIcon className="w-4 h-4 ml-2" />
-                نسخ شهر
-              </Button>
+                <div className="flex flex-col items-center gap-2 text-center">
+                  <div className="p-3 bg-white/10 rounded-full group-hover:bg-white/20 transition-colors">
+                    <CalendarIcon className="w-6 h-6 text-blue-300" />
+                  </div>
+                  <div className="text-white font-bold text-sm">نسخ شهر</div>
+                  <div className="text-white/60 text-xs">نسخ لشهر آخر</div>
+                </div>
+              </div>
               
-              <Button 
+              <div 
                 onClick={() => setShowFilterDialog(true)}
-                variant="outline" 
-                className="text-white border-white/20 hover:bg-white/10"
-                size="sm"
+                className="group relative p-4 bg-gradient-to-br from-green-500/20 to-emerald-500/20 hover:from-green-500/30 hover:to-emerald-500/30 border border-white/20 rounded-xl cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl"
               >
-                <Filter className="w-4 h-4 ml-2" />
-                فلترة المنصات
-              </Button>
+                <div className="flex flex-col items-center gap-2 text-center">
+                  <div className="p-3 bg-white/10 rounded-full group-hover:bg-white/20 transition-colors">
+                    <Filter className="w-6 h-6 text-green-300" />
+                  </div>
+                  <div className="text-white font-bold text-sm">فلترة المنصات</div>
+                  <div className="text-white/60 text-xs">إظهار/إخفاء</div>
+                </div>
+              </div>
               
-              <Button 
+              <div 
                 onClick={() => setShowStatsDialog(true)}
-                variant="outline" 
-                className="text-white border-white/20 hover:bg-white/10"
-                size="sm"
+                className="group relative p-4 bg-gradient-to-br from-orange-500/20 to-yellow-500/20 hover:from-orange-500/30 hover:to-yellow-500/30 border border-white/20 rounded-xl cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl"
               >
-                <BarChart3 className="w-4 h-4 ml-2" />
-                الإحصائيات
-              </Button>
+                <div className="flex flex-col items-center gap-2 text-center">
+                  <div className="p-3 bg-white/10 rounded-full group-hover:bg-white/20 transition-colors">
+                    <BarChart3 className="w-6 h-6 text-orange-300" />
+                  </div>
+                  <div className="text-white font-bold text-sm">الإحصائيات</div>
+                  <div className="text-white/60 text-xs">تقرير الشهر</div>
+                </div>
+              </div>
               
-              <Button 
+              <div 
                 onClick={() => setShowHolidaysDialog(true)}
-                variant="outline" 
-                className="text-white border-white/20 hover:bg-white/10"
-                size="sm"
+                className="group relative p-4 bg-gradient-to-br from-pink-500/20 to-rose-500/20 hover:from-pink-500/30 hover:to-rose-500/30 border border-white/20 rounded-xl cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl"
               >
-                <Sparkles className="w-4 h-4 ml-2" />
-                أسعار المناسبات
-              </Button>
+                <div className="flex flex-col items-center gap-2 text-center">
+                  <div className="p-3 bg-white/10 rounded-full group-hover:bg-white/20 transition-colors">
+                    <Sparkles className="w-6 h-6 text-pink-300" />
+                  </div>
+                  <div className="text-white font-bold text-sm">أسعار المناسبات</div>
+                  <div className="text-white/60 text-xs">عيد، صيف، شتاء</div>
+                </div>
+              </div>
             </div>
           </CardHeader>
         </Card>
