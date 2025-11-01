@@ -159,14 +159,13 @@ class WebRTCService {
         console.log('🔌 Initializing PeerJS with ID:', uniqueId);
         console.log('👤 Original userId:', userId, '→ Sanitized:', sanitizedUserId);
 
-        // Create peer with configuration
-        // Using default PeerJS cloud server with STUN servers for NAT traversal
+        // Try using a different PeerJS server configuration
+        // Option 1: Use PeerServer Cloud (alternative reliable server)
         this.peer = new Peer(uniqueId, {
-          // Use default PeerJS cloud server (most reliable)
-          // host: '0.peerjs.com', // Explicitly set default server
-          // port: 443,
-          // path: '/',
-          // secure: true,
+          host: 'peerjs-server.herokuapp.com',
+          secure: true,
+          port: 443,
+          path: '/',
           config: {
             iceServers: [
               { urls: 'stun:stun.l.google.com:19302' },
@@ -174,12 +173,14 @@ class WebRTCService {
               { urls: 'stun:stun2.l.google.com:19302' },
               { urls: 'stun:stun3.l.google.com:19302' },
               { urls: 'stun:stun4.l.google.com:19302' },
+              // Add more public STUN servers for better connectivity
+              { urls: 'stun:stun.services.mozilla.com' },
+              { urls: 'stun:stun.stunprotocol.org:3478' },
             ],
-            // Add more ICE connection options
-            iceTransportPolicy: 'all', // Use both STUN and TURN
-            iceCandidatePoolSize: 10 // Gather more ICE candidates
+            iceTransportPolicy: 'all',
+            iceCandidatePoolSize: 10
           },
-          debug: 2 // Reduce debug level (3 is too verbose)
+          debug: 2
         });
 
         // Check if peer is already open (sometimes 'open' event doesn't fire)
