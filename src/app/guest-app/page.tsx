@@ -739,12 +739,24 @@ export default function GuestAppHomePage() {
                       
                       {/* Hotel Info Overlay */}
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-6">
-                        {hotelSettings.logo && (
-                          <img src={hotelSettings.logo} alt="Logo" className="h-14 mb-3 drop-shadow-lg" />
-                        )}
-                        <h1 className="text-4xl font-bold text-amber-200 mb-2">
-                          {hotelSettings.hotelName || 'فندق المضيف'}
-                        </h1>
+                        {/* Seven-Son Logo */}
+                        <div className="flex items-center gap-3 mb-3">
+                          <img 
+                            src="/images/seven-son-logo.jpeg" 
+                            alt="Seven-Son Logo" 
+                            className="h-16 w-16 object-contain rounded-lg border-2 border-amber-400/50 shadow-lg"
+                            onError={(e) => {
+                              const target = e.currentTarget as HTMLImageElement;
+                              target.style.display = 'none';
+                            }}
+                          />
+                          <div>
+                            <h1 className="text-4xl font-bold text-white mb-1">
+                              Seven-Son Hotel
+                            </h1>
+                            <p className="text-xl text-amber-400 font-semibold">سيفن سون</p>
+                          </div>
+                        </div>
                         <div className="flex items-center gap-2 mb-3">
                           {[...Array(hotelSettings.rating || 3)].map((_, i) => (
                             <Star key={i} className="w-6 h-6 fill-amber-400 text-amber-400" />

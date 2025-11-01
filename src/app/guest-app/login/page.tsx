@@ -349,21 +349,34 @@ export default function GuestLoginPage() {
       >
         {/* Logo with Icon and Text */}
         <div className="text-center mb-6">
-          {/* Hotel Building Icon */}
+          {/* Seven-Son Hotel Logo */}
           <motion.div 
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
             className="inline-flex flex-col items-center justify-center mb-4"
           >
-            {/* Icon Container */}
+            {/* Logo Container with Glow Effect */}
             <div className="relative mb-3">
-              {/* Red Border Frame */}
-              <div className="absolute -inset-2 bg-gradient-to-br from-red-500/30 to-red-600/30 rounded-3xl border-2 border-red-500/50 blur-sm"></div>
+              {/* Glow Effect */}
+              <div className="absolute -inset-4 bg-gradient-to-br from-amber-500/40 via-orange-500/30 to-red-500/20 rounded-[32px] blur-2xl"></div>
               
-              {/* Main Icon */}
-              <div className="relative bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 rounded-[28px] p-5 shadow-2xl">
-                <Hotel className="w-14 h-14 text-slate-900" strokeWidth={2.5} />
+              {/* Seven-Son Logo */}
+              <div className="relative bg-slate-900/80 backdrop-blur-sm rounded-[28px] p-3 shadow-2xl border border-amber-500/20">
+                <img 
+                  src="/images/seven-son-logo.jpeg"
+                  alt="Seven-Son Hotel"
+                  className="w-32 h-32 object-contain rounded-2xl"
+                  onError={(e) => {
+                    const target = e.currentTarget as HTMLImageElement;
+                    target.style.display = 'none';
+                    // Fallback to icon if image fails
+                    const parent = target.parentElement;
+                    if (parent) {
+                      parent.innerHTML = '<div class="w-32 h-32 flex items-center justify-center"><svg class="w-20 h-20 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg></div>';
+                    }
+                  }}
+                />
               </div>
             </div>
             
@@ -372,9 +385,9 @@ export default function GuestLoginPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="bg-amber-500/90 backdrop-blur-sm px-4 py-1.5 rounded-full"
+              className="bg-gradient-to-r from-amber-500 to-orange-500 backdrop-blur-sm px-5 py-2 rounded-full shadow-lg"
             >
-              <p className="text-slate-900 text-sm font-bold">تطبيق الضيف</p>
+              <p className="text-slate-900 text-base font-bold tracking-wide">تطبيق الضيف</p>
             </motion.div>
           </motion.div>
 
@@ -385,8 +398,16 @@ export default function GuestLoginPage() {
             transition={{ delay: 0.4 }}
             className="text-3xl font-bold text-white mb-2 drop-shadow-lg"
           >
-            فندق المضيف
+            Seven-Son Hotel
           </motion.h1>
+          <motion.h2 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.45 }}
+            className="text-xl text-amber-400 mb-2 drop-shadow-lg font-semibold"
+          >
+            سيفن سون
+          </motion.h2>
           <motion.p 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
