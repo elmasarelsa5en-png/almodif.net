@@ -1,483 +1,963 @@
-'use client';
+'use client';'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { 
-  Calendar as CalendarIcon,
-  ChevronLeft,
-  ChevronRight,
-  Globe,
-  Building2,
+
+
+import React, { useState, useEffect } from 'react';import React, { useState, useEffect } from 'react';
+
+import { Calendar as CalendarIcon, Building2, DollarSign, Users, Save, Plus, ChevronLeft, ChevronRight } from 'lucide-react';import { useRouter } from 'next/navigation';
+
+import { Button } from '@/components/ui/button';import { 
+
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';  Calendar as CalendarIcon,
+
+import { Input } from '@/components/ui/input';  ChevronLeft,
+
+import { db } from '@/lib/firebase';  ChevronRight,
+
+import { collection, doc, setDoc, getDoc, getDocs } from 'firebase/firestore';  Globe,
+
+import { cn } from '@/lib/utils';  Building2,
+
   Plane,
-  MapPin,
-  Eye,
-  Edit,
-  Save,
-  X,
-  Check,
+
+// تعريف الواجهات  MapPin,
+
+interface RoomType {  Eye,
+
+  id: string;  Edit,
+
+  name: string;  Save,
+
+  nameEn: string;  X,
+
+}  Check,
+
   AlertCircle,
-  Plus,
-  Minus,
-  DollarSign,
-  Users,
+
+interface Platform {  Plus,
+
+  id: string;  Minus,
+
+  name: string;  DollarSign,
+
+}  Users,
+
   Settings
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { db } from '@/lib/firebase';
-import { collection, doc, setDoc, getDoc, getDocs } from 'firebase/firestore';
-import {
-  Dialog,
-  DialogContent,
+
+interface DayData {} from 'lucide-react';
+
+  date: string;import { Button } from '@/components/ui/button';
+
+  roomTypeId: string;import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+  platforms: {import { Input } from '@/components/ui/input';
+
+    platformId: string;import { Badge } from '@/components/ui/badge';
+
+    price: number;import { db } from '@/lib/firebase';
+
+    available: boolean;import { collection, doc, setDoc, getDoc, getDocs } from 'firebase/firestore';
+
+    units: number;import {
+
+  }[];  Dialog,
+
+}  DialogContent,
+
   DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import { cn } from '@/lib/utils';
 
-interface RoomType {
-  id: string;
-  name: string;
-  nameEn: string;
+// المنصات المتاحة  DialogHeader,
+
+const PLATFORMS: Platform[] = [  DialogTitle,
+
+  { id: 'website', name: 'الموقع' },  DialogFooter,
+
+  { id: 'booking', name: 'Booking.com' },} from '@/components/ui/dialog';
+
+  { id: 'almosafer', name: 'المسافر' },import { cn } from '@/lib/utils';
+
+  { id: 'agoda', name: 'Agoda' },
+
+  { id: 'airport', name: 'المطار' },interface RoomType {
+
+  { id: 'expedia', name: 'Expedia' },  id: string;
+
+  { id: 'airbnb', name: 'Airbnb' },  name: string;
+
+  { id: 'elmasarelsa5en', name: 'المسار الساخن' }  nameEn: string;
+
+];}
+
+
+
+export default function CalendarPage() {interface PlatformPrice {
+
+  const [currentDate, setCurrentDate] = useState(new Date());  platformId: string;
+
+  const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);  price: number;
+
+  const [selectedRoom, setSelectedRoom] = useState<string>('');  available: boolean;
+
+  const [calendarData, setCalendarData] = useState<DayData[]>([]);  availableUnits: number;  // عدد الشقق المتاحة
+
+  const [loading, setLoading] = useState(false);  minStay?: number;
+
 }
 
-interface PlatformPrice {
-  platformId: string;
-  price: number;
-  available: boolean;
-  availableUnits: number;  // عدد الشقق المتاحة
-  minStay?: number;
+  // أسماء الأشهر
+
+  const monthNames = ['يناير', 'فبراير', 'مارس', 'إبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];interface DayPrice {
+
+    date: string;
+
+  // أيام الأسبوع  roomTypeId: string;
+
+  const weekDays = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];  platforms: PlatformPrice[];
+
 }
 
-interface DayPrice {
-  date: string;
-  roomTypeId: string;
-  platforms: PlatformPrice[];
-}
+  // تحميل الغرف عند بدء التشغيل
 
-const platforms = [
-  { id: 'website', name: 'الموقع الإلكتروني', icon: Globe, color: 'from-cyan-500 to-cyan-600', visible: true },
-  { id: 'booking', name: 'Booking.com', icon: Globe, color: 'from-blue-500 to-blue-600', visible: true },
+  useEffect(() => {const platforms = [
+
+    loadRoomTypes();  { id: 'website', name: 'الموقع الإلكتروني', icon: Globe, color: 'from-cyan-500 to-cyan-600', visible: true },
+
+  }, []);  { id: 'booking', name: 'Booking.com', icon: Globe, color: 'from-blue-500 to-blue-600', visible: true },
+
   { id: 'almosafer', name: 'المسافر', icon: Building2, color: 'from-green-500 to-green-600', visible: true },
-  { id: 'agoda', name: 'Agoda', icon: MapPin, color: 'from-purple-500 to-purple-600', visible: true },
-  { id: 'airport', name: 'المطار', icon: Plane, color: 'from-orange-500 to-orange-600', visible: true },
-  { id: 'expedia', name: 'Expedia', icon: Globe, color: 'from-yellow-500 to-yellow-600', visible: false },
-  { id: 'airbnb', name: 'Airbnb', icon: Building2, color: 'from-pink-500 to-pink-600', visible: false },
-  { id: 'elmasarelsa5en', name: 'المسار الساخن', icon: Building2, color: 'from-red-500 to-red-600', visible: true },
-];
 
-// دالة مساعدة لتحويل التاريخ بدون UTC
-const formatLocalDate = (year: number, month: number, day: number): string => {
-  const monthStr = String(month + 1).padStart(2, '0');
-  const dayStr = String(day).padStart(2, '0');
-  return `${year}-${monthStr}-${dayStr}`;
-};
+  // تحميل بيانات التقويم عند تغيير الشهر أو الغرفة  { id: 'agoda', name: 'Agoda', icon: MapPin, color: 'from-purple-500 to-purple-600', visible: true },
 
-// سيتم تحميل الغرف من Firebase بدلاً من hardcode
-// const roomTypes: RoomType[] = [...];
+  useEffect(() => {  { id: 'airport', name: 'المطار', icon: Plane, color: 'from-orange-500 to-orange-600', visible: true },
 
-export default function PlatformsCalendarPage() {
-  const router = useRouter();
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [roomTypes, setRoomTypes] = useState<RoomType[]>([]); // تحميل من Firebase
-  const [selectedRoom, setSelectedRoom] = useState<string>('');
-  const [loadingRooms, setLoadingRooms] = useState(true);
-  const [editingCell, setEditingCell] = useState<{ date: string; platformId: string } | null>(null);
-  const [bulkEditDialog, setBulkEditDialog] = useState(false);
-  const [selectedDates, setSelectedDates] = useState<string[]>([]);
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStartDate, setDragStartDate] = useState<string | null>(null);
-  const [editDayDialog, setEditDayDialog] = useState<{ date: string; day: number } | null>(null);
-  const [validationWarning, setValidationWarning] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [pendingAvailability, setPendingAvailability] = useState<boolean>(true);
-  const [platformsSettingsDialog, setPlatformsSettingsDialog] = useState(false);
-  const [bulkEditPlatformDialog, setBulkEditPlatformDialog] = useState(false);
-  const [selectedPlatform, setSelectedPlatform] = useState<string>('website');
-  const [bulkEditData, setBulkEditData] = useState({
-    startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
-    endDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0],
-    price: 250,
-    availableUnits: 5,
-    available: true
-  });
-  const [visiblePlatforms, setVisiblePlatforms] = useState<string[]>(() => {
-    // Load from localStorage or use default
-    const saved = localStorage.getItem('visible_platforms');
-    return saved ? JSON.parse(saved) : platforms.filter(p => p.visible).map(p => p.id);
-  });
+    if (selectedRoom) {  { id: 'expedia', name: 'Expedia', icon: Globe, color: 'from-yellow-500 to-yellow-600', visible: false },
 
-  // Save visible platforms to localStorage whenever it changes
-  React.useEffect(() => {
-    localStorage.setItem('visible_platforms', JSON.stringify(visiblePlatforms));
-  }, [visiblePlatforms]);
+      loadCalendarData();  { id: 'airbnb', name: 'Airbnb', icon: Building2, color: 'from-pink-500 to-pink-600', visible: false },
 
-  // Filter platforms based on visibility
-  const activePlatforms = platforms.filter(p => visiblePlatforms.includes(p.id));
+    }  { id: 'elmasarelsa5en', name: 'المسار الساخن', icon: Building2, color: 'from-red-500 to-red-600', visible: true },
 
-  const togglePlatformVisibility = (platformId: string) => {
-    setVisiblePlatforms(prev => {
-      if (prev.includes(platformId)) {
-        return prev.filter(id => id !== platformId);
-      } else {
-        return [...prev, platformId];
-      }
-    });
-  };
+  }, [currentDate, selectedRoom]);];
 
-  // State للبيانات - يجب تعريفه قبل استخدامه في useEffect
-  const [pricesData, setPricesData] = useState<DayPrice[]>([]);
 
-  // تحميل الغرف من Firebase
-  useEffect(() => {
-    loadRoomTypes();
-  }, []);
 
-  const loadRoomTypes = async () => {
-    try {
-      setLoadingRooms(true);
-      const roomsSnapshot = await getDocs(collection(db, 'rooms_catalog'));
-      const rooms = roomsSnapshot.docs.map(doc => ({
+  // تحميل أنواع الغرف من Firebase// دالة مساعدة لتحويل التاريخ بدون UTC
+
+  const loadRoomTypes = async () => {const formatLocalDate = (year: number, month: number, day: number): string => {
+
+    try {  const monthStr = String(month + 1).padStart(2, '0');
+
+      setLoading(true);  const dayStr = String(day).padStart(2, '0');
+
+      const snapshot = await getDocs(collection(db, 'rooms_catalog'));  return `${year}-${monthStr}-${dayStr}`;
+
+      const rooms = snapshot.docs.map(doc => ({};
+
         id: doc.id,
-        name: doc.data().name,
-        nameEn: doc.data().nameEn || doc.data().name
-      })) as RoomType[];
-      
-      console.log('📦 تم تحميل الغرف:', rooms);
-      setRoomTypes(rooms);
-      
-      if (rooms.length > 0) {
-        setSelectedRoom(rooms[0].id); // اختيار أول غرفة افتراضياً
-      }
-    } catch (error) {
-      console.error('❌ خطأ في تحميل الغرف:', error);
-    } finally {
-      setLoadingRooms(false);
-    }
-  };
 
-  // Load calendar data from Firebase
-  useEffect(() => {
-    if (roomTypes.length > 0) { // تحميل البيانات بمجرد توفر الغرف
-      console.log('📆 useEffect triggered - RoomTypes:', roomTypes.length, 'Selected:', selectedRoom);
+        name: doc.data().name,// سيتم تحميل الغرف من Firebase بدلاً من hardcode
+
+        nameEn: doc.data().nameEn || doc.data().name// const roomTypes: RoomType[] = [...];
+
+      }));
+
+      export default function PlatformsCalendarPage() {
+
+      console.log('✅ تم تحميل الغرف:', rooms.length);  const router = useRouter();
+
+      setRoomTypes(rooms);  const [currentDate, setCurrentDate] = useState(new Date());
+
+        const [roomTypes, setRoomTypes] = useState<RoomType[]>([]); // تحميل من Firebase
+
+      if (rooms.length > 0) {  const [selectedRoom, setSelectedRoom] = useState<string>('');
+
+        setSelectedRoom(rooms[0].id);  const [loadingRooms, setLoadingRooms] = useState(true);
+
+      }  const [editingCell, setEditingCell] = useState<{ date: string; platformId: string } | null>(null);
+
+    } catch (error) {  const [bulkEditDialog, setBulkEditDialog] = useState(false);
+
+      console.error('❌ خطأ في تحميل الغرف:', error);  const [selectedDates, setSelectedDates] = useState<string[]>([]);
+
+    } finally {  const [isDragging, setIsDragging] = useState(false);
+
+      setLoading(false);  const [dragStartDate, setDragStartDate] = useState<string | null>(null);
+
+    }  const [editDayDialog, setEditDayDialog] = useState<{ date: string; day: number } | null>(null);
+
+  };  const [validationWarning, setValidationWarning] = useState<string | null>(null);
+
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // تحميل بيانات التقويم من Firebase  const [pendingAvailability, setPendingAvailability] = useState<boolean>(true);
+
+  const loadCalendarData = async () => {  const [platformsSettingsDialog, setPlatformsSettingsDialog] = useState(false);
+
+    try {  const [bulkEditPlatformDialog, setBulkEditPlatformDialog] = useState(false);
+
+      const monthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;  const [selectedPlatform, setSelectedPlatform] = useState<string>('website');
+
+      console.log('📅 تحميل بيانات:', monthKey, 'للغرفة:', selectedRoom);  const [bulkEditData, setBulkEditData] = useState({
+
+          startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
+
+      const docRef = doc(db, 'calendar_availability', monthKey);    endDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0],
+
+      const docSnap = await getDoc(docRef);    price: 250,
+
+          availableUnits: 5,
+
+      if (docSnap.exists()) {    available: true
+
+        const data = docSnap.data();  });
+
+        console.log('✅ تم العثور على البيانات');  const [visiblePlatforms, setVisiblePlatforms] = useState<string[]>(() => {
+
+            // Load from localStorage or use default
+
+        // تحميل البيانات الخاصة بالغرفة المحددة فقط    const saved = localStorage.getItem('visible_platforms');
+
+        if (data.pricesData) {    return saved ? JSON.parse(saved) : platforms.filter(p => p.visible).map(p => p.id);
+
+          const roomData = data.pricesData.filter((d: DayData) => d.roomTypeId === selectedRoom);  });
+
+          setCalendarData(roomData);
+
+          console.log('📊 تم تحميل', roomData.length, 'يوم للغرفة');  // Save visible platforms to localStorage whenever it changes
+
+        } else {  React.useEffect(() => {
+
+          console.log('⚠️ لا توجد بيانات، سيتم إنشاء بيانات جديدة');    localStorage.setItem('visible_platforms', JSON.stringify(visiblePlatforms));
+
+          setCalendarData([]);  }, [visiblePlatforms]);
+
+        }
+
+      } else {  // Filter platforms based on visibility
+
+        console.log('⚠️ المستند غير موجود');  const activePlatforms = platforms.filter(p => visiblePlatforms.includes(p.id));
+
+        setCalendarData([]);
+
+      }  const togglePlatformVisibility = (platformId: string) => {
+
+    } catch (error) {    setVisiblePlatforms(prev => {
+
+      console.error('❌ خطأ في تحميل البيانات:', error);      if (prev.includes(platformId)) {
+
+      setCalendarData([]);        return prev.filter(id => id !== platformId);
+
+    }      } else {
+
+  };        return [...prev, platformId];
+
+      }
+
+  // إنشاء بيانات الشهر    });
+
+  const initializeMonth = async () => {  };
+
+    try {
+
+      setLoading(true);  // State للبيانات - يجب تعريفه قبل استخدامه في useEffect
+
+      const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();  const [pricesData, setPricesData] = useState<DayPrice[]>([]);
+
+      const newData: DayData[] = [];
+
+        // تحميل الغرف من Firebase
+
+      console.log('🔧 إنشاء بيانات لـ', daysInMonth, 'يوم');  useEffect(() => {
+
+    loadRoomTypes();
+
+      // إنشاء بيانات لكل يوم  }, []);
+
+      for (let day = 1; day <= daysInMonth; day++) {
+
+        const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;  const loadRoomTypes = async () => {
+
+            try {
+
+        // بيانات افتراضية لكل منصة      setLoadingRooms(true);
+
+        const platforms = PLATFORMS.map(platform => ({      const roomsSnapshot = await getDocs(collection(db, 'rooms_catalog'));
+
+          platformId: platform.id,      const rooms = roomsSnapshot.docs.map(doc => ({
+
+          price: 300,        id: doc.id,
+
+          available: true,        name: doc.data().name,
+
+          units: 5        nameEn: doc.data().nameEn || doc.data().name
+
+        }));      })) as RoomType[];
+
+      
+
+        newData.push({      console.log('📦 تم تحميل الغرف:', rooms);
+
+          date: dateStr,      setRoomTypes(rooms);
+
+          roomTypeId: selectedRoom,      
+
+          platforms      if (rooms.length > 0) {
+
+        });        setSelectedRoom(rooms[0].id); // اختيار أول غرفة افتراضياً
+
+      }      }
+
+    } catch (error) {
+
+      setCalendarData(newData);      console.error('❌ خطأ في تحميل الغرف:', error);
+
+      await saveToFirebase(newData);    } finally {
+
+            setLoadingRooms(false);
+
+      console.log('✅ تم إنشاء البيانات بنجاح');    }
+
+    } catch (error) {  };
+
+      console.error('❌ خطأ في إنشاء البيانات:', error);
+
+    } finally {  // Load calendar data from Firebase
+
+      setLoading(false);  useEffect(() => {
+
+    }    if (roomTypes.length > 0) { // تحميل البيانات بمجرد توفر الغرف
+
+  };      console.log('📆 useEffect triggered - RoomTypes:', roomTypes.length, 'Selected:', selectedRoom);
+
       loadCalendarData();
-    }
-  }, [currentDate, roomTypes]); // إزالة selectedRoom من dependencies
 
-  // Auto-save when pricesData changes
-  useEffect(() => {
-    if (pricesData.length > 0) {
-      const timeoutId = setTimeout(() => {
-        saveCalendarData();
-      }, 1000); // حفظ بعد ثانية من آخر تعديل
+  // حفظ البيانات إلى Firebase    }
 
-      return () => clearTimeout(timeoutId);
-    }
-  }, [pricesData]);
+  const saveToFirebase = async (data?: DayData[]) => {  }, [currentDate, roomTypes]); // إزالة selectedRoom من dependencies
 
-  const loadCalendarData = async () => {
     try {
-      const monthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
-      console.log('🔍 Loading calendar for:', monthKey);
-      console.log('📊 Current state - pricesData.length:', pricesData.length, 'roomTypes.length:', roomTypes.length, 'selectedRoom:', selectedRoom);
+
+      const monthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;  // Auto-save when pricesData changes
+
+      const dataToSave = data || calendarData;  useEffect(() => {
+
+          if (pricesData.length > 0) {
+
+      // تحميل كل البيانات الموجودة      const timeoutId = setTimeout(() => {
+
+      const docRef = doc(db, 'calendar_availability', monthKey);        saveCalendarData();
+
+      const docSnap = await getDoc(docRef);      }, 1000); // حفظ بعد ثانية من آخر تعديل
+
       
-      const calendarDoc = await getDoc(doc(db, 'calendar_availability', monthKey));
-      
-      if (calendarDoc.exists()) {
-        const data = calendarDoc.data();
-        console.log('✅ Document exists!');
-        console.log('📦 Document data keys:', Object.keys(data));
-        console.log('📦 pricesData exists:', !!data.pricesData, 'length:', data.pricesData?.length);
-        console.log('📦 prices exists:', !!data.prices, 'length:', data.prices?.length);
-        
-        // قراءة البيانات من الهيكل القديم (pricesData) إذا كان موجوداً
-        if (data.pricesData && Array.isArray(data.pricesData)) {
-          console.log('✅ Calendar data found (pricesData):', data.pricesData.length, 'entries');
-          setPricesData(data.pricesData);
-        } 
-        // إذا لم يكن موجوداً، استخدم الهيكل الجديد (prices) وحوّله
-        else if (data.prices && Array.isArray(data.prices)) {
-          console.log('✅ Calendar data found (prices):', data.prices.length, 'days');
-          // تحويل الهيكل الجديد إلى الهيكل القديم للصفحة
-          const pricesData: DayPrice[] = [];
-          
-          data.prices.forEach((dayData: any) => {
-            if (dayData.platforms && Array.isArray(dayData.platforms)) {
-              dayData.platforms.forEach((platform: any) => {
-                const existingEntry = pricesData.find(p => 
-                  p.date === dayData.date && p.roomTypeId === platform.roomTypeId
-                );
+
+      let allData: DayData[] = [];      return () => clearTimeout(timeoutId);
+
+          }
+
+      if (docSnap.exists()) {  }, [pricesData]);
+
+        const existingData = docSnap.data();
+
+        if (existingData.pricesData) {  const loadCalendarData = async () => {
+
+          // الاحتفاظ بالبيانات الخاصة بالغرف الأخرى    try {
+
+          allData = existingData.pricesData.filter((d: DayData) => d.roomTypeId !== selectedRoom);      const monthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+
+        }      console.log('🔍 Loading calendar for:', monthKey);
+
+      }      console.log('📊 Current state - pricesData.length:', pricesData.length, 'roomTypes.length:', roomTypes.length, 'selectedRoom:', selectedRoom);
+
+            
+
+      // إضافة البيانات الجديدة للغرفة الحالية      const calendarDoc = await getDoc(doc(db, 'calendar_availability', monthKey));
+
+      allData = [...allData, ...dataToSave];      
+
+            if (calendarDoc.exists()) {
+
+      // تحويل إلى الهيكل المطلوب للموقع والتطبيق        const data = calendarDoc.data();
+
+      const pricesByDay = new Map<string, any>();        console.log('✅ Document exists!');
+
+              console.log('📦 Document data keys:', Object.keys(data));
+
+      allData.forEach(dayData => {        console.log('📦 pricesData exists:', !!data.pricesData, 'length:', data.pricesData?.length);
+
+        const dayNum = parseInt(dayData.date.split('-')[2]);        console.log('📦 prices exists:', !!data.prices, 'length:', data.prices?.length);
+
                 
-                if (existingEntry) {
-                  existingEntry.platforms.push({
-                    platformId: platform.platformId || platform.name,
-                    price: platform.price,
-                    available: platform.available,
-                    availableUnits: platform.availableUnits || platform.units,
-                    minStay: platform.minStay || 1
-                  });
-                } else {
-                  pricesData.push({
-                    date: dayData.date,
-                    roomTypeId: platform.roomTypeId || platform.roomId,
-                    platforms: [{
-                      platformId: platform.platformId || platform.name,
-                      price: platform.price,
-                      available: platform.available,
-                      availableUnits: platform.availableUnits || platform.units,
-                      minStay: platform.minStay || 1
-                    }]
-                  });
+
+        if (!pricesByDay.has(dayData.date)) {        // قراءة البيانات من الهيكل القديم (pricesData) إذا كان موجوداً
+
+          pricesByDay.set(dayData.date, {        if (data.pricesData && Array.isArray(data.pricesData)) {
+
+            day: dayNum,          console.log('✅ Calendar data found (pricesData):', data.pricesData.length, 'entries');
+
+            date: dayData.date,          setPricesData(data.pricesData);
+
+            platforms: []        } 
+
+          });        // إذا لم يكن موجوداً، استخدم الهيكل الجديد (prices) وحوّله
+
+        }        else if (data.prices && Array.isArray(data.prices)) {
+
+                  console.log('✅ Calendar data found (prices):', data.prices.length, 'days');
+
+        const dayInfo = pricesByDay.get(dayData.date);          // تحويل الهيكل الجديد إلى الهيكل القديم للصفحة
+
+                  const pricesData: DayPrice[] = [];
+
+        dayData.platforms.forEach(platform => {          
+
+          dayInfo.platforms.push({          data.prices.forEach((dayData: any) => {
+
+            name: platform.platformId,            if (dayData.platforms && Array.isArray(dayData.platforms)) {
+
+            platformId: platform.platformId,              dayData.platforms.forEach((platform: any) => {
+
+            roomTypeId: dayData.roomTypeId,                const existingEntry = pricesData.find(p => 
+
+            roomId: dayData.roomTypeId,                  p.date === dayData.date && p.roomTypeId === platform.roomTypeId
+
+            price: platform.price,                );
+
+            available: platform.available,                
+
+            units: platform.units,                if (existingEntry) {
+
+            availableUnits: platform.units                  existingEntry.platforms.push({
+
+          });                    platformId: platform.platformId || platform.name,
+
+        });                    price: platform.price,
+
+      });                    available: platform.available,
+
+                          availableUnits: platform.availableUnits || platform.units,
+
+      const prices = Array.from(pricesByDay.values());                    minStay: platform.minStay || 1
+
+                        });
+
+      // حفظ كلا الهيكلين                } else {
+
+      await setDoc(docRef, {                  pricesData.push({
+
+        month: monthKey,                    date: dayData.date,
+
+        pricesData: allData,  // للتقويم                    roomTypeId: platform.roomTypeId || platform.roomId,
+
+        prices: prices        // للموقع والتطبيق                    platforms: [{
+
+      });                      platformId: platform.platformId || platform.name,
+
+                            price: platform.price,
+
+      console.log('💾 تم الحفظ بنجاح:', allData.length, 'سجل');                      available: platform.available,
+
+    } catch (error) {                      availableUnits: platform.availableUnits || platform.units,
+
+      console.error('❌ خطأ في الحفظ:', error);                      minStay: platform.minStay || 1
+
+    }                    }]
+
+  };                  });
+
                 }
-              });
-            }
-          });
-          
-          setPricesData(pricesData);
-        } else {
-          console.log('⚠️ No calendar data found, initializing...');
-          await initializeMonthData();
-        }
-      } else {
-        console.log('⚠️ No calendar data found, initializing...');
-        // إنشاء بيانات افتراضية للشهر الجديد
-        await initializeMonthData();
-      }
-    } catch (error) {
-      console.error('❌ Error loading calendar data:', error);
-      await initializeMonthData();
-    }
-  };
 
-  const initializeMonthData = async () => {
+  // تحديث سعر يوم ومنصة معينة              });
+
+  const updatePrice = (dateStr: string, platformId: string, newPrice: number) => {            }
+
+    setCalendarData(prev => {          });
+
+      const updated = prev.map(day => {          
+
+        if (day.date === dateStr) {          setPricesData(pricesData);
+
+          return {        } else {
+
+            ...day,          console.log('⚠️ No calendar data found, initializing...');
+
+            platforms: day.platforms.map(p =>          await initializeMonthData();
+
+              p.platformId === platformId ? { ...p, price: newPrice } : p        }
+
+            )      } else {
+
+          };        console.log('⚠️ No calendar data found, initializing...');
+
+        }        // إنشاء بيانات افتراضية للشهر الجديد
+
+        return day;        await initializeMonthData();
+
+      });      }
+
+          } catch (error) {
+
+      // حفظ تلقائي بعد 1 ثانية      console.error('❌ Error loading calendar data:', error);
+
+      setTimeout(() => saveToFirebase(updated), 1000);      await initializeMonthData();
+
+          }
+
+      return updated;  };
+
+    });
+
+  };  const initializeMonthData = async () => {
+
     console.log('🔧 Initializing month data for room types:', roomTypes.length);
-    
-    // التأكد من وجود غرف
-    if (roomTypes.length === 0) {
-      console.log('⚠️ No room types available, waiting...');
-      return;
-    }
 
-    const data: DayPrice[] = [];
-    const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
-    
-    console.log(`📅 Creating ${daysInMonth} days for ${roomTypes.length} room types`);
-    
-    for (let day = 1; day <= daysInMonth; day++) {
-      // استخدام التاريخ المحلي بدون UTC
-      const dateStr = formatLocalDate(currentDate.getFullYear(), currentDate.getMonth(), day);
-      
-      roomTypes.forEach(room => {
-        data.push({
-          date: dateStr,
+  // تبديل التوفر    
+
+  const toggleAvailability = (dateStr: string, platformId: string) => {    // التأكد من وجود غرف
+
+    setCalendarData(prev => {    if (roomTypes.length === 0) {
+
+      const updated = prev.map(day => {      console.log('⚠️ No room types available, waiting...');
+
+        if (day.date === dateStr) {      return;
+
+          return {    }
+
+            ...day,
+
+            platforms: day.platforms.map(p =>    const data: DayPrice[] = [];
+
+              p.platformId === platformId ? { ...p, available: !p.available } : p    const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+
+            )    
+
+          };    console.log(`📅 Creating ${daysInMonth} days for ${roomTypes.length} room types`);
+
+        }    
+
+        return day;    for (let day = 1; day <= daysInMonth; day++) {
+
+      });      // استخدام التاريخ المحلي بدون UTC
+
+            const dateStr = formatLocalDate(currentDate.getFullYear(), currentDate.getMonth(), day);
+
+      saveToFirebase(updated);      
+
+      return updated;      roomTypes.forEach(room => {
+
+    });        data.push({
+
+  };          date: dateStr,
+
           roomTypeId: room.id,
-          platforms: platforms.map(platform => ({
-            platformId: platform.id,
-            price: 300, // سعر افتراضي
-            available: true, // متاح افتراضياً
+
+  // الحصول على بيانات يوم معين          platforms: platforms.map(platform => ({
+
+  const getDayData = (dateStr: string) => {            platformId: platform.id,
+
+    return calendarData.find(d => d.date === dateStr);            price: 300, // سعر افتراضي
+
+  };            available: true, // متاح افتراضياً
+
             availableUnits: 5, // 5 شقق متاحة افتراضياً
-            minStay: 1
-          }))
-        });
-      });
-    }
-    
-    console.log(`✅ Initialized ${data.length} price entries`);
-    setPricesData(data);
-    
-    // حفظ البيانات المبدئية في Firebase
-    try {
-      const monthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
-      
-      // تحويل إلى الهيكل المطلوب
-      const pricesByDay: any = {};
-      
-      data.forEach(dayPrice => {
-        // استخراج رقم اليوم من التاريخ النصي
-        const dateParts = dayPrice.date.split('-');
-        const day = parseInt(dateParts[2], 10);
-        
-        if (!pricesByDay[day]) {
-          pricesByDay[day] = {
-            day: day,
-            date: dayPrice.date,
-            platforms: []
-          };
-        }
-        
-        dayPrice.platforms.forEach(platform => {
-          pricesByDay[day].platforms.push({
-            name: platform.platformId,
-            platformId: platform.platformId,
-            roomId: dayPrice.roomTypeId,
-            roomTypeId: dayPrice.roomTypeId,
-            price: platform.price || 0,
-            available: platform.available ?? true,
-            units: platform.availableUnits || 0,
-            availableUnits: platform.availableUnits || 0,
-            minStay: platform.minStay || 1
-          });
-        });
-      });
-      
-      const pricesArray = Object.values(pricesByDay).filter((item: any) => item && item.day);
-      
-      await setDoc(doc(db, 'calendar_availability', monthKey), {
-        month: monthKey,
-        year: currentDate.getFullYear(),
-        monthNumber: currentDate.getMonth() + 1,
-        prices: pricesArray, // الهيكل الجديد للتطبيق والموقع
-        pricesData: data, // الهيكل القديم للصفحة
-        updatedAt: new Date().toISOString(),
-        initialized: true
-      });
-      console.log(`💾 تم حفظ ${pricesArray.length} يوم بنجاح إلى Firebase في initializeMonthData`);
-    } catch (error) {
-      console.error('❌ Error saving initial data:', error);
-    }
-  };
 
-  // Save calendar data to Firebase
-  const saveCalendarData = async () => {
-    try {
+  // التنقل بين الأشهر            minStay: 1
+
+  const previousMonth = () => {          }))
+
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));        });
+
+  };      });
+
+    }
+
+  const nextMonth = () => {    
+
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));    console.log(`✅ Initialized ${data.length} price entries`);
+
+  };    setPricesData(data);
+
+    
+
+  // حساب عدد الأيام    // حفظ البيانات المبدئية في Firebase
+
+  const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();    try {
+
       const monthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
-      
-      // تحويل البيانات إلى الهيكل المطلوب للتطبيق والموقع
-      // الهيكل الجديد: { day: 1, platforms: [{ name: 'website', roomId: 'xxx', price: 200, available: true, units: 5 }] }
-      const pricesByDay: any = {};
-      
-      pricesData.forEach(dayPrice => {
+
+  return (      
+
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">      // تحويل إلى الهيكل المطلوب
+
+      <div className="max-w-[95%] mx-auto space-y-6">      const pricesByDay: any = {};
+
+        {/* Header */}      
+
+        <Card className="bg-white/10 backdrop-blur-md border-white/20">      data.forEach(dayPrice => {
+
+          <CardHeader>        // استخراج رقم اليوم من التاريخ النصي
+
+            <CardTitle className="text-white text-3xl flex items-center gap-3">        const dateParts = dayPrice.date.split('-');
+
+              <CalendarIcon className="w-8 h-8" />        const day = parseInt(dateParts[2], 10);
+
+              تقويم الأسعار والتوافر        
+
+            </CardTitle>        if (!pricesByDay[day]) {
+
+          </CardHeader>          pricesByDay[day] = {
+
+        </Card>            day: day,
+
+            date: dayPrice.date,
+
+        {/* اختيار الغرفة */}            platforms: []
+
+        <Card className="bg-white/10 backdrop-blur-md border-white/20">          };
+
+          <CardHeader>        }
+
+            <CardTitle className="text-white flex items-center gap-2">        
+
+              <Building2 className="w-5 h-5" />        dayPrice.platforms.forEach(platform => {
+
+              اختر نوع الوحدة          pricesByDay[day].platforms.push({
+
+            </CardTitle>            name: platform.platformId,
+
+          </CardHeader>            platformId: platform.platformId,
+
+          <CardContent>            roomId: dayPrice.roomTypeId,
+
+            {loading ? (            roomTypeId: dayPrice.roomTypeId,
+
+              <div className="text-white text-center py-4">جاري التحميل...</div>            price: platform.price || 0,
+
+            ) : (            available: platform.available ?? true,
+
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">            units: platform.availableUnits || 0,
+
+                {roomTypes.map(room => (            availableUnits: platform.availableUnits || 0,
+
+                  <button            minStay: platform.minStay || 1
+
+                    key={room.id}          });
+
+                    onClick={() => setSelectedRoom(room.id)}        });
+
+                    className={cn(      });
+
+                      "p-4 rounded-lg transition-all border-2",      
+
+                      selectedRoom === room.id      const pricesArray = Object.values(pricesByDay).filter((item: any) => item && item.day);
+
+                        ? "bg-blue-500 border-blue-400 text-white"      
+
+                        : "bg-white/5 border-white/20 text-white hover:bg-white/10"      await setDoc(doc(db, 'calendar_availability', monthKey), {
+
+                    )}        month: monthKey,
+
+                  >        year: currentDate.getFullYear(),
+
+                    <Building2 className="w-6 h-6 mx-auto mb-2" />        monthNumber: currentDate.getMonth() + 1,
+
+                    <div className="font-bold">{room.name}</div>        prices: pricesArray, // الهيكل الجديد للتطبيق والموقع
+
+                    <div className="text-xs opacity-70">{room.nameEn}</div>        pricesData: data, // الهيكل القديم للصفحة
+
+                  </button>        updatedAt: new Date().toISOString(),
+
+                ))}        initialized: true
+
+              </div>      });
+
+            )}      console.log(`💾 تم حفظ ${pricesArray.length} يوم بنجاح إلى Firebase في initializeMonthData`);
+
+          </CardContent>    } catch (error) {
+
+        </Card>      console.error('❌ Error saving initial data:', error);
+
+    }
+
+        {/* التقويم */}  };
+
+        {selectedRoom && (
+
+          <Card className="bg-white/10 backdrop-blur-md border-white/20">  // Save calendar data to Firebase
+
+            <CardHeader>  const saveCalendarData = async () => {
+
+              <div className="flex items-center justify-between">    try {
+
+                <Button onClick={previousMonth} variant="outline" className="text-white border-white/20">      const monthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+
+                  <ChevronRight className="w-5 h-5" />      
+
+                </Button>      // تحويل البيانات إلى الهيكل المطلوب للتطبيق والموقع
+
+                      // الهيكل الجديد: { day: 1, platforms: [{ name: 'website', roomId: 'xxx', price: 200, available: true, units: 5 }] }
+
+                <div className="text-white text-2xl font-bold">      const pricesByDay: any = {};
+
+                  {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}      
+
+                </div>      pricesData.forEach(dayPrice => {
+
         // استخراج رقم اليوم من التاريخ النصي (YYYY-MM-DD)
-        const dateParts = dayPrice.date.split('-');
-        const day = parseInt(dateParts[2], 10);
-        
-        if (!pricesByDay[day]) {
-          pricesByDay[day] = {
-            day: day,
-            date: dayPrice.date,
-            platforms: []
-          };
-        }
-        
-        // إضافة بيانات كل منصة لهذا اليوم
-        dayPrice.platforms.forEach(platform => {
-          pricesByDay[day].platforms.push({
-            name: platform.platformId, // اسم المنصة (website, booking, etc.)
-            platformId: platform.platformId, // للتوافق مع الكود القديم
-            roomId: dayPrice.roomTypeId, // معرّف نوع الغرفة
-            roomTypeId: dayPrice.roomTypeId, // للتوافق
-            price: platform.price || 0,
+
+                <Button onClick={nextMonth} variant="outline" className="text-white border-white/20">        const dateParts = dayPrice.date.split('-');
+
+                  <ChevronLeft className="w-5 h-5" />        const day = parseInt(dateParts[2], 10);
+
+                </Button>        
+
+              </div>        if (!pricesByDay[day]) {
+
+                        pricesByDay[day] = {
+
+              <div className="flex gap-2 mt-4">            day: day,
+
+                {calendarData.length === 0 ? (            date: dayPrice.date,
+
+                  <Button onClick={initializeMonth} className="bg-green-500 hover:bg-green-600 text-white">            platforms: []
+
+                    <Plus className="w-4 h-4 ml-2" />          };
+
+                    تهيئة الشهر        }
+
+                  </Button>        
+
+                ) : (        // إضافة بيانات كل منصة لهذا اليوم
+
+                  <Button onClick={() => saveToFirebase()} className="bg-blue-500 hover:bg-blue-600 text-white">        dayPrice.platforms.forEach(platform => {
+
+                    <Save className="w-4 h-4 ml-2" />          pricesByDay[day].platforms.push({
+
+                    حفظ التغييرات            name: platform.platformId, // اسم المنصة (website, booking, etc.)
+
+                  </Button>            platformId: platform.platformId, // للتوافق مع الكود القديم
+
+                )}            roomId: dayPrice.roomTypeId, // معرّف نوع الغرفة
+
+              </div>            roomTypeId: dayPrice.roomTypeId, // للتوافق
+
+            </CardHeader>            price: platform.price || 0,
+
             available: platform.available ?? true,
-            units: platform.availableUnits || 0,
-            availableUnits: platform.availableUnits || 0, // للتوافق
-            minStay: platform.minStay || 1
-          });
-        });
-      });
-      
-      // تحويل الكائن إلى مصفوفة وتصفية أي قيم undefined
-      const pricesArray = Object.values(pricesByDay).filter((item: any) => item && item.day);
-      
-      // التحقق من وجود بيانات قبل الحفظ
-      if (pricesArray.length === 0) {
-        console.warn('⚠️ No data to save');
-        return;
-      }
-      
-      await setDoc(doc(db, 'calendar_availability', monthKey), {
-        month: monthKey,
-        year: currentDate.getFullYear(),
-        monthNumber: currentDate.getMonth() + 1,
-        prices: pricesArray, // الهيكل الجديد
-        pricesData: pricesData, // الاحتفاظ بالهيكل القديم للصفحة
-        updatedAt: new Date().toISOString()
-      });
-      
-      console.log(`💾 تم حفظ ${pricesArray.length} يوم بنجاح إلى Firebase`);
-      setSuccessMessage('✅ تم حفظ بيانات التقويم بنجاح!');
-      setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (error) {
-      console.error('Error saving calendar data:', error);
-      setValidationWarning('❌ فشل حفظ البيانات');
-    }
-  };
 
-  const getDaysInMonth = (date: Date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
+            <CardContent className="p-0">            units: platform.availableUnits || 0,
+
+              {calendarData.length > 0 ? (            availableUnits: platform.availableUnits || 0, // للتوافق
+
+                <div className="overflow-x-auto">            minStay: platform.minStay || 1
+
+                  {/* رؤوس المنصات */}          });
+
+                  <div className="grid border-b border-white/20 bg-white/5" style={{ gridTemplateColumns: `150px repeat(${PLATFORMS.length}, 120px)` }}>        });
+
+                    <div className="p-3 border-l border-white/20 text-white font-bold sticky right-0 bg-slate-800">      });
+
+                      التاريخ      
+
+                    </div>      // تحويل الكائن إلى مصفوفة وتصفية أي قيم undefined
+
+                    {PLATFORMS.map(platform => (      const pricesArray = Object.values(pricesByDay).filter((item: any) => item && item.day);
+
+                      <div key={platform.id} className="p-3 border-l border-white/20 text-white text-center text-sm font-bold">      
+
+                        {platform.name}      // التحقق من وجود بيانات قبل الحفظ
+
+                      </div>      if (pricesArray.length === 0) {
+
+                    ))}        console.warn('⚠️ No data to save');
+
+                  </div>        return;
+
+      }
+
+                  {/* الأيام */}      
+
+                  <div className="max-h-[600px] overflow-y-auto">      await setDoc(doc(db, 'calendar_availability', monthKey), {
+
+                    {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(day => {        month: monthKey,
+
+                      const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;        year: currentDate.getFullYear(),
+
+                      const dayData = getDayData(dateStr);        monthNumber: currentDate.getMonth() + 1,
+
+                      const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);        prices: pricesArray, // الهيكل الجديد
+
+                      const dayOfWeek = date.getDay();        pricesData: pricesData, // الاحتفاظ بالهيكل القديم للصفحة
+
+                      const isWeekend = dayOfWeek === 5 || dayOfWeek === 6;        updatedAt: new Date().toISOString()
+
+      });
+
+                      return (      
+
+                        <div      console.log(`💾 تم حفظ ${pricesArray.length} يوم بنجاح إلى Firebase`);
+
+                          key={day}      setSuccessMessage('✅ تم حفظ بيانات التقويم بنجاح!');
+
+                          className={cn(      setTimeout(() => setSuccessMessage(null), 3000);
+
+                            "grid border-b border-white/10",    } catch (error) {
+
+                            isWeekend && "bg-orange-500/5"      console.error('Error saving calendar data:', error);
+
+                          )}      setValidationWarning('❌ فشل حفظ البيانات');
+
+                          style={{ gridTemplateColumns: `150px repeat(${PLATFORMS.length}, 120px)` }}    }
+
+                        >  };
+
+                          {/* خلية اليوم */}
+
+                          <div className="p-3 border-l border-white/20 sticky right-0 bg-slate-800/90">  const getDaysInMonth = (date: Date) => {
+
+                            <div className="text-white font-bold text-lg">{day}</div>    const year = date.getFullYear();
+
+                            <div className="text-white/60 text-xs">{weekDays[dayOfWeek]}</div>    const month = date.getMonth();
+
+                          </div>    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
     const firstDayOfMonth = new Date(year, month, 1).getDay();
-    
-    return { daysInMonth, firstDayOfMonth };
-  };
 
-  const { daysInMonth, firstDayOfMonth } = getDaysInMonth(currentDate);
+                          {/* خلايا المنصات */}    
 
-  const previousMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
-  };
+                          {PLATFORMS.map(platform => {    return { daysInMonth, firstDayOfMonth };
 
-  const nextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
-  };
+                            const platformData = dayData?.platforms.find(p => p.platformId === platform.id);  };
 
-  const getMonthName = (date: Date) => {
-    return date.toLocaleDateString('ar-EG', { month: 'long', year: 'numeric' });
-  };
 
-  const getDayData = (day: number, platformId: string): PlatformPrice | undefined => {
-    // استخدام التاريخ المحلي بدون تحويل UTC
-    const year = currentDate.getFullYear();
-    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-    const dayStr = String(day).padStart(2, '0');
-    const dateStr = `${year}-${month}-${dayStr}`;
-    
-    const dayPrice = pricesData.find(d => d.date === dateStr && d.roomTypeId === selectedRoom);
-    
+
+                            return (  const { daysInMonth, firstDayOfMonth } = getDaysInMonth(currentDate);
+
+                              <div
+
+                                key={platform.id}  const previousMonth = () => {
+
+                                className={cn(    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
+
+                                  "p-2 border-l border-white/10",  };
+
+                                  !platformData?.available && "bg-red-500/10"
+
+                                )}  const nextMonth = () => {
+
+                              >    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
+
+                                {platformData && (  };
+
+                                  <div className="space-y-1">
+
+                                    {/* السعر */}  const getMonthName = (date: Date) => {
+
+                                    <Input    return date.toLocaleDateString('ar-EG', { month: 'long', year: 'numeric' });
+
+                                      type="number"  };
+
+                                      value={platformData.price}
+
+                                      onChange={(e) => updatePrice(dateStr, platform.id, Number(e.target.value))}  const getDayData = (day: number, platformId: string): PlatformPrice | undefined => {
+
+                                      className="h-8 text-sm bg-white/10 border-white/20 text-white text-center"    // استخدام التاريخ المحلي بدون تحويل UTC
+
+                                    />    const year = currentDate.getFullYear();
+
+                                        const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+
+                                    {/* الوحدات المتاحة */}    const dayStr = String(day).padStart(2, '0');
+
+                                    <div className="flex items-center justify-center gap-1 text-white/80 text-xs">    const dateStr = `${year}-${month}-${dayStr}`;
+
+                                      <Users className="w-3 h-3" />    
+
+                                      <span>{platformData.units}</span>    const dayPrice = pricesData.find(d => d.date === dateStr && d.roomTypeId === selectedRoom);
+
+                                    </div>    
+
     // Log فقط لأول يوم لنرى ما يحدث
-    if (day === 1 && platformId === platforms[0].id) {
-      console.log('🔍 getDayData check - Date:', dateStr, 'Room:', selectedRoom, 'Found:', !!dayPrice);
-      console.log('📊 pricesData sample:', pricesData[0]);
-    }
-    
-    return dayPrice?.platforms.find(p => p.platformId === platformId);
-  };
 
-  const updatePrice = (day: number, platformId: string, newPrice: number) => {
-    // استخدام التاريخ المحلي بدون تحويل UTC
-    const year = currentDate.getFullYear();
-    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-    const dayStr = String(day).padStart(2, '0');
-    const dateStr = `${year}-${month}-${dayStr}`;
-    
-    setPricesData(prev => prev.map(item => {
-      if (item.date === dateStr && item.roomTypeId === selectedRoom) {
-        return {
-          ...item,
-          platforms: item.platforms.map(p => 
-            p.platformId === platformId ? { ...p, price: newPrice } : p
-          )
-        };
-      }
-      return item;
-    }));
-    
-    // الحفظ التلقائي سيتم عبر useEffect
-  };
+                                    {/* زر التوفر */}    if (day === 1 && platformId === platforms[0].id) {
 
-  const toggleAvailability = (day: number, platformId: string) => {
-    const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-    const dateStr = date.toISOString().split('T')[0];
-    
-    console.log('✅ Toggling availability - Day:', day, 'Date:', dateStr, 'Platform:', platformId);
-    
-    setPricesData(prev => prev.map(item => {
-      if (item.date === dateStr && item.roomTypeId === selectedRoom) {
-        return {
-          ...item,
+                                    <Button      console.log('🔍 getDayData check - Date:', dateStr, 'Room:', selectedRoom, 'Found:', !!dayPrice);
+
+                                      onClick={() => toggleAvailability(dateStr, platform.id)}      console.log('📊 pricesData sample:', pricesData[0]);
+
+                                      size="sm"    }
+
+                                      className={cn(    
+
+                                        "w-full h-6 text-xs",    return dayPrice?.platforms.find(p => p.platformId === platformId);
+
+                                        platformData.available  };
+
+                                          ? "bg-green-500/20 hover:bg-green-500/30 text-green-300"
+
+                                          : "bg-red-500/20 hover:bg-red-500/30 text-red-300"  const updatePrice = (day: number, platformId: string, newPrice: number) => {
+
+                                      )}    // استخدام التاريخ المحلي بدون تحويل UTC
+
+                                    >    const year = currentDate.getFullYear();
+
+                                      {platformData.available ? 'متاح' : 'غير متاح'}    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+
+                                    </Button>    const dayStr = String(day).padStart(2, '0');
+
+                                  </div>    const dateStr = `${year}-${month}-${dayStr}`;
+
+                                )}    
+
+                              </div>    setPricesData(prev => prev.map(item => {
+
+                            );      if (item.date === dateStr && item.roomTypeId === selectedRoom) {
+
+                          })}        return {
+
+                        </div>          ...item,
+
+                      );          platforms: item.platforms.map(p => 
+
+                    })}            p.platformId === platformId ? { ...p, price: newPrice } : p
+
+                  </div>          )
+
+                </div>        };
+
+              ) : (      }
+
+                <div className="text-center py-20">      return item;
+
+                  <CalendarIcon className="w-16 h-16 text-white/30 mx-auto mb-4" />    }));
+
+                  <p className="text-white/60 mb-4">لا توجد بيانات لهذا الشهر</p>    
+
+                  <Button onClick={initializeMonth} className="bg-green-500 hover:bg-green-600 text-white">    // الحفظ التلقائي سيتم عبر useEffect
+
+                    <Plus className="w-4 h-4 ml-2" />  };
+
+                    إنشاء بيانات الشهر
+
+                  </Button>  const toggleAvailability = (day: number, platformId: string) => {
+
+                </div>    const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+
+              )}    const dateStr = date.toISOString().split('T')[0];
+
+            </CardContent>    
+
+          </Card>    console.log('✅ Toggling availability - Day:', day, 'Date:', dateStr, 'Platform:', platformId);
+
+        )}    
+
+      </div>    setPricesData(prev => prev.map(item => {
+
+    </div>      if (item.date === dateStr && item.roomTypeId === selectedRoom) {
+
+  );        return {
+
+}          ...item,
+
           platforms: item.platforms.map(p => 
             p.platformId === platformId ? { ...p, available: !p.available } : p
           )
