@@ -640,10 +640,39 @@ export default function BookingPage() {
               {/* Main Guest Info */}
               <Card className="bg-white/10 backdrop-blur-xl border-white/20">
                 <CardContent className="p-8">
-                  <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                    <User className="w-6 h-6" />
-                    بيانات النزيل الأساسي
-                  </h2>
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                      <User className="w-6 h-6" />
+                      بيانات النزيل الأساسي
+                    </h2>
+                    
+                    {/* زر املأ بياناتي */}
+                    <Button
+                      onClick={async () => {
+                        try {
+                          const user = JSON.parse(localStorage.getItem('user') || '{}');
+                          if (user.name) {
+                            setBookingData(prev => ({
+                              ...prev,
+                              guestName: user.name || prev.guestName,
+                              phone: user.phone || prev.phone,
+                              nationalId: user.nationalId || prev.nationalId,
+                            }));
+                            alert('✅ تم ملء البيانات من حسابك');
+                          } else {
+                            alert('⚠️ الرجاء تسجيل الدخول أولاً');
+                          }
+                        } catch (error) {
+                          console.error('Error loading user data:', error);
+                        }
+                      }}
+                      variant="outline"
+                      className="border-blue-400/50 text-blue-300 hover:bg-blue-500/20"
+                    >
+                      <User className="w-4 h-4 ml-2" />
+                      املأ بياناتي
+                    </Button>
+                  </div>
                   
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
@@ -1003,16 +1032,16 @@ export default function BookingPage() {
             </motion.div>
           )}
 
-          {/* Step 4: Success */}
+          {/* Step 4: Success with Bank Transfer Info */}
           {step === 4 && (
             <motion.div
               key="step4"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="max-w-2xl mx-auto"
+              className="max-w-3xl mx-auto"
             >
               <Card className="bg-white/10 backdrop-blur-xl border-white/20">
-                <CardContent className="p-12 text-center">
+                <CardContent className="p-12">
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
@@ -1022,19 +1051,130 @@ export default function BookingPage() {
                     <Check className="w-12 h-12 text-white" />
                   </motion.div>
 
-                  <h2 className="text-3xl font-bold text-white mb-4">
-                    تم تأكيد الحجز بنجاح! 🎉
+                  <h2 className="text-3xl font-bold text-white mb-4 text-center">
+                    تم إنشاء الحجز بنجاح! 🎉
                   </h2>
-                  <p className="text-blue-200 text-lg mb-8">
-                    سيتم التواصل معك قريباً من قبل فريق الاستقبال لتأكيد التفاصيل
+                  <p className="text-blue-200 text-lg mb-8 text-center">
+                    حجزك الآن في قائمة الانتظار. يرجى إتمام التحويل البنكي لتأكيد الحجز
                   </p>
+
+                  {/* معلومات التحويل البنكي */}
+                  <div className="bg-gradient-to-br from-amber-500/20 to-orange-500/20 border-2 border-amber-400/50 rounded-2xl p-8 mb-8">
+                    <h3 className="text-2xl font-bold text-amber-300 mb-6 flex items-center gap-2">
+                      <CreditCard className="w-6 h-6" />
+                      معلومات التحويل البنكي
+                    </h3>
+
+                    <div className="space-y-4">
+                      {/* اسم البنك */}
+                      <div className="flex items-start justify-between bg-white/5 rounded-xl p-4 hover:bg-white/10 transition-colors group">
+                        <div className="flex-1">
+                          <div className="text-amber-200 text-sm mb-1">اسم البنك:</div>
+                          <div className="text-white font-bold text-lg">البنك الأهلي السعودي</div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            navigator.clipboard.writeText('البنك الأهلي السعودي');
+                            alert('✅ تم النسخ');
+                          }}
+                          className="text-amber-300 hover:text-amber-200 hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          نسخ
+                        </Button>
+                      </div>
+
+                      {/* رقم الحساب */}
+                      <div className="flex items-start justify-between bg-white/5 rounded-xl p-4 hover:bg-white/10 transition-colors group">
+                        <div className="flex-1">
+                          <div className="text-amber-200 text-sm mb-1">رقم الحساب (IBAN):</div>
+                          <div className="text-white font-bold text-lg font-mono">SA1234567890123456789012</div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            navigator.clipboard.writeText('SA1234567890123456789012');
+                            alert('✅ تم النسخ');
+                          }}
+                          className="text-amber-300 hover:text-amber-200 hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          نسخ
+                        </Button>
+                      </div>
+
+                      {/* اسم المستفيد */}
+                      <div className="flex items-start justify-between bg-white/5 rounded-xl p-4 hover:bg-white/10 transition-colors group">
+                        <div className="flex-1">
+                          <div className="text-amber-200 text-sm mb-1">اسم المستفيد:</div>
+                          <div className="text-white font-bold text-lg">فندق سيفن سون</div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            navigator.clipboard.writeText('فندق سيفن سون');
+                            alert('✅ تم النسخ');
+                          }}
+                          className="text-amber-300 hover:text-amber-200 hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          نسخ
+                        </Button>
+                      </div>
+
+                      {/* المبلغ */}
+                      <div className="flex items-start justify-between bg-white/5 rounded-xl p-4 hover:bg-white/10 transition-colors group">
+                        <div className="flex-1">
+                          <div className="text-amber-200 text-sm mb-1">المبلغ المطلوب:</div>
+                          <div className="text-white font-bold text-2xl">{calculateTotal()} ريال</div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            navigator.clipboard.writeText(calculateTotal().toString());
+                            alert('✅ تم النسخ');
+                          }}
+                          className="text-amber-300 hover:text-amber-200 hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          نسخ
+                        </Button>
+                      </div>
+
+                      {/* رقم الحجز */}
+                      <div className="flex items-start justify-between bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-400/50 rounded-xl p-4 hover:bg-blue-500/30 transition-colors group">
+                        <div className="flex-1">
+                          <div className="text-blue-200 text-sm mb-1">رقم الحجز (ضعه في الملاحظات):</div>
+                          <div className="text-white font-bold text-lg font-mono break-all">BOOKING-{Date.now()}</div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            navigator.clipboard.writeText(`BOOKING-${Date.now()}`);
+                            alert('✅ تم نسخ رقم الحجز');
+                          }}
+                          className="text-blue-300 hover:text-blue-200 hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          نسخ
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 bg-amber-500/10 border border-amber-400/30 rounded-lg p-4">
+                      <p className="text-amber-200 text-sm text-center">
+                        ⚠️ <strong>مهم:</strong> يرجى كتابة رقم الحجز في خانة الملاحظات عند التحويل البنكي
+                      </p>
+                    </div>
+                  </div>
 
                   <div className="space-y-3">
                     <Button
                       onClick={() => router.push('/guest-app')}
                       className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-6 text-lg"
                     >
-                      العودة للصفحة الرئيسية
+                      تأكيد الدفع ومتابعة التوقيع على العقد
                     </Button>
                     <Button
                       onClick={() => router.push('/guest-menu/restaurant')}
