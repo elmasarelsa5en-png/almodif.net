@@ -241,7 +241,13 @@ function ContractContent() {
       }
 
       alert('✅ تم التوقيع على العقد بنجاح!');
-      router.push('/guest-app');
+      
+      // إظهار رابط التتبع
+      if (confirm('✅ تم التوقيع بنجاح!\n\n📊 هل تريد الذهاب لصفحة تتبع الحجز؟')) {
+        router.push(`/track/${bookingId}`);
+      } else {
+        router.push('/guest-app');
+      }
     } catch (error) {
       console.error('Error saving signature:', error);
       alert('حدث خطأ في حفظ التوقيع. يرجى المحاولة مرة أخرى.');
@@ -276,7 +282,13 @@ function ContractContent() {
       });
 
       alert('✅ تم تسجيل اختيارك. سيتم التوقيع على العقد عند الوصول.');
-      router.push('/guest-app');
+      
+      // إظهار رابط التتبع
+      if (confirm('📊 هل تريد متابعة حالة حجزك عبر صفحة التتبع؟')) {
+        router.push(`/track/${bookingId}`);
+      } else {
+        router.push('/guest-app');
+      }
     } catch (error) {
       console.error('Error updating booking:', error);
       alert('حدث خطأ. يرجى المحاولة مرة أخرى.');

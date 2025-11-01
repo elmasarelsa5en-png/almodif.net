@@ -21,7 +21,8 @@ import {
   ArrowRight,
   Home,
   Copy,
-  Check
+  Check,
+  Eye
 } from 'lucide-react';
 import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
 import { notificationService } from '@/lib/notifications/notification-service';
@@ -195,12 +196,15 @@ function BookingConfirmationContent() {
 
   const generateAndSendContract = async (bookingData: BookingDetails, roomNumber: string) => {
     try {
+      const trackingUrl = `${window.location.origin}/track/${bookingId}`;
+      
       // إرسال إشعار للضيف بالعقد
       await notificationService.sendNotification('whatsapp', bookingData.guestPhone, {
-        body: `🎉 تم تأكيد حجزك في فندق سيفن سون!\n\n📋 رقم الحجز: ${bookingId}\n🏨 الغرفة: ${roomNumber}\n📅 تاريخ الدخول: ${new Date(bookingData.checkInDate.toDate()).toLocaleDateString('ar-SA')}\n\n✍️ يرجى مراجعة العقد والتوقيع عليه من خلال الرابط المرسل.`,
+        body: `🎉 تم تأكيد حجزك في فندق سيفن سون!\n\n📋 رقم الحجز: ${bookingId}\n🏨 الغرفة: ${roomNumber}\n📅 تاريخ الدخول: ${new Date(bookingData.checkInDate.toDate()).toLocaleDateString('ar-SA')}\n\n✍️ يرجى مراجعة العقد والتوقيع:\n🔗 ${window.location.origin}/guest-app/contract?bookingId=${bookingId}\n\n📊 تتبع حجزك:\n🔗 ${trackingUrl}`,
         metadata: {
           bookingId,
-          roomNumber
+          roomNumber,
+          trackingUrl
         }
       });
     } catch (error) {
@@ -470,7 +474,14 @@ function BookingConfirmationContent() {
                 <p className="text-gray-700 mb-4">
                   شكراً لاختيارك فندق سيفن سون. تم إرسال تفاصيل الحجز والعقد إلى بريدك الإلكتروني ورقم الواتساب.
                 </p>
-                <div className="flex gap-3">
+                <div className="flex gap-3 flex-wrap">
+                  <Button
+                    onClick={() => router.push(`/track/${bookingId}`)}
+                    className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                  >
+                    <Eye className="ml-2 h-4 w-4" />
+                    تتبع الحجز
+                  </Button>
                   <Button
                     onClick={() => router.push(`/guest-app/contract?bookingId=${bookingId}`)}
                     className="bg-blue-600 hover:bg-blue-700"
