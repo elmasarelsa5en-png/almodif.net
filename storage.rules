@@ -50,6 +50,22 @@ service firebase.storage {
       allow write, delete: if true;
     }
 
+    // قواعد لصور موقع الفندق (Website Images)
+    match /website-images/hero/{fileName} {
+      allow read: if true; // أي شخص يمكنه القراءة
+      allow write, delete: if true; // السماح بالرفع والحذف
+    }
+
+    match /website-images/services/{fileName} {
+      allow read: if true;
+      allow write, delete: if true;
+    }
+
+    match /website-images/{allImages=**} {
+      allow read: if true;
+      allow write, delete: if true;
+    }
+
     // منع الوصول لأي مسارات أخرى
     match /{allPaths=**} {
       allow read, write: if false;
