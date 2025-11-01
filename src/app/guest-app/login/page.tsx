@@ -347,24 +347,38 @@ export default function GuestLoginPage() {
         transition={{ duration: 0.6 }}
         className="w-full max-w-md relative z-10 mr-0 md:mr-8"
       >
-        {/* Logo */}
+        {/* Logo with Icon and Text */}
         <div className="text-center mb-6">
+          {/* Hotel Building Icon */}
           <motion.div 
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl shadow-2xl mb-4 border-2 border-white/20"
+            className="inline-flex flex-col items-center justify-center mb-4"
           >
-            <Hotel className="w-12 h-12 text-slate-900" />
+            {/* Icon Container */}
+            <div className="relative mb-3">
+              {/* Red Border Frame */}
+              <div className="absolute -inset-2 bg-gradient-to-br from-red-500/30 to-red-600/30 rounded-3xl border-2 border-red-500/50 blur-sm"></div>
+              
+              {/* Main Icon */}
+              <div className="relative bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 rounded-[28px] p-5 shadow-2xl">
+                <Hotel className="w-14 h-14 text-slate-900" strokeWidth={2.5} />
+              </div>
+            </div>
+            
+            {/* App Name Label */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-amber-500/90 backdrop-blur-sm px-4 py-1.5 rounded-full"
+            >
+              <p className="text-slate-900 text-sm font-bold">تطبيق الضيف</p>
+            </motion.div>
           </motion.div>
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="text-amber-400 text-sm font-semibold mb-2"
-          >
-            تطبيق الضيف
-          </motion.p>
+
+          {/* Hotel Name */}
           <motion.h1 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
