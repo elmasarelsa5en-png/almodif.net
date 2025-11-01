@@ -24,10 +24,17 @@ class WebRTCService {
    */
   initializePeer(userId: string): Promise<string> {
     return new Promise((resolve, reject) => {
+      // If peer already exists and is open, reuse it
+      if (this.peer && !this.peer.disconnected && !this.peer.destroyed) {
+        console.log('♻️ Reusing existing peer connection:', this.peer.id);
+        resolve(this.peer.id);
+        return;
+      }
+
       // Add timeout (30 seconds - increased for slower connections)
       const timeout = setTimeout(() => {
         reject(new Error('فشل الاتصال بالخادم: انتهت المهلة الزمنية'));
-      }, 30000); // Don't destroy peer here - let it keep trying
+      }, 30000);
 
       try {
         // Generate unique peer ID to avoid conflicts
@@ -48,6 +55,14 @@ class WebRTCService {
           },
           debug: 3 // Enable verbose debug logs
         });
+
+        // Check if peer is already open (sometimes 'open' event doesn't fire)
+        if (this.peer.id) {
+          clearTimeout(timeout);
+          console.log('✅ PeerJS already open with ID:', this.peer.id);
+          resolve(this.peer.id);
+          return;
+        }
 
         this.peer.on('open', (id) => {
           clearTimeout(timeout);

@@ -26,14 +26,17 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    if (isOpen && user) {
+    let isInitialized = false;
+    
+    if (isOpen && user && !isInitialized) {
+      isInitialized = true;
       startCall();
     }
-    // Cleanup only when component unmounts (not on every re-render)
+    
+    // Don't cleanup automatically - only cleanup when user explicitly ends call
+    // This prevents destroying the peer connection during initialization
     return () => {
-      if (!isOpen) {
-        cleanup();
-      }
+      // Cleanup will be called manually by endCall() when user clicks end button
     };
   }, [isOpen]); // Remove 'user' from dependencies to prevent re-initialization
 
@@ -134,8 +137,10 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
         errorMessage = `خطأ: ${error.message}`;
       }
       
+      // Show error but don't close dialog - let user see what happened and try again
+      setCallStatus('ended');
       alert(errorMessage);
-      onClose();
+      // Don't call onClose() here - it triggers cleanup which destroys the peer
     }
   };
 
