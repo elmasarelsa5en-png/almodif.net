@@ -182,8 +182,55 @@ export default function PlatformsCalendarPage() {
       
       if (calendarDoc.exists()) {
         const data = calendarDoc.data();
-        console.log('✅ Calendar data found:', data.prices?.length, 'entries');
-        setPricesData(data.prices || []);
+        
+        // قراءة البيانات من الهيكل القديم (pricesData) إذا كان موجوداً
+        if (data.pricesData && Array.isArray(data.pricesData)) {
+          console.log('✅ Calendar data found (pricesData):', data.pricesData.length, 'entries');
+          setPricesData(data.pricesData);
+        } 
+        // إذا لم يكن موجوداً، استخدم الهيكل الجديد (prices) وحوّله
+        else if (data.prices && Array.isArray(data.prices)) {
+          console.log('✅ Calendar data found (prices):', data.prices.length, 'days');
+          // تحويل الهيكل الجديد إلى الهيكل القديم للصفحة
+          const pricesData: DayPrice[] = [];
+          
+          data.prices.forEach((dayData: any) => {
+            if (dayData.platforms && Array.isArray(dayData.platforms)) {
+              dayData.platforms.forEach((platform: any) => {
+                const existingEntry = pricesData.find(p => 
+                  p.date === dayData.date && p.roomTypeId === platform.roomTypeId
+                );
+                
+                if (existingEntry) {
+                  existingEntry.platforms.push({
+                    platformId: platform.platformId || platform.name,
+                    price: platform.price,
+                    available: platform.available,
+                    availableUnits: platform.availableUnits || platform.units,
+                    minStay: platform.minStay || 1
+                  });
+                } else {
+                  pricesData.push({
+                    date: dayData.date,
+                    roomTypeId: platform.roomTypeId || platform.roomId,
+                    platforms: [{
+                      platformId: platform.platformId || platform.name,
+                      price: platform.price,
+                      available: platform.available,
+                      availableUnits: platform.availableUnits || platform.units,
+                      minStay: platform.minStay || 1
+                    }]
+                  });
+                }
+              });
+            }
+          });
+          
+          setPricesData(pricesData);
+        } else {
+          console.log('⚠️ No calendar data found, initializing...');
+          await initializeMonthData();
+        }
       } else {
         console.log('⚠️ No calendar data found, initializing...');
         // إنشاء بيانات افتراضية للشهر الجديد
@@ -234,11 +281,45 @@ export default function PlatformsCalendarPage() {
     // حفظ البيانات المبدئية في Firebase
     try {
       const monthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+      
+      // تحويل إلى الهيكل المطلوب
+      const pricesByDay: any = {};
+      
+      data.forEach(dayPrice => {
+        const date = new Date(dayPrice.date);
+        const day = date.getDate();
+        
+        if (!pricesByDay[day]) {
+          pricesByDay[day] = {
+            day: day,
+            date: dayPrice.date,
+            platforms: []
+          };
+        }
+        
+        dayPrice.platforms.forEach(platform => {
+          pricesByDay[day].platforms.push({
+            name: platform.platformId,
+            platformId: platform.platformId,
+            roomId: dayPrice.roomTypeId,
+            roomTypeId: dayPrice.roomTypeId,
+            price: platform.price,
+            available: platform.available,
+            units: platform.availableUnits,
+            availableUnits: platform.availableUnits,
+            minStay: platform.minStay || 1
+          });
+        });
+      });
+      
+      const pricesArray = Object.values(pricesByDay);
+      
       await setDoc(doc(db, 'calendar_availability', monthKey), {
         month: monthKey,
         year: currentDate.getFullYear(),
         monthNumber: currentDate.getMonth() + 1,
-        prices: data,
+        prices: pricesArray, // الهيكل الجديد للتطبيق والموقع
+        pricesData: data, // الهيكل القديم للصفحة
         updatedAt: new Date().toISOString(),
         initialized: true
       });
@@ -252,14 +333,53 @@ export default function PlatformsCalendarPage() {
   const saveCalendarData = async () => {
     try {
       const monthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+      
+      // تحويل البيانات إلى الهيكل المطلوب للتطبيق والموقع
+      // الهيكل الجديد: { day: 1, platforms: [{ name: 'website', roomId: 'xxx', price: 200, available: true, units: 5 }] }
+      const pricesByDay: any = {};
+      
+      pricesData.forEach(dayPrice => {
+        const date = new Date(dayPrice.date);
+        const day = date.getDate();
+        
+        if (!pricesByDay[day]) {
+          pricesByDay[day] = {
+            day: day,
+            date: dayPrice.date,
+            platforms: []
+          };
+        }
+        
+        // إضافة بيانات كل منصة لهذا اليوم
+        dayPrice.platforms.forEach(platform => {
+          const platformData = platforms.find(p => p.id === platform.platformId);
+          pricesByDay[day].platforms.push({
+            name: platform.platformId, // اسم المنصة (website, booking, etc.)
+            platformId: platform.platformId, // للتوافق مع الكود القديم
+            roomId: dayPrice.roomTypeId, // معرّف نوع الغرفة
+            roomTypeId: dayPrice.roomTypeId, // للتوافق
+            price: platform.price,
+            available: platform.available,
+            units: platform.availableUnits,
+            availableUnits: platform.availableUnits, // للتوافق
+            minStay: platform.minStay || 1
+          });
+        });
+      });
+      
+      // تحويل الكائن إلى مصفوفة
+      const pricesArray = Object.values(pricesByDay);
+      
       await setDoc(doc(db, 'calendar_availability', monthKey), {
         month: monthKey,
         year: currentDate.getFullYear(),
         monthNumber: currentDate.getMonth() + 1,
-        prices: pricesData,
+        prices: pricesArray, // الهيكل الجديد
+        pricesData: pricesData, // الاحتفاظ بالهيكل القديم للصفحة
         updatedAt: new Date().toISOString()
       });
       
+      console.log(`💾 تم حفظ ${pricesArray.length} يوم بنجاح إلى Firebase`);
       setSuccessMessage('✅ تم حفظ بيانات التقويم بنجاح!');
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (error) {
