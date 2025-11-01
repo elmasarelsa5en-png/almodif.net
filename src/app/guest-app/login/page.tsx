@@ -361,12 +361,12 @@ export default function GuestLoginPage() {
               {/* Glow Effect */}
               <div className="absolute -inset-4 bg-gradient-to-br from-amber-500/40 via-orange-500/30 to-red-500/20 rounded-[32px] blur-2xl"></div>
               
-              {/* Seven-Son Logo */}
-              <div className="relative bg-slate-900/80 backdrop-blur-sm rounded-[28px] p-3 shadow-2xl border border-amber-500/20">
+              {/* Seven-Son Logo - No Padding, Fill Container */}
+              <div className="relative bg-slate-900/80 backdrop-blur-sm rounded-[28px] overflow-hidden shadow-2xl border border-amber-500/20">
                 <img 
                   src="/images/seven-son-logo.jpeg"
                   alt="Seven-Son Hotel"
-                  className="w-32 h-32 object-contain rounded-2xl"
+                  className="w-32 h-32 object-cover rounded-2xl"
                   onLoad={() => {
                     console.log('✅ Seven-Son logo loaded successfully');
                   }}
@@ -403,7 +403,7 @@ export default function GuestLoginPage() {
             transition={{ delay: 0.4 }}
             className="text-3xl font-bold text-white mb-2 drop-shadow-lg"
           >
-            Seven-Son Hotel
+            فندق سيفن سون
           </motion.h1>
           <motion.h2 
             initial={{ opacity: 0 }}
@@ -411,7 +411,7 @@ export default function GuestLoginPage() {
             transition={{ delay: 0.45 }}
             className="text-xl text-amber-400 mb-2 drop-shadow-lg font-semibold"
           >
-            سيفن سون
+            Seven-Son Hotel
           </motion.h2>
           <motion.p 
             initial={{ opacity: 0 }}
@@ -419,7 +419,7 @@ export default function GuestLoginPage() {
             transition={{ delay: 0.5 }}
             className="text-slate-200 drop-shadow-md"
           >
-            مرحباً بك في تطبيق الضيف
+            أهلاً بك في تطبيق الضيف
           </motion.p>
         </div>
 
