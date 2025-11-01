@@ -26,7 +26,8 @@ import {
   QrCode,
   Code2,
   Building2,
-  MessageSquare
+  MessageSquare,
+  Link2
 } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -38,6 +39,15 @@ export default function SettingsPage() {
 
   // إعدادات المنشأة - للفندق
   const hotelSettings = [
+    {
+      id: 'app-links',
+      title: 'روابط التطبيق',
+      description: 'جميع روابط التطبيق في مكان واحد - صفحة الزائر، تطبيق الضيوف، والمزيد',
+      icon: Link2,
+      color: 'from-emerald-500 via-teal-500 to-cyan-500',
+      href: '/dashboard/settings/app-links',
+      badge: '🔗 جديد'
+    },
     {
       id: 'hotel-website',
       title: 'إعدادات موقع الفندق',
