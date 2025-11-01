@@ -181,12 +181,17 @@ export default function PlatformsCalendarPage() {
   const loadCalendarData = async () => {
     try {
       const monthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
-      console.log('🔍 Loading calendar for:', monthKey, 'Room:', selectedRoom);
+      console.log('🔍 Loading calendar for:', monthKey);
+      console.log('📊 Current state - pricesData.length:', pricesData.length, 'roomTypes.length:', roomTypes.length, 'selectedRoom:', selectedRoom);
       
       const calendarDoc = await getDoc(doc(db, 'calendar_availability', monthKey));
       
       if (calendarDoc.exists()) {
         const data = calendarDoc.data();
+        console.log('✅ Document exists!');
+        console.log('📦 Document data keys:', Object.keys(data));
+        console.log('📦 pricesData exists:', !!data.pricesData, 'length:', data.pricesData?.length);
+        console.log('📦 prices exists:', !!data.prices, 'length:', data.prices?.length);
         
         // قراءة البيانات من الهيكل القديم (pricesData) إذا كان موجوداً
         if (data.pricesData && Array.isArray(data.pricesData)) {
@@ -431,6 +436,12 @@ export default function PlatformsCalendarPage() {
     const dateStr = `${year}-${month}-${dayStr}`;
     
     const dayPrice = pricesData.find(d => d.date === dateStr && d.roomTypeId === selectedRoom);
+    
+    // Log فقط لأول يوم لنرى ما يحدث
+    if (day === 1 && platformId === platforms[0].id) {
+      console.log('🔍 getDayData check - Date:', dateStr, 'Room:', selectedRoom, 'Found:', !!dayPrice);
+      console.log('📊 pricesData sample:', pricesData[0]);
+    }
     
     return dayPrice?.platforms.find(p => p.platformId === platformId);
   };
