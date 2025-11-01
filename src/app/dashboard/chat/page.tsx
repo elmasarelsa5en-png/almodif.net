@@ -1448,6 +1448,7 @@ export default function ChatPage() {
           isOpen={isCallDialogOpen}
           onClose={() => setIsCallDialogOpen(false)}
           employeeName={selectedEmployee.name}
+          employeeId={selectedEmployee.id}
           callType={callType}
         />
       )}
