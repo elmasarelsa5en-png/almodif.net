@@ -953,12 +953,7 @@ export default function ChatPage() {
     // Close incoming call dialog
     setIsIncomingCallDialogOpen(false);
 
-    // Update signal status to accepted
     try {
-      await updateDoc(doc(db, 'call_signals', incomingCallSignal.id), {
-        status: 'accepted'
-      });
-
       // Find the caller employee
       const callerEmployee = employees.find(emp => 
         emp.id === incomingCallSignal.from || 
@@ -967,41 +962,43 @@ export default function ChatPage() {
       );
 
       if (callerEmployee) {
-        // Initialize peer connection first (if not already initialized)
+        // Step 1: Initialize peer connection FIRST (before updating signal)
         const currentUserId = user?.username || user?.email;
-        if (currentUserId) {
-          try {
-            const receiverPeerId = await webrtcService.initializePeerWithRetry(currentUserId);
-            console.log('✅ Receiver peer initialized with ID:', receiverPeerId);
-            
-            // Update the call signal with receiver's peer ID so caller can connect
-            await updateDoc(doc(db, 'call_signals', incomingCallSignal.id), {
-              receiverPeerId: receiverPeerId
-            });
-            console.log('✅ Updated signal with receiver peer ID');
-          } catch (error) {
-            console.error('❌ Failed to initialize receiver peer:', error);
-            alert('فشل تهيئة الاتصال. حاول مرة أخرى.');
-            return;
-          }
+        if (!currentUserId) {
+          alert('خطأ: لم يتم العثور على معرف المستخدم');
+          return;
         }
 
-        // Set receiver mode states
-        setIsIncomingCall(true);
-        setActiveCallSignalId(incomingCallSignal.id);
-        
-        // Open call dialog in receiver mode
-        setSelectedEmployee(callerEmployee);
-        setCallType(incomingCallSignal.type);
-        setIsCallDialogOpen(true);
+        let receiverPeerId: string;
+        try {
+          receiverPeerId = await webrtcService.initializePeerWithRetry(currentUserId);
+          console.log('✅ Receiver peer initialized with ID:', receiverPeerId);
+        } catch (error) {
+          console.error('❌ Failed to initialize receiver peer:', error);
+          alert('فشل تهيئة الاتصال. حاول مرة أخرى.');
+          return;
+        }
 
-        // Answer the call using webrtcService (gets local stream)
+        // Step 2: Get local media stream
         const stream = await webrtcService.answerCall(
           incomingCallSignal.id,
           incomingCallSignal.type
         );
-        
         console.log('✅ Call answered, stream:', stream);
+
+        // Step 3: Update signal with BOTH status and receiverPeerId at the SAME TIME
+        await updateDoc(doc(db, 'call_signals', incomingCallSignal.id), {
+          status: 'accepted',
+          receiverPeerId: receiverPeerId
+        });
+        console.log('✅ Updated signal with accepted status and receiver peer ID');
+
+        // Step 4: Open call dialog in receiver mode
+        setIsIncomingCall(true);
+        setActiveCallSignalId(incomingCallSignal.id);
+        setSelectedEmployee(callerEmployee);
+        setCallType(incomingCallSignal.type);
+        setIsCallDialogOpen(true);
       }
     } catch (error) {
       console.error('❌ Failed to accept call:', error);

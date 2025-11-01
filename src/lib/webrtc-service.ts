@@ -293,6 +293,7 @@ class WebRTCService {
 
   /**
    * Answer a call
+   * Note: This only gets the media stream. The caller must update the signal status.
    */
   async answerCall(signalId: string, callType: 'audio' | 'video'): Promise<MediaStream> {
     try {
@@ -306,10 +307,10 @@ class WebRTCService {
 
       this.localStream = stream;
 
-      // Update call signal status
-      await updateDoc(doc(db, 'call_signals', signalId), {
-        status: 'accepted'
-      });
+      // Don't update signal here - let the caller do it with receiverPeerId
+      // await updateDoc(doc(db, 'call_signals', signalId), {
+      //   status: 'accepted'
+      // });
 
       return stream;
 
