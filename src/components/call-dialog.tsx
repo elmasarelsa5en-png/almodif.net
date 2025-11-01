@@ -5,6 +5,7 @@ import { Phone, Video, X, Mic, MicOff, VideoOff, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { webrtcService } from '@/lib/webrtc-service';
+import { playRingback, stopRingback, playEndTone, playMuteTone } from '@/lib/sound-manager';
 import { useAuth } from '@/contexts/auth-context';
 
 interface CallDialogProps {
@@ -47,6 +48,21 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
       }, 1000);
       return () => clearInterval(interval);
     }
+  }, [callStatus]);
+
+  // Play ringback while ringing, stop when connected or ended
+  useEffect(() => {
+    if (callStatus === 'ringing') {
+      try { playRingback(); } catch (e) { console.error(e); }
+    } else if (callStatus === 'connected') {
+      try { stopRingback(); } catch (e) { console.error(e); }
+    } else if (callStatus === 'ended') {
+      try { stopRingback(); playEndTone(); } catch (e) { console.error(e); }
+    }
+    return () => {
+      // ensure we stop ringback on unmount or status change
+      try { stopRingback(); } catch (e) { }
+    };
   }, [callStatus]);
 
   const startCall = async () => {
@@ -158,6 +174,7 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
   const toggleMute = () => {
     const muted = webrtcService.toggleMute();
     setIsMuted(muted);
+    try { playMuteTone(); } catch (e) { }
   };
 
   const toggleVideo = () => {
@@ -167,6 +184,7 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
 
   const endCall = () => {
     cleanup();
+    try { playEndTone(); } catch (e) { }
     onClose();
   };
 

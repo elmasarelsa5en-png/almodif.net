@@ -1,3 +1,144 @@
+let audioContext: AudioContext | null = null;
+let ringtoneOsc: OscillatorNode | null = null;
+let ringtoneGain: GainNode | null = null;
+let ringtoneInterval: number | null = null;
+
+let ringbackOsc: OscillatorNode | null = null;
+let ringbackGain: GainNode | null = null;
+
+function ensureAudioContext() {
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+  }
+  return audioContext;
+}
+
+export function playRingtone() {
+  try {
+    const ctx = ensureAudioContext();
+    stopRingtone();
+
+    ringtoneOsc = ctx.createOscillator();
+    ringtoneGain = ctx.createGain();
+
+    ringtoneOsc.type = 'sine';
+    ringtoneOsc.frequency.value = 800;
+    ringtoneGain.gain.value = 0.0;
+
+    ringtoneOsc.connect(ringtoneGain);
+    ringtoneGain.connect(ctx.destination);
+
+    ringtoneOsc.start();
+
+    // ring pattern: 1s on, 1s off
+    let on = true;
+    ringtoneInterval = window.setInterval(() => {
+      ringtoneGain!.gain.setTargetAtTime(on ? 0.25 : 0.0, ctx.currentTime, 0.02);
+      on = !on;
+    }, 1000) as unknown as number;
+  } catch (e) {
+    console.error('sound-manager: playRingtone failed', e);
+  }
+}
+
+export function stopRingtone() {
+  try {
+    if (ringtoneInterval) {
+      clearInterval(ringtoneInterval);
+      ringtoneInterval = null;
+    }
+    if (ringtoneOsc) {
+      try { ringtoneOsc.stop(); } catch (e) {}
+      ringtoneOsc.disconnect();
+      ringtoneOsc = null;
+    }
+    if (ringtoneGain) {
+      try { ringtoneGain.disconnect(); } catch (e) {}
+      ringtoneGain = null;
+    }
+  } catch (e) {
+    console.error('sound-manager: stopRingtone failed', e);
+  }
+}
+
+export function playRingback() {
+  try {
+    const ctx = ensureAudioContext();
+    stopRingback();
+
+    ringbackOsc = ctx.createOscillator();
+    ringbackGain = ctx.createGain();
+
+    ringbackOsc.type = 'sine';
+    ringbackOsc.frequency.value = 400;
+    ringbackGain.gain.value = 0.18;
+
+    ringbackOsc.connect(ringbackGain);
+    ringbackGain.connect(ctx.destination);
+    ringbackOsc.start();
+  } catch (e) {
+    console.error('sound-manager: playRingback failed', e);
+  }
+}
+
+export function stopRingback() {
+  try {
+    if (ringbackOsc) {
+      try { ringbackOsc.stop(); } catch (e) {}
+      ringbackOsc.disconnect();
+      ringbackOsc = null;
+    }
+    if (ringbackGain) {
+      try { ringbackGain.disconnect(); } catch (e) {}
+      ringbackGain = null;
+    }
+  } catch (e) {
+    console.error('sound-manager: stopRingback failed', e);
+  }
+}
+
+export function playEndTone() {
+  try {
+    const ctx = ensureAudioContext();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = 'sine';
+    o.frequency.value = 600;
+    g.gain.value = 0.3;
+    o.connect(g);
+    g.connect(ctx.destination);
+    o.start();
+    setTimeout(() => { try { o.stop(); } catch (e) {} }, 300);
+  } catch (e) {
+    console.error('sound-manager: playEndTone failed', e);
+  }
+}
+
+export function playMuteTone() {
+  try {
+    const ctx = ensureAudioContext();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = 'sawtooth';
+    o.frequency.value = 200;
+    g.gain.value = 0.12;
+    o.connect(g);
+    g.connect(ctx.destination);
+    o.start();
+    setTimeout(() => { try { o.stop(); } catch (e) {} }, 120);
+  } catch (e) {
+    console.error('sound-manager: playMuteTone failed', e);
+  }
+}
+
+export default {
+  playRingtone,
+  stopRingtone,
+  playRingback,
+  stopRingback,
+  playEndTone,
+  playMuteTone
+};
 // نظام إدارة الأصوات للمضيف مع حماية SSR
 export interface SoundConfig {
   id: string;

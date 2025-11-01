@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Phone, PhoneOff, Video, User } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { playRingtone, stopRingtone } from '@/lib/sound-manager';
 
 interface IncomingCallDialogProps {
   isOpen: boolean;
@@ -23,12 +24,11 @@ export function IncomingCallDialog({
   onReject
 }: IncomingCallDialogProps) {
   const [ringCount, setRingCount] = useState(0);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       // Play ringtone
-      playRingtone();
+      try { playRingtone(); } catch (e) { console.error(e); }
       
       // Auto reject after 30 seconds
       const timeout = setTimeout(() => {
@@ -37,7 +37,7 @@ export function IncomingCallDialog({
 
       return () => {
         clearTimeout(timeout);
-        stopRingtone();
+        try { stopRingtone(); } catch (e) { console.error(e); }
       };
     }
   }, [isOpen]);
@@ -53,47 +53,7 @@ export function IncomingCallDialog({
     }
   }, [isOpen]);
 
-  const playRingtone = () => {
-    try {
-      // Create a simple ringtone using Web Audio API
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-
-      oscillator.type = 'sine';
-      oscillator.frequency.value = 800;
-      gainNode.gain.value = 0.3;
-
-      oscillator.start();
-
-      // Play ring pattern (ring for 1s, pause 1s, repeat)
-      const ringPattern = setInterval(() => {
-        if (gainNode.gain.value === 0) {
-          gainNode.gain.value = 0.3;
-        } else {
-          gainNode.gain.value = 0;
-        }
-      }, 1000);
-
-      audioRef.current = { stop: () => {
-        clearInterval(ringPattern);
-        oscillator.stop();
-        audioContext.close();
-      }} as any;
-
-    } catch (error) {
-      console.error('Failed to play ringtone:', error);
-    }
-  };
-
-  const stopRingtone = () => {
-    if (audioRef.current && (audioRef.current as any).stop) {
-      (audioRef.current as any).stop();
-    }
-  };
+  // ringtone handled by sound-manager (playRingtone / stopRingtone)
 
   const handleAccept = () => {
     stopRingtone();
