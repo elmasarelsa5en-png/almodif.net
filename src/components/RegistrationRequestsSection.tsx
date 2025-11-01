@@ -33,6 +33,7 @@ interface RegistrationRequest {
   status: string;
   createdAt: string;
   assignedRoom?: string;
+  requestType?: 'existing' | 'new'; // نوع الطلب
 }
 
 interface Room {
@@ -48,6 +49,7 @@ export function RegistrationRequestsSection() {
   const [selectedRoom, setSelectedRoom] = useState<{ [key: string]: string }>({});
   const [processing, setProcessing] = useState<{ [key: string]: boolean }>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [showActionMenu, setShowActionMenu] = useState<{ [key: string]: boolean }>({});
 
   // Load pending registration requests
   useEffect(() => {
@@ -101,8 +103,17 @@ export function RegistrationRequestsSection() {
 
   const playNotificationSound = () => {
     try {
-      const audio = new Audio('/sounds/notification.mp3');
-      audio.play().catch(err => console.log('Could not play sound:', err));
+      // رنة طويلة للإشعار
+      const audio = new Audio('/sounds/long-notification.mp3');
+      audio.volume = 1.0;
+      audio.loop = false;
+      audio.play().catch(err => {
+        console.log('Could not play sound:', err);
+        // محاولة بديلة بصوت النظام
+        const beep = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGWi77eeaTRAMT6fj7rFeGAU4jtTxy3keGwc+k9XyfykKJnXG79qFOAQZXrLo6qdWEQo/neHwv24fBSt+y/DadzsIGGa56+iVSw4MT6Xh7K9cFwU2jdPvyXUcBzmQ1PDaizsHJnPA7tmBNgQYWq/m6qJUEAo+m+DutlweBS19yO/XdDsHF2S36+aSSw0LSqPg661aFgU1i9Hvx3QbBzaO0+/JdRsFN47U78p2HAg6kdXwy3oeCCRzvO3Vfz0FGFux5emhUhAKPp3g77RaHAUsfsjv1nM6BxdjtOjjkUoNDEmi4O6sWhYFNIrQ7sdyGwc1jdLux3McBziO0+/JdBwHO5HU8Mt5HQcjcrzt1nw+BRhZr+PqoFAPCj6c3+6zWRsFLH7I7tVyOQcXYrPk45BKDAxHo+DgrFkaBS+JzuzGcRsHNYzS7sdwHAc4jtPvyHQaBzuP0+/KeBwHJnO87dV6PgUYWK7i6Z9PDgo9m9/rslcaBSx9xu3TcDkHF2Gx4+GQSQoLRqDd6atYGAQuidHpv2saBTWL0O7FbxsFN4zR78hxGwg5jdPuyHQZBzyP0u7KeBoHI3K67NR4PgUXV6zh6J5ODgk8md/psFcaBCt8xe3RbjgHF2Cv4d+OSAoLQ5/b56lXGAQriNDov2kaBTSKz+7CbhsFNo3P78ZvGwc4jdHvx3EaBzuO0u7JchsHI3G569N3PgUXVqvi6J1NDgk8md/or1YaBCt7w+3PbTgGF1+u3t2NRwoLQp7a5qdWFwQriM/lvmcZBTOJzu26bBoFNo3P7sRuGgc3jNHux28aBzuO0e7JcRkHI3C46tJ2PQUXVang6JxNDgk7mN7nrlQZBCp6w+vObTgGF16t3NuLRQgKP5zZ5qlUFgQqhczkwGYYBTKIzeu5ahkFNIrO7cJtGgc2jNDuxG0ZBzqO0O3JcBkHI267 69F1PAQWVang2JtMDgk6ld7mq1MYBC17wenlbDcGF12r29mJRAcJPprY46hSFQQphczjvmQYBTGHy+m3aRgEMovN68FqGAQ1is3tw2waBy+EyOu8aBkEMovO7MNrGAYzi9DuxGsaBjOMze/Gbh0HJnK47NF0OwQWU6ng15pLDgk4k93lqlIXBCx5v+jinzAGF1yo2deIQwYJO5fW4aZREwQng8rhvGMXBTCFyui1ZhcEMovL6r5oFwQ0is7sw2oZBjKKze/EaxoGM4zO78VrGQYyitDtxGsaBjOM0O/Gbh0FJnG169B0OgQWUqjf1plKDgk2kdzkolAWBCt4v+LinzAGF1qm2NSHQgYJOpXV36RQEwQngsrgumIWBS+EyOezZBYEMYnK6bxnFwQzi83rwmoZBjKJze7DaxkGMozP7sVsGQYxitDtxmsZBzKL0O7GbRwFJm+169BzOgQVUKjf1ZdJDQk1j9vnn08WBCt2vuLemC8GFlml1tKGQAYIOJTT3aFPEwQmgcnfuV8VBS6Cxuexa
+BUEMIfI6btlFgQyiMno");
+        beep.play().catch(() => {});
+      });
     } catch (error) {
       console.error('Error playing sound:', error);
     }
@@ -157,7 +168,7 @@ export function RegistrationRequestsSection() {
       // 4. إرسال إشعار للضيف
       try {
         await notificationService.sendNotification('in_app', request.guestId, {
-          body: `مرحباً ${request.guestName}! تم تأكيد تسجيل دخولك إلى الغرفة رقم ${roomNumber}. نتمنى لك إقامة سعيدة! 🏨`,
+          body: `مرحباً ${request.guestName}! تم تسجيل دخولك لغرفة رقم ${roomNumber}. نتمنى لك إقامة سعيدة! 🏨`,
           type: 'custom',
           priority: 'high',
           metadata: {
@@ -171,14 +182,67 @@ export function RegistrationRequestsSection() {
 
       alert(`✅ تم الموافقة وتخصيص الغرفة ${roomNumber} للضيف ${request.guestName}`);
       
-      // Clear the selected room
+      // Clear the selected room and menu
       const newSelectedRoom = { ...selectedRoom };
       delete newSelectedRoom[request.id];
       setSelectedRoom(newSelectedRoom);
+      setShowActionMenu({ ...showActionMenu, [request.id]: false });
 
     } catch (error) {
       console.error('Error approving request:', error);
       alert('❌ حدث خطأ أثناء الموافقة على الطلب');
+    } finally {
+      setProcessing({ ...processing, [request.id]: false });
+    }
+  };
+
+  // موافقة على ضيف جديد بدون تخصيص غرفة
+  const handleApproveNewGuest = async (request: RegistrationRequest) => {
+    if (!confirm(`هل أنت متأكد من الموافقة على انضمام ${request.guestName} كضيف جديد؟`)) {
+      return;
+    }
+
+    setProcessing({ ...processing, [request.id]: true });
+
+    try {
+      // 1. تحديث بيانات الضيف
+      const guestRef = doc(db, 'guests', request.guestId);
+      await updateDoc(guestRef, {
+        status: 'approved',
+        approvedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+
+      // 2. تحديث حالة الطلب
+      const requestRef = doc(db, 'requests', request.id);
+      await updateDoc(requestRef, {
+        status: 'approved',
+        approvedAt: new Date().toISOString(),
+        approvedBy: 'reception',
+        requestType: 'new'
+      });
+
+      // 3. إرسال إشعار للضيف
+      try {
+        await notificationService.sendNotification('in_app', request.guestId, {
+          body: `مرحباً ${request.guestName}! تم الموافقة على طلب انضمامك إلينا. نتشرف بخدمتك! 🎉`,
+          type: 'custom',
+          priority: 'high',
+          metadata: {
+            guestId: request.guestId,
+            approvalType: 'new_guest'
+          }
+        });
+      } catch (notifError) {
+        console.error('Error sending notification:', notifError);
+      }
+
+      alert(`✅ تم الموافقة على انضمام ${request.guestName} كضيف جديد`);
+      setShowActionMenu({ ...showActionMenu, [request.id]: false });
+
+    } catch (error) {
+      console.error('Error approving new guest:', error);
+      alert('❌ حدث خطأ أثناء الموافقة');
     } finally {
       setProcessing({ ...processing, [request.id]: false });
     }
@@ -302,7 +366,7 @@ export function RegistrationRequestsSection() {
             <div className="space-y-2">
               <Label className="text-white flex items-center gap-2">
                 <Home className="w-4 h-4 text-amber-400" />
-                تخصيص رقم الغرفة
+                تخصيص غرفة (اختياري للضيف الجديد)
               </Label>
               <select
                 value={selectedRoom[request.id] || ''}
@@ -319,35 +383,79 @@ export function RegistrationRequestsSection() {
               </select>
             </div>
 
-            {/* أزرار الإجراءات */}
-            <div className="flex gap-3">
-              <Button
-                onClick={() => handleApprove(request)}
-                disabled={!selectedRoom[request.id] || processing[request.id]}
-                className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-0"
-              >
-                {processing[request.id] ? (
-                  <>
-                    <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-                    جاري المعالجة...
-                  </>
-                ) : (
-                  <>
+            {/* أزرار الإجراءات - مع قائمة منسدلة */}
+            <div className="flex gap-3 relative">
+              {!showActionMenu[request.id] ? (
+                <>
+                  <Button
+                    onClick={() => setShowActionMenu({ ...showActionMenu, [request.id]: true })}
+                    disabled={processing[request.id]}
+                    className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white border-0"
+                  >
                     <Check className="w-4 h-4 ml-2" />
-                    موافقة وتخصيص الغرفة
-                  </>
-                )}
-              </Button>
+                    تخصيص وموافقة
+                  </Button>
 
-              <Button
-                onClick={() => handleReject(request)}
-                disabled={processing[request.id]}
-                variant="destructive"
-                className="bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/50"
-              >
-                <X className="w-4 h-4 ml-2" />
-                رفض
-              </Button>
+                  <Button
+                    onClick={() => handleReject(request)}
+                    disabled={processing[request.id]}
+                    variant="destructive"
+                    className="bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/50"
+                  >
+                    <X className="w-4 h-4 ml-2" />
+                    رفض
+                  </Button>
+                </>
+              ) : (
+                <div className="flex-1 space-y-2">
+                  {/* خيار 1: تخصيص غرفة */}
+                  <Button
+                    onClick={() => handleApprove(request)}
+                    disabled={!selectedRoom[request.id] || processing[request.id]}
+                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-0"
+                  >
+                    {processing[request.id] ? (
+                      <>
+                        <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                        جاري المعالجة...
+                      </>
+                    ) : (
+                      <>
+                        <Home className="w-4 h-4 ml-2" />
+                        تخصيص غرفة
+                      </>
+                    )}
+                  </Button>
+
+                  {/* خيار 2: ضيف جديد */}
+                  <Button
+                    onClick={() => handleApproveNewGuest(request)}
+                    disabled={processing[request.id]}
+                    className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white border-0"
+                  >
+                    {processing[request.id] ? (
+                      <>
+                        <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                        جاري المعالجة...
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="w-4 h-4 ml-2" />
+                        ضيف جديد (بدون غرفة)
+                      </>
+                    )}
+                  </Button>
+
+                  {/* زر إلغاء */}
+                  <Button
+                    onClick={() => setShowActionMenu({ ...showActionMenu, [request.id]: false })}
+                    variant="outline"
+                    className="w-full border-white/20 text-white hover:bg-white/10"
+                  >
+                    إلغاء
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* تحذير */}
