@@ -108,6 +108,30 @@ class WebRTCService {
   }
 
   /**
+   * تنظيف معرّف المستخدم ليكون متوافق مع PeerJS
+   * يحول الأحرف العربية والخاصة إلى معرّف آمن
+   */
+  private sanitizeUserId(userId: string): string {
+    // إزالة أي أحرف غير alphanumeric
+    // تحويل الأحرف العربية إلى Base64 آمن
+    try {
+      // تحويل إلى Base64 ثم إزالة الرموز الخاصة
+      const base64 = btoa(encodeURIComponent(userId));
+      // إزالة =, +, / واستبدالها بأحرف آمنة
+      return base64.replace(/[^a-zA-Z0-9]/g, '').substring(0, 20);
+    } catch (e) {
+      // في حالة فشل Base64، استخدم hash بسيط
+      let hash = 0;
+      for (let i = 0; i < userId.length; i++) {
+        const char = userId.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32bit integer
+      }
+      return 'user' + Math.abs(hash).toString(36);
+    }
+  }
+
+  /**
    * Initialize PeerJS connection
    */
   initializePeer(userId: string): Promise<string> {
@@ -125,10 +149,14 @@ class WebRTCService {
       }, 30000);
 
       try {
+        // تنظيف معرّف المستخدم من الأحرف العربية والخاصة
+        const sanitizedUserId = this.sanitizeUserId(userId);
+        
         // Generate unique peer ID to avoid conflicts
-        const uniqueId = `${userId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const uniqueId = `${sanitizedUserId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         
         console.log('🔌 Initializing PeerJS with ID:', uniqueId);
+        console.log('👤 Original userId:', userId, '→ Sanitized:', sanitizedUserId);
 
         // Create peer WITHOUT custom server (use PeerJS default cloud - most reliable)
         this.peer = new Peer(uniqueId, {
