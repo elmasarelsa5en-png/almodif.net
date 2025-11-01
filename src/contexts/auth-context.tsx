@@ -30,7 +30,36 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // الصفحات التي لا تحتاج مصادقة
-const PUBLIC_ROUTES = ['/', '/login', '/employee-login'];
+const PUBLIC_ROUTES = [
+  '/', 
+  '/login', 
+  '/employee-login',
+  '/public/landing',
+  '/public/faq',
+  '/guest-app',
+  '/guest-app/login',
+  '/guest-app/booking',
+  '/guest-app/booking-confirmation',
+  '/guest-app/contract',
+  '/guest-app/contact',
+  '/guest-app/my-bookings',
+  '/guest-app/my-orders',
+  '/guest-app/review'
+];
+
+// دالة للتحقق من الصفحات العامة (تدعم dynamic routes)
+const isPublicRoute = (path: string): boolean => {
+  // تحقق من المسارات الثابتة
+  if (PUBLIC_ROUTES.includes(path)) return true;
+  
+  // تحقق من المسارات الديناميكية
+  if (path.startsWith('/track/')) return true; // صفحة تتبع الحجز
+  if (path.startsWith('/guest-app/menu/')) return true; // قوائم الطعام
+  if (path.startsWith('/pay/')) return true; // صفحات الدفع
+  if (path.startsWith('/public-site/')) return true; // مواقع الفنادق العامة
+  
+  return false;
+};
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -72,10 +101,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // التحقق من المصادقة عند تغيير المسار
     if (!isLoading) {
-      const isPublicRoute = PUBLIC_ROUTES.includes(pathname);
+      const isPublic = isPublicRoute(pathname);
       const isAuthenticated = !!user;
 
-      if (!isAuthenticated && !isPublicRoute) {
+      if (!isAuthenticated && !isPublic) {
         router.push('/login');
       }
     }
