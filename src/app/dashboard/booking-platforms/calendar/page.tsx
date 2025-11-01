@@ -737,6 +737,19 @@ export default function PlatformsCalendarPage() {
           </div>
 
           <div className="flex items-center gap-2">
+            {pricesData.length === 0 && (
+              <Button
+                onClick={() => {
+                  console.log('🔧 Manual initialization triggered');
+                  initializeMonthData();
+                }}
+                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white animate-pulse"
+              >
+                <Plus className="w-4 h-4 ml-2" />
+                تهيئة الشهر ({roomTypes.length} غرف)
+              </Button>
+            )}
+            
             <Button
               onClick={() => setPlatformsSettingsDialog(true)}
               variant="outline"
