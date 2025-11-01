@@ -49,6 +49,12 @@ interface Message {
   duration?: number;
   timestamp: Date;
   read: boolean;
+  replyTo?: {
+    messageId: string;
+    text: string;
+    senderId: string;
+    senderName: string;
+  };
 }
 
 export default function ChatPage() {
@@ -71,7 +77,8 @@ export default function ChatPage() {
   const [isCallDialogOpen, setIsCallDialogOpen] = useState(false);
   const [callType, setCallType] = useState<'audio' | 'video'>('audio');
   const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false);
-  const [showChatList, setShowChatList] = useState(true); // للتحكم في عرض القائمة على الموبايل
+  const [showChatList, setShowChatList] = useState(true);
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const unsubscribeRef = useRef<(() => void) | null>(null);
   const allChatsUnsubscribeRef = useRef<(() => void) | null>(null);
@@ -594,6 +601,7 @@ export default function ChatPage() {
             duration: data.duration,
             timestamp: data.timestamp?.toDate() || new Date(),
             read: data.read || false,
+            replyTo: data.replyTo || undefined,
           });
         });
         
@@ -667,7 +675,8 @@ export default function ChatPage() {
     console.log('📤 Sending message...', {
       chatId: currentChatId,
       text: messageText.trim(),
-      sender: user?.username || user?.email
+      sender: user?.username || user?.email,
+      replyTo: replyingTo?.id
     });
 
     try {
@@ -677,7 +686,7 @@ export default function ChatPage() {
         throw new Error('User ID not found');
       }
 
-      const messageData = {
+      const messageData: any = {
         chatId: currentChatId,
         senderId: currentUserId,
         text: messageText.trim(),
@@ -686,11 +695,24 @@ export default function ChatPage() {
         read: false,
       };
 
+      // إضافة بيانات الرد إذا كان موجوداً
+      if (replyingTo) {
+        messageData.replyTo = {
+          messageId: replyingTo.id,
+          text: replyingTo.text || '📷 صورة',
+          senderId: replyingTo.senderId,
+          senderName: replyingTo.senderId === (user?.username || user?.email) 
+            ? 'أنت' 
+            : selectedEmployee.name
+        };
+      }
+
       console.log('💾 Adding message to Firestore...');
       
-      // مسح النص فوراً قبل الإرسال لتحسين UX
+      // مسح النص والرد فوراً قبل الإرسال لتحسين UX
       const textToSend = messageText.trim();
       setMessageText('');
+      setReplyingTo(null);
       
       const messageRef = await addDoc(collection(db, 'messages'), messageData);
       console.log('✅ Message added with ID:', messageRef.id);
@@ -1009,22 +1031,22 @@ export default function ChatPage() {
                     )}
                   </div>
 
-                  <div className='flex-1 text-right overflow-hidden'>
+                  <div className='flex-1 text-right overflow-hidden min-w-0'>
                     <div className='flex items-center justify-between gap-2 mb-1'>
-                      <p className='font-semibold text-white truncate text-sm md:text-base'>{employee.name}</p>
+                      <p className='font-semibold text-white truncate text-sm md:text-base flex-1 min-w-0'>{employee.name}</p>
                       {lastMessages[employee.id] && (
-                        <span className='flex-shrink-0 text-xs text-gray-400'>
+                        <span className='flex-shrink-0 text-xs text-gray-400 whitespace-nowrap'>
                           {formatMessageTime(lastMessages[employee.id].time)}
                         </span>
                       )}
                     </div>
                     <div className='flex items-center justify-between gap-2'>
                       {lastMessages[employee.id] ? (
-                        <p className='text-xs md:text-sm text-gray-300 truncate flex-1'>
+                        <p className='text-xs md:text-sm text-gray-300 truncate flex-1 min-w-0 whitespace-nowrap overflow-hidden text-ellipsis'>
                           {lastMessages[employee.id].text}
                         </p>
                       ) : (
-                        <p className='text-xs md:text-sm text-gray-500 truncate flex-1'>لا توجد رسائل</p>
+                        <p className='text-xs md:text-sm text-gray-500 truncate flex-1 min-w-0'>لا توجد رسائل</p>
                       )}
                       {unreadCounts[employee.id] > 0 && (
                         <span className='flex-shrink-0 bg-green-500 text-white text-xs font-bold rounded-full w-5 h-5 md:w-6 md:h-6 flex items-center justify-center shadow-lg'>
@@ -1142,6 +1164,18 @@ export default function ChatPage() {
                         <div className='relative'>
                           <div className={cn('max-w-[85%] md:max-w-[70%] rounded-2xl px-4 py-3 md:px-5 md:py-3.5 shadow-xl', isCurrentUser ? 'bg-gradient-to-br from-purple-600 to-blue-600 text-white rounded-br-sm' : 'bg-white/10 backdrop-blur-sm text-white rounded-bl-sm border border-white/10')}>
                             
+                            {/* الرد على رسالة */}
+                            {message.replyTo && (
+                              <div className='bg-black/20 border-l-4 border-white/30 rounded-lg px-3 py-2 mb-2 text-xs md:text-sm'>
+                                <p className='font-semibold opacity-80 mb-1'>
+                                  {message.replyTo.senderName}
+                                </p>
+                                <p className='opacity-70 truncate'>
+                                  {message.replyTo.text}
+                                </p>
+                              </div>
+                            )}
+
                             {/* رسالة نصية */}
                             {message.type === 'text' && message.text && (
                               <p className='text-sm md:text-base leading-relaxed whitespace-pre-wrap break-words'>{message.text}</p>
@@ -1206,16 +1240,28 @@ export default function ChatPage() {
                               )}
                             </div>
                             
-                            {/* زر المسح - يظهر عند hover */}
-                            {canDelete && (
+                            {/* أزرار الإجراءات - تظهر عند hover */}
+                            <div className='flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity'>
+                              {/* زر الرد */}
                               <button
-                                onClick={() => deleteMessage(message.id, currentChatId!, message.senderId)}
-                                className='opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500/20 rounded p-1'
-                                title='مسح الرسالة'
+                                onClick={() => setReplyingTo(message)}
+                                className='hover:bg-blue-500/20 rounded p-1'
+                                title='الرد على الرسالة'
                               >
-                                <Trash2 className='w-3.5 h-3.5 text-red-400 hover:text-red-300' />
+                                <ArrowLeft className='w-3.5 h-3.5 text-blue-400 hover:text-blue-300' />
                               </button>
-                            )}
+                              
+                              {/* زر المسح */}
+                              {canDelete && (
+                                <button
+                                  onClick={() => deleteMessage(message.id, currentChatId!, message.senderId)}
+                                  className='hover:bg-red-500/20 rounded p-1'
+                                  title='مسح الرسالة'
+                                >
+                                  <Trash2 className='w-3.5 h-3.5 text-red-400 hover:text-red-300' />
+                                </button>
+                              )}
+                            </div>
                           </div>
                           </div>
                         </div>
@@ -1250,6 +1296,26 @@ export default function ChatPage() {
                   </div>
                 )}
                 
+                {/* شريط الرد */}
+                {replyingTo && (
+                  <div className='mb-3 bg-slate-700/50 rounded-lg p-3 border-l-4 border-blue-500 flex items-start justify-between'>
+                    <div className='flex-1 min-w-0'>
+                      <p className='text-xs font-semibold text-blue-400 mb-1'>
+                        الرد على {replyingTo.senderId === (user?.username || user?.email) ? 'رسالتك' : selectedEmployee?.name}
+                      </p>
+                      <p className='text-sm text-gray-300 truncate'>
+                        {replyingTo.text || '📷 صورة'}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setReplyingTo(null)}
+                      className='flex-shrink-0 ml-2 hover:bg-slate-600/50 rounded p-1 transition-colors'
+                    >
+                      <X className='w-4 h-4 text-gray-400 hover:text-white' />
+                    </button>
+                  </div>
+                )}
+
                 {/* واجهة التسجيل */}
                 {isRecording && (
                   <div className='mb-3 p-3 bg-red-500/20 border border-red-500/50 rounded-lg flex items-center justify-between animate-pulse'>
