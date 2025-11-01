@@ -142,6 +142,33 @@ class WebRTCService {
   }
 
   /**
+   * Listen for status changes on a specific call signal (for caller)
+   */
+  listenForCallStatus(
+    signalId: string, 
+    onAccepted: () => void,
+    onRejected: () => void,
+    onEnded: () => void
+  ) {
+    const signalDoc = doc(db, 'call_signals', signalId);
+    
+    this.callSignalUnsubscribe = onSnapshot(signalDoc, (snapshot) => {
+      const data = snapshot.data();
+      if (!data) return;
+
+      console.log('📡 Call status changed:', data.status);
+
+      if (data.status === 'accepted') {
+        onAccepted();
+      } else if (data.status === 'rejected') {
+        onRejected();
+      } else if (data.status === 'ended') {
+        onEnded();
+      }
+    });
+  }
+
+  /**
    * Answer a call
    */
   async answerCall(signalId: string, callType: 'audio' | 'video'): Promise<MediaStream> {

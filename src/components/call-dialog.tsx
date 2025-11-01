@@ -115,28 +115,42 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
         console.log('✅ Local video displayed');
       }
 
-      // Wait for call to be answered (listen to signal status changes)
-      // In production, you'd listen to Firestore signal updates
-      // For now, simulate after 3 seconds
-      setTimeout(async () => {
-        try {
-          // Connect to peer
-          const call = await webrtcService.connectToPeer(employeeId, localStream!);
-          
-          // Get remote stream
-          call.on('stream', (remoteStream) => {
-            console.log('✅ Received remote stream');
-            if (remoteVideoRef.current) {
-              remoteVideoRef.current.srcObject = remoteStream;
-            }
-            setCallStatus('connected');
-          });
-
-        } catch (error) {
-          console.error('❌ Failed to connect:', error);
+      // Listen for call status changes from receiver
+      webrtcService.listenForCallStatus(
+        signalId,
+        // onAccepted
+        async () => {
+          console.log('✅ Call accepted by receiver!');
+          try {
+            // Connect to peer
+            const call = await webrtcService.connectToPeer(employeeId, localStream!);
+            
+            // Get remote stream
+            call.on('stream', (remoteStream) => {
+              console.log('✅ Received remote stream');
+              if (remoteVideoRef.current) {
+                remoteVideoRef.current.srcObject = remoteStream;
+              }
+              setCallStatus('connected');
+            });
+          } catch (error) {
+            console.error('❌ Failed to connect:', error);
+            setCallStatus('ended');
+          }
+        },
+        // onRejected
+        () => {
+          console.log('❌ Call rejected by receiver');
+          setCallStatus('ended');
+          alert('تم رفض المكالمة من الطرف الآخر');
+          setTimeout(() => onClose(), 2000);
+        },
+        // onEnded
+        () => {
+          console.log('📞 Call ended by receiver');
           setCallStatus('ended');
         }
-      }, 3000);
+      );
 
     } catch (error: any) {
       console.error('❌ Error starting call:', error);
