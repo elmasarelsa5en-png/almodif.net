@@ -69,6 +69,13 @@ const platforms = [
   { id: 'elmasarelsa5en', name: 'المسار الساخن', icon: Building2, color: 'from-red-500 to-red-600', visible: true },
 ];
 
+// دالة مساعدة لتحويل التاريخ بدون UTC
+const formatLocalDate = (year: number, month: number, day: number): string => {
+  const monthStr = String(month + 1).padStart(2, '0');
+  const dayStr = String(day).padStart(2, '0');
+  return `${year}-${monthStr}-${dayStr}`;
+};
+
 // سيتم تحميل الغرف من Firebase بدلاً من hardcode
 // const roomTypes: RoomType[] = [...];
 
@@ -257,8 +264,8 @@ export default function PlatformsCalendarPage() {
     console.log(`📅 Creating ${daysInMonth} days for ${roomTypes.length} room types`);
     
     for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-      const dateStr = date.toISOString().split('T')[0];
+      // استخدام التاريخ المحلي بدون UTC
+      const dateStr = formatLocalDate(currentDate.getFullYear(), currentDate.getMonth(), day);
       
       roomTypes.forEach(room => {
         data.push({
@@ -412,8 +419,12 @@ export default function PlatformsCalendarPage() {
   };
 
   const getDayData = (day: number, platformId: string): PlatformPrice | undefined => {
-    const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-    const dateStr = date.toISOString().split('T')[0];
+    // استخدام التاريخ المحلي بدون تحويل UTC
+    const year = currentDate.getFullYear();
+    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const dayStr = String(day).padStart(2, '0');
+    const dateStr = `${year}-${month}-${dayStr}`;
+    
     const dayPrice = pricesData.find(d => d.date === dateStr && d.roomTypeId === selectedRoom);
     
     if (day === 1) { // log للأول يوم بس عشان مش نملى الconsole
@@ -424,8 +435,11 @@ export default function PlatformsCalendarPage() {
   };
 
   const updatePrice = (day: number, platformId: string, newPrice: number) => {
-    const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-    const dateStr = date.toISOString().split('T')[0];
+    // استخدام التاريخ المحلي بدون تحويل UTC
+    const year = currentDate.getFullYear();
+    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const dayStr = String(day).padStart(2, '0');
+    const dateStr = `${year}-${month}-${dayStr}`;
     
     console.log('💰 Updating price - Day:', day, 'Date:', dateStr, 'Platform:', platformId, 'New Price:', newPrice);
     
@@ -648,8 +662,8 @@ export default function PlatformsCalendarPage() {
   // Handle mouse enter - continue dragging
   const handleMouseEnter = (dateStr: string) => {
     if (isDragging && dragStartDate) {
-      const start = new Date(dragStartDate);
-      const current = new Date(dateStr);
+      const start = new Date(dragStartDate + 'T00:00:00');
+      const current = new Date(dateStr + 'T00:00:00');
       const dates: string[] = [];
       
       const startTime = start.getTime();
@@ -660,7 +674,8 @@ export default function PlatformsCalendarPage() {
       for (let time = minTime; time <= maxTime; time += 24 * 60 * 60 * 1000) {
         const date = new Date(time);
         if (date.getMonth() === currentDate.getMonth()) {
-          dates.push(date.toISOString().split('T')[0]);
+          const dateStr = formatLocalDate(date.getFullYear(), date.getMonth(), date.getDate());
+          dates.push(dateStr);
         }
       }
       
@@ -917,8 +932,8 @@ export default function PlatformsCalendarPage() {
             {/* Calendar Days */}
             <div className="max-h-[600px] overflow-y-auto">
               {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((day) => {
+                const dateStr = formatLocalDate(currentDate.getFullYear(), currentDate.getMonth(), day);
                 const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-                const dateStr = date.toISOString().split('T')[0];
                 const dayOfWeek = date.getDay();
                 const isWeekend = dayOfWeek === 5 || dayOfWeek === 6;
                 const isSelected = selectedDates.includes(dateStr);
