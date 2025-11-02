@@ -99,8 +99,16 @@ class NativeWebRTCService {
     };
 
     // Handle negotiation needed
+    // IMPORTANT: Don't auto-negotiate for answerer! Only offerer creates offer
     this.peerConnection.onnegotiationneeded = async () => {
-      console.log('🔄 Negotiation needed');
+      console.log('🔄 Negotiation needed - isOfferer:', isOfferer);
+      // Only offerer should create offer automatically
+      // Answerer waits for offer from offerer
+      if (isOfferer) {
+        console.log('✅ Offerer can negotiate (but we handle this manually)');
+      } else {
+        console.log('⚠️ Answerer should NOT negotiate - waiting for offer');
+      }
     };
 
     // Handle signaling state changes
@@ -474,17 +482,28 @@ class NativeWebRTCService {
    */
   toggleMute(): boolean {
     console.log('🔊 Toggle mute called');
+    console.log('📊 Local stream exists:', !!this.localStream);
+    
     if (this.localStream) {
-      const audioTrack = this.localStream.getAudioTracks()[0];
+      const audioTracks = this.localStream.getAudioTracks();
+      console.log('📊 Audio tracks count:', audioTracks.length);
+      
+      const audioTrack = audioTracks[0];
       if (audioTrack) {
+        const wasEnabled = audioTrack.enabled;
         audioTrack.enabled = !audioTrack.enabled;
-        console.log('🎤 Audio track toggled:', audioTrack.enabled ? 'unmuted ✅' : 'muted 🔇');
+        console.log('🎤 Audio track state changed:');
+        console.log('   - Before:', wasEnabled ? 'enabled ✅' : 'disabled 🔇');
+        console.log('   - After:', audioTrack.enabled ? 'enabled ✅' : 'disabled 🔇');
+        console.log('   - Track ID:', audioTrack.id);
+        console.log('   - Track label:', audioTrack.label);
         return !audioTrack.enabled; // return true if muted
       } else {
-        console.warn('⚠️ No audio track found in local stream');
+        console.error('❌ No audio track found in local stream!');
+        console.log('📊 All tracks in stream:', this.localStream.getTracks().map(t => `${t.kind}: ${t.label}`));
       }
     } else {
-      console.warn('⚠️ No local stream available');
+      console.error('❌ No local stream available!');
     }
     return false;
   }
