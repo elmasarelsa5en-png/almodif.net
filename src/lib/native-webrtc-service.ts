@@ -243,14 +243,19 @@ class NativeWebRTCService {
 
     const unsubscribe = onSnapshot(signalDoc, async (snapshot) => {
       const data = snapshot.data();
-      if (data?.answer && !this.peerConnection!.currentRemoteDescription) {
+      // Check if peerConnection exists before accessing it
+      if (data?.answer && this.peerConnection && !this.peerConnection.currentRemoteDescription) {
         console.log('📥 Received SDP answer');
         
-        const answer = new RTCSessionDescription(data.answer);
-        await this.peerConnection!.setRemoteDescription(answer);
-        
-        console.log('✅ Remote description set');
-        unsubscribe();
+        try {
+          const answer = new RTCSessionDescription(data.answer);
+          await this.peerConnection.setRemoteDescription(answer);
+          
+          console.log('✅ Remote description set');
+          unsubscribe();
+        } catch (error) {
+          console.error('❌ Error setting remote description:', error);
+        }
       }
     });
   }
@@ -323,13 +328,14 @@ class NativeWebRTCService {
     const unsubscribe = onSnapshot(signalDoc, async (snapshot) => {
       const data = snapshot.data();
       
-      if (data?.offer && !this.peerConnection!.currentRemoteDescription) {
+      // Check if peerConnection exists before accessing it
+      if (data?.offer && this.peerConnection && !this.peerConnection.currentRemoteDescription) {
         console.log('📥 Received SDP offer');
         
         try {
           // Set remote description (offer)
           const offer = new RTCSessionDescription(data.offer);
-          await this.peerConnection!.setRemoteDescription(offer);
+          await this.peerConnection.setRemoteDescription(offer);
 
           // Create answer
           console.log('📝 Creating SDP answer');
@@ -337,11 +343,11 @@ class NativeWebRTCService {
           // Answer options to ensure audio/video are enabled
           const answerOptions: RTCAnswerOptions = {};
           
-          const answer = await this.peerConnection!.createAnswer(answerOptions);
+          const answer = await this.peerConnection.createAnswer(answerOptions);
           
           console.log('📋 Answer SDP:', answer.sdp?.substring(0, 200) + '...');
           
-          await this.peerConnection!.setLocalDescription(answer);
+          await this.peerConnection.setLocalDescription(answer);
 
           // Send answer to Firestore
           await updateDoc(doc(db, 'call_signals', callId), {
@@ -374,9 +380,15 @@ class NativeWebRTCService {
           const data = change.doc.data();
           console.log('📥 Received ICE candidate from', from);
           
+          // Check if peerConnection exists before using it
+          if (!this.peerConnection) {
+            console.warn('⚠️ Peer connection is null, skipping ICE candidate');
+            return;
+          }
+          
           try {
             const candidate = new RTCIceCandidate(data.candidate);
-            await this.peerConnection!.addIceCandidate(candidate);
+            await this.peerConnection.addIceCandidate(candidate);
             console.log('✅ ICE candidate added');
           } catch (error) {
             console.error('❌ Error adding ICE candidate:', error);
@@ -461,12 +473,18 @@ class NativeWebRTCService {
    * Toggle mute
    */
   toggleMute(): boolean {
+    console.log('🔊 Toggle mute called');
     if (this.localStream) {
       const audioTrack = this.localStream.getAudioTracks()[0];
       if (audioTrack) {
         audioTrack.enabled = !audioTrack.enabled;
+        console.log('🎤 Audio track toggled:', audioTrack.enabled ? 'unmuted ✅' : 'muted 🔇');
         return !audioTrack.enabled; // return true if muted
+      } else {
+        console.warn('⚠️ No audio track found in local stream');
       }
+    } else {
+      console.warn('⚠️ No local stream available');
     }
     return false;
   }
