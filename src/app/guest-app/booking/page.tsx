@@ -15,8 +15,9 @@ import { Label } from '@/components/ui/label';
 import { useRouter } from 'next/navigation';
 import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
 import { collection, addDoc, query, where, getDocs, Timestamp, doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase';
 import { notificationService } from '@/lib/notifications/notification-service';
+import { onAuthStateChanged } from 'firebase/auth';
 
 interface Room {
   id: string;
@@ -50,6 +51,7 @@ export default function BookingPage() {
   const [currentImageIndex, setCurrentImageIndex] = useState<{ [key: string]: number }>({});
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [loginMessage, setLoginMessage] = useState('');
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [bookingData, setBookingData] = useState({
     guestName: '',
     phone: '',
@@ -64,6 +66,28 @@ export default function BookingPage() {
 
   useEffect(() => {
     loadAvailableRooms();
+    
+    // مراقبة حالة تسجيل الدخول
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // تحميل بيانات المستخدم من Firestore
+        try {
+          const userDoc = await getDoc(doc(db, 'guests', user.uid));
+          if (userDoc.exists()) {
+            setCurrentUser({
+              uid: user.uid,
+              ...userDoc.data()
+            });
+          }
+        } catch (error) {
+          console.error('Error loading user data:', error);
+        }
+      } else {
+        setCurrentUser(null);
+      }
+    });
+    
+    return () => unsubscribe();
   }, []);
 
   const loadAvailableRooms = async () => {
@@ -667,22 +691,19 @@ export default function BookingPage() {
                     
                     {/* زر املأ بياناتي */}
                     <Button
-                      onClick={async () => {
-                        try {
-                          const user = JSON.parse(localStorage.getItem('user') || '{}');
-                          if (user.name) {
-                            setBookingData(prev => ({
-                              ...prev,
-                              guestName: user.name || prev.guestName,
-                              phone: user.phone || prev.phone,
-                              nationalId: user.nationalId || prev.nationalId,
-                            }));
-                            alert('✅ تم ملء البيانات من حسابك');
-                          } else {
-                            alert('⚠️ الرجاء تسجيل الدخول أولاً');
-                          }
-                        } catch (error) {
-                          console.error('Error loading user data:', error);
+                      onClick={() => {
+                        if (currentUser) {
+                          setBookingData(prev => ({
+                            ...prev,
+                            guestName: currentUser.name || prev.guestName,
+                            phone: currentUser.phone || prev.phone,
+                            email: currentUser.email || prev.email,
+                            nationalId: currentUser.nationalId || prev.nationalId,
+                          }));
+                          alert('✅ تم ملء البيانات من حسابك');
+                        } else {
+                          alert('⚠️ يجب تسجيل الدخول أولاً');
+                          router.push('/guest-app/login');
                         }
                       }}
                       variant="outline"
