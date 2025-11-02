@@ -1035,7 +1035,15 @@ export default function RoomsPage() {
             </Button>
 
             {/* زر التقرير */}
-            <div className="relative group">
+            <div className="relative" onMouseLeave={(e) => {
+              // تأخير إخفاء القائمة
+              const target = e.currentTarget;
+              setTimeout(() => {
+                if (!target.matches(':hover')) {
+                  target.classList.remove('show-dropdown');
+                }
+              }, 200);
+            }} onMouseEnter={(e) => e.currentTarget.classList.add('show-dropdown')}>
               <Button
                 className="px-6 py-6 rounded-xl font-bold text-base transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 bg-gradient-to-r from-purple-600 to-pink-600 text-white border-2 border-purple-400"
               >
@@ -1043,9 +1051,14 @@ export default function RoomsPage() {
                 تقرير
               </Button>
               
-              {/* قائمة منسدلة عند hover */}
-              <div className="absolute top-full left-0 mt-2 hidden group-hover:block z-50 min-w-[200px]">
-                <div className="bg-slate-900/95 backdrop-blur-xl rounded-xl border-2 border-white/20 shadow-2xl p-2 space-y-2">
+              {/* قائمة منسدلة - مع z-index عالي جداً */}
+              <style jsx>{`
+                .show-dropdown .dropdown-menu {
+                  display: block !important;
+                }
+              `}</style>
+              <div className="dropdown-menu absolute top-full left-0 mt-2 hidden z-[9999] min-w-[200px]">
+                <div className="bg-slate-900/98 backdrop-blur-xl rounded-xl border-2 border-white/20 shadow-2xl p-2 space-y-2">
                   {/* محجوزة */}
                   <button
                     onClick={() => setActiveFilter('Reserved')}
