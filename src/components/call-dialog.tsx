@@ -104,6 +104,8 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
         console.log('📊 Remote stream tracks:', remoteStream.getTracks().length);
         if (remoteVideoRef.current) {
           remoteVideoRef.current.srcObject = remoteStream;
+          // Force play to ensure stream plays
+          remoteVideoRef.current.play().catch(e => console.warn('⚠️ Remote video autoplay blocked:', e));
           console.log('✅ Remote video displayed for caller');
         }
         setCallStatus('connected');
@@ -128,6 +130,8 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
       
       if (localStream && localVideoRef.current) {
         localVideoRef.current.srcObject = localStream;
+        // Force play to ensure autoplay policy compliance
+        localVideoRef.current.play().catch(e => console.warn('⚠️ Local video autoplay blocked:', e));
         console.log('✅ Local video displayed');
       }
 
@@ -177,6 +181,8 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
       const localStream = nativeWebRTCService.getLocalStream();
       if (localStream && localVideoRef.current) {
         localVideoRef.current.srcObject = localStream;
+        // Force play to ensure autoplay policy compliance
+        localVideoRef.current.play().catch(e => console.warn('⚠️ Local video autoplay blocked:', e));
         console.log('✅ Displayed receiver local video');
       }
 
@@ -185,6 +191,8 @@ export function CallDialog({ isOpen, onClose, employeeName, employeeId, callType
         console.log('✅ Receiver got remote stream');
         if (remoteVideoRef.current) {
           remoteVideoRef.current.srcObject = remoteStream;
+          // Force play to ensure stream plays
+          remoteVideoRef.current.play().catch(e => console.warn('⚠️ Remote video autoplay blocked:', e));
           console.log('✅ Displayed remote video for receiver');
         }
         setCallStatus('connected');
