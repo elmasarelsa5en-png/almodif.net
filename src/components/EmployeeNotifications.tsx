@@ -15,6 +15,11 @@ import {
   type EmployeeNotification,
 } from '@/lib/firebase-data';
 import { playNotificationSound, startEmployeeAlert } from '@/lib/notification-sounds';
+import { 
+  requestNotificationPermission, 
+  listenToForegroundMessages,
+  getNotificationPermissionStatus 
+} from '@/lib/firebase-messaging';
 
 interface EmployeeNotificationsProps {
   employeeId: string;
@@ -26,6 +31,53 @@ export default function EmployeeNotifications({ employeeId, employeeName }: Empl
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [previousCount, setPreviousCount] = useState(0);
+  const [fcmInitialized, setFcmInitialized] = useState(false);
+
+  // تهيئة FCM عند تحميل المكون
+  useEffect(() => {
+    if (!employeeId || fcmInitialized) return;
+
+    const initializeFCM = async () => {
+      try {
+        const permissionStatus = getNotificationPermissionStatus();
+        
+        if (permissionStatus === 'granted') {
+          console.log('🔔 FCM: الإذن ممنوح بالفعل، تهيئة FCM...');
+          await requestNotificationPermission(employeeId, employeeName);
+          setFcmInitialized(true);
+        } else if (permissionStatus === 'default') {
+          console.log('🔔 FCM: طلب إذن المستخدم...');
+          const token = await requestNotificationPermission(employeeId, employeeName);
+          if (token) {
+            setFcmInitialized(true);
+            console.log('✅ FCM: تم التهيئة بنجاح');
+          }
+        }
+      } catch (error) {
+        console.error('❌ FCM: خطأ في التهيئة:', error);
+      }
+    };
+
+    initializeFCM();
+  }, [employeeId, employeeName, fcmInitialized]);
+
+  // الاستماع للإشعارات في Foreground
+  useEffect(() => {
+    if (!fcmInitialized) return;
+
+    console.log('🔔 FCM: بدء الاستماع للإشعارات في Foreground...');
+    
+    const unsubscribe = listenToForegroundMessages((payload) => {
+      console.log('📨 FCM: إشعار جديد في Foreground:', payload);
+      
+      // تشغيل الصوت
+      startEmployeeAlert();
+    });
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [fcmInitialized]);
 
   useEffect(() => {
     if (!employeeId) return;

@@ -18,19 +18,35 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
   console.log('📨 [SW] Received background message:', payload);
 
-  const notificationTitle = payload.notification?.title || 'رسالة جديدة';
-  const notificationOptions = {
+  // تحديد نوع الإشعار
+  const notificationType = payload.data?.type || 'chat';
+  
+  let notificationTitle = payload.notification?.title || 'رسالة جديدة';
+  let notificationOptions = {
     body: payload.notification?.body || 'لديك رسالة جديدة',
-    icon: '/app-logo.png',
-    badge: '/app-logo.png',
-    tag: 'chat-notification',
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
     requireInteraction: true,
     data: payload.data,
-    actions: [
+    vibrate: [200, 100, 200, 100, 200, 100, 200], // نمط اهتزاز قوي
+    silent: false // تشغيل الصوت
+  };
+
+  // تخصيص حسب نوع الإشعار
+  if (notificationType === 'new_request') {
+    notificationOptions.tag = `request-${payload.data?.requestId}`;
+    notificationOptions.actions = [
+      { action: 'accept', title: '✅ قبول الطلب' },
+      { action: 'open', title: '👁️ عرض التفاصيل' },
+      { action: 'close', title: '❌ إغلاق' }
+    ];
+  } else {
+    notificationOptions.tag = 'chat-notification';
+    notificationOptions.actions = [
       { action: 'open', title: 'فتح المحادثة' },
       { action: 'close', title: 'إغلاق' }
-    ]
-  };
+    ];
+  }
 
   return self.registration.showNotification(notificationTitle, notificationOptions);
 });
@@ -41,9 +57,43 @@ self.addEventListener('notificationclick', (event) => {
   
   event.notification.close();
 
-  if (event.action === 'open' || !event.action) {
-    event.waitUntil(
-      clients.openWindow('/dashboard/chat')
-    );
+  // التعامل مع أزرار الإشعار
+  if (event.action === 'close') {
+    return; // مجرد إغلاق الإشعار
   }
+
+  // تحديد الصفحة المستهدفة
+  let targetUrl = '/dashboard/chat';
+  
+  if (event.notification.data?.type === 'new_request') {
+    if (event.action === 'accept') {
+      targetUrl = `/dashboard/employee-requests?action=accept&requestId=${event.notification.data?.requestId}`;
+    } else {
+      targetUrl = '/dashboard/employee-requests';
+    }
+  }
+
+  // فتح أو التركيز على التبويب
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then((windowClients) => {
+        // البحث عن تبويب مفتوح
+        for (let i = 0; i < windowClients.length; i++) {
+          const client = windowClients[i];
+          if (client.url.includes('/dashboard') && 'focus' in client) {
+            // إعادة توجيه التبويب الموجود
+            client.postMessage({
+              type: 'NAVIGATE',
+              url: targetUrl
+            });
+            return client.focus();
+          }
+        }
+        
+        // إذا لم يوجد تبويب، افتح واحد جديد
+        if (clients.openWindow) {
+          return clients.openWindow(targetUrl);
+        }
+      })
+  );
 });

@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إعداد Firebase Cloud Messaging</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 900px;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .step {
+            background: #f8f9fa;
+            border-right: 5px solid #667eea;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-radius: 10px;
+        }
+        
+        .step h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .step ol {
+            margin-right: 25px;
+        }
+        
+        .step li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        
+        .code-box {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            overflow-x: auto;
+            position: relative;
+        }
+        
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        
+        .copy-btn:hover {
+            background: #764ba2;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border-right: 5px solid #ffc107;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+        
+        .warning h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        
+        .success {
+            background: #d4edda;
+            border-right: 5px solid #28a745;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+        
+        .success h3 {
+            color: #155724;
+            margin-bottom: 10px;
+        }
+        
+        .link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .link:hover {
+            text-decoration: underline;
+        }
+        
+        .highlight {
+            background: #ffeb3b;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔔 إعداد Firebase Cloud Messaging</h1>
+            <p>دليل خطوة بخطوة لتفعيل Push Notifications</p>
+        </div>
+        
+        <div class="content">
+            <!-- الخطوة 1 -->
+            <div class="step">
+                <h2>
+                    <span class="step-number">1</span>
+                    الوصول إلى Firebase Console
+                </h2>
+                <ol>
+                    <li>افتح <a href="https://console.firebase.google.com/" target="_blank" class="link">Firebase Console</a></li>
+                    <li>اختر مشروعك: <span class="highlight">almodif-49af5</span></li>
+                    <li>اذهب إلى Project Settings (⚙️ أعلى اليسار)</li>
+                </ol>
+            </div>
+
+            <!-- الخطوة 2 -->
+            <div class="step">
+                <h2>
+                    <span class="step-number">2</span>
+                    تفعيل Cloud Messaging API
+                </h2>
+                <ol>
+                    <li>في الـ Settings، اختر تبويب <strong>Cloud Messaging</strong></li>
+                    <li>إذا رأيت رسالة "Cloud Messaging API is disabled"، اضغط على الرابط لتفعيلها</li>
+                    <li>سيفتح Google Cloud Console - اضغط <strong>Enable</strong></li>
+                    <li>انتظر قليلاً حتى يتم التفعيل (قد يستغرق دقيقة)</li>
+                </ol>
+            </div>
+
+            <!-- الخطوة 3 -->
+            <div class="step">
+                <h2>
+                    <span class="step-number">3</span>
+                    إنشاء Web Push Certificate
+                </h2>
+                <ol>
+                    <li>في نفس صفحة Cloud Messaging، ابحث عن قسم <strong>Web Push certificates</strong></li>
+                    <li>إذا لم يكن هناك مفتاح موجود، اضغط <strong>Generate key pair</strong></li>
+                    <li>سيظهر لك مفتاح VAPID طويل (يبدأ بـ "B..." عادة)</li>
+                    <li><strong>انسخ هذا المفتاح</strong> - سنحتاجه في الكود</li>
+                </ol>
+            </div>
+
+            <!-- الخطوة 4 -->
+            <div class="step">
+                <h2>
+                    <span class="step-number">4</span>
+                    إضافة المفتاح في الكود
+                </h2>
+                <p>افتح الملف: <code>src/lib/firebase-messaging.ts</code></p>
+                <p>استبدل السطر:</p>
+                <div class="code-box">
+                    <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+const VAPID_KEY = 'YOUR_VAPID_KEY_HERE';
+                </div>
+                <p>بـ:</p>
+                <div class="code-box">
+                    <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+const VAPID_KEY = 'المفتاح_الذي_نسخته_من_Firebase';
+                </div>
+            </div>
+
+            <!-- تحذير مهم -->
+            <div class="warning">
+                <h3>⚠️ تحذير مهم</h3>
+                <ul>
+                    <li>احتفظ بنسخة من مفتاح VAPID في مكان آمن</li>
+                    <li>لا تشارك المفتاح علناً على GitHub أو أي مكان عام</li>
+                    <li>استخدم متغيرات البيئة (.env.local) في الإنتاج</li>
+                </ul>
+            </div>
+
+            <!-- الخطوة 5 -->
+            <div class="step">
+                <h2>
+                    <span class="step-number">5</span>
+                    اختبار الإشعارات
+                </h2>
+                <ol>
+                    <li>أعد تشغيل السيرفر: <code>npm run dev</code></li>
+                    <li>سجل دخول كموظف</li>
+                    <li>عند أول زيارة، سيطلب منك المتصفح السماح بالإشعارات - اضغط <strong>Allow/السماح</strong></li>
+                    <li>افتح Console في المتصفح (F12) - يجب أن ترى:
+                        <div class="code-box">
+✅ FCM: تم تهيئة Firebase Messaging
+✅ FCM: تم تسجيل Service Worker
+✅ FCM: تم الحصول على Device Token
+✅ FCM: تم حفظ Token للموظف
+                        </div>
+                    </li>
+                    <li>الآن جرب إنشاء طلب جديد - يجب أن يصل إشعار للموظف المكلف حتى لو كان المتصفح في الخلفية!</li>
+                </ol>
+            </div>
+
+            <!-- نجاح -->
+            <div class="success">
+                <h3>✅ تهانينا!</h3>
+                <p>إذا اتبعت كل الخطوات، الآن نظام الإشعارات يعمل بكفاءة عالية:</p>
+                <ul>
+                    <li>✅ الموظف يستلم إشعار حتى لو التطبيق مقفول</li>
+                    <li>✅ صوت قوي مع اهتزاز</li>
+                    <li>✅ الإشعار يفضل ظاهر حتى يتفاعل معه الموظف</li>
+                    <li>✅ يمكن القبول مباشرة من الإشعار</li>
+                </ul>
+            </div>
+
+            <!-- الخطوة التالية -->
+            <div class="step">
+                <h2>
+                    <span class="step-number">6</span>
+                    الخطوة التالية: Cloud Functions
+                </h2>
+                <p>لإرسال الإشعارات من الخادم (Backend) عند إنشاء طلب جديد، سنحتاج إلى:</p>
+                <ol>
+                    <li>إعداد Firebase Cloud Functions</li>
+                    <li>إنشاء Function تُنشط عند إضافة طلب جديد في Firestore</li>
+                    <li>الـ Function تقرأ fcmToken للموظف المكلف وتبعت له push notification</li>
+                </ol>
+                <p>هل تريد المتابعة؟ 🚀</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function copyCode(btn) {
+            const codeBox = btn.parentElement;
+            const code = codeBox.textContent.replace('نسخ', '').trim();
+            
+            navigator.clipboard.writeText(code).then(() => {
+                btn.textContent = '✅ تم النسخ';
+                setTimeout(() => {
+                    btn.textContent = 'نسخ';
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
