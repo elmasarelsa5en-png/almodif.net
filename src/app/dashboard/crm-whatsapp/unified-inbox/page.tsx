@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   MessageSquare, 
@@ -8,27 +8,27 @@ import {
   Camera, 
   Music, 
   Plane, 
-  Filter,
   Search,
   Send,
   ArrowLeft,
   CheckCheck,
   Check,
   Image as ImageIcon,
-  Paperclip
+  Paperclip,
+  MoreVertical
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/auth-context';
-import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, where, updateDoc, doc } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 type Platform = 'whatsapp' | 'messenger' | 'snapchat' | 'instagram' | 'tiktok' | 'telegram';
 
 interface Message {
   id: string;
+  contactId: string;
   senderId: string;
   senderName: string;
   platform: Platform;
@@ -37,6 +37,7 @@ interface Message {
   isRead: boolean;
   type: 'text' | 'image' | 'file';
   mediaUrl?: string;
+  isFromStaff?: boolean;
 }
 
 interface Contact {
@@ -54,69 +55,95 @@ const platformConfig = {
     name: 'واتساب',
     icon: MessageSquare,
     color: 'text-green-400',
-    bgColor: 'from-green-900/30 to-green-800/20',
-    borderColor: 'border-green-500/40',
-    badge: 'bg-green-500/20 text-green-300 border-green-500/30'
+    bgColor: 'bg-green-500/20',
+    hoverColor: 'hover:bg-green-500/30'
   },
   messenger: {
     name: 'ماسنجر',
     icon: MessageCircle,
     color: 'text-blue-400',
-    bgColor: 'from-blue-900/30 to-blue-800/20',
-    borderColor: 'border-blue-500/40',
-    badge: 'bg-blue-500/20 text-blue-300 border-blue-500/30'
+    bgColor: 'bg-blue-500/20',
+    hoverColor: 'hover:bg-blue-500/30'
   },
   snapchat: {
     name: 'سناب شات',
     icon: Camera,
     color: 'text-yellow-300',
-    bgColor: 'from-yellow-900/30 to-yellow-800/20',
-    borderColor: 'border-yellow-500/40',
-    badge: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30'
+    bgColor: 'bg-yellow-500/20',
+    hoverColor: 'hover:bg-yellow-500/30'
   },
   instagram: {
     name: 'انستجرام',
     icon: Camera,
     color: 'text-pink-400',
-    bgColor: 'from-pink-900/30 via-purple-900/20 to-orange-900/20',
-    borderColor: 'border-pink-500/40',
-    badge: 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-pink-300 border-pink-500/30'
+    bgColor: 'bg-gradient-to-r from-pink-500/20 to-purple-500/20',
+    hoverColor: 'hover:from-pink-500/30 hover:to-purple-500/30'
   },
   tiktok: {
     name: 'تيك توك',
     icon: Music,
     color: 'text-cyan-400',
-    bgColor: 'from-gray-900/50 to-cyan-900/20',
-    borderColor: 'border-cyan-500/40',
-    badge: 'bg-gray-900/50 text-cyan-300 border-cyan-500/30'
+    bgColor: 'bg-gray-900/50',
+    hoverColor: 'hover:bg-cyan-500/30'
   },
   telegram: {
     name: 'تيليجرام',
     icon: Plane,
     color: 'text-sky-400',
-    bgColor: 'from-sky-900/30 to-blue-900/20',
-    borderColor: 'border-sky-500/40',
-    badge: 'bg-sky-500/20 text-sky-300 border-sky-500/30'
+    bgColor: 'bg-sky-500/20',
+    hoverColor: 'hover:bg-sky-500/30'
   }
 };
 
 export default function UnifiedInboxPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [filteredMessages, setFilteredMessages] = useState<Message[]>([]);
+  const [filteredContacts, setFilteredContacts] = useState<Contact[]>([]);
   const [selectedPlatform, setSelectedPlatform] = useState<Platform | 'all'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
 
-  // جلب الرسائل من Firebase
+  // جلب جهات الاتصال من Firebase
   useEffect(() => {
     if (!user) return;
 
+    const contactsRef = collection(db, 'unified_contacts');
+    const q = query(contactsRef, orderBy('lastMessageTime', 'desc'));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const contactsData: Contact[] = [];
+      snapshot.forEach((doc) => {
+        contactsData.push({
+          id: doc.id,
+          ...doc.data()
+        } as Contact);
+      });
+      setContacts(contactsData);
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
+  // جلب الرسائل للمحادثة المحددة
+  useEffect(() => {
+    if (!selectedContact) {
+      setMessages([]);
+      return;
+    }
+
     const messagesRef = collection(db, 'unified_messages');
-    const q = query(messagesRef, orderBy('timestamp', 'desc'));
+    const q = query(
+      messagesRef,
+      where('contactId', '==', selectedContact.id),
+      orderBy('timestamp', 'asc')
+    );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const messagesData: Message[] = [];
@@ -127,38 +154,41 @@ export default function UnifiedInboxPage() {
         } as Message);
       });
       setMessages(messagesData);
-      setIsLoading(false);
+      
+      // Scroll to bottom
+      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
     });
 
     return () => unsubscribe();
-  }, [user]);
+  }, [selectedContact]);
 
-  // فلترة الرسائل حسب المنصة والبحث
+  // فلترة جهات الاتصال حسب المنصة والبحث
   useEffect(() => {
-    let filtered = messages;
+    let filtered = contacts;
 
     // فلتر حسب المنصة
     if (selectedPlatform !== 'all') {
-      filtered = filtered.filter(msg => msg.platform === selectedPlatform);
+      filtered = filtered.filter(contact => contact.platform === selectedPlatform);
     }
 
     // فلتر حسب البحث
     if (searchTerm) {
-      filtered = filtered.filter(msg => 
-        msg.senderName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        msg.content.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter(contact => 
+        contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        contact.lastMessage.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
-    setFilteredMessages(filtered);
-  }, [messages, selectedPlatform, searchTerm]);
+    setFilteredContacts(filtered);
+  }, [contacts, selectedPlatform, searchTerm]);
 
   // إحصائيات المنصات
   const platformStats = Object.keys(platformConfig).map(platform => ({
     platform: platform as Platform,
-    count: messages.filter(msg => msg.platform === platform).length,
-    unread: messages.filter(msg => msg.platform === platform && !msg.isRead).length
+    unread: contacts.filter(contact => contact.platform === platform && contact.unreadCount > 0).reduce((sum, c) => sum + c.unreadCount, 0)
   }));
+
+  const totalUnread = contacts.reduce((sum, c) => sum + c.unreadCount, 0);
 
   const formatTime = (timestamp: any) => {
     if (!timestamp) return '';
@@ -170,343 +200,304 @@ export default function UnifiedInboxPage() {
     const days = Math.floor(diff / 86400000);
 
     if (minutes < 1) return 'الآن';
-    if (minutes < 60) return `منذ ${minutes} دقيقة`;
-    if (hours < 24) return `منذ ${hours} ساعة`;
-    if (days < 7) return `منذ ${days} يوم`;
-    return date.toLocaleDateString('ar-SA');
+    if (minutes < 60) return `منذ ${minutes} د`;
+    if (hours < 24) return `منذ ${hours} س`;
+    if (days < 7) return `منذ ${days} ي`;
+    return date.toLocaleDateString('ar-SA', { month: 'short', day: 'numeric' });
   };
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !user) return;
+    if (!newMessage.trim() || !user || !selectedContact) return;
 
     try {
-      const messageData: any = {
-        senderId: user.username || user.email,
+      const messageData: Message = {
+        id: '',
+        contactId: selectedContact.id,
+        senderId: user.username || user.email || '',
         senderName: user.name || 'موظف',
-        platform: selectedPlatform === 'all' ? 'whatsapp' : selectedPlatform,
+        platform: selectedContact.platform,
         content: newMessage,
         timestamp: serverTimestamp(),
         isRead: true,
         type: 'text',
-        isStaff: true
+        isFromStaff: true
       };
 
-      // إذا كان رد على رسالة
-      if (replyingTo) {
-        messageData.replyTo = {
-          id: replyingTo.id,
-          senderName: replyingTo.senderName,
-          content: replyingTo.content,
-          platform: replyingTo.platform
-        };
-      }
-
       await addDoc(collection(db, 'unified_messages'), messageData);
-
       setNewMessage('');
-      setReplyingTo(null);
     } catch (error) {
       console.error('Error sending message:', error);
     }
   };
 
-  const markAsRead = async (messageId: string) => {
-    try {
-      await updateDoc(doc(db, 'unified_messages', messageId), {
-        isRead: true
-      });
-    } catch (error) {
-      console.error('Error marking as read:', error);
-    }
-  };
-
   return (
     <div className="h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col overflow-hidden" dir="rtl">
-      {/* Header */}
-      <div className="bg-gray-800/50 backdrop-blur-xl border-b border-gray-700/50 px-3 md:px-6 py-3 md:py-4 flex-shrink-0">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 md:gap-4 min-w-0">
+      {/* Header with Platform Icons */}
+      <div className="bg-gray-800/50 backdrop-blur-xl border-b border-gray-700/50 px-6 py-4 flex-shrink-0">
+        <div className="flex items-center justify-between gap-4 mb-4">
+          <div className="flex items-center gap-4">
             <Button
               onClick={() => router.back()}
               variant="ghost"
               size="sm"
-              className="text-white hover:bg-white/10 flex-shrink-0"
+              className="text-white hover:bg-white/10"
             >
-              <ArrowLeft className="w-4 h-4 md:w-5 md:h-5 ml-1 md:ml-2" />
-              <span className="hidden sm:inline">رجوع</span>
+              <ArrowLeft className="w-5 h-5 ml-2" />
+              رجوع
             </Button>
-            <div className="min-w-0">
-              <h1 className="text-lg md:text-2xl font-bold text-white truncate">صندوق الوارد الموحد</h1>
-              <p className="text-gray-400 text-xs md:text-sm hidden md:block">جميع رسائلك من كل المنصات</p>
-            </div>
+            <h1 className="text-2xl font-bold text-white">صندوق الوارد الموحد</h1>
           </div>
 
-          {/* Stats */}
-          <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
-            <Badge variant="outline" className="bg-white/5 text-white border-white/20 text-xs">
-              {messages.length}
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="bg-white/5 text-white border-white/20">
+              {contacts.length}
             </Badge>
-            <Badge variant="outline" className="bg-red-500/20 text-red-400 border-red-500/30 text-xs">
-              {messages.filter(m => !m.isRead).length}
-            </Badge>
+            {totalUnread > 0 && (
+              <Badge variant="outline" className="bg-red-500/20 text-red-400 border-red-500/30">
+                {totalUnread} جديد
+              </Badge>
+            )}
           </div>
+        </div>
+
+        {/* Platform Filter Icons */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2">
+          {/* All Platforms */}
+          <button
+            onClick={() => setSelectedPlatform('all')}
+            className={`relative flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
+              selectedPlatform === 'all'
+                ? 'bg-gradient-to-r from-cyan-500/30 to-blue-500/30 border-2 border-cyan-500/50'
+                : 'bg-gray-700/30 hover:bg-gray-700/50 border border-gray-600/50'
+            }`}
+          >
+            <div className="text-white font-semibold">الكل</div>
+            {totalUnread > 0 && (
+              <Badge className="bg-red-500 text-white border-0 text-xs px-2">
+                {totalUnread}
+              </Badge>
+            )}
+          </button>
+
+          {/* Platform Icons */}
+          {platformStats.map(({ platform, unread }) => {
+            const config = platformConfig[platform];
+            const Icon = config.icon;
+            
+            return (
+              <button
+                key={platform}
+                onClick={() => setSelectedPlatform(platform)}
+                className={`relative flex-shrink-0 w-12 h-12 rounded-xl transition-all ${
+                  selectedPlatform === platform
+                    ? `${config.bgColor} border-2 border-${config.color.replace('text-', '')}`
+                    : `bg-gray-700/30 ${config.hoverColor} border border-gray-600/50`
+                }`}
+                title={config.name}
+              >
+                <Icon className={`w-6 h-6 ${config.color} mx-auto`} />
+                {unread > 0 && (
+                  <Badge className="absolute -top-2 -left-2 bg-red-500 text-white border-0 text-xs min-w-[20px] h-5 flex items-center justify-center px-1">
+                    {unread}
+                  </Badge>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar - Platform Filters */}
-        <div className="w-20 md:w-64 lg:w-80 bg-gray-800/30 backdrop-blur-xl border-l border-gray-700/50 flex flex-col overflow-hidden">
+        {/* Contacts Sidebar */}
+        <div className="w-96 bg-gray-800/30 backdrop-blur-xl border-l border-gray-700/50 flex flex-col overflow-hidden">
           {/* Search */}
-          <div className="p-2 md:p-4 border-b border-gray-700/50 flex-shrink-0">
-            <div className="relative hidden md:block">
+          <div className="p-4 border-b border-gray-700/50">
+            <div className="relative">
               <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
-                placeholder="بحث..."
+                placeholder="بحث في جهات الاتصال..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-gray-900/50 border-gray-700 text-white pr-10 placeholder:text-gray-500 text-sm"
+                className="bg-gray-900/50 border-gray-700 text-white pr-10 placeholder:text-gray-500"
               />
             </div>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="md:hidden w-full text-white"
-            >
-              <Search className="w-4 h-4" />
-            </Button>
           </div>
 
-          {/* Filter: All */}
-          <div className="p-4 border-b border-gray-700/50">
-            <button
-              onClick={() => setSelectedPlatform('all')}
-              className={`w-full flex items-center justify-between p-4 rounded-xl transition-all ${
-                selectedPlatform === 'all'
-                  ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border-2 border-cyan-500/50'
-                  : 'bg-gray-900/30 hover:bg-gray-900/50 border border-gray-700/50'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-lg flex items-center justify-center">
-                  <Filter className="w-5 h-5 text-white" />
-                </div>
-                <div className="text-right">
-                  <div className="text-white font-semibold">كل المنصات</div>
-                  <div className="text-gray-400 text-xs">جميع الرسائل</div>
-                </div>
-              </div>
-              <div className="flex flex-col items-end gap-1">
-                <Badge className="bg-cyan-500/20 text-cyan-400 border-0">
-                  {messages.length}
-                </Badge>
-                {messages.filter(m => !m.isRead).length > 0 && (
-                  <Badge className="bg-red-500/20 text-red-400 border-0 text-xs">
-                    {messages.filter(m => !m.isRead).length} جديد
-                  </Badge>
-                )}
-              </div>
-            </button>
-          </div>
-
-          {/* Platform Filters */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-2">
-            {platformStats.map(({ platform, count, unread }) => {
-              const config = platformConfig[platform];
-              const Icon = config.icon;
-              
-              return (
-                <button
-                  key={platform}
-                  onClick={() => setSelectedPlatform(platform)}
-                  className={`w-full flex items-center justify-between p-4 rounded-xl transition-all ${
-                    selectedPlatform === platform
-                      ? `${config.bgColor} border-2 ${config.borderColor}`
-                      : 'bg-gray-900/30 hover:bg-gray-900/50 border border-gray-700/50'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 ${config.bgColor} rounded-lg flex items-center justify-center border ${config.borderColor}`}>
-                      <Icon className={`w-5 h-5 ${config.color}`} />
-                    </div>
-                    <div className="text-right">
-                      <div className="text-white font-semibold">{config.name}</div>
-                      <div className="text-gray-400 text-xs">{count} رسالة</div>
-                    </div>
-                  </div>
-                  {unread > 0 && (
-                    <Badge className="bg-red-500/20 text-red-400 border-0">
-                      {unread}
-                    </Badge>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col">
-          {/* Messages List */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-4">
+          {/* Contacts List */}
+          <div className="flex-1 overflow-y-auto">
             {isLoading ? (
               <div className="flex items-center justify-center h-full">
                 <div className="text-gray-400 text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto mb-4"></div>
-                  <p>جاري تحميل الرسائل...</p>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500 mx-auto mb-2"></div>
+                  <p className="text-sm">جاري التحميل...</p>
                 </div>
               </div>
-            ) : filteredMessages.length === 0 ? (
+            ) : filteredContacts.length === 0 ? (
               <div className="flex items-center justify-center h-full">
-                <div className="text-gray-400 text-center">
-                  <MessageSquare className="w-16 h-16 mx-auto mb-4 opacity-30" />
-                  <p className="text-xl font-semibold mb-2">لا توجد رسائل</p>
-                  <p className="text-sm">
-                    {selectedPlatform === 'all'
-                      ? 'لم يتم استقبال أي رسائل بعد'
-                      : `لا توجد رسائل من ${platformConfig[selectedPlatform as Platform].name}`}
-                  </p>
+                <div className="text-gray-400 text-center p-4">
+                  <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-30" />
+                  <p className="text-sm">لا توجد محادثات</p>
                 </div>
               </div>
             ) : (
-              filteredMessages.map((message) => {
-                const config = platformConfig[message.platform];
+              filteredContacts.map((contact) => {
+                const config = platformConfig[contact.platform];
                 const Icon = config.icon;
-
+                
                 return (
-                  <div
-                    key={message.id}
-                    className={`flex items-start gap-3 md:gap-4 p-4 md:p-5 rounded-2xl transition-all duration-300 hover:scale-[1.02] border-2 ${
-                      message.isRead
-                        ? `bg-gradient-to-br ${config.bgColor} hover:${config.bgColor} ${config.borderColor}`
-                        : `bg-gradient-to-br ${config.bgColor} border-2 ${config.borderColor} shadow-lg`
+                  <button
+                    key={contact.id}
+                    onClick={() => setSelectedContact(contact)}
+                    className={`w-full flex items-center gap-3 p-4 border-b border-gray-700/50 transition-all ${
+                      selectedContact?.id === contact.id
+                        ? 'bg-gray-700/50'
+                        : 'hover:bg-gray-700/30'
                     }`}
                   >
-                    {/* Avatar with Platform Icon */}
+                    {/* Avatar with Platform Badge */}
                     <div className="relative flex-shrink-0">
-                      <div className={`w-12 h-12 md:w-14 md:h-14 bg-gradient-to-br ${config.bgColor} border-2 ${config.borderColor} rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-xl`}>
-                        {message.senderName.charAt(0).toUpperCase()}
+                      <div className="w-12 h-12 bg-gradient-to-br from-gray-700 to-gray-800 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                        {contact.name.charAt(0).toUpperCase()}
                       </div>
-                      <div className={`absolute -bottom-2 -left-2 w-7 h-7 md:w-8 md:h-8 bg-gradient-to-br ${config.bgColor} rounded-xl flex items-center justify-center border-3 border-gray-900 shadow-lg`}>
-                        <Icon className={`w-4 h-4 md:w-5 md:h-5 ${config.color}`} />
+                      <div className={`absolute -bottom-1 -left-1 w-6 h-6 ${config.bgColor} rounded-full flex items-center justify-center border-2 border-gray-900`}>
+                        <Icon className={`w-3 h-3 ${config.color}`} />
                       </div>
                     </div>
 
-                    {/* Message Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-2 flex-wrap">
-                        <span className="text-white font-bold text-base md:text-lg truncate">{message.senderName}</span>
-                        <Badge className={`${config.badge} border text-xs font-semibold px-2 py-1`}>
-                          {config.name}
-                        </Badge>
-                        <span className="text-gray-400 text-xs hidden sm:inline">{formatTime(message.timestamp)}</span>
-                        {!message.isRead && (
-                          <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white border-0 text-xs font-bold animate-pulse">
-                            جديد
+                    {/* Contact Info */}
+                    <div className="flex-1 min-w-0 text-right">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-white font-semibold truncate">{contact.name}</span>
+                        <span className="text-gray-400 text-xs flex-shrink-0 mr-2">{formatTime(contact.lastMessageTime)}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <p className="text-gray-400 text-sm truncate">{contact.lastMessage}</p>
+                        {contact.unreadCount > 0 && (
+                          <Badge className="bg-green-500 text-white border-0 text-xs flex-shrink-0 mr-2">
+                            {contact.unreadCount}
                           </Badge>
                         )}
                       </div>
-                      
-                      {/* Reply To */}
-                      {(message as any).replyTo && (
-                        <div className="bg-gray-700/30 border-r-2 border-cyan-500 pr-2 mb-2 py-1">
-                          <p className="text-xs text-gray-400">رداً على {(message as any).replyTo.senderName}</p>
-                          <p className="text-xs text-gray-500 truncate">{(message as any).replyTo.content}</p>
-                        </div>
-                      )}
-                      
-                      <p className="text-gray-300 text-xs md:text-sm break-words">{message.content}</p>
-                      
-                      {/* Reply Button */}
-                      <div className="mt-2 flex items-center gap-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => setReplyingTo(message)}
-                          className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 h-7 text-xs"
-                        >
-                          <Send className="w-3 h-3 ml-1" />
-                          رد
-                        </Button>
-                        {!message.isRead && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => markAsRead(message.id)}
-                            className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 h-7 text-xs"
-                          >
-                            <CheckCheck className="w-3 h-3 ml-1" />
-                            تحديد كمقروء
-                          </Button>
-                        )}
-                      </div>
                     </div>
-
-                    {/* Read Status */}
-                    <div className="flex-shrink-0 self-start pt-1">
-                      {message.isRead ? (
-                        <CheckCheck className="w-3 h-3 md:w-4 md:h-4 text-blue-500" />
-                      ) : (
-                        <Check className="w-3 h-3 md:w-4 md:h-4 text-gray-500" />
-                      )}
-                    </div>
-                  </div>
+                  </button>
                 );
               })
             )}
           </div>
+        </div>
 
-          {/* Message Input */}
-          <div className="bg-gray-800/50 backdrop-blur-xl border-t border-gray-700/50 p-2 md:p-4 flex-shrink-0">
-            {/* Reply Preview */}
-            {replyingTo && (
-              <div className="mb-2 bg-gray-700/30 border-r-2 border-cyan-500 pr-3 py-2 rounded flex items-center justify-between">
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-cyan-400">رد على {replyingTo.senderName}</p>
-                  <p className="text-xs text-gray-400 truncate">{replyingTo.content}</p>
+        {/* Chat Area */}
+        <div className="flex-1 flex flex-col">
+          {!selectedContact ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-gray-400 text-center">
+                <MessageSquare className="w-24 h-24 mx-auto mb-4 opacity-20" />
+                <p className="text-2xl font-semibold mb-2">اختر محادثة</p>
+                <p>اختر محادثة من القائمة لبدء المراسلة</p>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Chat Header */}
+              <div className="bg-gray-800/50 backdrop-blur-xl border-b border-gray-700/50 px-6 py-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <div className="w-10 h-10 bg-gradient-to-br from-gray-700 to-gray-800 rounded-full flex items-center justify-center text-white font-bold">
+                      {selectedContact.name.charAt(0).toUpperCase()}
+                    </div>
+                    {(() => {
+                      const config = platformConfig[selectedContact.platform];
+                      const Icon = config.icon;
+                      return (
+                        <div className={`absolute -bottom-1 -left-1 w-5 h-5 ${config.bgColor} rounded-full flex items-center justify-center border-2 border-gray-900`}>
+                          <Icon className={`w-3 h-3 ${config.color}`} />
+                        </div>
+                      );
+                    })()}
+                  </div>
+                  <div>
+                    <h3 className="text-white font-semibold">{selectedContact.name}</h3>
+                    <p className="text-gray-400 text-xs">{platformConfig[selectedContact.platform].name}</p>
+                  </div>
                 </div>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setReplyingTo(null)}
-                  className="text-gray-400 hover:text-white h-7 w-7 p-0"
-                >
-                  ×
+                <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white">
+                  <MoreVertical className="w-5 h-5" />
                 </Button>
               </div>
-            )}
-            
-            <div className="flex items-center gap-2 md:gap-3">
-              <Button
-                size="icon"
-                variant="ghost"
-                className="text-gray-400 hover:text-white hover:bg-gray-700 hidden md:flex h-8 w-8 md:h-10 md:w-10"
-              >
-                <Paperclip className="w-4 h-4 md:w-5 md:h-5" />
-              </Button>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="text-gray-400 hover:text-white hover:bg-gray-700 hidden md:flex h-8 w-8 md:h-10 md:w-10"
-              >
-                <ImageIcon className="w-4 h-4 md:w-5 md:h-5" />
-              </Button>
-              <Input
-                placeholder="اكتب رسالتك..."
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-                className="flex-1 bg-gray-900/50 border-gray-700 text-white placeholder:text-gray-500 text-sm md:text-base"
-              />
-              <Button
-                onClick={handleSendMessage}
-                disabled={!newMessage.trim()}
-                className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white h-8 md:h-10 px-3 md:px-4"
-              >
-                <Send className="w-4 h-4 md:w-5 md:h-5 ml-1 md:ml-2" />
-                <span className="hidden sm:inline">إرسال</span>
-              </Button>
-            </div>
-          </div>
+
+              {/* Messages */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-2">
+                {messages.map((message) => {
+                  const isFromStaff = message.isFromStaff || message.senderId === (user?.username || user?.email);
+                  
+                  return (
+                    <div
+                      key={message.id}
+                      className={`flex ${isFromStaff ? 'justify-start' : 'justify-end'}`}
+                    >
+                      <div className={`max-w-[70%] ${isFromStaff ? 'order-2' : 'order-1'}`}>
+                        <div
+                          className={`px-4 py-2 rounded-2xl ${
+                            isFromStaff
+                              ? 'bg-gray-700/50 text-white rounded-tr-none'
+                              : 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-tl-none'
+                          }`}
+                        >
+                          <p className="text-sm break-words">{message.content}</p>
+                        </div>
+                        <div className={`flex items-center gap-1 mt-1 text-xs text-gray-400 ${isFromStaff ? 'justify-start' : 'justify-end'}`}>
+                          <span>{formatTime(message.timestamp)}</span>
+                          {!isFromStaff && (
+                            message.isRead ? (
+                              <CheckCheck className="w-3 h-3 text-blue-400" />
+                            ) : (
+                              <Check className="w-3 h-3" />
+                            )
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Message Input */}
+              <div className="bg-gray-800/50 backdrop-blur-xl border-t border-gray-700/50 p-4">
+                <div className="flex items-center gap-3">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="text-gray-400 hover:text-white hover:bg-gray-700"
+                  >
+                    <Paperclip className="w-5 h-5" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="text-gray-400 hover:text-white hover:bg-gray-700"
+                  >
+                    <ImageIcon className="w-5 h-5" />
+                  </Button>
+                  <Input
+                    placeholder="اكتب رسالتك..."
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+                    className="flex-1 bg-gray-900/50 border-gray-700 text-white placeholder:text-gray-500"
+                  />
+                  <Button
+                    onClick={handleSendMessage}
+                    disabled={!newMessage.trim()}
+                    className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white"
+                  >
+                    <Send className="w-5 h-5 ml-2" />
+                    إرسال
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
