@@ -14,7 +14,7 @@ import {
   markAllNotificationsAsRead,
   type EmployeeNotification,
 } from '@/lib/firebase-data';
-import { playNotificationSound } from '@/lib/notification-sounds';
+import { playNotificationSound, startEmployeeAlert } from '@/lib/notification-sounds';
 
 interface EmployeeNotificationsProps {
   employeeId: string;
@@ -42,8 +42,9 @@ export default function EmployeeNotifications({ employeeId, employeeName }: Empl
 
         // تشغيل صوت عند وصول إشعار جديد
         if (unread > previousCount && previousCount > 0) {
-          console.log('🔊 إشعار جديد! تشغيل الصوت...');
-          playNotificationSound('new-request');
+          console.log('🔊 إشعار جديد! تشغيل النغمة المتكررة...');
+          // تشغيل النغمة المتكررة - تستمر لحد ما الموظف يقبل الطلب
+          startEmployeeAlert();
           
           // إظهار browser notification
           if ('Notification' in window && Notification.permission === 'granted') {
@@ -53,6 +54,7 @@ export default function EmployeeNotifications({ employeeId, employeeName }: Empl
                 body: latestNotification.message,
                 icon: '/images/logo.png',
                 badge: '/images/logo.png',
+                requireInteraction: true, // الإشعار يفضل ظاهر لحد ما المستخدم يتفاعل معاه
               });
             }
           }

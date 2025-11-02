@@ -451,9 +451,6 @@ export default function NewRequestPage() {
         saveToLinkedSection({ ...newRequest, id: docId }, selectedType.linkedSection);
       }
 
-      // Play notification sound for the assigned employee
-      playNotificationSound('new-request');
-
       // Show success message
       setSuccessMessage('✅ تم إنشاء الطلب بنجاح! سيتم إخطار الموظف والمدير.');
 

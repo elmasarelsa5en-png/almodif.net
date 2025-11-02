@@ -170,17 +170,9 @@ export default function EmployeeRequestsPage() {
       logAction.approveRequest(request.room, request.type, id);
     }
     
-    // إيقاف النغمة المتكررة بعد الموافقة على آخر طلب
-    const remainingPending = updatedAll.filter(
-      (req: GuestRequest) => 
-        req.assignedEmployee === user?.username && 
-        req.employeeApprovalStatus === 'pending'
-    );
-    
-    if (remainingPending.length === 0) {
-      console.log('✅ All requests approved, stopping alert...');
-      stopEmployeeAlert();
-    }
+    // إيقاف النغمة المتكررة فوراً عند قبول أي طلب
+    console.log('✅ Request approved, stopping alert sound immediately...');
+    stopEmployeeAlert();
     
     // Update linked section order if exists
     if (request && (request as any).linkedSection && (request as any).originalOrderId) {
