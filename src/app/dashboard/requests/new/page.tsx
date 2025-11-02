@@ -21,6 +21,7 @@ import { getRequestTypes, type RequestType } from '@/lib/requests-management';
 import { playNotificationSound } from '@/lib/notification-sounds';
 import { logAction } from '@/lib/audit-log';
 import { addRequest, getEmployees, sendNotificationToEmployee } from '@/lib/firebase-data';
+import { useLanguage } from '@/contexts/language-context';
 
 interface GuestRequest {
   id: string;
@@ -60,6 +61,7 @@ interface Employee {
 
 export default function NewRequestPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [requestTypes, setRequestTypes] = useState<RequestType[]>([]);
@@ -69,11 +71,11 @@ export default function NewRequestPage() {
   
   // حالات جديدة لأقسام المنيو
   const [menuCategories] = useState([
-    { value: 'coffee', label: 'كوفي شوب', icon: '☕' },
-    { value: 'restaurant', label: 'مطعم', icon: '🍽️' },
-    { value: 'laundry', label: 'مغسلة', icon: '👔' },
-    { value: 'room-services', label: 'خدمات الغرف', icon: '🛏️' },
-    { value: 'reception', label: 'خدمات الاستقبال', icon: '🔔' },
+    { value: 'coffee', label: t('coffeeShop'), icon: '☕' },
+    { value: 'restaurant', label: t('restaurant'), icon: '🍽️' },
+    { value: 'laundry', label: t('laundry'), icon: '👔' },
+    { value: 'room-services', label: t('roomServices'), icon: '🛏️' },
+    { value: 'reception', label: t('receptionServices'), icon: '🔔' },
   ]);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [menuItems, setMenuItems] = useState<any[]>([]);
@@ -655,17 +657,17 @@ export default function NewRequestPage() {
                 className="border-white/20 bg-white/10 text-white hover:bg-white/20"
               >
                 <ArrowLeft className="w-4 h-4 ml-2" />
-                العودة
+                {t('back')}
               </Button>
               <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
                 <Plus className="w-8 h-8 text-white" />
               </div>
               <div>
                 <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-green-200 bg-clip-text text-transparent">
-                  طلب جديد
+                  {t('createNewRequest')}
                 </h1>
                 <p className="text-green-200/80">
-                  إنشاء طلب جديد من النزيل
+                  {t('createNewRequestDesc')}
                 </p>
               </div>
             </div>
@@ -684,7 +686,7 @@ export default function NewRequestPage() {
           {/* Form */}
           <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-2xl">
             <CardHeader>
-              <CardTitle className="text-white text-2xl">معلومات الطلب</CardTitle>
+              <CardTitle className="text-white text-2xl">{t('requestInfo')}</CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -694,7 +696,7 @@ export default function NewRequestPage() {
                   <div className="space-y-2">
                     <label className="text-white/80 text-sm font-semibold flex items-center gap-2">
                       <AlertCircle className="w-4 h-4 text-yellow-400" />
-                      رقم الغرفة
+                      {t('roomNumber')}
                       <span className="text-red-400">*</span>
                     </label>
                     <select
@@ -711,7 +713,7 @@ export default function NewRequestPage() {
                         paddingLeft: '28px',
                       }}
                     >
-                      <option value="" className="bg-slate-900">-- اختر الغرفة --</option>
+                      <option value="" className="bg-slate-900">{t('selectRoom')}</option>
                       {rooms.map((room) => (
                         <option key={room.id} value={room.number} className="bg-slate-900">
                           الغرفة {room.number} - {room.guestName || 'بدون نزيل'}
@@ -725,7 +727,7 @@ export default function NewRequestPage() {
                   <div className="space-y-2">
                     <label className="text-white/80 text-sm font-semibold flex items-center gap-2">
                       <User className="w-4 h-4 text-blue-400" />
-                      اسم النزيل
+                      {t('guestName')}
                       <span className="text-red-400">*</span>
                     </label>
                     <Input
@@ -733,7 +735,7 @@ export default function NewRequestPage() {
                       name="guest"
                       value={formData.guest}
                       onChange={handleInputChange}
-                      placeholder="سيتم ملؤه تلقائياً"
+                      placeholder={t('autoFilled')}
                       readOnly
                       className={`bg-white/10 border-2 text-white placeholder:text-white/50 cursor-not-allowed ${
                         errors.guest ? 'border-red-500' : 'border-white/20'
@@ -746,7 +748,7 @@ export default function NewRequestPage() {
                   <div className="space-y-2">
                     <label className="text-white/80 text-sm font-semibold flex items-center gap-2">
                       <Phone className="w-4 h-4 text-purple-400" />
-                      رقم الهاتف
+                      {t('phoneNumber')}
                       <span className="text-red-400">*</span>
                     </label>
                     <Input
@@ -754,7 +756,7 @@ export default function NewRequestPage() {
                       name="phone"
                       value={formData.phone}
                       onChange={handleInputChange}
-                      placeholder="سيتم ملؤه تلقائياً"
+                      placeholder={t('autoFilled')}
                       readOnly
                       className="bg-white/10 border-2 border-white/20 focus:border-green-500 text-white placeholder:text-white/50 cursor-not-allowed"
                     />
@@ -764,7 +766,7 @@ export default function NewRequestPage() {
                   <div className="space-y-2 md:col-span-2">
                     <label className="text-white/80 text-sm font-semibold flex items-center gap-2">
                       <FileText className="w-4 h-4 text-indigo-400" />
-                      نوع الطلب (اختر القسم)
+                      {t('requestTypeLabel')}
                       <span className="text-red-400">*</span>
                     </label>
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
@@ -917,7 +919,7 @@ export default function NewRequestPage() {
                   <div className="space-y-2 md:col-span-2">
                     <label className="text-white/80 text-sm font-semibold flex items-center gap-2">
                       <Users className="w-4 h-4 text-cyan-400" />
-                      تعيين الموظف
+                      {t('assignEmployee')}
                       <span className="text-red-400">*</span>
                     </label>
                     <select
@@ -934,7 +936,7 @@ export default function NewRequestPage() {
                         paddingLeft: '28px',
                       }}
                     >
-                      <option value="" className="bg-slate-900">-- اختر موظف --</option>
+                      <option value="" className="bg-slate-900">{t('selectEmployee')}</option>
                       {employees.map((emp) => {
                         const designation = emp.position || emp.role || emp.department || '';
                         return (
@@ -949,7 +951,7 @@ export default function NewRequestPage() {
 
                   {/* Priority */}
                   <div className="space-y-2 md:col-span-2">
-                    <label className="text-white/80 text-sm font-semibold">الأولوية</label>
+                    <label className="text-white/80 text-sm font-semibold">{t('priority')}</label>
                     <div className="flex gap-2">
                       {(['low', 'medium', 'high'] as const).map((priority) => (
                         <button
@@ -966,7 +968,7 @@ export default function NewRequestPage() {
                               : 'bg-white/10 border-2 border-white/20 text-white/70 hover:bg-white/20'
                           }`}
                         >
-                          {priority === 'low' ? 'منخفضة' : priority === 'medium' ? 'متوسطة' : 'عالية'}
+                          {priority === 'low' ? t('low') : priority === 'medium' ? t('medium') : t('high')}
                         </button>
                       ))}
                     </div>
@@ -978,20 +980,20 @@ export default function NewRequestPage() {
                   <Card className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 backdrop-blur-md border-green-400/30">
                     <CardHeader className="pb-3">
                       <CardTitle className="text-white flex items-center gap-2">
-                        💰 تفاصيل الدفع
+                        💰 {t('paymentDetails')}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-5">
                       {/* إجمالي المبلغ */}
                       <div className="bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border-2 border-emerald-400/40 rounded-xl p-5 text-center shadow-lg">
-                        <p className="text-sm text-emerald-200/80 mb-2 font-medium">💰 إجمالي المبلغ</p>
+                        <p className="text-sm text-emerald-200/80 mb-2 font-medium">💰 {t('totalAmountLabel')}</p>
                         <p className="text-4xl font-bold text-white drop-shadow-lg">{formData.totalAmount} <span className="text-2xl text-emerald-200">ر.س</span></p>
                       </div>
 
                       {/* طريقة الدفع */}
                       <div className="space-y-3">
                         <label className="text-white text-base font-bold flex items-center gap-2">
-                          💳 طريقة الدفع
+                          💳 {t('paymentMethodLabel')}
                         </label>
                         <div className="grid grid-cols-3 gap-3">
                           <button
@@ -1003,7 +1005,7 @@ export default function NewRequestPage() {
                                 : 'bg-slate-700/50 border-2 border-slate-600/50 text-slate-300 hover:bg-slate-600/50 hover:border-slate-500'
                             }`}
                           >
-                            📋 إضافة للدين
+                            📋 {t('addToRoomDebt')}
                           </button>
                           <button
                             type="button"
@@ -1014,7 +1016,7 @@ export default function NewRequestPage() {
                                 : 'bg-slate-700/50 border-2 border-slate-600/50 text-slate-300 hover:bg-slate-600/50 hover:border-slate-500'
                             }`}
                           >
-                            💵 نقدي
+                            💵 {t('cash')}
                           </button>
                           <button
                             type="button"
@@ -1025,7 +1027,7 @@ export default function NewRequestPage() {
                                 : 'bg-slate-700/50 border-2 border-slate-600/50 text-slate-300 hover:bg-slate-600/50 hover:border-slate-500'
                             }`}
                           >
-                            💳 بطاقة
+                            💳 {t('card')}
                           </button>
                         </div>
                         {formData.paymentMethod === 'debt' && (
@@ -1047,14 +1049,14 @@ export default function NewRequestPage() {
                 <div className="space-y-2">
                   <label className="text-white/80 text-sm font-semibold flex items-center gap-2">
                     <FileText className="w-4 h-4 text-cyan-400" />
-                    الملاحظات
-                    <span className="text-white/50 text-xs">(اختياري)</span>
+                    {t('notes')}
+                    <span className="text-white/50 text-xs">({t('optional')})</span>
                   </label>
                   <textarea
                     name="notes"
                     value={formData.notes}
                     onChange={handleInputChange}
-                    placeholder="أدخل الملاحظات والتفاصيل (اختياري)..."
+                    placeholder={t('notesPlaceholder')}
                     rows={5}
                     className={`w-full bg-white/10 border-2 text-white placeholder:text-white/50 p-3 rounded-lg focus:outline-none resize-none ${
                       errors.notes ? 'border-red-500' : 'border-white/20 focus:border-green-500'
@@ -1081,7 +1083,7 @@ export default function NewRequestPage() {
                     className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed flex-1"
                   >
                     <Send className="w-4 h-4 ml-2" />
-                    {isSubmitting ? 'جاري الإنشاء...' : 'إنشاء الطلب'}
+                    {isSubmitting ? t('submitting') : t('submitRequest')}
                   </Button>
                   <Button
                     type="button"
