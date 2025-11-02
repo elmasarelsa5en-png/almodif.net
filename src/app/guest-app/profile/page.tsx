@@ -18,6 +18,8 @@ interface GuestProfile {
   phone: string;
   email: string;
   nationalId: string;
+  nationalIdCopy?: string;
+  dateOfBirth?: string;
   roomNumber: string;
   checkInDate: string;
   photo?: string;
@@ -35,6 +37,8 @@ export default function ProfilePage() {
     phone: '',
     email: '',
     nationalId: '',
+    nationalIdCopy: '',
+    dateOfBirth: '',
     roomNumber: '',
     checkInDate: '',
     photo: '',
@@ -68,6 +72,8 @@ export default function ProfilePage() {
       phone: guestData.phone || '',
       email: guestData.email || '',
       nationalId: guestData.nationalId || '',
+      nationalIdCopy: guestData.nationalIdCopy || '',
+      dateOfBirth: guestData.dateOfBirth || '',
       roomNumber: guestData.roomNumber || '',
       checkInDate: guestData.checkInDate || '',
       photo: guestData.photo || '',
@@ -114,11 +120,43 @@ export default function ProfilePage() {
         const guestData = JSON.parse(session);
         const updatedData = {
           ...guestData,
-          ...profile
+          name: profile.name,
+          phone: profile.phone,
+          email: profile.email,
+          nationalId: profile.nationalId,
+          nationalIdCopy: profile.nationalIdCopy || '',
+          dateOfBirth: profile.dateOfBirth || '',
+          nationality: profile.nationality || '',
+          address: profile.address || '',
+          photo: profile.photo || '',
+          roomNumber: profile.roomNumber,
+          checkInDate: profile.checkInDate
         };
         localStorage.setItem('guest_session', JSON.stringify(updatedData));
         
-        // يمكن إضافة حفظ في Firebase هنا
+        // حفظ في Firebase للتكامل مع منصة شموس
+        try {
+          const { db } = await import('@/lib/firebase');
+          const { doc, updateDoc } = await import('firebase/firestore');
+          
+          if (guestData.id) {
+            await updateDoc(doc(db, 'guests', guestData.id), {
+              name: profile.name,
+              phone: profile.phone,
+              email: profile.email,
+              nationalIdCopy: profile.nationalIdCopy || '',
+              dateOfBirth: profile.dateOfBirth || '',
+              nationality: profile.nationality || '',
+              address: profile.address || '',
+              photo: profile.photo || '',
+              updatedAt: new Date().toISOString()
+            });
+            console.log('✅ تم حفظ البيانات في Firebase للتكامل مع منصة شموس');
+          }
+        } catch (firebaseError) {
+          console.error('⚠️ خطأ في حفظ Firebase:', firebaseError);
+          // نستمر حتى لو فشل Firebase - البيانات محفوظة محلياً
+        }
         
         setShowSuccess(true);
         setIsEditing(false);
@@ -446,6 +484,42 @@ export default function ProfilePage() {
                         value={profile.nationalId}
                         disabled
                         className="bg-slate-900/30 border-slate-700 text-slate-400 cursor-not-allowed"
+                        dir="ltr"
+                      />
+                    </div>
+
+                    {/* National ID Copy Number */}
+                    <div>
+                      <Label className="text-slate-300 mb-2 flex items-center gap-2">
+                        <CreditCard className="w-4 h-4 text-amber-400" />
+                        رقم نسخة البطاقة
+                      </Label>
+                      <Input
+                        value={profile.nationalIdCopy}
+                        onChange={(e) => {
+                          setProfile(prev => ({ ...prev, nationalIdCopy: e.target.value }));
+                          setIsEditing(true);
+                        }}
+                        className="bg-slate-900/50 border-slate-700 text-white focus:border-amber-400"
+                        placeholder="رقم نسخة البطاقة"
+                        dir="ltr"
+                      />
+                    </div>
+
+                    {/* Date of Birth */}
+                    <div>
+                      <Label className="text-slate-300 mb-2 flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-amber-400" />
+                        تاريخ الميلاد
+                      </Label>
+                      <Input
+                        type="date"
+                        value={profile.dateOfBirth}
+                        onChange={(e) => {
+                          setProfile(prev => ({ ...prev, dateOfBirth: e.target.value }));
+                          setIsEditing(true);
+                        }}
+                        className="bg-slate-900/50 border-slate-700 text-white focus:border-amber-400"
                         dir="ltr"
                       />
                     </div>
