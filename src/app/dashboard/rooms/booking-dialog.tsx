@@ -1265,134 +1265,133 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
               </div>
             </div>
 
-            {/* المالية - Financial Table */}
+            {/* المالية - Financial Section - Compact 3 Columns */}
             <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
               <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
                 <h3 className="text-lg font-bold text-gray-800">المالية</h3>
               </div>
-              <table className="w-full">
-                <tbody>
-                  {/* المقبوضات */}
-                  <tr className="border-b border-gray-200">
-                    <td className="px-4 py-3 text-sm font-semibold text-gray-600 w-1/3">المقبوضات</td>
-                    <td className="px-4 py-3">
-                      <div className="space-y-2">
-                        {deposits.map((amount, index) => (
-                          <div key={index} className="flex gap-2">
-                            <input
-                              type="number"
-                              value={amount}
-                              onChange={(e) => {
-                                const newDeposits = [...deposits];
-                                newDeposits[index] = parseFloat(e.target.value) || 0;
-                                setDeposits(newDeposits);
-                              }}
-                              className="flex-1 px-2 py-1 border border-gray-300 rounded"
-                            />
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setDeposits(deposits.filter((_, i) => i !== index))}
-                              className="border-red-500 text-red-600 hover:bg-red-50"
-                            >
-                              حذف
-                            </Button>
-                          </div>
-                        ))}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setDeposits([...deposits, 0])}
-                          className="w-full border-gray-300"
-                        >
-                          <Plus className="h-4 w-4 ml-2" />
-                          إضافة
-                        </Button>
-                        <p className="text-sm text-gray-600">الإجمالي: <span className="font-bold text-green-600">{totalDeposits} ر.س</span></p>
-                      </div>
-                    </td>
-                  </tr>
+              
+              {/* Section 1: المقبوضات و بدل الإيجار و الإيجار اليومي - في صف واحد */}
+              <div className="grid grid-cols-3 gap-4 p-4 border-b border-gray-200">
+                {/* المقبوضات */}
+                <div className="space-y-2">
+                  <h4 className="text-sm font-bold text-gray-700 mb-2">المقبوضات</h4>
+                  {deposits.map((amount, index) => (
+                    <div key={index} className="flex gap-2">
+                      <input
+                        type="number"
+                        value={amount}
+                        onChange={(e) => {
+                          const newDeposits = [...deposits];
+                          newDeposits[index] = parseFloat(e.target.value) || 0;
+                          setDeposits(newDeposits);
+                        }}
+                        className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setDeposits(deposits.filter((_, i) => i !== index))}
+                        className="border-red-500 text-red-600 hover:bg-red-50 px-2"
+                      >
+                        ×
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setDeposits([...deposits, 0])}
+                    className="w-full border-gray-300 text-xs"
+                  >
+                    <Plus className="h-3 w-3 ml-1" />
+                    إضافة
+                  </Button>
+                  <p className="text-xs text-gray-600 font-semibold bg-green-50 px-2 py-1 rounded">
+                    الإجمالي: <span className="text-green-600">{totalDeposits} ر.س</span>
+                  </p>
+                </div>
 
-                  {/* بدل الإيجار */}
-                  <tr className="border-b border-gray-200">
-                    <td className="px-4 py-3 text-sm font-semibold text-gray-600">بدل الإيجار (مدفوع من الفندق)</td>
-                    <td className="px-4 py-3">
-                      <div className="space-y-2">
-                        {advancePayments.map((amount, index) => (
-                          <div key={index} className="flex gap-2">
-                            <input
-                              type="number"
-                              value={amount}
-                              onChange={(e) => {
-                                const newAdvance = [...advancePayments];
-                                newAdvance[index] = parseFloat(e.target.value) || 0;
-                                setAdvancePayments(newAdvance);
-                              }}
-                              className="flex-1 px-2 py-1 border border-gray-300 rounded"
-                            />
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setAdvancePayments(advancePayments.filter((_, i) => i !== index))}
-                              className="border-red-500 text-red-600 hover:bg-red-50"
-                            >
-                              حذف
-                            </Button>
-                          </div>
-                        ))}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setAdvancePayments([...advancePayments, 0])}
-                          className="w-full border-gray-300"
-                        >
-                          <Plus className="h-4 w-4 ml-2" />
-                          إضافة
-                        </Button>
-                        <p className="text-sm text-gray-600">الإجمالي: <span className="font-bold text-blue-600">{totalAdvance} ر.س</span></p>
-                      </div>
-                    </td>
-                  </tr>
+                {/* بدل الإيجار */}
+                <div className="space-y-2">
+                  <h4 className="text-sm font-bold text-gray-700 mb-2">بدل الإيجار (من الفندق)</h4>
+                  {advancePayments.map((amount, index) => (
+                    <div key={index} className="flex gap-2">
+                      <input
+                        type="number"
+                        value={amount}
+                        onChange={(e) => {
+                          const newAdvance = [...advancePayments];
+                          newAdvance[index] = parseFloat(e.target.value) || 0;
+                          setAdvancePayments(newAdvance);
+                        }}
+                        className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setAdvancePayments(advancePayments.filter((_, i) => i !== index))}
+                        className="border-red-500 text-red-600 hover:bg-red-50 px-2"
+                      >
+                        ×
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setAdvancePayments([...advancePayments, 0])}
+                    className="w-full border-gray-300 text-xs"
+                  >
+                    <Plus className="h-3 w-3 ml-1" />
+                    إضافة
+                  </Button>
+                  <p className="text-xs text-gray-600 font-semibold bg-blue-50 px-2 py-1 rounded">
+                    الإجمالي: <span className="text-blue-600">{totalAdvance} ر.س</span>
+                  </p>
+                </div>
 
-                  {/* الإيجار اليومي */}
-                  <tr className="border-b border-gray-200">
-                    <td className="px-4 py-3 text-sm font-semibold text-gray-600">الإيجار اليومي</td>
-                    <td className="px-4 py-3">
+                {/* الإيجار اليومي و عدد الأيام */}
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm font-bold text-gray-700 block mb-1">الإيجار اليومي</label>
+                    <div className="flex items-center gap-2">
                       <input
                         type="number"
                         value={dailyRate}
                         onChange={(e) => setDailyRate(parseFloat(e.target.value) || 0)}
-                        className="w-32 px-2 py-1 border border-gray-300 rounded"
+                        className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
                       />
-                      <span className="text-sm text-gray-500 mr-2">ر.س</span>
-                    </td>
-                  </tr>
+                      <span className="text-xs text-gray-500">ر.س</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-bold text-gray-700 block mb-1">عدد الأيام</label>
+                    <div className="px-2 py-1 bg-gray-100 rounded text-sm font-bold text-gray-900">
+                      {numberOfDays} يوم
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-                  {/* عدد الأيام */}
-                  <tr className="border-b border-gray-200">
-                    <td className="px-4 py-3 text-sm font-semibold text-gray-600">عدد الأيام</td>
-                    <td className="px-4 py-3 font-bold text-gray-900">{numberOfDays} يوم</td>
-                  </tr>
-
-                  {/* المبلغ الإجمالي */}
-                  <tr className="border-b border-gray-200 bg-blue-50">
-                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">المبلغ الإجمالي</td>
-                    <td className="px-4 py-3 font-bold text-xl text-blue-600">{totalAmount} ر.س</td>
-                  </tr>
-
-                  {/* المقبوضات */}
-                  <tr className="border-b border-gray-200 bg-green-50">
-                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">المدفوع</td>
-                    <td className="px-4 py-3 font-bold text-lg text-green-600">{totalDeposits} ر.س</td>
-                  </tr>
-
-                  {/* المتبقي */}
-                  <tr className="bg-red-50">
-                    <td className="px-4 py-3 text-sm font-semibold text-gray-700">المتبقي</td>
-                    <td className="px-4 py-3 font-bold text-2xl text-red-600">{remaining} ر.س</td>
-                  </tr>
-                </tbody>
-              </table>
+              {/* Section 2: الملخص المالي - في صف واحد */}
+              <div className="grid grid-cols-3 gap-4 p-4 bg-gradient-to-r from-blue-50 via-green-50 to-red-50">
+                <div className="text-center p-3 bg-blue-100 rounded-lg border-2 border-blue-300">
+                  <p className="text-xs text-gray-600 mb-1">المبلغ الإجمالي</p>
+                  <p className="text-2xl font-bold text-blue-600">{totalAmount}</p>
+                  <p className="text-xs text-gray-500">ر.س</p>
+                </div>
+                <div className="text-center p-3 bg-green-100 rounded-lg border-2 border-green-300">
+                  <p className="text-xs text-gray-600 mb-1">المدفوع</p>
+                  <p className="text-2xl font-bold text-green-600">{totalDeposits}</p>
+                  <p className="text-xs text-gray-500">ر.س</p>
+                </div>
+                <div className="text-center p-3 bg-red-100 rounded-lg border-2 border-red-300">
+                  <p className="text-xs text-gray-600 mb-1">المتبقي</p>
+                  <p className="text-2xl font-bold text-red-600">{remaining}</p>
+                  <p className="text-xs text-gray-500">ر.س</p>
+                </div>
+              </div>
             </div>
           </div>
 
