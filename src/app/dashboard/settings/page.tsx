@@ -41,6 +41,15 @@ export default function SettingsPage() {
   // إعدادات المنشأة - للفندق
   const hotelSettings = [
     {
+      id: 'legal-compliance',
+      title: 'الامتثال القانوني',
+      description: 'الربط مع منصة شموس والزكاة والضريبة - التراخيص والرقم الضريبي',
+      icon: Building2,
+      color: 'from-purple-500 via-pink-500 to-red-500',
+      href: '/dashboard/settings/legal-compliance',
+      badge: '🛡️ مهم'
+    },
+    {
       id: 'bank-account',
       title: 'الحساب البنكي',
       description: 'إعدادات بيانات الحساب البنكي للتحويلات المالية',
