@@ -782,7 +782,7 @@ export default function RoomsPage() {
               <div>
                 <p className="text-xs font-bold text-white drop-shadow-md">{config.label}</p>
                 {isCheckoutToday && (
-                  <p className="text-[10px] text-yellow-300 font-bold">خروج اليوم</p>
+                  <p className="text-[10px] text-yellow-300 font-bold">{t('checkoutToday')}</p>
                 )}
               </div>
             </div>
@@ -808,13 +808,13 @@ export default function RoomsPage() {
                 {/* عرض الديون إذا كانت موجودة */}
                 {(room.currentDebt || 0) > 0 && (
                   <div className="mt-2 pt-2 border-t border-white/20">
-                    <p className="text-xs text-yellow-300 font-bold">💰 الدين الحالي</p>
+                    <p className="text-xs text-yellow-300 font-bold">{t('currentDebt')}</p>
                     <p className="text-lg font-bold text-white mt-1">{room.currentDebt} ر.س</p>
                     {(room.roomDebt || 0) > 0 && (
-                      <p className="text-[10px] text-white/70">إقامة: {room.roomDebt} ر.س</p>
+                      <p className="text-[10px] text-white/70">{t('accommodationDebt', { amount: room.roomDebt })}</p>
                     )}
                     {(room.servicesDebt || 0) > 0 && (
-                      <p className="text-[10px] text-white/70">خدمات: {room.servicesDebt} ر.س</p>
+                      <p className="text-[10px] text-white/70">{t('servicesDebt', { amount: room.servicesDebt })}</p>
                     )}
                   </div>
                 )}
@@ -1102,7 +1102,7 @@ export default function RoomsPage() {
                   >
                     <span className="text-xl">⏰</span>
                     <div className="flex-1 text-right">
-                      <div>خروج اليوم</div>
+                      <div>{t('roomStatusCheckoutToday')}</div>
                       <div className="text-xs text-white/80">({stats.checkoutToday})</div>
                     </div>
                   </button>
@@ -1114,7 +1114,7 @@ export default function RoomsPage() {
                   >
                     <span className="text-xl">🛏️</span>
                     <div className="flex-1 text-right">
-                      <div>مشغولة</div>
+                      <div>{t('roomStatusOccupied')}</div>
                       <div className="text-xs text-cyan-200">({stats.occupied})</div>
                     </div>
                   </button>
@@ -1126,7 +1126,7 @@ export default function RoomsPage() {
                   >
                     <span className="text-xl">✅</span>
                     <div className="flex-1 text-right">
-                      <div>متاحة</div>
+                      <div>{t('roomStatusAvailable')}</div>
                       <div className="text-xs text-green-200">({stats.available})</div>
                     </div>
                   </button>
@@ -1182,10 +1182,10 @@ export default function RoomsPage() {
               <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
                 <BedDouble className="w-6 h-6 text-white" />
               </div>
-              تفاصيل الشقة {selectedRoom?.number}
+              {t('roomDetails')} {selectedRoom?.number}
             </DialogTitle>
             <DialogDescription className="text-blue-200/80 font-medium">
-              عرض وتعديل تفاصيل الشقة وحالتها
+              {t('roomDetailsDesc')}
             </DialogDescription>
           </DialogHeader>
           
@@ -1198,8 +1198,8 @@ export default function RoomsPage() {
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="text-lg font-bold text-white mb-1">📋 إنشاء طلب للنزيل</h3>
-                          <p className="text-sm text-blue-200">إنشاء طلب جديد للنزيل {selectedRoom.guestName}</p>
+                          <h3 className="text-lg font-bold text-white mb-1">{t('createRequestForGuest')}</h3>
+                          <p className="text-sm text-blue-200">{t('createRequestDesc', { guestName: selectedRoom.guestName })}</p>
                         </div>
                         <Button
                           onClick={() => {
@@ -1208,7 +1208,7 @@ export default function RoomsPage() {
                           className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold px-6 py-3 shadow-lg"
                         >
                           <FileText className="w-5 h-5 mr-2" />
-                          إنشاء طلب جديد
+                          {t('createNewRequest')}
                         </Button>
                       </div>
                     </CardContent>
@@ -1221,8 +1221,8 @@ export default function RoomsPage() {
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
                             <div>
-                              <h3 className="text-lg font-bold text-white mb-1">💰 الديون الحالية</h3>
-                              <p className="text-sm text-red-200">إجمالي المستحقات على النزيل</p>
+                              <h3 className="text-lg font-bold text-white mb-1">{t('currentDebts')}</h3>
+                              <p className="text-sm text-red-200">{t('totalDueOnGuest')}</p>
                             </div>
                             <div className="text-right">
                               <p className="text-3xl font-bold text-white">{selectedRoom.currentDebt} ر.س</p>
@@ -1231,11 +1231,11 @@ export default function RoomsPage() {
                           
                           <div className="grid grid-cols-2 gap-3 pt-3 border-t border-white/20">
                             <div className="bg-white/10 p-3 rounded-lg">
-                              <p className="text-xs text-white/70">دين الإقامة</p>
+                              <p className="text-xs text-white/70">{t('roomDebt')}</p>
                               <p className="text-lg font-bold text-white">{selectedRoom.roomDebt || 0} ر.س</p>
                             </div>
                             <div className="bg-white/10 p-3 rounded-lg">
-                              <p className="text-xs text-white/70">دين الخدمات</p>
+                              <p className="text-xs text-white/70">{t('servicesDebtLabel')}</p>
                               <p className="text-lg font-bold text-white">{selectedRoom.servicesDebt || 0} ر.س</p>
                             </div>
                           </div>
@@ -1245,7 +1245,7 @@ export default function RoomsPage() {
                             className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-3 shadow-lg"
                           >
                             <DollarSign className="w-5 h-5 mr-2" />
-                            تسجيل دفعة جديدة
+                            {t('recordNewPayment')}
                           </Button>
                         </div>
                       </CardContent>

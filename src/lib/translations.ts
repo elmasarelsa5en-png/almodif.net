@@ -470,6 +470,29 @@ const ar = {
   accommodationDebt: 'إقامة: {amount} ر.س',
   servicesDebt: 'خدمات: {amount} ر.س',
   checkout: 'الخروج',
+  
+  // Room status translations
+  roomStatusAvailable: 'متاحة',
+  roomStatusOccupied: 'مشغولة',
+  roomStatusCheckoutToday: 'خروج اليوم',
+  roomStatusNeedsCleaning: 'تحتاج تنظيف',
+  roomStatusMaintenance: 'تحت الصيانة',
+  roomStatusReserved: 'محجوزة',
+  roomStatusOverdue: 'متأخرة',
+  
+  // Room details dialog
+  roomDetails: 'تفاصيل الشقة',
+  roomDetailsDesc: 'عرض وتعديل تفاصيل الشقة وحالتها',
+  createRequestForGuest: '📋 إنشاء طلب للنزيل',
+  createRequestDesc: 'إنشاء طلب جديد للنزيل {guestName}',
+  createNewRequest: 'إنشاء طلب جديد',
+  currentDebts: '💰 الديون الحالية',
+  totalDueOnGuest: 'إجمالي المستحقات على النزيل',
+  roomDebt: 'دين الإقامة',
+  servicesDebtLabel: 'دين الخدمات',
+  recordNewPayment: 'تسجيل دفعة جديدة',
+  checkoutProcess: '🚪 تصفية الحجز',
+  checkoutProcessDesc: 'إتمام عملية تصفية الحجز',
 };
 
 const en = {
@@ -933,6 +956,29 @@ const en = {
   accommodationDebt: 'Accommodation: {amount} SAR',
   servicesDebt: 'Services: {amount} SAR',
   checkout: 'Checkout',
+  
+  // Room status translations
+  roomStatusAvailable: 'Available',
+  roomStatusOccupied: 'Occupied',
+  roomStatusCheckoutToday: 'Checkout Today',
+  roomStatusNeedsCleaning: 'Needs Cleaning',
+  roomStatusMaintenance: 'Under Maintenance',
+  roomStatusReserved: 'Reserved',
+  roomStatusOverdue: 'Overdue',
+  
+  // Room details dialog
+  roomDetails: 'Room Details',
+  roomDetailsDesc: 'View and edit room details and status',
+  createRequestForGuest: '📋 Create Request for Guest',
+  createRequestDesc: 'Create a new request for guest {guestName}',
+  createNewRequest: 'Create New Request',
+  currentDebts: '💰 Current Debts',
+  totalDueOnGuest: 'Total amount due from guest',
+  roomDebt: 'Accommodation Debt',
+  servicesDebtLabel: 'Services Debt',
+  recordNewPayment: 'Record New Payment',
+  checkoutProcess: '🚪 Checkout Process',
+  checkoutProcessDesc: 'Complete the checkout process',
 };
 
 export const translations = { ar, en };
