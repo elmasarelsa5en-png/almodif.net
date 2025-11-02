@@ -5,11 +5,11 @@ importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-comp
 // Initialize Firebase in the service worker
 firebase.initializeApp({
   apiKey: "AIzaSyCelygg7SjT7KY7U7E0EPuvMzfFvJpb7mM",
-  authDomain: "almodif-49af5.firebaseapp.com",
-  projectId: "almodif-49af5",
-  storageBucket: "almodif-49af5.firebasestorage.app",
-  messagingSenderId: "509688533109",
-  appId: "1:509688533109:web:72ebf7c69c00862ed5f1a3"
+  authDomain: "al-modif-crm.firebaseapp.com",
+  projectId: "al-modif-crm",
+  storageBucket: "al-modif-crm.firebasestorage.app",
+  messagingSenderId: "362080715447",
+  appId: "1:362080715447:web:41493bfaf1b7b80e1ec332"
 });
 
 const messaging = firebase.messaging();
