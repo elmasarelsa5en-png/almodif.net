@@ -399,7 +399,7 @@ export default function RequestsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900 p-6 relative overflow-hidden" dir="rtl">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900 p-3 md:p-6 relative overflow-hidden" dir="rtl">
         {/* خلفية تزيينية */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-20 left-20 w-32 h-32 bg-purple-500/20 rounded-full blur-xl animate-pulse"></div>
@@ -407,45 +407,49 @@ export default function RequestsPage() {
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-pink-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
         </div>
 
-        <div className="relative z-10 space-y-6">
+        <div className="relative z-10 space-y-4 md:space-y-6">
           {/* Header */}
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-white/20">
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 md:p-6 shadow-2xl border border-white/20">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
+                {/* زر العودة - مخفي على الموبايل */}
                 <Button
                   onClick={() => router.back()}
                   variant="outline"
-                  className="border-white/20 bg-white/10 text-white hover:bg-white/20"
+                  className="hidden md:flex border-white/20 bg-white/10 text-white hover:bg-white/20"
                 >
                   <ArrowLeft className="w-4 h-4 ml-2" />
                   {t('back')}
                 </Button>
-                <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <Inbox className="w-8 h-8 text-white" />
+                <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <Inbox className="w-6 h-6 md:w-8 md:h-8 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+                  <h1 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
                     {t('guestRequests')}
                   </h1>
-                  <p className="text-purple-200/80">
+                  {/* الوصف - مخفي على الموبايل */}
+                  <p className="hidden md:block text-purple-200/80">
                     {t('guestRequestsDesc')}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2 md:gap-3 flex-wrap">
                 <Button
                   onClick={() => router.push('/dashboard/requests/new')}
-                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-sm md:text-base"
                 >
-                  <Plus className="w-4 h-4 ml-2" />
-                  {t('newRequest')}
+                  <Plus className="w-4 h-4 ml-1 md:ml-2" />
+                  <span className="hidden sm:inline">{t('newRequest')}</span>
+                  <span className="sm:hidden">جديد</span>
                 </Button>
 
+                {/* أزرار التصدير والتحديث - مخفية على الموبايل */}
                 <Button
                   onClick={exportToCSV}
                   variant="outline"
-                  className="border-white/20 bg-white/10 text-white hover:bg-white/20"
+                  className="hidden md:flex border-white/20 bg-white/10 text-white hover:bg-white/20"
                 >
                   <Download className="w-4 h-4 ml-2" />
                   {t('export')}
@@ -453,7 +457,7 @@ export default function RequestsPage() {
 
                 <Button
                   variant="outline"
-                  className="border-white/20 bg-white/10 text-white hover:bg-white/20"
+                  className="hidden md:flex border-white/20 bg-white/10 text-white hover:bg-white/20"
                   onClick={() => {
                     setRequests([...requests]);
                   }}
@@ -465,32 +469,32 @@ export default function RequestsPage() {
             </div>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Stats Cards - مبسطة على الموبايل */}
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
             <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-2xl">
-              <CardContent className="p-6">
+              <CardContent className="p-3 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white/70 text-sm">{t('totalRequests')}</p>
-                    <p className="text-3xl font-bold text-white">{stats.total}</p>
+                    <p className="text-white/70 text-xs md:text-sm">{t('totalRequests')}</p>
+                    <p className="text-2xl md:text-3xl font-bold text-white">{stats.total}</p>
                   </div>
-                  <Inbox className="w-8 h-8 text-purple-400" />
+                  <Inbox className="w-6 h-6 md:w-8 md:h-8 text-purple-400" />
                 </div>
               </CardContent>
             </Card>
 
             {/* ✨ كارد جديد: بانتظار الموافقة */}
             <Card className={`bg-white/10 backdrop-blur-md border-white/20 shadow-2xl ${stats.awaitingApproval > 0 ? 'ring-2 ring-purple-500/50 animate-pulse' : ''}`}>
-              <CardContent className="p-6">
+              <CardContent className="p-3 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white/70 text-sm">بانتظار الموافقة</p>
-                    <p className="text-3xl font-bold text-purple-300">{stats.awaitingApproval}</p>
+                    <p className="text-white/70 text-xs md:text-sm">بانتظار الموافقة</p>
+                    <p className="text-2xl md:text-3xl font-bold text-purple-300">{stats.awaitingApproval}</p>
                   </div>
-                  <UserCheck className="w-8 h-8 text-purple-400" />
+                  <UserCheck className="w-6 h-6 md:w-8 md:h-8 text-purple-400" />
                 </div>
                 {stats.awaitingApproval > 0 && (
-                  <div className="mt-2">
+                  <div className="mt-2 hidden md:block">
                     <Badge className="bg-purple-500/30 text-purple-200 text-xs">
                       🔔 طلبات جديدة
                     </Badge>
@@ -500,68 +504,70 @@ export default function RequestsPage() {
             </Card>
 
             <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-2xl">
-              <CardContent className="p-6">
+              <CardContent className="p-3 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white/70 text-sm">{t('inProgressRequests')}</p>
-                    <p className="text-3xl font-bold text-blue-300">{stats.inProgress}</p>
+                    <p className="text-white/70 text-xs md:text-sm">{t('inProgressRequests')}</p>
+                    <p className="text-2xl md:text-3xl font-bold text-blue-300">{stats.inProgress}</p>
                   </div>
-                  <AlertCircle className="w-8 h-8 text-blue-400" />
+                  <AlertCircle className="w-6 h-6 md:w-8 md:h-8 text-blue-400" />
                 </div>
               </CardContent>
             </Card>
 
             <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-2xl">
-              <CardContent className="p-6">
+              <CardContent className="p-3 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white/70 text-sm">{t('completedRequests')}</p>
-                    <p className="text-3xl font-bold text-green-300">{stats.completed}</p>
+                    <p className="text-white/70 text-xs md:text-sm">{t('completedRequests')}</p>
+                    <p className="text-2xl md:text-3xl font-bold text-green-300">{stats.completed}</p>
                   </div>
-                  <CheckCircle className="w-8 h-8 text-green-400" />
+                  <CheckCircle className="w-6 h-6 md:w-8 md:h-8 text-green-400" />
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Registration Requests Section - NEW */}
-          <RegistrationRequestsSection />
+          {/* Registration Requests Section - مخفي على الموبايل */}
+          <div className="hidden lg:block">
+            <RegistrationRequestsSection />
+          </div>
 
-          {/* Search and Filter */}
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-white/20">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Search and Filter - مبسط على الموبايل */}
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 md:p-6 shadow-2xl border border-white/20">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
               <div className="relative">
-                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 w-5 h-5" />
+                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 w-4 h-4 md:w-5 md:h-5" />
                 <Input
                   placeholder={t('searchRequests')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="bg-white/10 border-white/20 text-white placeholder:text-white/50 pr-10"
+                  className="bg-white/10 border-white/20 text-white placeholder:text-white/50 pr-9 md:pr-10 text-sm md:text-base"
                 />
               </div>
 
               <div className="relative">
-                <Filter className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 w-5 h-5" />
+                <Filter className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 w-4 h-4 md:w-5 md:h-5" />
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full bg-white/10 border border-white/20 text-white pr-10 pl-4 py-2 rounded-lg appearance-none cursor-pointer"
+                  className="w-full bg-white/10 border border-white/20 text-white pr-9 md:pr-10 pl-3 md:pl-4 py-2 rounded-lg appearance-none cursor-pointer text-sm md:text-base"
                 >
                   <option value="all" className="bg-slate-900">الكل</option>
-                  <option value="awaiting_employee_approval" className="bg-slate-900">بانتظار موافقة الموظف</option>
+                  <option value="awaiting_employee_approval" className="bg-slate-900">بانتظار الموافقة</option>
                   <option value="in-progress" className="bg-slate-900">قيد التنفيذ</option>
                   <option value="completed" className="bg-slate-900">مكتمل</option>
                   <option value="rejected" className="bg-slate-900">مرفوض</option>
                 </select>
               </div>
 
-              {/* ✨ فلتر الأولوية */}
-              <div className="relative">
-                <AlertCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 w-5 h-5" />
+              {/* ✨ فلتر الأولوية - مخفي على الموبايل الصغير */}
+              <div className="relative hidden sm:block">
+                <AlertCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 w-4 h-4 md:w-5 md:h-5" />
                 <select
                   value={priorityFilter}
                   onChange={(e) => setPriorityFilter(e.target.value)}
-                  className="w-full bg-white/10 border border-white/20 text-white pr-10 pl-4 py-2 rounded-lg appearance-none cursor-pointer"
+                  className="w-full bg-white/10 border border-white/20 text-white pr-9 md:pr-10 pl-3 md:pl-4 py-2 rounded-lg appearance-none cursor-pointer text-sm md:text-base"
                 >
                   <option value="all" className="bg-slate-900">كل الأولويات</option>
                   <option value="high" className="bg-slate-900">⚠️ عالية</option>
@@ -573,17 +579,18 @@ export default function RequestsPage() {
           </div>
 
           {/* Requests List */}
-          <div className="space-y-4">
+          <div className="space-y-3 md:space-y-4">
             {isLoading ? (
               <div className="text-center py-12">
-                <p className="text-white/70">جاري تحميل الطلبات...</p>
+                <Loader2 className="w-8 h-8 text-white/50 mx-auto mb-3 animate-spin" />
+                <p className="text-white/70 text-sm md:text-base">جاري تحميل الطلبات...</p>
               </div>
             ) : filteredRequests.length === 0 ? (
               <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-2xl">
-                <CardContent className="text-center py-12">
-                  <Inbox className="w-16 h-16 text-white/30 mx-auto mb-4" />
-                  <h3 className="text-white text-xl font-semibold mb-2">لا توجد طلبات</h3>
-                  <p className="text-white/60">
+                <CardContent className="text-center py-8 md:py-12">
+                  <Inbox className="w-12 h-12 md:w-16 md:h-16 text-white/30 mx-auto mb-3 md:mb-4" />
+                  <h3 className="text-white text-lg md:text-xl font-semibold mb-2">لا توجد طلبات</h3>
+                  <p className="text-white/60 text-sm md:text-base">
                     {searchTerm || statusFilter !== 'all'
                       ? 'لم يتم العثور على طلبات تطابق معايير البحث'
                       : 'ابدأ بإنشاء طلب جديد'}
@@ -606,36 +613,37 @@ export default function RequestsPage() {
                         : ''
                   }`}
                 >
-                  <div className="p-6">
+                  <div className="p-4 md:p-6">
                     {/* Header - معلومات الطلب الأساسية */}
-                    <div className="flex items-start justify-between gap-4 mb-4">
+                    <div className="flex items-start justify-between gap-3 md:gap-4 mb-3 md:mb-4">
                       <div 
                         className="flex-1 cursor-pointer"
                         onClick={() => setExpandedId(expandedId === request.id ? null : request.id)}
                       >
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <FileText className="w-6 h-6 text-purple-400" />
+                        <div className="flex items-center gap-3 md:gap-4">
+                          <div className="w-10 h-10 md:w-12 md:h-12 bg-purple-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <FileText className="w-5 h-5 md:w-6 md:h-6 text-purple-400" />
                           </div>
                           <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-1 flex-wrap">
-                              <span className="text-xl font-bold text-white">{t('room')} {request.room}</span>
-                              <Badge className={`${STATUS_CONFIG[request.status as keyof typeof STATUS_CONFIG]?.color || 'bg-gray-500/20 text-gray-300'} border-0 px-2 py-0.5 text-xs`}>
+                            <div className="flex items-center gap-2 md:gap-3 mb-1 flex-wrap">
+                              <span className="text-lg md:text-xl font-bold text-white">{t('room')} {request.room}</span>
+                              <Badge className={`${STATUS_CONFIG[request.status as keyof typeof STATUS_CONFIG]?.color || 'bg-gray-500/20 text-gray-300'} border-0 px-1.5 md:px-2 py-0.5 text-xs`}>
                                 {STATUS_CONFIG[request.status as keyof typeof STATUS_CONFIG]?.icon || '📋'} {STATUS_CONFIG[request.status as keyof typeof STATUS_CONFIG]?.label || request.status}
                               </Badge>
                               {request.priority && PRIORITY_CONFIG[request.priority as keyof typeof PRIORITY_CONFIG] && (
-                                <Badge className={`${PRIORITY_CONFIG[request.priority as keyof typeof PRIORITY_CONFIG].color} bg-transparent border text-xs px-2 py-0.5`}>
+                                <Badge className={`${PRIORITY_CONFIG[request.priority as keyof typeof PRIORITY_CONFIG].color} bg-transparent border text-xs px-1.5 md:px-2 py-0.5`}>
                                   {PRIORITY_CONFIG[request.priority as keyof typeof PRIORITY_CONFIG].label}
                                 </Badge>
                               )}
                             </div>
-                            <p className="text-white/90 font-semibold text-base mb-1">{request.type}</p>
-                            <div className="flex items-center gap-4 text-sm text-white/60 flex-wrap">
+                            <p className="text-white/90 font-semibold text-sm md:text-base mb-1">{request.type}</p>
+                            <div className="flex items-center gap-3 md:gap-4 text-xs md:text-sm text-white/60 flex-wrap">
                               <span className="flex items-center gap-1">
                                 <User className="w-3 h-3" />
                                 {request.guest}
                               </span>
-                              <span className="flex items-center gap-1">
+                              {/* التاريخ - مخفي على الموبايل الصغير */}
+                              <span className="hidden sm:flex items-center gap-1">
                                 <Calendar className="w-3 h-3" />
                                 {formatDate(request.createdAt)}
                               </span>
@@ -652,7 +660,8 @@ export default function RequestsPage() {
                                   className="flex items-center gap-1 text-green-400 hover:text-green-300 transition-colors"
                                 >
                                   <Phone className="w-3 h-3" />
-                                  اتصال
+                                  <span className="hidden sm:inline">اتصال</span>
+                                  <span className="sm:hidden">📞</span>
                                 </a>
                               )}
                             </div>
@@ -660,25 +669,26 @@ export default function RequestsPage() {
                         </div>
                       </div>
 
-                      {/* أزرار القبول/الرفض - تظهر بره على الكارت مباشرة */}
+                      {/* أزرار القبول/الرفض */}
                       {request.status === 'awaiting_employee_approval' && !request.assignedEmployee && (
-                        <div className="flex items-center gap-2 flex-shrink-0">
+                        <div className="flex flex-col md:flex-row items-center gap-2 flex-shrink-0">
                           <Button
                             onClick={(e) => {
                               e.stopPropagation();
                               acceptRequest(request.id);
                             }}
                             disabled={acceptingRequestId === request.id}
-                            className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-0 shadow-lg px-4 py-2"
+                            className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-0 shadow-lg px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm w-full md:w-auto"
                           >
                             {acceptingRequestId === request.id ? (
                               <>
-                                <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-                                {t('acceptingRequest')}
+                                <Loader2 className="w-3 h-3 md:w-4 md:h-4 ml-1 md:ml-2 animate-spin" />
+                                <span className="hidden md:inline">{t('acceptingRequest')}</span>
+                                <span className="md:hidden">...</span>
                               </>
                             ) : (
                               <>
-                                <UserCheck className="w-4 h-4 ml-2" />
+                                <UserCheck className="w-3 h-3 md:w-4 md:h-4 ml-1 md:ml-2" />
                                 {t('accept')}
                               </>
                             )}
@@ -689,7 +699,7 @@ export default function RequestsPage() {
                               updateRequestStatus(request.id, 'rejected');
                             }}
                             variant="outline"
-                            className="border-red-500/50 text-red-300 hover:bg-red-500/20 px-4 py-2"
+                            className="border-red-500/50 text-red-300 hover:bg-red-500/20 px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm w-full md:w-auto"
                           >
                             ❌ {t('reject')}
                           </Button>
