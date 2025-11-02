@@ -21,6 +21,8 @@ import {
   RefreshCw,
   Loader2,
   Star,
+  UserCheck,
+  Check,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,6 +32,7 @@ import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { RatingDialog } from '@/components/RatingDialog';
 import { RegistrationRequestsSection } from '@/components/RegistrationRequestsSection';
+import { useAuth } from '@/contexts/auth-context';
 import { 
   subscribeToRequests, 
   updateRequest, 
@@ -55,6 +58,7 @@ const PRIORITY_CONFIG = {
 
 export default function RequestsPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [requests, setRequests] = useState<GuestRequest[]>([]);
   const [filteredRequests, setFilteredRequests] = useState<GuestRequest[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -64,6 +68,7 @@ export default function RequestsPage() {
   const [previousRequestCount, setPreviousRequestCount] = useState(0);
   const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
   const [selectedRequestForRating, setSelectedRequestForRating] = useState<GuestRequest | null>(null);
+  const [acceptingRequestId, setAcceptingRequestId] = useState<string | null>(null);
 
   // Function to play notification sound
   const playNotificationSound = () => {
@@ -115,7 +120,7 @@ export default function RequestsPage() {
         console.log('🔔 NEW REQUEST DETECTED! Playing sound...');
         
         // New request detected - play sound for new guest requests
-        playNotificationSound('new-request');
+        playNotificationSound();
         
         // Show browser notification if permitted
         if ('Notification' in window && Notification.permission === 'granted') {
@@ -252,6 +257,70 @@ export default function RequestsPage() {
         console.error('Error deleting request:', error);
         alert('حدث خطأ أثناء حذف الطلب');
       }
+    }
+  };
+
+  // ✅ وظيفة قبول الطلب من قبل الموظف
+  const acceptRequest = async (requestId: string) => {
+    if (!user) {
+      alert('يجب تسجيل الدخول أولاً');
+      return;
+    }
+
+    setAcceptingRequestId(requestId);
+    
+    try {
+      const currentEmployeeName = user.name || user.username || user.email || 'موظف';
+      
+      // تحديث الطلب في Firebase
+      await updateRequest(requestId, {
+        status: 'in-progress',
+        assignedEmployee: currentEmployeeName,
+        employeeApprovalStatus: 'approved'
+      });
+
+      // ✅ تشغيل صوت نجاح (صوت قصير مجاني)
+      try {
+        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = 880; // نوتة عالية
+        oscillator.type = 'sine';
+        
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+      } catch (e) {
+        console.log('Sound play failed:', e);
+      }
+
+      // ✅ إشعار بصري
+      if (typeof window !== 'undefined') {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-4 rounded-lg shadow-2xl animate-bounce';
+        alertDiv.innerHTML = `
+          <div class="flex items-center gap-2">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <span>✅ تم قبول الطلب بنجاح!</span>
+          </div>
+        `;
+        document.body.appendChild(alertDiv);
+        setTimeout(() => alertDiv.remove(), 3000);
+      }
+
+    } catch (error) {
+      console.error('Error accepting request:', error);
+      alert('حدث خطأ أثناء قبول الطلب. حاول مرة أخرى.');
+    } finally {
+      setAcceptingRequestId(null);
     }
   };
 
@@ -472,12 +541,31 @@ export default function RequestsPage() {
               filteredRequests.map((request) => (
                 <Card
                   key={request.id}
-                  className="bg-white/10 backdrop-blur-md border-white/20 shadow-2xl hover:bg-white/15 transition-all duration-300 cursor-pointer"
+                  className={`bg-white/10 backdrop-blur-md border-white/20 shadow-2xl hover:bg-white/15 transition-all duration-300 cursor-pointer ${
+                    request.status === 'awaiting_employee_approval' && !request.assignedEmployee 
+                      ? 'ring-2 ring-purple-500/50 ring-offset-2 ring-offset-gray-900' 
+                      : ''
+                  }`}
                 >
                   <div
                     className="p-6"
                     onClick={() => setExpandedId(expandedId === request.id ? null : request.id)}
                   >
+                    {/* 🔔 بادج "طلب جديد - جاهز للقبول" */}
+                    {request.status === 'awaiting_employee_approval' && !request.assignedEmployee && (
+                      <div className="mb-4 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-2 border-purple-500/50 rounded-xl p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center animate-pulse">
+                            <Check className="w-6 h-6 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-purple-300 font-bold text-lg">✨ طلب جديد - جاهز للقبول</p>
+                            <p className="text-purple-200/70 text-sm">اضغط على "قبول الطلب" للبدء في التنفيذ</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="flex items-center justify-between gap-4 flex-wrap">
                       <div className="flex-1 min-w-fit">
                         <div className="flex items-center gap-4">
@@ -651,54 +739,80 @@ export default function RequestsPage() {
 
                         {/* Status Update Actions */}
                         <div className="flex flex-wrap gap-2 pt-4">
-                          {request.status !== 'pending' && (
+                          {/* ✅ زر قبول الطلب - يظهر فقط للطلبات في انتظار الموافقة */}
+                          {request.status === 'awaiting_employee_approval' && !request.assignedEmployee && (
                             <Button
-                              onClick={() => updateRequestStatus(request.id, 'pending')}
-                              variant="outline"
-                              className="border-yellow-500/30 text-yellow-300 hover:bg-yellow-500/10 text-xs"
+                              onClick={() => acceptRequest(request.id)}
+                              disabled={acceptingRequestId === request.id}
+                              className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white border-0 text-sm font-bold shadow-lg"
                             >
-                              ⏳ قيد الانتظار
+                              {acceptingRequestId === request.id ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                                  جاري القبول...
+                                </>
+                              ) : (
+                                <>
+                                  <UserCheck className="w-4 h-4 ml-2" />
+                                  قبول الطلب والبدء في التنفيذ
+                                </>
+                              )}
                             </Button>
                           )}
-                          {request.status !== 'in-progress' && (
-                            <Button
-                              onClick={() => updateRequestStatus(request.id, 'in-progress')}
-                              variant="outline"
-                              className="border-blue-500/30 text-blue-300 hover:bg-blue-500/10 text-xs"
-                            >
-                              ⚙️ قيد التنفيذ
-                            </Button>
-                          )}
-                          {request.status !== 'completed' && (
-                            <Button
-                              onClick={() => updateRequestStatus(request.id, 'completed')}
-                              variant="outline"
-                              className="border-green-500/30 text-green-300 hover:bg-green-500/10 text-xs"
-                            >
-                              ✅ مكتمل
-                            </Button>
-                          )}
-                          {request.status === 'completed' && (
-                            <Button
-                              onClick={() => {
-                                setSelectedRequestForRating(request);
-                                setRatingDialogOpen(true);
-                              }}
-                              variant="outline"
-                              className="border-yellow-500/30 text-yellow-300 hover:bg-yellow-500/10 text-xs"
-                            >
-                              <Star className="w-4 h-4 ml-1" />
-                              تقييم الخدمة
-                            </Button>
-                          )}
-                          {request.status !== 'rejected' && (
-                            <Button
-                              onClick={() => updateRequestStatus(request.id, 'rejected')}
-                              variant="outline"
-                              className="border-red-500/30 text-red-300 hover:bg-red-500/10 text-xs"
-                            >
-                              ❌ مرفوض
-                            </Button>
+
+                          {/* أزرار تغيير الحالة - تظهر فقط بعد قبول الطلب */}
+                          {request.assignedEmployee && (
+                            <>
+                              {request.status !== 'pending' && (
+                                <Button
+                                  onClick={() => updateRequestStatus(request.id, 'pending')}
+                                  variant="outline"
+                                  className="border-yellow-500/30 text-yellow-300 hover:bg-yellow-500/10 text-xs"
+                                >
+                                  ⏳ قيد الانتظار
+                                </Button>
+                              )}
+                              {request.status !== 'in-progress' && (
+                                <Button
+                                  onClick={() => updateRequestStatus(request.id, 'in-progress')}
+                                  variant="outline"
+                                  className="border-blue-500/30 text-blue-300 hover:bg-blue-500/10 text-xs"
+                                >
+                                  ⚙️ قيد التنفيذ
+                                </Button>
+                              )}
+                              {request.status !== 'completed' && (
+                                <Button
+                                  onClick={() => updateRequestStatus(request.id, 'completed')}
+                                  variant="outline"
+                                  className="border-green-500/30 text-green-300 hover:bg-green-500/10 text-xs"
+                                >
+                                  ✅ مكتمل
+                                </Button>
+                              )}
+                              {request.status === 'completed' && (
+                                <Button
+                                  onClick={() => {
+                                    setSelectedRequestForRating(request);
+                                    setRatingDialogOpen(true);
+                                  }}
+                                  variant="outline"
+                                  className="border-yellow-500/30 text-yellow-300 hover:bg-yellow-500/10 text-xs"
+                                >
+                                  <Star className="w-4 h-4 ml-1" />
+                                  تقييم الخدمة
+                                </Button>
+                              )}
+                              {request.status !== 'rejected' && (
+                                <Button
+                                  onClick={() => updateRequestStatus(request.id, 'rejected')}
+                                  variant="outline"
+                                  className="border-red-500/30 text-red-300 hover:bg-red-500/10 text-xs"
+                                >
+                                  ❌ مرفوض
+                                </Button>
+                              )}
+                            </>
                           )}
 
                           <Button
