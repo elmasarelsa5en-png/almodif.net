@@ -420,8 +420,7 @@ export default function NewRequestPage() {
       }
 
       // إرسال إشعار للموظف المحدد
-      if (formData.assignedEmployee) {
-        const assignedEmp = employees.find(emp => emp.id === formData.assignedEmployee);
+      if (formData.assignedEmployee && assignedEmp) {
         console.log('📤 محاولة إرسال إشعار للموظف:', assignedEmp);
         if (assignedEmp) {
           const notificationId = await sendNotificationToEmployee({
@@ -445,7 +444,6 @@ export default function NewRequestPage() {
       }
 
       // تسجيل في Audit Log
-      const assignedEmp = employees.find(emp => emp.id === formData.assignedEmployee);
       logAction.createRequest(formData.room, formData.type, docId);
       if (assignedEmp) {
         logAction.assignRequest(formData.room, formData.type, assignedEmp.name, docId);
