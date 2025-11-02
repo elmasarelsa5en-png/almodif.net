@@ -962,24 +962,26 @@ export default function NewRequestPage() {
                         💰 تفاصيل الدفع
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="space-y-5">
                       {/* إجمالي المبلغ */}
-                      <div className="bg-white/10 rounded-lg p-4 text-center">
-                        <p className="text-sm text-white/70 mb-1">إجمالي المبلغ</p>
-                        <p className="text-3xl font-bold text-white">{formData.totalAmount} ر.س</p>
+                      <div className="bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border-2 border-emerald-400/40 rounded-xl p-5 text-center shadow-lg">
+                        <p className="text-sm text-emerald-200/80 mb-2 font-medium">💰 إجمالي المبلغ</p>
+                        <p className="text-4xl font-bold text-white drop-shadow-lg">{formData.totalAmount} <span className="text-2xl text-emerald-200">ر.س</span></p>
                       </div>
 
                       {/* طريقة الدفع */}
-                      <div className="space-y-2">
-                        <label className="text-white/80 text-sm font-semibold">طريقة الدفع</label>
-                        <div className="grid grid-cols-3 gap-2">
+                      <div className="space-y-3">
+                        <label className="text-white text-base font-bold flex items-center gap-2">
+                          💳 طريقة الدفع
+                        </label>
+                        <div className="grid grid-cols-3 gap-3">
                           <button
                             type="button"
                             onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'debt' }))}
-                            className={`py-3 px-4 rounded-lg font-semibold transition-all ${
+                            className={`py-4 px-3 rounded-xl font-bold transition-all transform hover:scale-105 ${
                               formData.paymentMethod === 'debt'
-                                ? 'bg-red-500/40 border-2 border-red-400 text-red-300'
-                                : 'bg-white/10 border-2 border-white/20 text-white/70 hover:bg-white/20'
+                                ? 'bg-gradient-to-br from-orange-500 to-red-600 border-2 border-orange-300 text-white shadow-xl shadow-red-500/50'
+                                : 'bg-slate-700/50 border-2 border-slate-600/50 text-slate-300 hover:bg-slate-600/50 hover:border-slate-500'
                             }`}
                           >
                             📋 إضافة للدين
@@ -987,10 +989,10 @@ export default function NewRequestPage() {
                           <button
                             type="button"
                             onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'cash' }))}
-                            className={`py-3 px-4 rounded-lg font-semibold transition-all ${
+                            className={`py-4 px-3 rounded-xl font-bold transition-all transform hover:scale-105 ${
                               formData.paymentMethod === 'cash'
-                                ? 'bg-green-500/40 border-2 border-green-400 text-green-300'
-                                : 'bg-white/10 border-2 border-white/20 text-white/70 hover:bg-white/20'
+                                ? 'bg-gradient-to-br from-green-500 to-emerald-600 border-2 border-green-300 text-white shadow-xl shadow-green-500/50'
+                                : 'bg-slate-700/50 border-2 border-slate-600/50 text-slate-300 hover:bg-slate-600/50 hover:border-slate-500'
                             }`}
                           >
                             💵 نقدي
@@ -998,20 +1000,24 @@ export default function NewRequestPage() {
                           <button
                             type="button"
                             onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'card' }))}
-                            className={`py-3 px-4 rounded-lg font-semibold transition-all ${
+                            className={`py-4 px-3 rounded-xl font-bold transition-all transform hover:scale-105 ${
                               formData.paymentMethod === 'card'
-                                ? 'bg-blue-500/40 border-2 border-blue-400 text-blue-300'
-                                : 'bg-white/10 border-2 border-white/20 text-white/70 hover:bg-white/20'
+                                ? 'bg-gradient-to-br from-blue-500 to-indigo-600 border-2 border-blue-300 text-white shadow-xl shadow-blue-500/50'
+                                : 'bg-slate-700/50 border-2 border-slate-600/50 text-slate-300 hover:bg-slate-600/50 hover:border-slate-500'
                             }`}
                           >
                             💳 بطاقة
                           </button>
                         </div>
                         {formData.paymentMethod === 'debt' && (
-                          <p className="text-xs text-yellow-300 mt-2">⚠️ سيتم إضافة المبلغ لدين الشقة ويمكن تسديده لاحقاً</p>
+                          <div className="bg-orange-500/20 border-2 border-orange-400/50 rounded-lg p-3 mt-3">
+                            <p className="text-sm text-orange-200 font-medium">⚠️ سيتم إضافة المبلغ لدين الشقة ويمكن تسديده لاحقاً</p>
+                          </div>
                         )}
                         {(formData.paymentMethod === 'cash' || formData.paymentMethod === 'card') && (
-                          <p className="text-xs text-green-300 mt-2">✅ تم الدفع فوراً - لن يضاف للدين</p>
+                          <div className="bg-green-500/20 border-2 border-green-400/50 rounded-lg p-3 mt-3">
+                            <p className="text-sm text-green-200 font-medium">✅ تم الدفع فوراً - لن يضاف للدين</p>
+                          </div>
                         )}
                       </div>
                     </CardContent>
