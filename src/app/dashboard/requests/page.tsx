@@ -66,6 +66,7 @@ export default function RequestsPage() {
   const [filteredRequests, setFilteredRequests] = useState<GuestRequest[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [previousRequestCount, setPreviousRequestCount] = useState(0);
@@ -73,37 +74,55 @@ export default function RequestsPage() {
   const [selectedRequestForRating, setSelectedRequestForRating] = useState<GuestRequest | null>(null);
   const [acceptingRequestId, setAcceptingRequestId] = useState<string | null>(null);
 
-  // Function to play notification sound
-  const playNotificationSound = () => {
-    try {
-      // Create multiple beep sounds for attention
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      
-      const playBeep = (frequency: number, duration: number, delay: number) => {
-        setTimeout(() => {
-          const oscillator = audioContext.createOscillator();
-          const gainNode = audioContext.createGain();
-          
-          oscillator.connect(gainNode);
-          gainNode.connect(audioContext.destination);
-          
-          oscillator.frequency.value = frequency;
-          oscillator.type = 'sine';
-          
-          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
-          
-          oscillator.start(audioContext.currentTime);
-          oscillator.stop(audioContext.currentTime + duration);
-        }, delay);
-      };
+  // ✨ وظيفة حساب الوقت منذ إنشاء الطلب
+  const getTimeAgo = (dateString: string) => {
+    const now = new Date();
+    const created = new Date(dateString);
+    const diffMs = now.getTime() - created.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 1) return 'الآن';
+    if (diffMins < 60) return `منذ ${diffMins} دقيقة`;
+    
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `منذ ${diffHours} ساعة`;
+    
+    const diffDays = Math.floor(diffHours / 24);
+    return `منذ ${diffDays} يوم`;
+  };
 
-      // Play a series of attention-grabbing beeps
-      playBeep(800, 0.15, 0);      // First beep
-      playBeep(1000, 0.15, 200);   // Second beep (higher)
-      playBeep(800, 0.15, 400);    // Third beep
-      playBeep(1200, 0.3, 600);    // Final longer beep (highest)
-      
+  // ✨ تحسين صوت الإشعار
+  const playEnhancedNotificationSound = () => {
+    try {
+      // محاولة تشغيل ملف صوت إذا كان موجوداً
+      const audio = new Audio('/sounds/notification.mp3');
+      audio.volume = 0.7;
+      audio.play().catch(() => {
+        // إذا فشل، استخدم الصوت المدمج
+        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const playBeep = (frequency: number, duration: number, delay: number) => {
+          setTimeout(() => {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            oscillator.frequency.value = frequency;
+            oscillator.type = 'sine';
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+          }, delay);
+        };
+        playBeep(880, 0.2, 0);
+        playBeep(1100, 0.2, 250);
+        playBeep(1320, 0.3, 500);
+      });
+
+      // إضافة اهتزاز للموبايل
+      if ('vibrate' in navigator) {
+        navigator.vibrate([200, 100, 200, 100, 300]);
+      }
     } catch (error) {
       console.error('Error playing notification sound:', error);
     }
@@ -122,8 +141,8 @@ export default function RequestsPage() {
       if (previousRequestCount > 0 && requestsData.length > previousRequestCount) {
         console.log('🔔 NEW REQUEST DETECTED! Playing sound...');
         
-        // New request detected - play sound for new guest requests
-        playNotificationSound();
+        // New request detected - play enhanced sound
+        playEnhancedNotificationSound();
         
         // Show browser notification if permitted
         if ('Notification' in window && Notification.permission === 'granted') {
@@ -177,6 +196,10 @@ export default function RequestsPage() {
       filtered = filtered.filter((r) => r.status === statusFilter);
     }
 
+    if (priorityFilter !== 'all') {
+      filtered = filtered.filter((r) => r.priority === priorityFilter);
+    }
+
     if (searchTerm) {
       filtered = filtered.filter(
         (r) =>
@@ -188,7 +211,7 @@ export default function RequestsPage() {
     }
 
     setFilteredRequests(filtered);
-  }, [requests, statusFilter, searchTerm]);
+  }, [requests, statusFilter, priorityFilter, searchTerm]);
 
   const updateRequestStatus = async (id: string, newStatus: GuestRequest['status']) => {
     try {
@@ -334,6 +357,7 @@ export default function RequestsPage() {
     pending: requests.filter((r) => r.status === 'awaiting_employee_approval').length,
     inProgress: requests.filter((r) => r.status === 'in-progress').length,
     completed: requests.filter((r) => r.status === 'completed').length,
+    awaitingApproval: requests.filter((r) => r.status === 'awaiting_employee_approval').length,
     total: requests.length,
   });
 
@@ -455,15 +479,23 @@ export default function RequestsPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-2xl">
+            {/* ✨ كارد جديد: بانتظار الموافقة */}
+            <Card className={`bg-white/10 backdrop-blur-md border-white/20 shadow-2xl ${stats.awaitingApproval > 0 ? 'ring-2 ring-purple-500/50 animate-pulse' : ''}`}>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white/70 text-sm">{t('statusPending')}</p>
-                    <p className="text-3xl font-bold text-yellow-300">{stats.pending}</p>
+                    <p className="text-white/70 text-sm">بانتظار الموافقة</p>
+                    <p className="text-3xl font-bold text-purple-300">{stats.awaitingApproval}</p>
                   </div>
-                  <Clock className="w-8 h-8 text-yellow-400" />
+                  <UserCheck className="w-8 h-8 text-purple-400" />
                 </div>
+                {stats.awaitingApproval > 0 && (
+                  <div className="mt-2">
+                    <Badge className="bg-purple-500/30 text-purple-200 text-xs">
+                      🔔 طلبات جديدة
+                    </Badge>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -497,7 +529,7 @@ export default function RequestsPage() {
 
           {/* Search and Filter */}
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-white/20">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="relative">
                 <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 w-5 h-5" />
                 <Input
@@ -520,6 +552,21 @@ export default function RequestsPage() {
                   <option value="in-progress" className="bg-slate-900">قيد التنفيذ</option>
                   <option value="completed" className="bg-slate-900">مكتمل</option>
                   <option value="rejected" className="bg-slate-900">مرفوض</option>
+                </select>
+              </div>
+
+              {/* ✨ فلتر الأولوية */}
+              <div className="relative">
+                <AlertCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 w-5 h-5" />
+                <select
+                  value={priorityFilter}
+                  onChange={(e) => setPriorityFilter(e.target.value)}
+                  className="w-full bg-white/10 border border-white/20 text-white pr-10 pl-4 py-2 rounded-lg appearance-none cursor-pointer"
+                >
+                  <option value="all" className="bg-slate-900">كل الأولويات</option>
+                  <option value="high" className="bg-slate-900">⚠️ عالية</option>
+                  <option value="medium" className="bg-slate-900">⚡ متوسطة</option>
+                  <option value="low" className="bg-slate-900">🔵 منخفضة</option>
                 </select>
               </div>
             </div>
@@ -551,6 +598,12 @@ export default function RequestsPage() {
                     request.status === 'awaiting_employee_approval' && !request.assignedEmployee 
                       ? 'ring-2 ring-purple-500/50 ring-offset-2 ring-offset-gray-900' 
                       : ''
+                  } ${
+                    request.priority === 'high' 
+                      ? 'border-r-4 border-red-500' 
+                      : request.priority === 'medium' 
+                        ? 'border-r-4 border-yellow-500' 
+                        : ''
                   }`}
                 >
                   <div className="p-6">
@@ -586,6 +639,22 @@ export default function RequestsPage() {
                                 <Calendar className="w-3 h-3" />
                                 {formatDate(request.createdAt)}
                               </span>
+                              {/* ✨ مؤشر الوقت منذ الإنشاء */}
+                              <span className="flex items-center gap-1 text-yellow-400">
+                                <Clock className="w-3 h-3" />
+                                {getTimeAgo(request.createdAt)}
+                              </span>
+                              {/* ✨ زر الاتصال السريع */}
+                              {request.phone && (
+                                <a
+                                  href={`tel:${request.phone}`}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="flex items-center gap-1 text-green-400 hover:text-green-300 transition-colors"
+                                >
+                                  <Phone className="w-3 h-3" />
+                                  اتصال
+                                </a>
+                              )}
                             </div>
                           </div>
                         </div>
