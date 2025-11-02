@@ -27,7 +27,8 @@ import {
   Code2,
   Building2,
   MessageSquare,
-  Link2
+  Link2,
+  Landmark
 } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -39,6 +40,15 @@ export default function SettingsPage() {
 
   // إعدادات المنشأة - للفندق
   const hotelSettings = [
+    {
+      id: 'bank-account',
+      title: 'الحساب البنكي',
+      description: 'إعدادات بيانات الحساب البنكي للتحويلات المالية',
+      icon: Landmark,
+      color: 'from-amber-500 via-yellow-500 to-orange-500',
+      href: '/dashboard/settings/bank-account',
+      badge: '🏦 جديد'
+    },
     {
       id: 'app-links',
       title: 'روابط التطبيق',

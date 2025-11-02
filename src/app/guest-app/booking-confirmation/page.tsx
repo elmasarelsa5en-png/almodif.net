@@ -22,10 +22,23 @@ import {
   Home,
   Copy,
   Check,
-  Eye
+  Eye,
+  Landmark
 } from 'lucide-react';
 import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
 import { notificationService } from '@/lib/notifications/notification-service';
+
+interface BankAccountSettings {
+  bankName: string;
+  accountNumber: string;
+  iban: string;
+  beneficiaryName: string;
+  swiftCode?: string;
+  branchName?: string;
+  branchCode?: string;
+  phoneNumber?: string;
+  address?: string;
+}
 
 interface BookingDetails {
   id: string;
@@ -54,12 +67,28 @@ function BookingConfirmationContent() {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [bankSettings, setBankSettings] = useState<BankAccountSettings | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
   useEffect(() => {
     if (bookingId) {
       loadBooking();
+      loadBankSettings();
     }
   }, [bookingId]);
+
+  const loadBankSettings = async () => {
+    try {
+      const docRef = doc(db, 'settings', 'bank_account');
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists()) {
+        setBankSettings(docSnap.data() as BankAccountSettings);
+      }
+    } catch (error) {
+      console.error('Error loading bank settings:', error);
+    }
+  };
 
   const loadBooking = async () => {
     if (!bookingId) return;
@@ -82,17 +111,28 @@ function BookingConfirmationContent() {
   };
 
   const handleCopyAccountInfo = () => {
-    const accountInfo = `
-اسم البنك: البنك الأهلي السعودي
-رقم الحساب: SA1234567890123456789012
-اسم المستفيد: فندق سيفن سون
-مبلغ الحجز: ${calculateMinimumPayment()} ريال
+    const accountInfo = bankSettings ? `
+اسم البنك: ${bankSettings.bankName}
+${bankSettings.iban ? `رقم الآيبان: ${bankSettings.iban}` : ''}
+${bankSettings.accountNumber ? `رقم الحساب: ${bankSettings.accountNumber}` : ''}
+اسم المستفيد: ${bankSettings.beneficiaryName}
+المبلغ المطلوب: ${calculateMinimumPayment()} ريال
 رقم الحجز: ${bookingId}
-    `.trim();
+    `.trim() : '';
 
     navigator.clipboard.writeText(accountInfo);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleCopyField = async (text: string, fieldName: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(fieldName);
+      setTimeout(() => setCopiedField(null), 2000);
+    } catch (error) {
+      console.error('Error copying to clipboard:', error);
+    }
   };
 
   const handleConfirmPayment = async () => {
@@ -396,7 +436,10 @@ function BookingConfirmationContent() {
                 {/* Bank Account Info */}
                 <div className="bg-white rounded-lg p-4 mb-4">
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-semibold text-gray-900">معلومات التحويل البنكي</h4>
+                    <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                      <Landmark className="h-5 w-5 text-amber-600" />
+                      معلومات التحويل البنكي
+                    </h4>
                     <Button
                       size="sm"
                       variant="outline"
@@ -404,31 +447,169 @@ function BookingConfirmationContent() {
                       className="gap-2"
                     >
                       {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                      {copied ? 'تم النسخ' : 'نسخ'}
+                      {copied ? 'تم النسخ' : 'نسخ الكل'}
                     </Button>
                   </div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">اسم البنك:</span>
-                      <span className="font-semibold">البنك الأهلي السعودي</span>
+                  
+                  {bankSettings ? (
+                    <div className="space-y-3 text-sm">
+                      {/* اسم البنك */}
+                      {bankSettings.bankName && (
+                        <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                          <span className="text-gray-600">اسم البنك:</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold">{bankSettings.bankName}</span>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 px-2"
+                              onClick={() => handleCopyField(bankSettings.bankName, 'bankName')}
+                            >
+                              {copiedField === 'bankName' ? (
+                                <Check className="h-3 w-3 text-green-600" />
+                              ) : (
+                                <Copy className="h-3 w-3" />
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* رقم الآيبان */}
+                      {bankSettings.iban && (
+                        <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                          <span className="text-gray-600">رقم الآيبان (IBAN):</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold font-mono text-xs" dir="ltr">{bankSettings.iban}</span>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 px-2"
+                              onClick={() => handleCopyField(bankSettings.iban, 'iban')}
+                            >
+                              {copiedField === 'iban' ? (
+                                <Check className="h-3 w-3 text-green-600" />
+                              ) : (
+                                <Copy className="h-3 w-3" />
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* رقم الحساب */}
+                      {bankSettings.accountNumber && !bankSettings.iban && (
+                        <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                          <span className="text-gray-600">رقم الحساب:</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold font-mono" dir="ltr">{bankSettings.accountNumber}</span>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 px-2"
+                              onClick={() => handleCopyField(bankSettings.accountNumber, 'accountNumber')}
+                            >
+                              {copiedField === 'accountNumber' ? (
+                                <Check className="h-3 w-3 text-green-600" />
+                              ) : (
+                                <Copy className="h-3 w-3" />
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* اسم المستفيد */}
+                      {bankSettings.beneficiaryName && (
+                        <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                          <span className="text-gray-600">اسم المستفيد:</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold">{bankSettings.beneficiaryName}</span>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 px-2"
+                              onClick={() => handleCopyField(bankSettings.beneficiaryName, 'beneficiaryName')}
+                            >
+                              {copiedField === 'beneficiaryName' ? (
+                                <Check className="h-3 w-3 text-green-600" />
+                              ) : (
+                                <Copy className="h-3 w-3" />
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* كود سويفت (إذا كان موجوداً) */}
+                      {bankSettings.swiftCode && (
+                        <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                          <span className="text-gray-600">كود السويفت:</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold font-mono">{bankSettings.swiftCode}</span>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 px-2"
+                              onClick={() => handleCopyField(bankSettings.swiftCode!, 'swiftCode')}
+                            >
+                              {copiedField === 'swiftCode' ? (
+                                <Check className="h-3 w-3 text-green-600" />
+                              ) : (
+                                <Copy className="h-3 w-3" />
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* المبلغ المطلوب */}
+                      <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                        <span className="text-gray-600">المبلغ المطلوب:</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-green-600">{minimumPayment} ريال</span>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 px-2"
+                            onClick={() => handleCopyField(minimumPayment.toString(), 'amount')}
+                          >
+                            {copiedField === 'amount' ? (
+                              <Check className="h-3 w-3 text-green-600" />
+                            ) : (
+                              <Copy className="h-3 w-3" />
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      {/* رقم الحجز */}
+                      <div className="flex justify-between items-center py-2">
+                        <span className="text-gray-600">رقم الحجز (ضعه في الملاحظات):</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-blue-600">{bookingId}</span>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 px-2"
+                            onClick={() => handleCopyField(bookingId || '', 'bookingId')}
+                          >
+                            {copiedField === 'bookingId' ? (
+                              <Check className="h-3 w-3 text-green-600" />
+                            ) : (
+                              <Copy className="h-3 w-3" />
+                            )}
+                          </Button>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">رقم الحساب (IBAN):</span>
-                      <span className="font-semibold" dir="ltr">SA1234567890123456789012</span>
+                  ) : (
+                    <div className="text-center text-gray-500 py-4">
+                      <Landmark className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+                      <p>لم يتم تكوين بيانات الحساب البنكي بعد</p>
+                      <p className="text-xs mt-1">يرجى التواصل مع الإدارة</p>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">اسم المستفيد:</span>
-                      <span className="font-semibold">فندق سيفن سون</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">المبلغ المطلوب:</span>
-                      <span className="font-semibold text-green-600">{minimumPayment} ريال</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">رقم الحجز (ضعه في الملاحظات):</span>
-                      <span className="font-semibold text-blue-600">{bookingId}</span>
-                    </div>
-                  </div>
+                  )}
                 </div>
 
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
