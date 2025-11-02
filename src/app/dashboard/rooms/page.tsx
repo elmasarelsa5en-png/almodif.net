@@ -71,7 +71,8 @@ const ICON_MAP = {
   BedDouble,
   Hammer,
   Trash2,
-  Clock
+  Clock,
+  AlertTriangle
 };
 
 export default function RoomsPage() {
