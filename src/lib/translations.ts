@@ -504,6 +504,38 @@ const ar = {
   newStatus: 'الحالة الجديدة',
   selectNewStatus: 'اختر الحالة الجديدة',
   confirmStatusChange: 'تأكيد التغيير',
+  
+  // Coffee Shop
+  backToMainMenu: 'العودة للقائمة الرئيسية',
+  premiumCoffee: 'تجربة قهوة فاخرة',
+  coffeeExperience: 'استمتع بأفضل أنواع القهوة والمشروبات',
+  addToCart: 'أضف للسلة',
+  yourCart: 'سلتك',
+  totalAmount: 'المجموع',
+  placeOrder: 'تأكيد الطلب',
+  emptyCart: 'السلة فارغة',
+  preparation: 'تحضير',
+  minutesShort: 'د',
+  addedToCart: 'تمت الإضافة للسلة',
+  calories: 'سعرة',
+  
+  // Laundry
+  laundryServices: 'خدمات الغسيل',
+  laundryDesc: 'خدمة غسيل وكي احترافية',
+  selectRoom: 'اختر الغرفة',
+  selectEmployee: 'اختر الموظف',
+  processing: 'معالجة',
+  
+  // Restaurant
+  restaurantMenu: 'قائمة المطعم',
+  restaurantDesc: 'وجبات شهية ومتنوعة',
+  
+  // Chat (basic)
+  chatWith: 'محادثة مع',
+  typeYourMessage: 'اكتب رسالتك...',
+  sendMessage: 'إرسال',
+  online: 'متصل',
+  offline: 'غير متصل',
 };
 
 const en = {
@@ -1001,6 +1033,38 @@ const en = {
   newStatus: 'New Status',
   selectNewStatus: 'Select new status',
   confirmStatusChange: 'Confirm Change',
+  
+  // Coffee Shop
+  backToMainMenu: 'Back to Main Menu',
+  premiumCoffee: 'Premium Coffee Experience',
+  coffeeExperience: 'Enjoy the finest coffee and beverages',
+  addToCart: 'Add to Cart',
+  yourCart: 'Your Cart',
+  totalAmount: 'Total',
+  placeOrder: 'Place Order',
+  emptyCart: 'Cart is empty',
+  preparation: 'Prep',
+  minutesShort: 'min',
+  addedToCart: 'Added to cart',
+  calories: 'cal',
+  
+  // Laundry
+  laundryServices: 'Laundry Services',
+  laundryDesc: 'Professional washing and ironing service',
+  selectRoom: 'Select Room',
+  selectEmployee: 'Select Employee',
+  processing: 'Processing',
+  
+  // Restaurant
+  restaurantMenu: 'Restaurant Menu',
+  restaurantDesc: 'Delicious and varied meals',
+  
+  // Chat (basic)
+  chatWith: 'Chat with',
+  typeYourMessage: 'Type your message...',
+  sendMessage: 'Send',
+  online: 'Online',
+  offline: 'Offline',
 };
 
 export const translations = { ar, en };
