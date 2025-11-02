@@ -102,6 +102,8 @@ export default function ChatPage() {
         const employeesSnap = await getDocs(employeesRef);
         
         const employeesList: Employee[] = [];
+        const seenIds = new Set<string>(); // لمنع التكرار
+        
         employeesSnap.forEach((doc) => {
           const data = doc.data();
           const employeeUsername = data.username || doc.id;
@@ -117,7 +119,9 @@ export default function ChatPage() {
             willUseAsId: employeeId
           });
           
-          if (employeeId !== user?.username && employeeId !== user?.email) {
+          // تخطي المستخدم الحالي والموظفين المكررين
+          if ((employeeId !== user?.username && employeeId !== user?.email) && !seenIds.has(employeeId)) {
+            seenIds.add(employeeId);
             employeesList.push({
               id: employeeId, // ✅ استخدام username/email كـ ID
               username: employeeUsername,
@@ -428,9 +432,16 @@ export default function ChatPage() {
     const unsubscribes: (() => void)[] = [];
 
     const setupLastMessageListeners = async () => {
-      const lastMsgs: Record<string, { text: string; time: Date; type: string }> = {};
+      // استخدام Set لضمان عدم تكرار الموظفين
+      const processedEmployees = new Set<string>();
 
       for (const employee of employees) {
+        // تخطي الموظف إذا تم معالجته من قبل
+        if (processedEmployees.has(employee.id)) {
+          continue;
+        }
+        processedEmployees.add(employee.id);
+
         try {
           const chatsRef = collection(db, 'chats');
           const q = query(chatsRef, where('participants', 'array-contains', currentUserId));
@@ -484,7 +495,7 @@ export default function ChatPage() {
               });
               
               unsubscribes.push(unsubscribe);
-              break;
+              break; // الخروج من loop الـ chats بعد إيجاد أول chat للموظف
             }
           }
         } catch (error) {
