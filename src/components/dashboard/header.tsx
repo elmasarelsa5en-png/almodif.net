@@ -81,6 +81,12 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const previousNotificationCount = useRef(0);
   
+  // Chat Popover State
+  const [showChatPopover, setShowChatPopover] = useState(false);
+  const [employees, setEmployees] = useState<any[]>([]);
+  const [employeesOnlineStatus, setEmployeesOnlineStatus] = useState<Record<string, boolean>>({});
+  const chatPopoverRef = useRef<HTMLDivElement>(null);
+  
   // AI Settings Modal State
   const [showAISettings, setShowAISettings] = useState(false);
   const [aiMode, setAiMode] = useState<'off' | 'local' | 'openai'>('off');
@@ -116,6 +122,57 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
     window.addEventListener('logo-updated', handleLogoUpdate);
     return () => window.removeEventListener('logo-updated', handleLogoUpdate);
   }, []);
+
+  // تحميل الموظفين ومراقبة حالتهم Online
+  useEffect(() => {
+    if (!user) return;
+
+    const loadEmployees = async () => {
+      try {
+        const { getEmployees } = await import('@/lib/firebase-data');
+        const { db } = await import('@/lib/firebase');
+        const { collection, onSnapshot } = await import('firebase/firestore');
+        
+        const employeesList = await getEmployees();
+        const currentUserId = user.username || user.email;
+        
+        // استبعاد المستخدم الحالي من القائمة
+        const filteredEmployees = employeesList.filter(emp => emp.id !== currentUserId);
+        setEmployees(filteredEmployees);
+
+        // مراقبة حالة Online/Offline
+        const presenceRef = collection(db, 'presence');
+        const unsubscribe = onSnapshot(presenceRef, (snapshot) => {
+          const onlineStatuses: Record<string, boolean> = {};
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            onlineStatuses[doc.id] = data.isOnline || false;
+          });
+          setEmployeesOnlineStatus(onlineStatuses);
+        });
+
+        return unsubscribe;
+      } catch (error) {
+        console.error('❌ Error loading employees:', error);
+      }
+    };
+
+    loadEmployees();
+  }, [user]);
+
+  // Close popover when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (chatPopoverRef.current && !chatPopoverRef.current.contains(event.target as Node)) {
+        setShowChatPopover(false);
+      }
+    };
+
+    if (showChatPopover) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showChatPopover]);
 
   // تحميل صورة المستخدم من Firebase
   useEffect(() => {
@@ -640,21 +697,109 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
             <Search className="w-4 h-4" />
           </Button>
 
-          {/* Conversations - Icon Only */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push('/dashboard/chat')}
-            className="hidden lg:flex text-white hover:text-blue-200 hover:bg-white/10 border border-white/20 hover:border-white/40 transition-all duration-200 p-2 w-9 h-9 relative"
-            title="المحادثات الداخلية"
-          >
-            <MessageSquare className="w-4 h-4" />
-            {totalUnreadChats > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
-                {totalUnreadChats > 99 ? '99+' : totalUnreadChats}
-              </span>
+          {/* Conversations - Icon Only with Quick Chat Popover */}
+          <div className="relative" ref={chatPopoverRef}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onMouseEnter={() => setShowChatPopover(true)}
+              onClick={() => router.push('/dashboard/chat')}
+              className="hidden lg:flex text-white hover:text-blue-200 hover:bg-white/10 border border-white/20 hover:border-white/40 transition-all duration-200 p-2 w-9 h-9 relative"
+              title="المحادثات الداخلية"
+            >
+              <MessageSquare className="w-4 h-4" />
+              {totalUnreadChats > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
+                  {totalUnreadChats > 99 ? '99+' : totalUnreadChats}
+                </span>
+              )}
+            </Button>
+
+            {/* Quick Chat Popover - Messenger Style */}
+            {showChatPopover && employees.length > 0 && (
+              <div 
+                className="absolute left-0 top-full mt-2 w-72 bg-slate-800/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden"
+                onMouseLeave={() => setShowChatPopover(false)}
+              >
+                {/* Header */}
+                <div className="px-4 py-3 border-b border-white/10 bg-gradient-to-r from-blue-600/20 to-purple-600/20">
+                  <h3 className="text-white font-semibold text-sm flex items-center gap-2">
+                    <MessagesSquare className="w-4 h-4" />
+                    محادثة سريعة
+                  </h3>
+                  <p className="text-white/60 text-xs mt-0.5">اختر موظف لبدء المحادثة</p>
+                </div>
+
+                {/* Employees List - Messenger Style */}
+                <div className="max-h-96 overflow-y-auto custom-scrollbar">
+                  {employees.map((employee) => {
+                    const isOnline = employeesOnlineStatus[employee.id] || false;
+                    const avatar = employee.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(employee.name)}&background=random&color=fff`;
+                    
+                    return (
+                      <button
+                        key={employee.id}
+                        onClick={() => {
+                          setShowChatPopover(false);
+                          router.push(`/dashboard/chat?employee=${employee.id}`);
+                        }}
+                        className="w-full px-4 py-3 flex items-center gap-3 hover:bg-white/5 transition-all duration-200 group"
+                      >
+                        {/* Avatar with Online Status */}
+                        <div className="relative flex-shrink-0">
+                          <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-white/10 group-hover:ring-blue-400/50 transition-all">
+                            <img 
+                              src={avatar} 
+                              alt={employee.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          {/* Online Status Indicator */}
+                          <div className={cn(
+                            "absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-slate-800",
+                            isOnline ? "bg-green-500" : "bg-gray-400"
+                          )} />
+                        </div>
+
+                        {/* Employee Info */}
+                        <div className="flex-1 text-right min-w-0">
+                          <div className="text-white font-medium text-sm truncate group-hover:text-blue-300 transition-colors">
+                            {employee.name}
+                          </div>
+                          <div className="text-white/50 text-xs truncate flex items-center justify-end gap-1">
+                            {employee.role}
+                            {isOnline && (
+                              <span className="text-green-400 text-xs">• نشط الآن</span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Arrow Icon */}
+                        <div className="text-white/30 group-hover:text-blue-400 transition-colors">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                          </svg>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Footer */}
+                <div className="px-4 py-2 border-t border-white/10 bg-slate-900/50">
+                  <button
+                    onClick={() => {
+                      setShowChatPopover(false);
+                      router.push('/dashboard/chat');
+                    }}
+                    className="w-full text-center text-blue-400 hover:text-blue-300 text-xs font-medium py-1 hover:bg-white/5 rounded-lg transition-all"
+                  >
+                    عرض جميع المحادثات ←
+                  </button>
+                </div>
+              </div>
             )}
-          </Button>
+          </div>
 
           {/* Social Media Platforms - Icon Only */}
           <Button
