@@ -38,6 +38,14 @@ export interface Room {
   servicesDebt: number; // دين الخدمات (منيو، مطعم، مقهى، مغسلة)
   lastDebtUpdate?: string; // آخر تحديث للدين
   debtStartDate?: string; // تاريخ بدء احتساب الدين
+  
+  // معلومات التأخير عن موعد الخروج
+  overdueInfo?: {
+    daysOverdue: number; // عدد الأيام المتأخرة
+    extraDebt: number; // المديونية الإضافية
+    originalCheckoutDate: string; // تاريخ الخروج الأصلي
+  };
+  
   payments: {
     id: string;
     amount: number;
@@ -88,7 +96,8 @@ export type RoomStatus =
   | 'Maintenance'
   | 'NeedsCleaning'
   | 'Reserved'
-  | 'CheckoutToday';
+  | 'CheckoutToday'
+  | 'Overdue'; // ← شقق متأخرة عن موعد الخروج
 
 export interface PaymentMethod {
   type: 'cash' | 'card' | 'transfer';
@@ -127,6 +136,16 @@ export const ROOM_STATUS_CONFIG = {
     accentColor: 'bg-gradient-to-r from-red-500 to-blue-600',
     textColor: 'text-white',
     description: 'موعد خروج النزيل اليوم'
+  },
+  Overdue: {
+    label: 'متأخرة',
+    color: 'bg-gradient-to-br from-red-700 via-red-800 to-red-900 text-white animate-pulse',
+    icon: 'AlertTriangle',
+    bgColor: 'bg-gradient-to-r from-red-700 to-red-900',
+    statusColor: 'text-white',
+    accentColor: 'bg-gradient-to-r from-red-700 to-red-900',
+    textColor: 'text-white',
+    description: 'متأخرة عن موعد الخروج - يوجد مديونية إضافية'
   },
   Maintenance: {
     label: 'تحت الصيانة',
@@ -437,6 +456,35 @@ export const isLateCheckout = (checkoutDate: string): boolean => {
 };
 
 /**
+ * التحقق من تجاوز تاريخ الخروج (Overdue Checkout)
+ * @param checkoutDate تاريخ الخروج من bookingDetails
+ * @returns عدد الأيام المتأخرة (0 = لم يتأخر، 1+ = متأخر)
+ */
+export const getDaysOverdue = (checkoutDate: string): number => {
+  if (!checkoutDate) return 0;
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const checkout = new Date(checkoutDate);
+  checkout.setHours(0, 0, 0, 0);
+  
+  const diffTime = today.getTime() - checkout.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  
+  return diffDays > 0 ? diffDays : 0;
+};
+
+/**
+ * التحقق إذا كانت الشقة متأخرة عن موعد الخروج
+ * @param checkoutDate تاريخ الخروج
+ * @returns true إذا كان التاريخ الحالي بعد تاريخ الخروج
+ */
+export const isOverdueCheckout = (checkoutDate: string): boolean => {
+  return getDaysOverdue(checkoutDate) > 0;
+};
+
+/**
  * تحديث حالة الغرف تلقائياً بناءً على تاريخ الخروج
  * @param rooms قائمة الغرف
  * @returns قائمة الغرف المحدثة
@@ -446,7 +494,33 @@ export const autoUpdateRoomStatusByCheckout = (rooms: Room[]): Room[] => {
     // فقط الغرف المشغولة التي لها تاريخ خروج
     if (room.status === 'Occupied' && room.bookingDetails?.checkOut?.date) {
       const checkoutDate = room.bookingDetails.checkOut.date;
+      const daysOverdue = getDaysOverdue(checkoutDate);
       
+      // إذا متأخر عن موعد الخروج بيوم أو أكثر
+      if (daysOverdue > 0) {
+        console.log(`⚠️ تحديث تلقائي: الغرفة ${room.number} - متأخرة ${daysOverdue} يوم`);
+        
+        // حساب المديونية الإضافية للأيام المتأخرة
+        const extraDebt = daysOverdue * (room.price || 0);
+        const currentServicesDebt = room.servicesDebt || 0;
+        const currentRoomDebt = room.roomDebt || 0;
+        
+        return {
+          ...room,
+          status: 'Overdue' as RoomStatus, // حالة جديدة للشقق المتأخرة
+          roomDebt: currentRoomDebt + extraDebt,
+          currentDebt: currentRoomDebt + extraDebt + currentServicesDebt,
+          overdueInfo: {
+            daysOverdue,
+            extraDebt,
+            originalCheckoutDate: checkoutDate,
+          },
+          lastUpdated: new Date().toISOString(),
+          lastDebtUpdate: new Date().toISOString()
+        };
+      }
+      
+      // إذا الخروج اليوم
       if (isCheckoutToday(checkoutDate)) {
         console.log(`🔄 تحديث تلقائي: الغرفة ${room.number} - الخروج اليوم`);
         return {
@@ -457,9 +531,31 @@ export const autoUpdateRoomStatusByCheckout = (rooms: Room[]): Room[] => {
       }
     }
     
-    // إذا كانت الغرفة CheckoutToday لكن التاريخ مختلف، نرجعها لـ Occupied
+    // إذا كانت الغرفة CheckoutToday لكن التاريخ مختلف، نرجعها لـ Occupied أو Overdue
     if (room.status === 'CheckoutToday' && room.bookingDetails?.checkOut?.date) {
       const checkoutDate = room.bookingDetails.checkOut.date;
+      const daysOverdue = getDaysOverdue(checkoutDate);
+      
+      if (daysOverdue > 0) {
+        console.log(`⚠️ تحديث تلقائي: الغرفة ${room.number} - تحويل لمتأخرة`);
+        const extraDebt = daysOverdue * (room.price || 0);
+        const currentServicesDebt = room.servicesDebt || 0;
+        const currentRoomDebt = room.roomDebt || 0;
+        
+        return {
+          ...room,
+          status: 'Overdue' as RoomStatus,
+          roomDebt: currentRoomDebt + extraDebt,
+          currentDebt: currentRoomDebt + extraDebt + currentServicesDebt,
+          overdueInfo: {
+            daysOverdue,
+            extraDebt,
+            originalCheckoutDate: checkoutDate,
+          },
+          lastUpdated: new Date().toISOString(),
+          lastDebtUpdate: new Date().toISOString()
+        };
+      }
       
       if (!isCheckoutToday(checkoutDate)) {
         console.log(`🔄 تحديث تلقائي: الغرفة ${room.number} - إرجاع لـ مشغولة`);
@@ -482,9 +578,30 @@ export const autoUpdateRoomStatusByCheckout = (rooms: Room[]): Room[] => {
  */
 export const getLateCheckoutRooms = (rooms: Room[]): Room[] => {
   return rooms.filter(room => {
+    // الغرف اللي الخروج بتاعها اليوم وبعد الساعة 2 ظهراً
     if (room.status === 'CheckoutToday' && room.bookingDetails?.checkOut?.date) {
       return isLateCheckout(room.bookingDetails.checkOut.date);
     }
     return false;
   });
+};
+
+/**
+ * الحصول على قائمة الشقق المتأخرة عن موعد الخروج (Overdue)
+ * @param rooms قائمة الغرف
+ * @returns قائمة الغرف المتأخرة مع عدد الأيام
+ */
+export const getOverdueRooms = (rooms: Room[]): Array<Room & { daysOverdue: number }> => {
+  return rooms
+    .filter(room => {
+      if ((room.status === 'Occupied' || room.status === 'Overdue' || room.status === 'CheckoutToday') && 
+          room.bookingDetails?.checkOut?.date) {
+        return isOverdueCheckout(room.bookingDetails.checkOut.date);
+      }
+      return false;
+    })
+    .map(room => ({
+      ...room,
+      daysOverdue: getDaysOverdue(room.bookingDetails!.checkOut!.date)
+    }));
 };

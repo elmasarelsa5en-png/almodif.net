@@ -51,6 +51,7 @@ import {
   getRoomTypesFromStorage,
   autoUpdateRoomStatusByCheckout,
   getLateCheckoutRooms,
+  getOverdueRooms, // ← إضافة
   isLateCheckout
 } from '@/lib/rooms-data';
 // استخدام Firebase فقط - المصدر الاحترافي للبيانات
@@ -95,6 +96,8 @@ export default function RoomsPage() {
   const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
   const [lateCheckoutRooms, setLateCheckoutRooms] = useState<Room[]>([]);
   const [showLateCheckoutAlert, setShowLateCheckoutAlert] = useState(false);
+  const [overdueRooms, setOverdueRooms] = useState<Array<Room & { daysOverdue: number }>>([]);
+  const [showOverdueAlert, setShowOverdueAlert] = useState(false);
 
   // تحميل البيانات عند بدء التشغيل
   useEffect(() => {
@@ -122,6 +125,42 @@ export default function RoomsPage() {
 
   // ⚠️ تم تعطيل الفحص التلقائي والحساب التلقائي مؤقتاً لحل مشكلة الـ infinite loop
   // سيتم تفعيلهم لاحقاً بشكل آمن
+  
+  // ✅ فحص تلقائي للشقق المتأخرة عن موعد الخروج
+  useEffect(() => {
+    const checkOverdueRooms = () => {
+      const overdue = getOverdueRooms(rooms);
+      setOverdueRooms(overdue);
+      
+      if (overdue.length > 0) {
+        setShowOverdueAlert(true);
+        console.log(`⚠️ تم العثور على ${overdue.length} شقة متأخرة عن موعد الخروج`);
+      }
+      
+      // تحديث حالة الشقق تلقائياً
+      const updatedRooms = autoUpdateRoomStatusByCheckout(rooms);
+      if (JSON.stringify(updatedRooms) !== JSON.stringify(rooms)) {
+        setRooms(updatedRooms);
+        setFilteredRooms(updatedRooms);
+        // حفظ في Firebase
+        updatedRooms.forEach(room => {
+          if (room.status === 'Overdue') {
+            saveRoomToFirebase(room).catch(err => 
+              console.error(`خطأ في حفظ الغرفة ${room.number}:`, err)
+            );
+          }
+        });
+      }
+    };
+
+    // فحص فوري عند تحميل الصفحة
+    checkOverdueRooms();
+
+    // فحص دوري كل 5 دقائق
+    const interval = setInterval(checkOverdueRooms, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [rooms]);
   
   const loadRoomsData = async () => {
     try {
@@ -825,6 +864,88 @@ export default function RoomsPage() {
         <div className="absolute bottom-20 right-20 w-40 h-40 bg-purple-500/20 rounded-full blur-xl"></div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-indigo-500/10 rounded-full blur-2xl"></div>
       </div>
+
+      {/* تنبيه الشقق المتأخرة عن موعد الخروج - أعلى أولوية */}
+      {showOverdueAlert && overdueRooms.length > 0 && (
+        <div className="fixed top-4 right-4 left-4 z-[60] max-w-2xl mx-auto animate-in slide-in-from-top">
+          <div className="bg-gradient-to-r from-red-800 via-red-900 to-red-950 text-white rounded-2xl shadow-2xl border-2 border-red-600 overflow-hidden animate-pulse">
+            <div className="p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                    <AlertTriangle className="w-7 h-7 animate-bounce" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold">🚨 تنبيه عاجل: شقق متأخرة عن موعد الخروج!</h3>
+                    <p className="text-sm text-white/90">يوجد {overdueRooms.length} شقة متأخرة - يجب اتخاذ إجراء فوري</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowOverdueAlert(false)}
+                  className="text-white/80 hover:text-white transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="space-y-3 max-h-60 overflow-y-auto">
+                {overdueRooms.map((room) => (
+                  <div
+                    key={room.id}
+                    className="bg-white/10 backdrop-blur-sm rounded-xl p-4 flex items-center justify-between cursor-pointer hover:bg-white/20 transition-colors border border-red-400/30"
+                    onClick={() => {
+                      openRoomDetails(room);
+                      setShowOverdueAlert(false);
+                    }}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 bg-red-600 rounded-xl flex items-center justify-center text-2xl font-bold shadow-lg animate-pulse">
+                        {room.number}
+                      </div>
+                      <div>
+                        <p className="text-lg font-bold">{room.guestName || 'نزيل غير معروف'}</p>
+                        <p className="text-sm text-white/80">
+                          {room.guestPhone && `📱 ${room.guestPhone}`}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs bg-red-500/30 px-2 py-1 rounded-lg">
+                            ⚠️ متأخر {room.daysOverdue} {room.daysOverdue === 1 ? 'يوم' : 'أيام'}
+                          </span>
+                          <span className="text-xs text-white/70">
+                            الخروج المفترض: {room.bookingDetails?.checkOut?.date}
+                          </span>
+                        </div>
+                        {room.overdueInfo && (
+                          <p className="text-xs text-yellow-300 mt-1 font-semibold">
+                            💰 مديونية إضافية: {room.overdueInfo.extraDebt.toLocaleString()} ر.س
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right flex flex-col gap-2">
+                      <Button
+                        size="sm"
+                        className="bg-white text-red-600 hover:bg-white/90"
+                      >
+                        اتصل فوراً
+                      </Button>
+                      <span className="text-xs text-white/70">
+                        مجموع الدين: {room.currentDebt?.toLocaleString() || 0} ر.س
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-4 pt-4 border-t border-white/20">
+                <p className="text-sm text-white/80">
+                  💡 <strong>ملاحظة:</strong> تم إضافة المديونية الإضافية تلقائياً للأيام المتأخرة
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* تنبيه النزلاء المتأخرين عن checkout */}
       {showLateCheckoutAlert && lateCheckoutRooms.length > 0 && (
