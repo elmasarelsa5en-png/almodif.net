@@ -221,8 +221,9 @@ function ContractContent() {
 
       // إرسال إشعار للموظفين
       await notificationService.sendNotification('in_app', 'admin', {
+        subject: 'توقيع إلكتروني على عقد',
         body: `تم التوقيع على العقد إلكترونياً - الحجز ${bookingId}`,
-        type: 'contract_signed',
+        type: 'custom',
         priority: 'normal',
         metadata: {
           bookingId,
@@ -235,6 +236,7 @@ function ContractContent() {
       // إرسال إشعار للضيف
       if (booking?.guestPhone) {
         await notificationService.sendNotification('whatsapp', booking.guestPhone, {
+          subject: 'تم التوقيع على العقد',
           body: `✅ تم التوقيع على العقد بنجاح!\n\n🎉 حجزك مؤكد بالكامل\n🏨 الغرفة: ${booking.assignedRoomNumber}\n📅 موعد الوصول: ${new Date(booking.checkInDate.toDate()).toLocaleDateString('ar-SA')}\n\nننتظرك في فندق سيفن سون!`,
           metadata: { bookingId }
         });
@@ -271,8 +273,9 @@ function ContractContent() {
 
       // إرسال إشعار للموظفين
       await notificationService.sendNotification('in_app', 'admin', {
+        subject: 'توقيع عند الوصول',
         body: `الضيف اختار التوقيع عند الوصول - الحجز ${bookingId}`,
-        type: 'contract_on_arrival',
+        type: 'custom',
         priority: 'normal',
         metadata: {
           bookingId,

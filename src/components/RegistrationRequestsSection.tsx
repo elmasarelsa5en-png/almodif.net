@@ -213,6 +213,7 @@ export function RegistrationRequestsSection() {
       // 4. إرسال إشعار للضيف
       try {
         await notificationService.sendNotification('in_app', request.guestId, {
+          subject: 'مرحباً بك',
           body: `مرحباً ${request.guestName}! تم تسجيل دخولك لغرفة رقم ${roomNumber}. نتمنى لك إقامة سعيدة! 🏨`,
           type: 'custom',
           priority: 'high',
@@ -270,6 +271,7 @@ export function RegistrationRequestsSection() {
       // 3. إرسال إشعار للضيف
       try {
         await notificationService.sendNotification('in_app', request.guestId, {
+          subject: 'تمت الموافقة',
           body: `مرحباً ${request.guestName}! تم الموافقة على طلب انضمامك إلينا. نتشرف بخدمتك! 🎉`,
           type: 'custom',
           priority: 'high',

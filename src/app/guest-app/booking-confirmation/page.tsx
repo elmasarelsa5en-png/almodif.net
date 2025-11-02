@@ -122,8 +122,9 @@ function BookingConfirmationContent() {
 
         // إرسال إشعار للموظفين
         await notificationService.sendNotification('in_app', 'admin', {
+          subject: 'تأكيد حجز جديد',
           body: `تم تأكيد الحجز ${bookingId} - تم تخصيص غرفة ${assignedRoom.number} تلقائياً`,
-          type: 'payment_confirmed',
+          type: 'custom',
           priority: 'high',
           metadata: {
             bookingId,
@@ -138,8 +139,9 @@ function BookingConfirmationContent() {
       } else {
         // لا توجد غرف متاحة - إشعار للموظفين
         await notificationService.sendNotification('in_app', 'admin', {
+          subject: 'حجز بدون غرفة متاحة',
           body: `تم الدفع للحجز ${bookingId} ولكن لا توجد غرف متاحة - يرجى التخصيص اليدوي`,
-          type: 'payment_no_room',
+          type: 'custom',
           priority: 'urgent',
           metadata: {
             bookingId,
@@ -200,6 +202,7 @@ function BookingConfirmationContent() {
       
       // إرسال إشعار للضيف بالعقد
       await notificationService.sendNotification('whatsapp', bookingData.guestPhone, {
+        subject: 'تأكيد الحجز والعقد',
         body: `🎉 تم تأكيد حجزك في فندق سيفن سون!\n\n📋 رقم الحجز: ${bookingId}\n🏨 الغرفة: ${roomNumber}\n📅 تاريخ الدخول: ${new Date(bookingData.checkInDate.toDate()).toLocaleDateString('ar-SA')}\n\n✍️ يرجى مراجعة العقد والتوقيع:\n🔗 ${window.location.origin}/guest-app/contract?bookingId=${bookingId}\n\n📊 تتبع حجزك:\n🔗 ${trackingUrl}`,
         metadata: {
           bookingId,

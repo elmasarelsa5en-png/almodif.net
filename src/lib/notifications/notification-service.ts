@@ -349,14 +349,12 @@ class NotificationService {
     }
   ): Promise<NotificationLog> {
     try {
-      // إنشاء سجل الإشعار
-      const log: Omit<NotificationLog, 'id'> = {
+      // إنشاء سجل الإشعار - تأكد من عدم تمرير قيم undefined إلى Firestore
+      const logBase: Omit<NotificationLog, 'id'> = {
         channel,
         type: content.type || 'custom',
         recipient,
-        subject: content.subject,
         body: content.body,
-        mediaUrl: content.mediaUrl,
         status: 'pending',
         statusHistory: [{
           status: 'pending',
@@ -365,7 +363,14 @@ class NotificationService {
         retryCount: 0,
         maxRetries: 3,
         createdAt: Timestamp.now(),
-        metadata: content.metadata
+        metadata: content.metadata || {}
+      };
+
+      // أضف الحقول الاختيارية فقط إذا كانت معرفة
+      const log: Omit<NotificationLog, 'id'> = {
+        ...logBase,
+        ...(typeof content.subject !== 'undefined' && content.subject !== null ? { subject: content.subject } : {}),
+        ...(typeof content.mediaUrl !== 'undefined' && content.mediaUrl !== null ? { mediaUrl: content.mediaUrl } : {})
       };
       
       // حفظ السجل
@@ -686,11 +691,13 @@ class NotificationService {
     // إرسال عبر كل القنوات المفعلة
     await Promise.allSettled([
       this.sendNotification('whatsapp', guestPhone, {
+        subject: 'تأكيد الحجز',
         body: message,
         type: 'booking_confirmation',
         metadata: { bookingId }
       }),
       this.sendNotification('sms', guestPhone, {
+        subject: 'تأكيد الحجز',
         body: message,
         type: 'booking_confirmation',
         metadata: { bookingId }
@@ -711,6 +718,7 @@ class NotificationService {
     const message = `تذكير: موعد تسجيل الوصول الخاص بك غداً ${checkInDate.toLocaleDateString('ar-SA')}. نتطلع لاستقبالك!`;
     
     await this.sendNotification('whatsapp', guestPhone, {
+      subject: 'تذكير بتسجيل الوصول',
       body: message,
       type: 'check_in_reminder',
       priority: 'high',

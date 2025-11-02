@@ -294,6 +294,7 @@ export default function BookingPage() {
       // 🔔 إرسال إشعار للإدارة عن الحجز الجديد
       try {
         await notificationService.sendNotification('in_app', 'admin', {
+          subject: 'حجز جديد',
           body: `حجز جديد من ${bookingData.guestName} - غرفة ${selectedRoom.number}`,
           type: 'booking_confirmation',
           priority: 'high',

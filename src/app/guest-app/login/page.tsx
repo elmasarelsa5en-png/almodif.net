@@ -205,6 +205,7 @@ export default function GuestLoginPage() {
         });
         
         await notificationService.sendNotification('in_app', 'reception', {
+          subject: 'طلب تسجيل جديد',
           body: `طلب تسجيل جديد من ${registerData.name}\nرقم الهوية: ${registerData.nationalId}\nرقم الهاتف: ${registerData.phone}`,
           type: 'custom',
           priority: 'high',
