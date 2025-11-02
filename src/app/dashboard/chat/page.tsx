@@ -655,17 +655,8 @@ export default function ChatPage() {
             isFromOther: lastMessage.senderId !== currentUserId
           });
           
-          // تشغيل الصوت فقط إذا كانت الرسالة من شخص آخر
-          if (lastMessage.senderId !== currentUserId) {
-            console.log('🔔 Playing notification sound for incoming message...');
-            try {
-              const audio = new Audio('/sounds/notification.mp3');
-              audio.volume = 0.3;
-              audio.play().catch(err => console.log('🔇 Sound play failed:', err));
-            } catch (error) {
-              console.log('🔇 Sound error:', error);
-            }
-          }
+          // الصوت يتشغل تلقائياً من header.tsx عن طريق notification system
+          // لا داعي لتشغيله هنا لتجنب التكرار
         }
         
         // تحديث المتغيرات للمرة القادمة

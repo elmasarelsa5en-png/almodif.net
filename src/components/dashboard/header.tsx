@@ -251,12 +251,7 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
       setNotifications(smartNotifications);
       setNotificationStats(NotificationService.getNotificationStats());
 
-      // تحديث العدد السابق
-      if (smartNotifications.length > previousNotificationCount.current && previousNotificationCount.current > 0) {
-        // تشغيل صوت بناءً على آخر إشعار
-        const latestNotification = smartNotifications[smartNotifications.length - 1];
-        playNotificationSound('general', latestNotification);
-      }
+      // تحديث العدد السابق (الصوت يتشغل تلقائياً من addSmartNotification)
       previousNotificationCount.current = smartNotifications.length;
     };
 
@@ -267,14 +262,8 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
     const stopSync = NotificationService.startSmartNotificationSync((newNotifications) => {
       console.log('🔔 New smart notifications received from other devices:', newNotifications.length);
 
-      // تحديث الإشعارات
+      // تحديث الإشعارات (الصوت يتشغل تلقائياً)
       loadNotifications();
-
-      // تشغيل الصوت للإشعارات الجديدة
-      if (newNotifications.length > 0) {
-        // تشغيل صوت بناءً على أول إشعار جديد
-        playNotificationSound('general', newNotifications[0]);
-      }
     });
 
     // بدء إنشاء الإشعارات التلقائية
@@ -289,8 +278,7 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
 
     const handleSmartNotificationAdded = (event: CustomEvent<SmartNotification>) => {
       loadNotifications();
-      // تشغيل الصوت للإشعار الجديد
-      playNotificationSound('general', event.detail);
+      // الصوت يتشغل تلقائياً من addSmartNotification - لا داعي لتشغيله هنا
     };
 
     window.addEventListener('new-notification', handleNewNotification);
@@ -343,7 +331,7 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
                 const lastMessageSenderId = chatData.lastMessageSenderId || chatData.participants.find((p: string) => p !== currentUserId);
                 
                 if (lastMessageSenderId !== currentUserId) {
-                  // إنشاء إشعار
+                  // إنشاء إشعار (الصوت يتشغل تلقائياً من addSmartNotification)
                   NotificationService.addSmartNotification({
                     title: `💬 رسالة جديدة من ${lastMessageSenderId}`,
                     message: chatData.lastMessage,
@@ -356,9 +344,6 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
                     requiresApproval: false,
                     actionUrl: '/dashboard/chat'
                   });
-
-                  // تشغيل صوت الإشعار فقط للمستقبل
-                  playNotificationSound('general');
                   
                   console.log('✅ Chat notification created for receiver only');
                 } else {
