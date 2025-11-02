@@ -191,20 +191,23 @@ export function deleteSmartNotification(notificationId: string) {
 // تشغيل صوت الإشعار
 function playNotificationSound(notification: SmartNotification) {
   try {
-    // تحديد نوع الصوت حسب الأولوية
-    let soundType = 'general';
-    if (notification.priority === 'urgent' || notification.priority === 'high') {
-      soundType = 'urgent';
-    } else if (notification.type === 'payment_overdue' || notification.type === 'guest_request') {
-      soundType = 'alert';
+    console.log('🔊 Playing notification sound for:', notification.type, notification.priority);
+    
+    // تحديد الصوت المناسب
+    let soundFile = '/sounds/notification.mp3';
+    
+    if (notification.priority === 'urgent' || notification.type === 'guest_request') {
+      soundFile = '/sounds/long-notification.mp3'; // صوت طويل للطلبات المهمة
     }
-
-    // تشغيل الصوت (افتراض أن هناك نظام صوت موجود)
-    if (window.playNotificationSound) {
-      window.playNotificationSound(soundType);
-    }
+    
+    // تشغيل الصوت
+    const audio = new Audio(soundFile);
+    audio.volume = 0.5;
+    audio.play()
+      .then(() => console.log('✅ Notification sound played successfully'))
+      .catch(err => console.warn('⚠️ Failed to play notification sound:', err));
   } catch (error) {
-    console.warn('Failed to play notification sound:', error);
+    console.warn('❌ Error playing notification sound:', error);
   }
 }
 
