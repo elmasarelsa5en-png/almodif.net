@@ -737,31 +737,23 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
           <table class="contract-table">
             <thead>
               <tr>
-                <th colspan="2">العميل</th>
+                <th colspan="6">بيانات العميل</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td class="label">اسم العميل</td>
                 <td class="value"><strong>${selectedGuest.name}</strong></td>
-              </tr>
-              <tr>
                 <td class="label">الجنسية</td>
                 <td class="value">${selectedGuest.nationality || 'السعودية'}</td>
-              </tr>
-              <tr>
                 <td class="label">نوع الإثبات</td>
                 <td class="value">${selectedGuest.idType || 'بطاقة هوية مدنية'}</td>
               </tr>
               <tr>
                 <td class="label">رقم الإثبات</td>
                 <td class="value">${selectedGuest.idNumber || '—'}</td>
-              </tr>
-              <tr>
                 <td class="label">جوال</td>
                 <td class="value">${selectedGuest.phone}</td>
-              </tr>
-              <tr>
                 <td class="label">عدد المرافقين</td>
                 <td class="value">${companions.length}</td>
               </tr>
