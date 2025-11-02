@@ -339,27 +339,31 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
 
               // التحقق من وجود رسالة جديدة
               if (chatData.lastMessage && chatData.lastMessageTime) {
-                // الحصول على المرسل (الشخص الآخر في المحادثة)
-                const senderId = chatData.participants.find((p: string) => p !== currentUserId);
+                // ✅ فقط إذا المرسل ليس المستخدم الحالي
+                const lastMessageSenderId = chatData.lastMessageSenderId || chatData.participants.find((p: string) => p !== currentUserId);
                 
-                // إنشاء إشعار
-                NotificationService.addSmartNotification({
-                  title: `💬 رسالة جديدة من ${senderId}`,
-                  message: chatData.lastMessage,
-                  time: 'الآن',
-                  unread: true,
-                  type: 'system_alert',
-                  priority: 'medium',
-                  category: 'staff',
-                  actionRequired: false,
-                  requiresApproval: false,
-                  actionUrl: '/dashboard/chat'
-                });
+                if (lastMessageSenderId !== currentUserId) {
+                  // إنشاء إشعار
+                  NotificationService.addSmartNotification({
+                    title: `💬 رسالة جديدة من ${lastMessageSenderId}`,
+                    message: chatData.lastMessage,
+                    time: 'الآن',
+                    unread: true,
+                    type: 'system_alert',
+                    priority: 'medium',
+                    category: 'staff',
+                    actionRequired: false,
+                    requiresApproval: false,
+                    actionUrl: '/dashboard/chat'
+                  });
 
-                // تشغيل صوت الإشعار
-                playNotificationSound('general');
-                
-                console.log('✅ Chat notification created');
+                  // تشغيل صوت الإشعار فقط للمستقبل
+                  playNotificationSound('general');
+                  
+                  console.log('✅ Chat notification created for receiver only');
+                } else {
+                  console.log('🔇 Skipped notification - sender is current user');
+                }
               }
             }
           });
