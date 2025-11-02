@@ -492,7 +492,18 @@ const ar = {
   servicesDebtLabel: 'دين الخدمات',
   recordNewPayment: 'تسجيل دفعة جديدة',
   checkoutProcess: '🚪 تصفية الحجز',
-  checkoutProcessDesc: 'إتمام عملية تصفية الحجز',
+  checkoutProcessDesc: 'إنهاء حجز النزيل وتحويل الغرفة لحالة "تحتاج تنظيف"',
+  clearReservation: 'تصفية الحجز',
+  confirmCheckout: 'هل أنت متأكد من تصفية حجز الغرفة {roomNumber}؟\n\nسيتم:\n- حذف بيانات النزيل\n- تحويل الغرفة إلى "تحتاج تنظيف"',
+  checkoutSuccess: '✅ تم تصفية الحجز بنجاح!\nالغرفة الآن في حالة "تحتاج تنظيف"',
+  checkoutError: '❌ حدث خطأ أثناء تصفية الحجز',
+  roomAvailableForBooking: '🎉 الغرفة متاحة للحجز!',
+  roomAvailableDesc: 'يمكنك حجز هذه الغرفة للنزلاء مباشرة',
+  quickBooking: 'حجز سريع',
+  changeStatus: 'تغيير الحالة',
+  newStatus: 'الحالة الجديدة',
+  selectNewStatus: 'اختر الحالة الجديدة',
+  confirmStatusChange: 'تأكيد التغيير',
 };
 
 const en = {
@@ -978,7 +989,18 @@ const en = {
   servicesDebtLabel: 'Services Debt',
   recordNewPayment: 'Record New Payment',
   checkoutProcess: '🚪 Checkout Process',
-  checkoutProcessDesc: 'Complete the checkout process',
+  checkoutProcessDesc: 'End guest reservation and change room status to "Needs Cleaning"',
+  clearReservation: 'Clear Reservation',
+  confirmCheckout: 'Are you sure you want to checkout room {roomNumber}?\n\nThis will:\n- Delete guest data\n- Change room to "Needs Cleaning"',
+  checkoutSuccess: '✅ Checkout completed successfully!\nRoom is now "Needs Cleaning"',
+  checkoutError: '❌ Error during checkout',
+  roomAvailableForBooking: '🎉 Room Available for Booking!',
+  roomAvailableDesc: 'You can book this room for guests directly',
+  quickBooking: 'Quick Booking',
+  changeStatus: 'Change Status',
+  newStatus: 'New Status',
+  selectNewStatus: 'Select new status',
+  confirmStatusChange: 'Confirm Change',
 };
 
 export const translations = { ar, en };

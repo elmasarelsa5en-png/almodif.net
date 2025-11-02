@@ -1257,12 +1257,12 @@ export default function RoomsPage() {
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="text-lg font-bold text-white mb-1">🚪 تصفية الحجز</h3>
-                          <p className="text-sm text-orange-200">إنهاء حجز النزيل وتحويل الغرفة لحالة "تحتاج تنظيف"</p>
+                          <h3 className="text-lg font-bold text-white mb-1">{t('checkoutProcess')}</h3>
+                          <p className="text-sm text-orange-200">{t('checkoutProcessDesc')}</p>
                         </div>
                         <Button
                           onClick={async () => {
-                            if (confirm(`هل أنت متأكد من تصفية حجز الغرفة ${selectedRoom.number}?\n\nسيتم:\n- حذف بيانات النزيل\n- تحويل الغرفة إلى "تحتاج تنظيف"`)) {
+                            if (confirm(t('confirmCheckout', { roomNumber: selectedRoom.number }))) {
                               try {
                                 const updatedRoom: Room = {
                                   ...selectedRoom,
@@ -1288,18 +1288,18 @@ export default function RoomsPage() {
                                 
                                 await saveRoomToFirebase(updatedRoom);
                                 setSelectedRoom(updatedRoom);
-                                alert('✅ تم تصفية الحجز بنجاح!\nالغرفة الآن في حالة "تحتاج تنظيف"');
+                                alert(t('checkoutSuccess'));
                                 setIsDetailsOpen(false);
                               } catch (error) {
                                 console.error('Error clearing reservation:', error);
-                                alert('❌ حدث خطأ أثناء تصفية الحجز');
+                                alert(t('checkoutError'));
                               }
                             }
                           }}
                           className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold px-6 py-3 shadow-lg"
                         >
                           <Trash2 className="w-5 h-5 mr-2" />
-                          تصفية الحجز
+                          {t('clearReservation')}
                         </Button>
                       </div>
                     </CardContent>
@@ -1313,8 +1313,8 @@ export default function RoomsPage() {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="text-lg font-bold text-white mb-1">🎉 الغرفة متاحة للحجز!</h3>
-                        <p className="text-sm text-green-200">يمكنك حجز هذه الغرفة للنزلاء مباشرة</p>
+                        <h3 className="text-lg font-bold text-white mb-1">{t('roomAvailableForBooking')}</h3>
+                        <p className="text-sm text-green-200">{t('roomAvailableDesc')}</p>
                       </div>
                       <Button
                         onClick={() => {
@@ -1369,15 +1369,15 @@ export default function RoomsPage() {
                 <CardHeader>
                   <CardTitle className="text-lg font-bold text-white flex items-center gap-2">
                     <AlertTriangle className="w-5 h-5 text-purple-400" />
-                    تغيير الحالة
+                    {t('changeStatus')}
                   </CardTitle>
                   <CardDescription className="text-blue-200/80 text-sm">
-                    اختر الحالة الجديدة للشقة من القائمة أدناه
+                    {t('selectNewStatus')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-3">
-                    <label className="text-sm font-semibold text-blue-200 block">الحالة الجديدة</label>
+                    <label className="text-sm font-semibold text-blue-200 block">{t('newStatus')}</label>
                     
                     {/* عرض الحالات كأزرار كبيرة وواضحة */}
                     <div className="grid grid-cols-1 gap-3">
