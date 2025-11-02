@@ -44,7 +44,14 @@ const PUBLIC_ROUTES = [
   '/guest-app/contact',
   '/guest-app/my-bookings',
   '/guest-app/my-orders',
-  '/guest-app/review'
+  '/guest-app/review',
+  '/guest-app/profile',
+  '/guest-app/coffee-shop',
+  '/guest-app/laundry',
+  '/guest-app/restaurant',
+  '/guest-app/room-service',
+  '/guest-app/extend-stay',
+  '/guest-app/qr-code'
 ];
 
 // دالة للتحقق من الصفحات العامة (تدعم dynamic routes)
