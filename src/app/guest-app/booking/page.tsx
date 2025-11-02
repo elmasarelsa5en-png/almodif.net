@@ -760,6 +760,7 @@ export default function BookingPage() {
                             phone: currentUser.phone || currentUser.phoneNumber || currentUser.mobile || bookingData.phone,
                             email: currentUser.email || bookingData.email,
                             nationalId: currentUser.nationalId || currentUser.idNumber || bookingData.nationalId,
+                            idCopyNumber: currentUser.idCopyNumber || currentUser.nationalIdCopy || bookingData.idCopyNumber,
                           };
                           
                           console.log('✅ Filling with data:', filledData);
@@ -769,8 +770,9 @@ export default function BookingPage() {
                           const filledFields = [];
                           if (filledData.guestName !== bookingData.guestName) filledFields.push('الاسم');
                           if (filledData.phone !== bookingData.phone) filledFields.push('الهاتف');
-                          if (filledData.email !== bookingData.email) filledFields.push('البريد');
-                          if (filledData.nationalId !== bookingData.nationalId) filledFields.push('الهوية');
+                          if (filledData.email !== bookingData.email) filledFields.push('البريد الإلكتروني');
+                          if (filledData.nationalId !== bookingData.nationalId) filledFields.push('رقم الهوية');
+                          if (filledData.idCopyNumber !== bookingData.idCopyNumber) filledFields.push('رقم نسخة البطاقة');
                           
                           if (filledFields.length > 0) {
                             alert(`✅ تم ملء: ${filledFields.join('، ')}`);
