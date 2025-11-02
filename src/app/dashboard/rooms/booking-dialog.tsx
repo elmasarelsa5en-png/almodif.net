@@ -662,56 +662,56 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
       </head>
       <body>
         <div class="container">
-          <!-- الرأسية -->
-          <div class="header">
+          <!-- الرأسية - معلومات العقد والفندق في صف واحد مضغوط -->
+          <div class="header" style="text-align: center; padding: 15px; border-bottom: 2px solid #e5e7eb;">
             ${contractSettings.logoUrl ? `
-            <div class="logo-container">
-              <img src="${contractSettings.logoUrl}" alt="شعار الفندق" class="logo" />
+            <div class="logo-container" style="margin-bottom: 10px;">
+              <img src="${contractSettings.logoUrl}" alt="شعار الفندق" class="logo" style="max-width: 120px; height: auto;" />
             </div>
             ` : ''}
-            <h1>عقد إيجار</h1>
-            <div class="header-info">
-              <div><strong>رقم العقد:</strong> ${contractNumber}</div>
-              <div><strong>التاريخ:</strong> ${new Date().toLocaleDateString('ar-SA')}</div>
-              <div><strong>الموافق:</strong> ${formatHijriDate(checkInDate)}</div>
+            
+            <!-- عنوان العقد -->
+            <h1 style="color: #1e40af; font-size: 28px; margin: 10px 0;">عقد إيجار</h1>
+            
+            <!-- معلومات العقد في سطر واحد -->
+            <div style="font-size: 13px; color: #374151; margin: 8px 0;">
+              <strong>رقم العقد:</strong> ${contractNumber} | 
+              <strong>التاريخ:</strong> ${new Date().toLocaleDateString('ar-SA')} | 
+              <strong>الموافق:</strong> ${formatHijriDate(new Date())}
             </div>
-          </div>
-          
-          <!-- بيانات الفندق -->
-          <div class="hotel-info" style="text-align: center; line-height: 1.8;">
-            <h2 style="margin-bottom: 10px; color: #1e40af; font-size: 24px;">${contractSettings.hotelName}</h2>
-            <p style="font-size: 14px; color: #374151; margin: 5px 0;">
-              ${contractSettings.address} - ${contractSettings.city}
-            </p>
-            <p style="font-size: 13px; color: #4b5563; margin: 5px 0;">
-              📞 هاتف: <strong>${contractSettings.phone}</strong> | 
-              📧 <strong>${contractSettings.email}</strong>
-            </p>
-            <p style="font-size: 13px; color: #6b7280; margin: 5px 0;">
-              الرقم الضريبي: <strong>${contractSettings.taxNumber}</strong> | 
-              السجل التجاري: <strong>${contractSettings.commercialRegister}</strong>
-            </p>
+            
+            <!-- معلومات الفندق الكاملة في 3 أسطر مضغوطة -->
+            <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #e5e7eb;">
+              <h2 style="color: #1e40af; font-size: 20px; margin: 5px 0;">${contractSettings.hotelName}</h2>
+              <div style="font-size: 12px; color: #6b7280; line-height: 1.8;">
+                ${contractSettings.address} - ${contractSettings.city} | 
+                📞 <strong>${contractSettings.phone}</strong> | 
+                📧 <strong>${contractSettings.email}</strong> | 
+                الرقم الضريبي: <strong>${contractSettings.taxNumber}</strong> | 
+                السجل التجاري: <strong>${contractSettings.commercialRegister}</strong>
+              </div>
+            </div>
           </div>
           
           <!-- جدول بيانات العقد -->
           <table class="contract-table">
             <thead>
               <tr>
-                <th colspan="4">العقد</th>
+                <th colspan="4">بيانات الحجز</th>
               </tr>
             </thead>
             <tbody>
               <!-- تاريخ الدخول والخروج -->
               <tr>
-                <td class="label">تاريخ الدخول (الخميس)</td>
-                <td class="value">${checkInDate} (الجمعة)</td>
-                <td class="label">تاريخ الدخول (الجمعة)</td>
+                <td class="label">تاريخ الدخول (ميلادي)</td>
+                <td class="value">${checkInDate}</td>
+                <td class="label">تاريخ الدخول (هجري)</td>
                 <td class="value">${formatHijriDate(checkInDate)}</td>
               </tr>
               <tr>
-                <td class="label">تاريخ الخروج (الميلادي)</td>
+                <td class="label">تاريخ الخروج (ميلادي)</td>
                 <td class="value">${checkOutDate}</td>
-                <td class="label">الموافق</td>
+                <td class="label">تاريخ الخروج (هجري)</td>
                 <td class="value">${formatHijriDate(checkOutDate)}</td>
               </tr>
               <tr>
