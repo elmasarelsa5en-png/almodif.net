@@ -76,7 +76,7 @@ export default function BookingPage() {
           // محاولة من guests أولاً
           let userDoc = await getDoc(doc(db, 'guests', user.uid));
           
-          // إذا لم يوجد، جرب users
+          // إذا لم يوجد، جرب users (للموظفين/الإدارة)
           if (!userDoc.exists()) {
             console.log('⚠️ User not found in guests, trying users collection...');
             userDoc = await getDoc(doc(db, 'users', user.uid));
@@ -96,7 +96,8 @@ export default function BookingPage() {
             setCurrentUser({
               uid: user.uid,
               email: user.email,
-              phone: user.phoneNumber || ''
+              phone: user.phoneNumber || '',
+              name: user.displayName || ''
             });
           }
         } catch (error) {
@@ -105,26 +106,42 @@ export default function BookingPage() {
           setCurrentUser({
             uid: user.uid,
             email: user.email,
-            phone: user.phoneNumber || ''
+            phone: user.phoneNumber || '',
+            name: user.displayName || ''
           });
         }
       } else {
-        // التحقق من localStorage للضيوف المسجلين عبر النظام القديم
+        // التحقق من localStorage
         console.log('⚠️ No Firebase Auth user, checking localStorage...');
-        const guestSession = localStorage.getItem('guest_session');
+        
+        // تحقق من guest_session (للضيوف)
+        let guestSession = localStorage.getItem('guest_session');
         if (guestSession) {
           try {
             const guestData = JSON.parse(guestSession);
             console.log('✅ Guest data loaded from localStorage:', guestData);
             setCurrentUser(guestData);
+            return;
           } catch (error) {
             console.error('❌ Error parsing guest session:', error);
-            setCurrentUser(null);
           }
-        } else {
-          console.log('⚠️ No guest session found');
-          setCurrentUser(null);
         }
+        
+        // تحقق من user (للموظفين/الإدارة)
+        const userSession = localStorage.getItem('user');
+        if (userSession) {
+          try {
+            const userData = JSON.parse(userSession);
+            console.log('✅ User data loaded from localStorage (staff):', userData);
+            setCurrentUser(userData);
+            return;
+          } catch (error) {
+            console.error('❌ Error parsing user session:', error);
+          }
+        }
+        
+        console.log('⚠️ No session found');
+        setCurrentUser(null);
       }
     });
     
@@ -739,15 +756,27 @@ export default function BookingPage() {
                         if (currentUser) {
                           const filledData = {
                             ...bookingData,
-                            guestName: currentUser.name || currentUser.displayName || bookingData.guestName,
-                            phone: currentUser.phone || currentUser.phoneNumber || bookingData.phone,
+                            guestName: currentUser.name || currentUser.displayName || currentUser.username || bookingData.guestName,
+                            phone: currentUser.phone || currentUser.phoneNumber || currentUser.mobile || bookingData.phone,
                             email: currentUser.email || bookingData.email,
-                            nationalId: currentUser.nationalId || bookingData.nationalId,
+                            nationalId: currentUser.nationalId || currentUser.idNumber || bookingData.nationalId,
                           };
                           
                           console.log('✅ Filling with data:', filledData);
                           setBookingData(filledData);
-                          alert('✅ تم ملء البيانات من حسابك');
+                          
+                          // عرض رسالة توضيحية
+                          const filledFields = [];
+                          if (filledData.guestName !== bookingData.guestName) filledFields.push('الاسم');
+                          if (filledData.phone !== bookingData.phone) filledFields.push('الهاتف');
+                          if (filledData.email !== bookingData.email) filledFields.push('البريد');
+                          if (filledData.nationalId !== bookingData.nationalId) filledFields.push('الهوية');
+                          
+                          if (filledFields.length > 0) {
+                            alert(`✅ تم ملء: ${filledFields.join('، ')}`);
+                          } else {
+                            alert('⚠️ لا توجد بيانات إضافية لملئها');
+                          }
                         } else {
                           console.warn('⚠️ No user logged in');
                           alert('⚠️ يجب تسجيل الدخول أولاً');
