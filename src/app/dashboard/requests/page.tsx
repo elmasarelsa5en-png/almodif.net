@@ -541,66 +541,119 @@ export default function RequestsPage() {
               filteredRequests.map((request) => (
                 <Card
                   key={request.id}
-                  className={`bg-white/10 backdrop-blur-md border-white/20 shadow-2xl hover:bg-white/15 transition-all duration-300 cursor-pointer ${
+                  className={`bg-white/10 backdrop-blur-md border-white/20 shadow-2xl hover:bg-white/15 transition-all duration-300 ${
                     request.status === 'awaiting_employee_approval' && !request.assignedEmployee 
                       ? 'ring-2 ring-purple-500/50 ring-offset-2 ring-offset-gray-900' 
                       : ''
                   }`}
                 >
-                  <div
-                    className="p-6"
-                    onClick={() => setExpandedId(expandedId === request.id ? null : request.id)}
-                  >
-                    {/* 🔔 بادج "طلب جديد - جاهز للقبول" */}
-                    {request.status === 'awaiting_employee_approval' && !request.assignedEmployee && (
-                      <div className="mb-4 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-2 border-purple-500/50 rounded-xl p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center animate-pulse">
-                            <Check className="w-6 h-6 text-white" />
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-purple-300 font-bold text-lg">✨ طلب جديد - جاهز للقبول</p>
-                            <p className="text-purple-200/70 text-sm">اضغط على "قبول الطلب" للبدء في التنفيذ</p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-between gap-4 flex-wrap">
-                      <div className="flex-1 min-w-fit">
+                  <div className="p-6">
+                    {/* Header - معلومات الطلب الأساسية */}
+                    <div className="flex items-start justify-between gap-4 mb-4">
+                      <div 
+                        className="flex-1 cursor-pointer"
+                        onClick={() => setExpandedId(expandedId === request.id ? null : request.id)}
+                      >
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                          <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
                             <FileText className="w-6 h-6 text-purple-400" />
                           </div>
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-2xl font-bold text-white">غرفة {request.room}</span>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-1 flex-wrap">
+                              <span className="text-xl font-bold text-white">غرفة {request.room}</span>
+                              <Badge className={`${STATUS_CONFIG[request.status as keyof typeof STATUS_CONFIG]?.color || 'bg-gray-500/20 text-gray-300'} border-0 px-2 py-0.5 text-xs`}>
+                                {STATUS_CONFIG[request.status as keyof typeof STATUS_CONFIG]?.icon || '📋'} {STATUS_CONFIG[request.status as keyof typeof STATUS_CONFIG]?.label || request.status}
+                              </Badge>
                               {request.priority && PRIORITY_CONFIG[request.priority as keyof typeof PRIORITY_CONFIG] && (
-                                <Badge className={`${PRIORITY_CONFIG[request.priority as keyof typeof PRIORITY_CONFIG].color} bg-transparent border`}>
+                                <Badge className={`${PRIORITY_CONFIG[request.priority as keyof typeof PRIORITY_CONFIG].color} bg-transparent border text-xs px-2 py-0.5`}>
                                   {PRIORITY_CONFIG[request.priority as keyof typeof PRIORITY_CONFIG].label}
                                 </Badge>
                               )}
                             </div>
-                            <p className="text-white/70 text-sm">{request.type}</p>
+                            <p className="text-white/90 font-semibold text-base mb-1">{request.type}</p>
+                            <div className="flex items-center gap-4 text-sm text-white/60 flex-wrap">
+                              <span className="flex items-center gap-1">
+                                <User className="w-3 h-3" />
+                                {request.guest}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Calendar className="w-3 h-3" />
+                                {formatDate(request.createdAt)}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-3 flex-wrap">
-                        <Badge className={`${STATUS_CONFIG[request.status as keyof typeof STATUS_CONFIG]?.color || 'bg-gray-500/20 text-gray-300'} border-0 px-3 py-1`}>
-                          {STATUS_CONFIG[request.status as keyof typeof STATUS_CONFIG]?.icon || '📋'} {STATUS_CONFIG[request.status as keyof typeof STATUS_CONFIG]?.label || request.status}
-                        </Badge>
-                        <ChevronDown
-                          className={`w-5 h-5 text-white/50 transition-transform ${
-                            expandedId === request.id ? 'rotate-180' : ''
-                          }`}
-                        />
+                      {/* أزرار القبول/الرفض - تظهر بره على الكارت مباشرة */}
+                      {request.status === 'awaiting_employee_approval' && !request.assignedEmployee && (
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <Button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              acceptRequest(request.id);
+                            }}
+                            disabled={acceptingRequestId === request.id}
+                            className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-0 shadow-lg px-4 py-2"
+                          >
+                            {acceptingRequestId === request.id ? (
+                              <>
+                                <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                                جاري القبول...
+                              </>
+                            ) : (
+                              <>
+                                <UserCheck className="w-4 h-4 ml-2" />
+                                قبول
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              updateRequestStatus(request.id, 'rejected');
+                            }}
+                            variant="outline"
+                            className="border-red-500/50 text-red-300 hover:bg-red-500/20 px-4 py-2"
+                          >
+                            ❌ رفض
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* معلومات المرسل والموظف المكلف */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 p-3 bg-white/5 rounded-lg border border-white/10">
+                      <div className="flex items-center gap-2 text-sm">
+                        <User className="w-4 h-4 text-blue-400" />
+                        <span className="text-white/60">أنشأ بواسطة:</span>
+                        <span className="text-white font-semibold">{request.createdBy || user?.name || 'الإدارة'}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <UserCheck className="w-4 h-4 text-green-400" />
+                        <span className="text-white/60">الموظف المكلف:</span>
+                        <span className="text-white font-semibold">{request.assignedEmployee || 'لم يتم التعيين بعد'}</span>
                       </div>
                     </div>
 
+                    {/* زر عرض التفاصيل */}
+                    <button
+                      onClick={() => setExpandedId(expandedId === request.id ? null : request.id)}
+                      className="w-full flex items-center justify-center gap-2 text-white/60 hover:text-white transition-colors py-2 border-t border-white/10"
+                    >
+                      <span className="text-sm">
+                        {expandedId === request.id ? 'إخفاء التفاصيل' : 'عرض التفاصيل الكاملة'}
+                      </span>
+                      <ChevronDown
+                        className={`w-4 h-4 transition-transform ${
+                          expandedId === request.id ? 'rotate-180' : ''
+                        }`}
+                      />
+                    </button>
+
                     {/* Expanded Details */}
                     {expandedId === request.id && (
-                      <div className="mt-6 pt-6 border-t border-white/10 space-y-4">
+                      <div className="mt-4 pt-4 border-t border-white/10 space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {/* Guest Info */}
                           <div className="space-y-2">
@@ -631,17 +684,6 @@ export default function RequestsPage() {
                             <p className="text-white ml-6">{formatDate(request.createdAt)}</p>
                           </div>
 
-                          {/* Assigned Employee */}
-                          {request.assignedEmployee && (
-                            <div className="space-y-2">
-                              <div className="flex items-center gap-2 text-white/70 text-sm">
-                                <User className="w-4 h-4" />
-                                <span>الموظف المكلف:</span>
-                              </div>
-                              <p className="text-white ml-6">{request.assignedEmployee}</p>
-                            </div>
-                          )}
-
                           {/* Employee Approval Status */}
                           {request.employeeApprovalStatus && (
                             <div className="space-y-2">
@@ -666,47 +708,6 @@ export default function RequestsPage() {
                                       : '❌ مرفوض'}
                                 </Badge>
                               </div>
-                            </div>
-                          )}
-
-                          {/* Assigned Employee */}
-                          {request.assignedEmployee && (
-                            <div className="space-y-2">
-                              <div className="flex items-center gap-2 text-white/70 text-sm">
-                                <User className="w-4 h-4" />
-                                <span>الموظف المسؤول:</span>
-                              </div>
-                              <p className="text-white ml-6">{request.assignedEmployee}</p>
-                            </div>
-                          )}
-
-                          {/* Created By Employee */}
-                          {request.createdBy && (
-                            <div className="space-y-2">
-                              <div className="flex items-center gap-2 text-white/70 text-sm">
-                                <User className="w-4 h-4" />
-                                <span>أنشأ بواسطة:</span>
-                              </div>
-                              <p className="text-white ml-6">{request.createdBy}</p>
-                            </div>
-                          )}
-
-                          {/* Employee Approval Status */}
-                          {request.employeeApprovalStatus && (
-                            <div className="space-y-2">
-                              <div className="flex items-center gap-2 text-white/70 text-sm">
-                                <CheckCircle className="w-4 h-4" />
-                                <span>حالة الموظف:</span>
-                              </div>
-                              <Badge className={
-                                request.employeeApprovalStatus === 'approved'
-                                  ? 'bg-green-500/20 text-green-300'
-                                  : request.employeeApprovalStatus === 'rejected'
-                                  ? 'bg-red-500/20 text-red-300'
-                                  : 'bg-yellow-500/20 text-yellow-300'
-                              }>
-                                {request.employeeApprovalStatus === 'approved' ? '✅ موافق' : request.employeeApprovalStatus === 'rejected' ? '❌ مرفوض' : '⏳ بانتظار الموافقة'}
-                              </Badge>
                             </div>
                           )}
                         </div>
@@ -737,93 +738,85 @@ export default function RequestsPage() {
                           </div>
                         )}
 
-                        {/* Status Update Actions */}
-                        <div className="flex flex-wrap gap-2 pt-4">
-                          {/* ✅ زر قبول الطلب - يظهر فقط للطلبات في انتظار الموافقة */}
-                          {request.status === 'awaiting_employee_approval' && !request.assignedEmployee && (
+                        {/* Status Update Actions - تظهر فقط بعد قبول الطلب */}
+                        {request.assignedEmployee && (
+                          <div className="flex flex-wrap gap-2 pt-4 border-t border-white/10">
+                            {request.status !== 'pending' && (
+                              <Button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  updateRequestStatus(request.id, 'pending');
+                                }}
+                                variant="outline"
+                                className="border-yellow-500/30 text-yellow-300 hover:bg-yellow-500/10 text-xs"
+                              >
+                                ⏳ قيد الانتظار
+                              </Button>
+                            )}
+                            {request.status !== 'in-progress' && (
+                              <Button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  updateRequestStatus(request.id, 'in-progress');
+                                }}
+                                variant="outline"
+                                className="border-blue-500/30 text-blue-300 hover:bg-blue-500/10 text-xs"
+                              >
+                                ⚙️ قيد التنفيذ
+                              </Button>
+                            )}
+                            {request.status !== 'completed' && (
+                              <Button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  updateRequestStatus(request.id, 'completed');
+                                }}
+                                variant="outline"
+                                className="border-green-500/30 text-green-300 hover:bg-green-500/10 text-xs"
+                              >
+                                ✅ مكتمل
+                              </Button>
+                            )}
+                            {request.status === 'completed' && (
+                              <Button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedRequestForRating(request);
+                                  setRatingDialogOpen(true);
+                                }}
+                                variant="outline"
+                                className="border-yellow-500/30 text-yellow-300 hover:bg-yellow-500/10 text-xs"
+                              >
+                                <Star className="w-4 h-4 ml-1" />
+                                تقييم الخدمة
+                              </Button>
+                            )}
+                            {request.status !== 'rejected' && (
+                              <Button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  updateRequestStatus(request.id, 'rejected');
+                                }}
+                                variant="outline"
+                                className="border-red-500/30 text-red-300 hover:bg-red-500/10 text-xs"
+                              >
+                                ❌ رفض
+                              </Button>
+                            )}
+
                             <Button
-                              onClick={() => acceptRequest(request.id)}
-                              disabled={acceptingRequestId === request.id}
-                              className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white border-0 text-sm font-bold shadow-lg"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteRequest(request.id);
+                              }}
+                              variant="outline"
+                              className="border-red-500/50 text-red-400 hover:bg-red-500/20 ml-auto text-xs"
                             >
-                              {acceptingRequestId === request.id ? (
-                                <>
-                                  <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-                                  جاري القبول...
-                                </>
-                              ) : (
-                                <>
-                                  <UserCheck className="w-4 h-4 ml-2" />
-                                  قبول الطلب والبدء في التنفيذ
-                                </>
-                              )}
+                              <Trash2 className="w-4 h-4 ml-1" />
+                              حذف
                             </Button>
-                          )}
-
-                          {/* أزرار تغيير الحالة - تظهر فقط بعد قبول الطلب */}
-                          {request.assignedEmployee && (
-                            <>
-                              {request.status !== 'pending' && (
-                                <Button
-                                  onClick={() => updateRequestStatus(request.id, 'pending')}
-                                  variant="outline"
-                                  className="border-yellow-500/30 text-yellow-300 hover:bg-yellow-500/10 text-xs"
-                                >
-                                  ⏳ قيد الانتظار
-                                </Button>
-                              )}
-                              {request.status !== 'in-progress' && (
-                                <Button
-                                  onClick={() => updateRequestStatus(request.id, 'in-progress')}
-                                  variant="outline"
-                                  className="border-blue-500/30 text-blue-300 hover:bg-blue-500/10 text-xs"
-                                >
-                                  ⚙️ قيد التنفيذ
-                                </Button>
-                              )}
-                              {request.status !== 'completed' && (
-                                <Button
-                                  onClick={() => updateRequestStatus(request.id, 'completed')}
-                                  variant="outline"
-                                  className="border-green-500/30 text-green-300 hover:bg-green-500/10 text-xs"
-                                >
-                                  ✅ مكتمل
-                                </Button>
-                              )}
-                              {request.status === 'completed' && (
-                                <Button
-                                  onClick={() => {
-                                    setSelectedRequestForRating(request);
-                                    setRatingDialogOpen(true);
-                                  }}
-                                  variant="outline"
-                                  className="border-yellow-500/30 text-yellow-300 hover:bg-yellow-500/10 text-xs"
-                                >
-                                  <Star className="w-4 h-4 ml-1" />
-                                  تقييم الخدمة
-                                </Button>
-                              )}
-                              {request.status !== 'rejected' && (
-                                <Button
-                                  onClick={() => updateRequestStatus(request.id, 'rejected')}
-                                  variant="outline"
-                                  className="border-red-500/30 text-red-300 hover:bg-red-500/10 text-xs"
-                                >
-                                  ❌ مرفوض
-                                </Button>
-                              )}
-                            </>
-                          )}
-
-                          <Button
-                            onClick={() => deleteRequest(request.id)}
-                            variant="outline"
-                            className="border-red-500/50 text-red-400 hover:bg-red-500/20 ml-auto text-xs"
-                          >
-                            <Trash2 className="w-4 h-4 ml-1" />
-                            حذف
-                          </Button>
-                        </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
