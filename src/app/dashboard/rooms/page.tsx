@@ -258,7 +258,7 @@ export default function RoomsPage() {
     needsCleaning: rooms.filter(r => r.status === 'NeedsCleaning').length,
     reserved: rooms.filter(r => r.status === 'Reserved').length,
     checkoutToday: rooms.filter(r => r.status === 'CheckoutToday').length,
-    pendingCleaning: rooms.filter(r => r.status === 'Cleaning').length,
+    pendingCleaning: rooms.filter(r => r.status === 'NeedsCleaning').length, // استخدام NeedsCleaning بدلاً من Cleaning
     occupancyRate: Math.round((rooms.filter(r => r.status === 'Occupied').length / rooms.length) * 100)
   };
 
@@ -714,15 +714,14 @@ export default function RoomsPage() {
     // المدير والمشرف يمكنهم تغيير أي حالة
     if (user.role === 'admin' || user.role === 'supervisor') return true;
     
-    // موظف النظافة يمكنه تغيير من "تحتاج تنظيف" إلى "جاري التنظيف"
-    // والموظفين يمكنهم تغيير من "مشغولة" إلى "جاري التنظيف"
-    // والموظفين يمكنهم تغيير من "جاري التنظيف" إلى "تحتاج تنظيف" أو "متاحة"
+    // موظف النظافة يمكنه تغيير من "تحتاج تنظيف" إلى "متاحة"
+    // والموظفين يمكنهم تغيير الحالات الأخرى
     if (user.role === 'housekeeping') {
-      return fromStatus === 'NeedsCleaning' && toStatus === 'Cleaning';
+      return fromStatus === 'NeedsCleaning' && toStatus === 'Available';
     }
     if (user.role === 'staff' || user.role === 'admin' || user.role === 'supervisor') {
-      return (fromStatus === 'Occupied' && toStatus === 'Cleaning') ||
-             (fromStatus === 'Cleaning' && (toStatus === 'NeedsCleaning' || toStatus === 'Available'));
+      return (fromStatus === 'Occupied' && toStatus === 'NeedsCleaning') ||
+             (fromStatus === 'NeedsCleaning' && toStatus === 'Available');
     }
     
     return false;
