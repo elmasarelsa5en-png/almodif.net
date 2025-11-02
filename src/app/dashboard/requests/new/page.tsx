@@ -65,6 +65,7 @@ export default function NewRequestPage() {
   const [requestTypes, setRequestTypes] = useState<RequestType[]>([]);
   const [selectedType, setSelectedType] = useState<RequestType | null>(null);
   const [selectedSubItems, setSelectedSubItems] = useState<string[]>([]);
+  const [user, setUser] = useState<any>(null);
   
   // حالات جديدة لأقسام المنيو
   const [menuCategories] = useState([
@@ -94,6 +95,18 @@ export default function NewRequestPage() {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+
+  // تحميل بيانات المستخدم من localStorage
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        setUser(JSON.parse(userData));
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+      }
+    }
+  }, []);
 
   // تحميل أصناف المنيو عند اختيار قسم
   useEffect(() => {
@@ -467,6 +480,9 @@ export default function NewRequestPage() {
         description: '',
         priority: 'medium',
         assignedEmployee: '',
+        addToDebt: false,
+        totalAmount: 0,
+        paymentMethod: 'debt',
       });
       setSelectedSubItems([]);
       setSelectedType(null);
