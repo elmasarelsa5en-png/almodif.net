@@ -465,11 +465,13 @@ export default function LaundryPage() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
       >
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
+        <div className="container mx-auto px-3 md:px-6 py-3 md:py-4">
+          <div className="flex items-center justify-between gap-2">
+            {/* زر العودة - مخفي على الموبايل */}
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              className="hidden md:block"
             >
               <Button
                 variant="ghost"
@@ -482,25 +484,26 @@ export default function LaundryPage() {
             </motion.div>
             
             <motion.div 
-              className="text-center"
+              className="text-center flex-1 md:flex-none"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
             >
-              <div className="flex items-center gap-4 justify-center">
+              <div className="flex items-center gap-2 md:gap-4 justify-center">
                 <div className="relative">
-                  <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-xl">
-                    <Sparkles className="h-6 w-6 text-white" />
+                  <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-xl">
+                    <Sparkles className="h-5 w-5 md:h-6 md:w-6 text-white" />
                   </div>
-                  <div className="absolute -top-1 -right-1">
+                  <div className="absolute -top-1 -right-1 hidden md:block">
                     <Crown className="h-5 w-5 text-yellow-400" />
                   </div>
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-200 to-purple-200 bg-clip-text text-transparent">
-                    خدمات المغسلة الفاخرة
+                  <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-cyan-200 to-purple-200 bg-clip-text text-transparent">
+                    المغسلة
                   </h1>
-                  <p className="text-cyan-300 text-sm font-medium">Premium Laundry Services</p>
+                  {/* الوصف - مخفي على الموبايل */}
+                  <p className="text-cyan-300 text-xs md:text-sm font-medium hidden md:block">Premium Laundry Services</p>
                 </div>
               </div>
             </motion.div>
@@ -512,12 +515,12 @@ export default function LaundryPage() {
             >
               <Button
                 onClick={() => setIsCartOpen(!isCartOpen)}
-                className="relative bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white"
+                className="relative bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white text-sm md:text-base px-3 md:px-4"
               >
-                <ShoppingCart className="h-5 w-5 mr-2" />
-                السلة
+                <ShoppingCart className="h-4 w-4 md:h-5 md:w-5 ml-1 md:mr-2" />
+                <span className="hidden sm:inline">السلة</span>
                 {cartItemsCount > 0 && (
-                  <Badge className="absolute -top-2 -right-2 bg-red-500 text-white h-6 w-6 rounded-full p-0 flex items-center justify-center text-xs">
+                  <Badge className="absolute -top-2 -right-2 bg-red-500 text-white h-5 w-5 md:h-6 md:w-6 rounded-full p-0 flex items-center justify-center text-xs">
                     {cartItemsCount}
                   </Badge>
                 )}
@@ -525,31 +528,31 @@ export default function LaundryPage() {
             </motion.div>
           </div>
 
-          {/* Customer Type Selection */}
-          <div className="mt-4 flex gap-3 justify-center">
+          {/* Customer Type Selection - محسّنة للموبايل */}
+          <div className="mt-3 md:mt-4 flex gap-2 md:gap-3 justify-center">
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Button
                 onClick={() => setCustomerType('guest')}
-                className={`${
+                className={`text-sm md:text-base px-3 md:px-4 py-2 ${
                   customerType === 'guest'
                     ? 'bg-cyan-500 text-white shadow-lg'
                     : 'bg-white/20 text-white hover:bg-white/30'
                 }`}
               >
-                <User className="h-4 w-4 mr-2" />
+                <User className="h-3 w-3 md:h-4 md:w-4 ml-1 md:mr-2" />
                 نزيل
               </Button>
             </motion.div>
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Button
                 onClick={() => setCustomerType('external')}
-                className={`${
+                className={`text-sm md:text-base px-3 md:px-4 py-2 ${
                   customerType === 'external'
                     ? 'bg-cyan-500 text-white shadow-lg'
                     : 'bg-white/20 text-white hover:bg-white/30'
                 }`}
               >
-                <Users className="h-4 w-4 mr-2" />
+                <Users className="h-3 w-3 md:h-4 md:w-4 ml-1 md:mr-2" />
                 عميل خارجي
               </Button>
             </motion.div>
@@ -558,37 +561,37 @@ export default function LaundryPage() {
       </motion.header>
 
       {/* Main Content */}
-      <div className="relative z-10 container mx-auto px-6 py-8">
-        <div className="grid lg:grid-cols-4 gap-8">
-          {/* Categories Sidebar */}
+      <div className="relative z-10 container mx-auto px-3 md:px-6 py-4 md:py-8">
+        <div className="grid lg:grid-cols-4 gap-4 md:gap-8">
+          {/* Categories Sidebar - مبسط على الموبايل */}
           <motion.div
             className="lg:col-span-1"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
           >
-            <Card className="bg-white/10 backdrop-blur-xl border-cyan-400/20 shadow-2xl sticky top-24">
-              <CardHeader>
-                <CardTitle className="text-cyan-200 flex items-center gap-2">
-                  <Shirt className="h-5 w-5" />
+            <Card className="bg-white/10 backdrop-blur-xl border-cyan-400/20 shadow-2xl lg:sticky lg:top-24">
+              <CardHeader className="p-3 md:p-6">
+                <CardTitle className="text-cyan-200 flex items-center gap-2 text-base md:text-lg">
+                  <Shirt className="h-4 w-4 md:h-5 md:w-5" />
                   الفئات
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-2 md:space-y-3 p-3 md:p-6">
                 {[ 
-                  { id: 'all', label: 'جميع الأطباق', icon: <Star className="h-4 w-4" /> },
-                  { id: 'washing', label: 'الغسيل', icon: <Sparkles className="h-4 w-4" /> },
-                  { id: 'dry-cleaning', label: 'تنظيف جاف', icon: <Shirt className="h-4 w-4" /> },
-                  { id: 'express', label: 'سريع', icon: <Flame className="h-4 w-4" /> },
-                  { id: 'special', label: 'خاص', icon: <Droplet className="h-4 w-4" /> },
-                  { id: 'extra', label: 'إضافي', icon: <Star className="h-4 w-4" /> },
-                  { id: 'extra', label: 'إضافي', icon: <Award className="h-4 w-4" /> }
+                  { id: 'all', label: 'جميع الأطباق', icon: <Star className="h-3 w-3 md:h-4 md:w-4" /> },
+                  { id: 'washing', label: 'الغسيل', icon: <Sparkles className="h-3 w-3 md:h-4 md:w-4" /> },
+                  { id: 'dry-cleaning', label: 'تنظيف جاف', icon: <Shirt className="h-3 w-3 md:h-4 md:w-4" /> },
+                  { id: 'express', label: 'سريع', icon: <Flame className="h-3 w-3 md:h-4 md:w-4" /> },
+                  { id: 'special', label: 'خاص', icon: <Droplet className="h-3 w-3 md:h-4 md:w-4" /> },
+                  { id: 'extra', label: 'إضافي', icon: <Star className="h-3 w-3 md:h-4 md:w-4" /> },
+                  { id: 'extra', label: 'إضافي', icon: <Award className="h-3 w-3 md:h-4 md:w-4" /> }
                 ].map((category) => (
                   <motion.div key={category.id} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Button
                       variant={selectedCategory === category.id ? "default" : "ghost"}
                       onClick={() => setSelectedCategory(category.id)}
-                      className={`w-full justify-start text-right ${
+                      className={`w-full justify-start text-right text-sm md:text-base py-2 md:py-3 ${
                         selectedCategory === category.id
                           ? 'bg-cyan-500 text-white shadow-lg'
                           : 'text-cyan-200 hover:bg-cyan-500/20'
@@ -604,26 +607,27 @@ export default function LaundryPage() {
           </motion.div>
 
           {/* Menu Grid */}
+          {/* Menu Items Grid */}
           <div className="lg:col-span-3">
             {menuLoading ? (
               <div className="flex items-center justify-center h-96">
                 <div className="text-center">
-                  <Loader2 className="h-12 w-12 text-cyan-400 animate-spin mx-auto mb-4" />
-                  <p className="text-cyan-200 text-lg">جاري تحميل القائمة...</p>
+                  <Loader2 className="h-10 w-10 md:h-12 md:w-12 text-cyan-400 animate-spin mx-auto mb-4" />
+                  <p className="text-cyan-200 text-base md:text-lg">جاري تحميل القائمة...</p>
                 </div>
               </div>
             ) : menuItems.length === 0 ? (
-              <div className="text-center py-20">
-                <Shirt className="h-20 w-20 text-cyan-400/50 mx-auto mb-4" />
-                <p className="text-cyan-200 text-xl mb-2">لا توجد خدمات في القائمة</p>
-                <p className="text-cyan-300/60">يمكنك إضافة خدمات من صفحة الإعدادات</p>
+              <div className="text-center py-12 md:py-20">
+                <Shirt className="h-16 w-16 md:h-20 md:w-20 text-cyan-400/50 mx-auto mb-4" />
+                <p className="text-cyan-200 text-lg md:text-xl mb-2">لا توجد خدمات في القائمة</p>
+                <p className="text-cyan-300/60 text-sm md:text-base">يمكنك إضافة خدمات من صفحة الإعدادات</p>
               </div>
             ) : (
               <motion.div
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
-                className="grid md:grid-cols-2 xl:grid-cols-3 gap-6"
+                className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6"
               >
                 <AnimatePresence>
                   {filteredMenu && filteredMenu.length > 0 && filteredMenu.map((item) => (
@@ -635,10 +639,10 @@ export default function LaundryPage() {
                   >
                     <Card className="bg-white/5 backdrop-blur-xl border-cyan-400/20 hover:border-cyan-400/40 transition-all duration-500 overflow-hidden shadow-2xl hover:shadow-cyan-500/25 h-full">
                       {/* Item image and badges */}
-                      <div className="relative h-48 bg-gradient-to-br from-cyan-100 via-blue-50 to-purple-100 overflow-hidden">
+                      <div className="relative h-36 md:h-48 bg-gradient-to-br from-cyan-100 via-blue-50 to-purple-100 overflow-hidden">
                         <div className="absolute inset-0 flex items-center justify-center">
                           <motion.div 
-                            className="text-6xl group-hover:scale-110 transition-transform duration-300"
+                            className="text-5xl md:text-6xl group-hover:scale-110 transition-transform duration-300"
                             whileHover={{ rotate: [0, -10, 10, 0] }}
                           >
                             {item.image}
@@ -646,27 +650,27 @@ export default function LaundryPage() {
                         </div>
                         
                         {/* Price badge */}
-                        <div className="absolute top-4 left-4">
-                          <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold text-lg px-3 py-2 shadow-lg">
+                        <div className="absolute top-2 md:top-4 left-2 md:left-4">
+                          <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold text-sm md:text-lg px-2 md:px-3 py-1 md:py-2 shadow-lg">
                             {item.price} ريال
                           </Badge>
                         </div>
 
                         {/* Featured badge */}
                         {item.featured && (
-                          <div className="absolute top-4 right-4">
-                            <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-                              <Crown className="h-3 w-3 mr-1" />
+                          <div className="absolute top-2 md:top-4 right-2 md:right-4">
+                            <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs md:text-sm px-2 py-1">
+                              <Crown className="h-2 w-2 md:h-3 md:w-3 ml-1" />
                               مميز
                             </Badge>
                           </div>
                         )}
 
-                        {/* Category badge */}
-                        <div className="absolute bottom-4 left-4">
-                          <Badge variant="outline" className="bg-white/90 text-cyan-800 border-cyan-400">
+                        {/* Category badge - مخفي على الموبايل الصغير */}
+                        <div className="absolute bottom-2 md:bottom-4 left-2 md:left-4 hidden sm:block">
+                          <Badge variant="outline" className="bg-white/90 text-cyan-800 border-cyan-400 text-xs">
                             {getCategoryIcon(item.category)}
-                            <span className="mr-1 text-xs">
+                            <span className="mr-1">
                               {item.category === 'washing' ? 'غسيل' :
                                item.category === 'dry-cleaning' ? 'أطباق رئيسية' :
                                item.category === 'express' ? 'مشويات' :
@@ -678,11 +682,11 @@ export default function LaundryPage() {
                       </div>
 
                       {/* Item details */}
-                      <CardContent className="p-6 text-white">
-                        <div className="space-y-4">
+                      <CardContent className="p-4 md:p-6 text-white">
+                        <div className="space-y-3 md:space-y-4">
                           {/* Title and rating */}
                           <div>
-                            <h3 className="text-xl font-bold text-cyan-200 mb-1">
+                            <h3 className="text-lg md:text-xl font-bold text-cyan-200 mb-1">
                               {item.nameAr}
                             </h3>
                             <p className="text-cyan-300/80 text-sm mb-2">
