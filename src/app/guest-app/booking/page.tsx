@@ -70,19 +70,46 @@ export default function BookingPage() {
     // مراقبة حالة تسجيل الدخول
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
+        console.log('🔐 User logged in:', user.uid, user.email);
         // تحميل بيانات المستخدم من Firestore
         try {
-          const userDoc = await getDoc(doc(db, 'guests', user.uid));
+          // محاولة من guests أولاً
+          let userDoc = await getDoc(doc(db, 'guests', user.uid));
+          
+          // إذا لم يوجد، جرب users
+          if (!userDoc.exists()) {
+            console.log('⚠️ User not found in guests, trying users collection...');
+            userDoc = await getDoc(doc(db, 'users', user.uid));
+          }
+          
           if (userDoc.exists()) {
+            const userData = {
+              uid: user.uid,
+              email: user.email,
+              ...userDoc.data()
+            };
+            console.log('✅ User data loaded:', userData);
+            setCurrentUser(userData);
+          } else {
+            console.warn('⚠️ User document not found in Firestore');
+            // استخدم بيانات Firebase Auth الأساسية على الأقل
             setCurrentUser({
               uid: user.uid,
-              ...userDoc.data()
+              email: user.email,
+              phone: user.phoneNumber || ''
             });
           }
         } catch (error) {
-          console.error('Error loading user data:', error);
+          console.error('❌ Error loading user data:', error);
+          // استخدم بيانات Firebase Auth الأساسية
+          setCurrentUser({
+            uid: user.uid,
+            email: user.email,
+            phone: user.phoneNumber || ''
+          });
         }
       } else {
+        console.log('⚠️ No user logged in');
         setCurrentUser(null);
       }
     });
@@ -692,16 +719,23 @@ export default function BookingPage() {
                     {/* زر املأ بياناتي */}
                     <Button
                       onClick={() => {
+                        console.log('🔘 Auto-fill button clicked');
+                        console.log('👤 Current user:', currentUser);
+                        
                         if (currentUser) {
-                          setBookingData(prev => ({
-                            ...prev,
-                            guestName: currentUser.name || prev.guestName,
-                            phone: currentUser.phone || prev.phone,
-                            email: currentUser.email || prev.email,
-                            nationalId: currentUser.nationalId || prev.nationalId,
-                          }));
+                          const filledData = {
+                            ...bookingData,
+                            guestName: currentUser.name || currentUser.displayName || bookingData.guestName,
+                            phone: currentUser.phone || currentUser.phoneNumber || bookingData.phone,
+                            email: currentUser.email || bookingData.email,
+                            nationalId: currentUser.nationalId || bookingData.nationalId,
+                          };
+                          
+                          console.log('✅ Filling with data:', filledData);
+                          setBookingData(filledData);
                           alert('✅ تم ملء البيانات من حسابك');
                         } else {
+                          console.warn('⚠️ No user logged in');
                           alert('⚠️ يجب تسجيل الدخول أولاً');
                           router.push('/guest-app/login');
                         }
