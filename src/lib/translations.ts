@@ -583,6 +583,16 @@ const ar = {
   inProgressRequests: 'قيد التنفيذ',
   completedRequests: 'مكتملة',
   pendingApproval: 'بانتظار الموافقة',
+  accept: 'قبول',
+  reject: 'رفض',
+  complete: 'إكمال',
+  requestedBy: 'طلب من',
+  assignedEmployee: 'موظف مسند',
+  phone: 'الهاتف',
+  notAssignedYet: 'لم يتم التعيين بعد',
+  hideDetails: 'إخفاء التفاصيل',
+  showFullDetails: 'عرض التفاصيل الكاملة',
+  dateCreated: 'تاريخ الإنشاء',
 };
 
 const en = {
@@ -1159,6 +1169,16 @@ const en = {
   inProgressRequests: 'In Progress',
   completedRequests: 'Completed',
   pendingApproval: 'Pending Approval',
+  accept: 'Accept',
+  reject: 'Reject',
+  complete: 'Complete',
+  requestedBy: 'Requested by',
+  assignedEmployee: 'Assigned Employee',
+  phone: 'Phone',
+  notAssignedYet: 'Not assigned yet',
+  hideDetails: 'Hide Details',
+  showFullDetails: 'Show Full Details',
+  dateCreated: 'Date Created',
 };
 
 export const translations = { ar, en };

@@ -566,7 +566,7 @@ export default function RequestsPage() {
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-1 flex-wrap">
-                              <span className="text-xl font-bold text-white">غرفة {request.room}</span>
+                              <span className="text-xl font-bold text-white">{t('room')} {request.room}</span>
                               <Badge className={`${STATUS_CONFIG[request.status as keyof typeof STATUS_CONFIG]?.color || 'bg-gray-500/20 text-gray-300'} border-0 px-2 py-0.5 text-xs`}>
                                 {STATUS_CONFIG[request.status as keyof typeof STATUS_CONFIG]?.icon || '📋'} {STATUS_CONFIG[request.status as keyof typeof STATUS_CONFIG]?.label || request.status}
                               </Badge>
@@ -605,12 +605,12 @@ export default function RequestsPage() {
                             {acceptingRequestId === request.id ? (
                               <>
                                 <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-                                جاري القبول...
+                                {t('acceptingRequest')}
                               </>
                             ) : (
                               <>
                                 <UserCheck className="w-4 h-4 ml-2" />
-                                قبول
+                                {t('accept')}
                               </>
                             )}
                           </Button>
@@ -622,7 +622,7 @@ export default function RequestsPage() {
                             variant="outline"
                             className="border-red-500/50 text-red-300 hover:bg-red-500/20 px-4 py-2"
                           >
-                            ❌ رفض
+                            ❌ {t('reject')}
                           </Button>
                         </div>
                       )}
@@ -632,13 +632,13 @@ export default function RequestsPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 p-3 bg-white/5 rounded-lg border border-white/10">
                       <div className="flex items-center gap-2 text-sm">
                         <User className="w-4 h-4 text-blue-400" />
-                        <span className="text-white/60">أنشأ بواسطة:</span>
+                        <span className="text-white/60">{t('requestedBy')}:</span>
                         <span className="text-white font-semibold">{request.createdBy || user?.name || 'الإدارة'}</span>
                       </div>
                       <div className="flex items-center gap-2 text-sm">
                         <UserCheck className="w-4 h-4 text-green-400" />
-                        <span className="text-white/60">الموظف المكلف:</span>
-                        <span className="text-white font-semibold">{request.assignedEmployee || 'لم يتم التعيين بعد'}</span>
+                        <span className="text-white/60">{t('assignedEmployee')}:</span>
+                        <span className="text-white font-semibold">{request.assignedEmployee || t('notAssignedYet')}</span>
                       </div>
                     </div>
 
@@ -648,7 +648,7 @@ export default function RequestsPage() {
                       className="w-full flex items-center justify-center gap-2 text-white/60 hover:text-white transition-colors py-2 border-t border-white/10"
                     >
                       <span className="text-sm">
-                        {expandedId === request.id ? 'إخفاء التفاصيل' : 'عرض التفاصيل الكاملة'}
+                        {expandedId === request.id ? t('hideDetails') : t('showFullDetails')}
                       </span>
                       <ChevronDown
                         className={`w-4 h-4 transition-transform ${
@@ -665,7 +665,7 @@ export default function RequestsPage() {
                           <div className="space-y-2">
                             <div className="flex items-center gap-2 text-white/70 text-sm">
                               <User className="w-4 h-4" />
-                              <span>النزيل:</span>
+                              <span>{t('guest')}:</span>
                             </div>
                             <p className="text-white ml-6">{request.guest}</p>
                           </div>
@@ -675,7 +675,7 @@ export default function RequestsPage() {
                             <div className="space-y-2">
                               <div className="flex items-center gap-2 text-white/70 text-sm">
                                 <Phone className="w-4 h-4" />
-                                <span>الهاتف:</span>
+                                <span>{t('phone')}:</span>
                               </div>
                               <p className="text-white ml-6">{request.phone}</p>
                             </div>
@@ -685,7 +685,7 @@ export default function RequestsPage() {
                           <div className="space-y-2">
                             <div className="flex items-center gap-2 text-white/70 text-sm">
                               <Calendar className="w-4 h-4" />
-                              <span>تاريخ الإنشاء:</span>
+                              <span>{t('dateCreated')}:</span>
                             </div>
                             <p className="text-white ml-6">{formatDate(request.createdAt)}</p>
                           </div>
