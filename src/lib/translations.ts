@@ -447,6 +447,29 @@ const ar = {
   deselectAll: 'إلغاء تحديد الكل',
   search: 'بحث',
   searchPlaceholder: 'ابحث هنا...',
+  
+  // Rooms page specific
+  overdueRoomsAlertTitle: '🚨 تنبيه عاجل: شقق متأخرة عن موعد الخروج!',
+  overdueRoomsAlertDesc: 'يوجد {count} شقة متأخرة - يجب اتخاذ إجراء فوري',
+  lateCheckoutAlertTitle: '⚠️ تنبيه: نزلاء متأخرين عن checkout',
+  lateCheckoutAlertDesc: 'تأخروا عن الساعة 2 ظهراً',
+  unknownGuest: 'نزيل غير معروف',
+  lateDays: 'متأخر {count} أيام',
+  lateDay: 'متأخر {count} يوم',
+  expectedCheckout: 'الخروج المفترض: {date}',
+  extraDebt: '💰 مديونية إضافية: {amount} ر.س',
+  totalDebt: 'مجموع الدين: {amount} ر.س',
+  callNow: 'اتصل الآن',
+  callImmediately: 'اتصل فوراً',
+  noteOverdueDebt: '💡 <strong>ملاحظة:</strong> تم إضافة المديونية الإضافية تلقائياً للأيام المتأخرة',
+  filterByStatus: 'تصفية حسب الحالة',
+  viewAll: 'عرض الكل',
+  roomNumber: 'غرفة {number}',
+  checkoutToday: 'خروج اليوم',
+  currentDebt: '💰 الدين الحالي',
+  accommodationDebt: 'إقامة: {amount} ر.س',
+  servicesDebt: 'خدمات: {amount} ر.س',
+  checkout: 'الخروج',
 };
 
 const en = {
@@ -887,6 +910,29 @@ const en = {
   deselectAll: 'Deselect All',
   search: 'Search',
   searchPlaceholder: 'Search here...',
+  
+  // Rooms page specific
+  overdueRoomsAlertTitle: '🚨 Urgent Alert: Overdue Rooms!',
+  overdueRoomsAlertDesc: 'There are {count} overdue rooms - immediate action required',
+  lateCheckoutAlertTitle: '⚠️ Alert: Late Checkout Guests',
+  lateCheckoutAlertDesc: 'They are late past 2 PM',
+  unknownGuest: 'Unknown Guest',
+  lateDays: 'Late {count} days',
+  lateDay: 'Late {count} day',
+  expectedCheckout: 'Expected checkout: {date}',
+  extraDebt: '💰 Extra debt: {amount} SAR',
+  totalDebt: 'Total debt: {amount} SAR',
+  callNow: 'Call Now',
+  callImmediately: 'Call Immediately',
+  noteOverdueDebt: '💡 <strong>Note:</strong> Extra debt for late days has been automatically added',
+  filterByStatus: 'Filter by Status',
+  viewAll: 'View All',
+  roomNumber: 'Room {number}',
+  checkoutToday: 'Checkout Today',
+  currentDebt: '💰 Current Debt',
+  accommodationDebt: 'Accommodation: {amount} SAR',
+  servicesDebt: 'Services: {amount} SAR',
+  checkout: 'Checkout',
 };
 
 export const translations = { ar, en };

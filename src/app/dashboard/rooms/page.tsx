@@ -878,8 +878,8 @@ export default function RoomsPage() {
                     <AlertTriangle className="w-7 h-7 animate-bounce" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold">🚨 تنبيه عاجل: شقق متأخرة عن موعد الخروج!</h3>
-                    <p className="text-sm text-white/90">يوجد {overdueRooms.length} شقة متأخرة - يجب اتخاذ إجراء فوري</p>
+                    <h3 className="text-xl font-bold">{t('overdueRoomsAlertTitle')}</h3>
+                    <p className="text-sm text-white/90">{t('overdueRoomsAlertDesc', { count: overdueRooms.length })}</p>
                   </div>
                 </div>
                 <button
@@ -905,21 +905,21 @@ export default function RoomsPage() {
                         {room.number}
                       </div>
                       <div>
-                        <p className="text-lg font-bold">{room.guestName || 'نزيل غير معروف'}</p>
+                        <p className="text-lg font-bold">{room.guestName || t('unknownGuest')}</p>
                         <p className="text-sm text-white/80">
                           {room.guestPhone && `📱 ${room.guestPhone}`}
                         </p>
                         <div className="flex items-center gap-2 mt-1">
                           <span className="text-xs bg-red-500/30 px-2 py-1 rounded-lg">
-                            ⚠️ متأخر {room.daysOverdue} {room.daysOverdue === 1 ? 'يوم' : 'أيام'}
+                            ⚠️ {room.daysOverdue === 1 ? t('lateDay', { count: room.daysOverdue }) : t('lateDays', { count: room.daysOverdue })}
                           </span>
                           <span className="text-xs text-white/70">
-                            الخروج المفترض: {room.bookingDetails?.checkOut?.date}
+                            {t('expectedCheckout', { date: room.bookingDetails?.checkOut?.date || '' })}
                           </span>
                         </div>
                         {room.overdueInfo && (
                           <p className="text-xs text-yellow-300 mt-1 font-semibold">
-                            💰 مديونية إضافية: {room.overdueInfo.extraDebt.toLocaleString()} ر.س
+                            {t('extraDebt', { amount: room.overdueInfo.extraDebt.toLocaleString() })}
                           </p>
                         )}
                       </div>
@@ -929,10 +929,10 @@ export default function RoomsPage() {
                         size="sm"
                         className="bg-white text-red-600 hover:bg-white/90"
                       >
-                        اتصل فوراً
+                        {t('callImmediately')}
                       </Button>
                       <span className="text-xs text-white/70">
-                        مجموع الدين: {room.currentDebt?.toLocaleString() || 0} ر.س
+                        {t('totalDebt', { amount: room.currentDebt?.toLocaleString() || '0' })}
                       </span>
                     </div>
                   </div>
@@ -940,9 +940,7 @@ export default function RoomsPage() {
               </div>
 
               <div className="mt-4 pt-4 border-t border-white/20">
-                <p className="text-sm text-white/80">
-                  💡 <strong>ملاحظة:</strong> تم إضافة المديونية الإضافية تلقائياً للأيام المتأخرة
-                </p>
+                <p className="text-sm text-white/80" dangerouslySetInnerHTML={{ __html: t('noteOverdueDebt') }} />
               </div>
             </div>
           </div>
@@ -960,8 +958,8 @@ export default function RoomsPage() {
                     <AlertTriangle className="w-7 h-7" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold">⚠️ تنبيه: نزلاء متأخرين عن checkout</h3>
-                    <p className="text-sm text-white/90">تأخروا عن الساعة 2 ظهراً</p>
+                    <h3 className="text-xl font-bold">{t('lateCheckoutAlertTitle')}</h3>
+                    <p className="text-sm text-white/90">{t('lateCheckoutAlertDesc')}</p>
                   </div>
                 </div>
                 <button
@@ -987,12 +985,12 @@ export default function RoomsPage() {
                         {room.number}
                       </div>
                       <div>
-                        <p className="text-lg font-bold">{room.guestName || 'نزيل غير معروف'}</p>
+                        <p className="text-lg font-bold">{room.guestName || t('unknownGuest')}</p>
                         <p className="text-sm text-white/80">
                           {room.guestPhone && `📱 ${room.guestPhone}`}
                         </p>
                         <p className="text-xs text-white/70 mt-1">
-                          الخروج: {room.bookingDetails?.checkOut?.date} - {room.bookingDetails?.checkOut?.time || '12:00 ظهراً'}
+                          {t('checkout')}: {room.bookingDetails?.checkOut?.date} - {room.bookingDetails?.checkOut?.time || '12:00 ظهراً'}
                         </p>
                       </div>
                     </div>
@@ -1001,7 +999,7 @@ export default function RoomsPage() {
                         size="sm"
                         className="bg-white text-red-600 hover:bg-white/90"
                       >
-                        اتصل الآن
+                        {t('callNow')}
                       </Button>
                     </div>
                   </div>
@@ -1019,7 +1017,7 @@ export default function RoomsPage() {
             <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
               <span className="text-2xl">🔽</span>
             </div>
-            <h2 className="text-xl font-bold text-white">تصفية حسب الحالة</h2>
+            <h2 className="text-xl font-bold text-white">{t('filterByStatus')}</h2>
           </div>
 
           <div className="flex items-center flex-wrap gap-3">
@@ -1033,7 +1031,7 @@ export default function RoomsPage() {
               }`}
             >
               <span className="text-xl mr-2">📊</span>
-              عرض الكل ({stats.total})
+              {t('viewAll')} ({stats.total})
             </Button>
 
             {/* زر التقرير */}

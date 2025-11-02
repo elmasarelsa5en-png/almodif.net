@@ -6,7 +6,7 @@ import { translations, Language, TranslationKey } from '@/lib/translations';
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: TranslationKey) => string;
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -34,8 +34,17 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     document.documentElement.lang = lang;
   };
 
-  const t = (key: TranslationKey): string => {
-    return translations[language][key] || translations.ar[key] || key;
+  const t = (key: TranslationKey, params?: Record<string, string | number>): string => {
+    let text = translations[language][key] || translations.ar[key] || key;
+    
+    // استبدال المتغيرات مثل {count}, {amount}, {date}, إلخ
+    if (params) {
+      Object.keys(params).forEach((param) => {
+        text = text.replace(new RegExp(`\\{${param}\\}`, 'g'), String(params[param]));
+      });
+    }
+    
+    return text;
   };
 
   return (
