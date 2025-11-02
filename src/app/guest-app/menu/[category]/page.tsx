@@ -304,10 +304,13 @@ export default function GuestMenuPage() {
       await addRequest({
         room: session.roomNumber,
         guest: session.name || session.phone || 'نزيل',
+        guestName: session.name || session.phone || 'نزيل',
+        roomNumber: session.roomNumber,
         type: requestType,
         description: `الطلب:\n${itemsDescription}\n\nالإجمالي: ${cartTotal} ر.س${paymentInfo}\n\n📱 من: تطبيق النزيل`,
         priority: 'medium',
         status: 'awaiting_employee_approval',
+        createdBy: session.name || 'نزيل',
         createdAt: new Date().toISOString()
       });
 
@@ -355,34 +358,36 @@ export default function GuestMenuPage() {
         animate={{ opacity: 1, y: 0 }}
         className="relative z-10 bg-white/10 backdrop-blur-xl border-b border-white/20 shadow-2xl"
       >
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+        <div className="container mx-auto px-2 sm:px-4 py-3 sm:py-4">
+          <div className="flex items-center justify-between gap-2">
             <Button
               onClick={() => router.push('/guest-app')}
               variant="ghost"
-              className="text-white hover:bg-white/20"
+              size="sm"
+              className="text-white hover:bg-white/20 px-2"
             >
-              <ArrowRight className="w-5 h-5 ml-2" />
-              رجوع
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-1" />
+              <span className="hidden sm:inline">رجوع</span>
             </Button>
 
-            <div className="flex items-center gap-3">
-              <div className={`p-3 rounded-xl bg-gradient-to-br ${config.color}`}>
-                <Icon className="w-6 h-6 text-white" />
+            <div className="flex items-center gap-2">
+              <div className={`p-2 sm:p-3 rounded-xl bg-gradient-to-br ${config.color}`}>
+                <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              <div>
-                <h1 className="text-xl font-bold text-white">{config.title}</h1>
-                <p className="text-sm text-blue-200">{config.titleEn}</p>
+              <div className="hidden sm:block">
+                <h1 className="text-lg sm:text-xl font-bold text-white">{config.title}</h1>
+                <p className="text-xs sm:text-sm text-blue-200">{config.titleEn}</p>
               </div>
             </div>
 
             <Button
               onClick={() => setIsCartOpen(true)}
-              className="bg-white/20 hover:bg-white/30 text-white relative"
+              size="sm"
+              className="bg-white/20 hover:bg-white/30 text-white relative px-2 sm:px-4"
             >
-              <ShoppingCart className="w-5 h-5" />
+              <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
               {cartItemsCount > 0 && (
-                <Badge className="absolute -top-2 -right-2 bg-red-500 text-white h-6 w-6 rounded-full p-0 flex items-center justify-center text-xs">
+                <Badge className="absolute -top-2 -right-2 bg-red-500 text-white h-5 w-5 sm:h-6 sm:w-6 rounded-full p-0 flex items-center justify-center text-xs">
                   {cartItemsCount}
                 </Badge>
               )}
@@ -392,31 +397,31 @@ export default function GuestMenuPage() {
       </motion.header>
 
       {/* Search & Filter */}
-      <div className="relative z-10 container mx-auto px-4 py-6 space-y-4">
+      <div className="relative z-10 container mx-auto px-2 sm:px-4 py-4 sm:py-6 space-y-3 sm:space-y-4">
         <div className="relative">
-          <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
           <Input
             type="text"
             placeholder="ابحث في القائمة..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pr-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+            className="pr-10 text-sm sm:text-base bg-white/10 border-white/20 text-white placeholder:text-gray-400"
           />
         </div>
 
         {subCategories.length > 1 && (
-          <div className="flex gap-2 overflow-x-auto pb-2">
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
             {subCategories.map((subCat) => (
               <Button
                 key={subCat}
                 onClick={() => setSelectedSubCategory(subCat)}
                 variant={selectedSubCategory === subCat ? 'default' : 'outline'}
                 size="sm"
-                className={
+                className={`whitespace-nowrap text-xs sm:text-sm ${
                   selectedSubCategory === subCat
                     ? 'bg-white text-purple-900'
                     : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
-                }
+                }`}
               >
                 {subCat === 'all' ? 'الكل' : subCat}
               </Button>
@@ -426,13 +431,13 @@ export default function GuestMenuPage() {
       </div>
 
       {/* Menu Items Grid */}
-      <div className="relative z-10 container mx-auto px-4 pb-8">
+      <div className="relative z-10 container mx-auto px-2 sm:px-4 pb-24 mb-16">
         {filteredItems.length === 0 ? (
           <div className="text-center text-white py-12">
-            <p className="text-xl">لا توجد عناصر متاحة</p>
+            <p className="text-lg sm:text-xl">لا توجد عناصر متاحة</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
             {filteredItems.map((item, index) => (
               <motion.div
                 key={item.id}
@@ -441,22 +446,22 @@ export default function GuestMenuPage() {
                 transition={{ delay: index * 0.05 }}
               >
                 <Card className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15 transition-all h-full">
-                  <CardContent className="p-6 flex flex-col h-full">
+                  <CardContent className="p-3 sm:p-4 md:p-6 flex flex-col h-full">
                     <div className="flex-1">
                       {item.image && (
-                        <div className="text-6xl mb-4 text-center">{item.image}</div>
+                        <div className="text-4xl sm:text-5xl md:text-6xl mb-3 sm:mb-4 text-center">{item.image}</div>
                       )}
-                      <h3 className="text-xl font-bold text-white mb-2">{item.nameAr}</h3>
-                      <p className="text-sm text-blue-200 mb-1">{item.name}</p>
+                      <h3 className="text-base sm:text-lg md:text-xl font-bold text-white mb-2">{item.nameAr}</h3>
+                      <p className="text-xs sm:text-sm text-blue-200 mb-1">{item.name}</p>
                       {item.description && (
-                        <p className="text-sm text-gray-300 mb-3">{item.description}</p>
+                        <p className="text-xs sm:text-sm text-gray-300 mb-2 sm:mb-3 line-clamp-2">{item.description}</p>
                       )}
-                      <div className="flex items-center justify-between mb-4">
-                        <span className="text-2xl font-bold text-green-400">
+                      <div className="flex items-center justify-between mb-3 sm:mb-4">
+                        <span className="text-xl sm:text-2xl font-bold text-green-400">
                           {item.price} ر.س
                         </span>
                         {item.subCategory && (
-                          <Badge className="bg-purple-500/30 text-white">
+                          <Badge className="bg-purple-500/30 text-white text-xs">
                             {item.subCategory}
                           </Badge>
                         )}
@@ -465,9 +470,10 @@ export default function GuestMenuPage() {
 
                     <Button
                       onClick={() => addToCart(item)}
-                      className={`w-full bg-gradient-to-r ${config.color} hover:opacity-90 text-white`}
+                      size="sm"
+                      className={`w-full bg-gradient-to-r ${config.color} hover:opacity-90 text-white text-sm sm:text-base py-2 sm:py-3`}
                     >
-                      <Plus className="w-5 h-5 ml-2" />
+                      <Plus className="w-4 h-4 sm:w-5 sm:h-5 ml-1 sm:ml-2" />
                       إضافة للطلب
                     </Button>
                   </CardContent>
@@ -494,11 +500,11 @@ export default function GuestMenuPage() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 20 }}
-              className="fixed left-0 top-0 h-full w-full md:w-96 bg-slate-900 z-50 shadow-2xl overflow-y-auto"
+              className="fixed left-0 top-0 h-full w-full sm:w-96 bg-slate-900 z-50 shadow-2xl overflow-y-auto"
             >
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-white">طلبك</h2>
+              <div className="p-4 sm:p-6">
+                <div className="flex items-center justify-between mb-4 sm:mb-6">
+                  <h2 className="text-xl sm:text-2xl font-bold text-white">طلبك</h2>
                   <Button
                     onClick={() => setIsCartOpen(false)}
                     variant="ghost"
@@ -511,52 +517,52 @@ export default function GuestMenuPage() {
 
                 {cart.length === 0 ? (
                   <div className="text-center text-gray-400 py-12">
-                    <ShoppingCart className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                    <p>السلة فارغة</p>
+                    <ShoppingCart className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 opacity-50" />
+                    <p className="text-sm sm:text-base">السلة فارغة</p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     {cart.map((item) => (
                       <Card key={item.id} className="bg-white/10 border-white/20">
-                        <CardContent className="p-4">
+                        <CardContent className="p-3 sm:p-4">
                           <div className="flex items-start justify-between mb-3">
                             <div className="flex-1">
-                              <h3 className="font-bold text-white">{item.nameAr}</h3>
-                              <p className="text-sm text-gray-400">{item.name}</p>
+                              <h3 className="text-sm sm:text-base font-bold text-white">{item.nameAr}</h3>
+                              <p className="text-xs sm:text-sm text-gray-400">{item.name}</p>
                             </div>
                             <Button
                               onClick={() => deleteFromCart(item.id)}
                               variant="ghost"
                               size="sm"
-                              className="text-red-400 hover:text-red-300"
+                              className="text-red-400 hover:text-red-300 p-1"
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
 
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2 bg-white/10 rounded-lg p-1">
+                            <div className="flex items-center gap-1 sm:gap-2 bg-white/10 rounded-lg p-1">
                               <Button
                                 onClick={() => removeFromCart(item.id)}
                                 size="sm"
                                 variant="ghost"
-                                className="h-8 w-8 p-0 text-white"
+                                className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-white"
                               >
-                                <Minus className="w-4 h-4" />
+                                <Minus className="w-3 h-3 sm:w-4 sm:h-4" />
                               </Button>
-                              <span className="text-white font-bold w-8 text-center">
+                              <span className="text-white font-bold w-6 sm:w-8 text-center text-sm sm:text-base">
                                 {item.quantity}
                               </span>
                               <Button
                                 onClick={() => addToCart(item)}
                                 size="sm"
                                 variant="ghost"
-                                className="h-8 w-8 p-0 text-white"
+                                className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-white"
                               >
-                                <Plus className="w-4 h-4" />
+                                <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
                               </Button>
                             </div>
-                            <span className="text-lg font-bold text-green-400">
+                            <span className="text-base sm:text-lg font-bold text-green-400">
                               {item.price * item.quantity} ر.س
                             </span>
                           </div>
@@ -564,8 +570,8 @@ export default function GuestMenuPage() {
                       </Card>
                     ))}
 
-                    <div className="border-t border-white/20 pt-4 mt-6">
-                      <div className="flex justify-between text-xl font-bold text-white mb-6">
+                    <div className="border-t border-white/20 pt-4 mt-4 sm:mt-6">
+                      <div className="flex justify-between text-lg sm:text-xl font-bold text-white mb-4 sm:mb-6">
                         <span>الإجمالي:</span>
                         <span className="text-green-400">{cartTotal} ر.س</span>
                       </div>
@@ -573,9 +579,9 @@ export default function GuestMenuPage() {
                       <Button
                         onClick={handleCheckout}
                         disabled={cartTotal === 0}
-                        className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white py-6 text-lg shadow-xl"
+                        className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white py-4 sm:py-6 text-base sm:text-lg shadow-xl"
                       >
-                        <DollarSign className="w-6 h-6 ml-2" />
+                        <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 ml-2" />
                         الدفع والطلب ({cartTotal} ريال)
                       </Button>
                     </div>
