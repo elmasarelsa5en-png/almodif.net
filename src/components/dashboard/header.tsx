@@ -134,10 +134,12 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
         const { collection, onSnapshot } = await import('firebase/firestore');
         
         const employeesList = await getEmployees();
+        console.log('👥 Loaded employees for chat popover:', employeesList.length);
         const currentUserId = user.username || user.email;
         
         // استبعاد المستخدم الحالي من القائمة
         const filteredEmployees = employeesList.filter(emp => emp.id !== currentUserId);
+        console.log('👥 Filtered employees (excluding current user):', filteredEmployees.length);
         setEmployees(filteredEmployees);
 
         // مراقبة حالة Online/Offline
@@ -148,6 +150,7 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
             const data = doc.data();
             onlineStatuses[doc.id] = data.isOnline || false;
           });
+          console.log('🟢 Online statuses updated:', onlineStatuses);
           setEmployeesOnlineStatus(onlineStatuses);
         });
 
@@ -702,7 +705,10 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
             <Button
               variant="ghost"
               size="sm"
-              onMouseEnter={() => setShowChatPopover(true)}
+              onMouseEnter={() => {
+                console.log('🖱️ Mouse entered chat icon. Employees:', employees.length, 'Show popover:', true);
+                setShowChatPopover(true);
+              }}
               onClick={() => router.push('/dashboard/chat')}
               className="hidden lg:flex text-white hover:text-blue-200 hover:bg-white/10 border border-white/20 hover:border-white/40 transition-all duration-200 p-2 w-9 h-9 relative"
               title="المحادثات الداخلية"
@@ -719,7 +725,10 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
             {showChatPopover && employees.length > 0 && (
               <div 
                 className="absolute left-0 top-full mt-2 w-72 bg-slate-800/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden"
-                onMouseLeave={() => setShowChatPopover(false)}
+                onMouseLeave={() => {
+                  console.log('🖱️ Mouse left popover');
+                  setShowChatPopover(false);
+                }}
               >
                 {/* Header */}
                 <div className="px-4 py-3 border-b border-white/10 bg-gradient-to-r from-blue-600/20 to-purple-600/20">
