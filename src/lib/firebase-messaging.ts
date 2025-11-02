@@ -5,8 +5,8 @@ import { doc, setDoc, updateDoc, getDoc } from 'firebase/firestore';
 
 let messagingInstance: any = null;
 
-// VAPID Key - احصل عليه من Firebase Console > Project Settings > Cloud Messaging > Web Push certificates
-const VAPID_KEY = 'YOUR_VAPID_KEY_HERE'; // ⚠️ سنحصل عليه من Firebase Console
+// VAPID Key من Firebase Console > Project Settings > Cloud Messaging > Web Push certificates
+const VAPID_KEY = 'BI62r8W2y-23vLzM3qezLHfj_q70LJadYdRO7VXBdHSQPfIsmKEnTAp-PFvB2YKc2uhfZlmK_P7iq89h-YxssO4';
 
 /**
  * تهيئة Firebase Cloud Messaging
