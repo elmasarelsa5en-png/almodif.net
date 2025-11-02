@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth-context';
+import { useLanguage } from '@/contexts/language-context';
 import { useRouter, usePathname } from 'next/navigation';
 import Sidebar from '@/components/dashboard/sidebar';
 import Header from '@/components/dashboard/header';
@@ -16,6 +17,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const { user, isLoading } = useAuth();
+  const { language } = useLanguage(); // إضافة hook اللغة
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // مفتوحة افتراضياً
