@@ -6,7 +6,7 @@ import {
   ArrowRight, Calendar, Users, Bed, Wifi, Tv, 
   Coffee, Car, AirVent, Waves, Star, MapPin,
   Phone, Mail, User, CreditCard, Check, Loader2,
-  Home, Building2, Hotel, X
+  Home, Building2, Hotel, X, Globe, Briefcase
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -58,6 +58,13 @@ export default function BookingPage() {
     email: '',
     nationalId: '',
     idCopyNumber: '',
+    dateOfBirth: '',
+    nationality: 'السعودية',
+    address: '',
+    city: '',
+    postalCode: '',
+    accommodationType: 'فندق', // فندق / شقة مفروشة / منتجع
+    purposeOfStay: 'سياحة', // سياحة / عمل / عائلية / أخرى
     checkIn: '',
     checkOut: '',
     guests: 1,
@@ -761,6 +768,11 @@ export default function BookingPage() {
                             email: currentUser.email || bookingData.email,
                             nationalId: currentUser.nationalId || currentUser.idNumber || bookingData.nationalId,
                             idCopyNumber: currentUser.idCopyNumber || currentUser.nationalIdCopy || bookingData.idCopyNumber,
+                            dateOfBirth: currentUser.dateOfBirth || bookingData.dateOfBirth,
+                            nationality: currentUser.nationality || bookingData.nationality,
+                            address: currentUser.address || bookingData.address,
+                            city: currentUser.city || bookingData.city,
+                            postalCode: currentUser.postalCode || bookingData.postalCode,
                           };
                           
                           console.log('✅ Filling with data:', filledData);
@@ -773,6 +785,10 @@ export default function BookingPage() {
                           if (filledData.email !== bookingData.email) filledFields.push('البريد الإلكتروني');
                           if (filledData.nationalId !== bookingData.nationalId) filledFields.push('رقم الهوية');
                           if (filledData.idCopyNumber !== bookingData.idCopyNumber) filledFields.push('رقم نسخة البطاقة');
+                          if (filledData.dateOfBirth !== bookingData.dateOfBirth) filledFields.push('تاريخ الميلاد');
+                          if (filledData.nationality !== bookingData.nationality) filledFields.push('الجنسية');
+                          if (filledData.address !== bookingData.address) filledFields.push('العنوان');
+                          if (filledData.city !== bookingData.city) filledFields.push('المدينة');
                           
                           if (filledFields.length > 0) {
                             alert(`✅ تم ملء: ${filledFields.join('، ')}`);
@@ -862,6 +878,129 @@ export default function BookingPage() {
                         placeholder="رقم نسخة الهوية"
                         dir="ltr"
                       />
+                    </div>
+
+                    <div>
+                      <Label className="text-white mb-2 flex items-center gap-2">
+                        <Calendar className="w-4 h-4" />
+                        تاريخ الميلاد *
+                      </Label>
+                      <Input
+                        type="date"
+                        value={bookingData.dateOfBirth}
+                        onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+                        max={new Date().toISOString().split('T')[0]}
+                        className="bg-white/10 border-white/20 text-white"
+                        dir="ltr"
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-white mb-2 flex items-center gap-2">
+                        <Globe className="w-4 h-4" />
+                        الجنسية *
+                      </Label>
+                      <select
+                        value={bookingData.nationality}
+                        onChange={(e) => handleInputChange('nationality', e.target.value)}
+                        className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white"
+                      >
+                        <option value="السعودية">السعودية</option>
+                        <option value="مصر">مصر</option>
+                        <option value="الإمارات">الإمارات</option>
+                        <option value="الكويت">الكويت</option>
+                        <option value="البحرين">البحرين</option>
+                        <option value="قطر">قطر</option>
+                        <option value="عمان">عمان</option>
+                        <option value="الأردن">الأردن</option>
+                        <option value="لبنان">لبنان</option>
+                        <option value="فلسطين">فلسطين</option>
+                        <option value="سوريا">سوريا</option>
+                        <option value="العراق">العراق</option>
+                        <option value="اليمن">اليمن</option>
+                        <option value="السودان">السودان</option>
+                        <option value="المغرب">المغرب</option>
+                        <option value="الجزائر">الجزائر</option>
+                        <option value="تونس">تونس</option>
+                        <option value="ليبيا">ليبيا</option>
+                        <option value="أخرى">أخرى</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <Label className="text-white mb-2 flex items-center gap-2">
+                        <MapPin className="w-4 h-4" />
+                        العنوان
+                      </Label>
+                      <Input
+                        value={bookingData.address}
+                        onChange={(e) => handleInputChange('address', e.target.value)}
+                        className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
+                        placeholder="الحي، الشارع"
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-white mb-2 flex items-center gap-2">
+                        <MapPin className="w-4 h-4" />
+                        المدينة
+                      </Label>
+                      <Input
+                        value={bookingData.city}
+                        onChange={(e) => handleInputChange('city', e.target.value)}
+                        className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
+                        placeholder="الرياض، جدة، الدمام..."
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-white mb-2 flex items-center gap-2">
+                        <MapPin className="w-4 h-4" />
+                        الرمز البريدي
+                      </Label>
+                      <Input
+                        value={bookingData.postalCode}
+                        onChange={(e) => handleInputChange('postalCode', e.target.value)}
+                        className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
+                        placeholder="12345"
+                        dir="ltr"
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-white mb-2 flex items-center gap-2">
+                        <Building className="w-4 h-4" />
+                        نوع الإقامة
+                      </Label>
+                      <select
+                        value={bookingData.accommodationType}
+                        onChange={(e) => handleInputChange('accommodationType', e.target.value)}
+                        className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white"
+                      >
+                        <option value="فندق">فندق</option>
+                        <option value="شقة مفروشة">شقة مفروشة</option>
+                        <option value="منتجع">منتجع</option>
+                        <option value="استراحة">استراحة</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <Label className="text-white mb-2 flex items-center gap-2">
+                        <Briefcase className="w-4 h-4" />
+                        الغرض من الإقامة
+                      </Label>
+                      <select
+                        value={bookingData.purposeOfStay}
+                        onChange={(e) => handleInputChange('purposeOfStay', e.target.value)}
+                        className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white"
+                      >
+                        <option value="سياحة">سياحة</option>
+                        <option value="عمل">عمل</option>
+                        <option value="عائلية">عائلية</option>
+                        <option value="علاج">علاج</option>
+                        <option value="دراسة">دراسة</option>
+                        <option value="أخرى">أخرى</option>
+                      </select>
                     </div>
 
                     <div>
