@@ -33,6 +33,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import { RatingDialog } from '@/components/RatingDialog';
 import { RegistrationRequestsSection } from '@/components/RegistrationRequestsSection';
 import { useAuth } from '@/contexts/auth-context';
+import { useLanguage } from '@/contexts/language-context';
 import { 
   subscribeToRequests, 
   updateRequest, 
@@ -41,24 +42,26 @@ import {
 } from '@/lib/firebase-data';
 import { playNotificationSound } from '@/lib/notification-sounds';
 
-const STATUS_CONFIG = {
-  pending: { label: 'قيد الانتظار', color: 'bg-yellow-500/20 text-yellow-300', icon: '⏳' },
-  'in-progress': { label: 'قيد التنفيذ', color: 'bg-blue-500/20 text-blue-300', icon: '⚙️' },
-  approved: { label: 'موافق عليه', color: 'bg-green-500/20 text-green-300', icon: '✅' },
-  completed: { label: 'مكتمل', color: 'bg-green-500/20 text-green-300', icon: '✅' },
-  rejected: { label: 'مرفوض', color: 'bg-red-500/20 text-red-300', icon: '❌' },
-  'awaiting_employee_approval': { label: 'بانتظار موافقة الموظف', color: 'bg-purple-500/20 text-purple-300', icon: '⏱️' },
-} as const;
-
-const PRIORITY_CONFIG = {
-  low: { label: 'منخفضة', color: 'text-blue-400' },
-  medium: { label: 'متوسطة', color: 'text-yellow-400' },
-  high: { label: 'عالية', color: 'text-red-400' },
-};
-
 export default function RequestsPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const { t } = useLanguage();
+  
+  const STATUS_CONFIG = {
+    pending: { label: t('statusPending'), color: 'bg-yellow-500/20 text-yellow-300', icon: '⏳' },
+    'in-progress': { label: t('statusInProgress'), color: 'bg-blue-500/20 text-blue-300', icon: '⚙️' },
+    approved: { label: t('statusApproved'), color: 'bg-green-500/20 text-green-300', icon: '✅' },
+    completed: { label: t('statusCompleted'), color: 'bg-green-500/20 text-green-300', icon: '✅' },
+    rejected: { label: t('statusRejected'), color: 'bg-red-500/20 text-red-300', icon: '❌' },
+    'awaiting_employee_approval': { label: t('statusAwaitingEmployeeApproval'), color: 'bg-purple-500/20 text-purple-300', icon: '⏱️' },
+  } as const;
+
+  const PRIORITY_CONFIG = {
+    low: { label: t('priorityLow'), color: 'text-blue-400' },
+    medium: { label: t('priorityMedium'), color: 'text-yellow-400' },
+    high: { label: t('priorityHigh'), color: 'text-red-400' },
+  };
+  
   const [requests, setRequests] = useState<GuestRequest[]>([]);
   const [filteredRequests, setFilteredRequests] = useState<GuestRequest[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -235,7 +238,10 @@ export default function RequestsPage() {
 
         // حذف الطلب من Firebase
         await deleteRequestFromFirebase(id);
-        alert(`✅ تم إكمال الطلب بنجاح!\n${orderAmount > 0 ? `تم إضافة ${orderAmount} ر.س لرصيد الغرفة ${request.room}` : ''}`);
+        const successMsg = orderAmount > 0 
+          ? `${t('requestCompletedSuccess')}\n${t('amountAddedToRoom', { amount: orderAmount, roomNumber: request.room })}`
+          : t('requestCompletedSuccess');
+        alert(successMsg);
       } else {
         // تحديث الحالة فقط للحالات الأخرى
         await updateRequest(id, { 
@@ -245,17 +251,17 @@ export default function RequestsPage() {
       }
     } catch (error) {
       console.error('Error updating request:', error);
-      alert('حدث خطأ أثناء تحديث الطلب');
+      alert(t('errorUpdatingRequest'));
     }
   };
 
   const deleteRequest = async (id: string) => {
-    if (confirm('هل أنت متأكد من حذف هذا الطلب؟')) {
+    if (confirm(t('confirmDelete'))) {
       try {
         await deleteRequestFromFirebase(id);
       } catch (error) {
         console.error('Error deleting request:', error);
-        alert('حدث خطأ أثناء حذف الطلب');
+        alert(t('errorDeletingRequest'));
       }
     }
   };
@@ -263,7 +269,7 @@ export default function RequestsPage() {
   // ✅ وظيفة قبول الطلب من قبل الموظف
   const acceptRequest = async (requestId: string) => {
     if (!user) {
-      alert('يجب تسجيل الدخول أولاً');
+      alert(t('mustLoginFirst'));
       return;
     }
 
@@ -309,7 +315,7 @@ export default function RequestsPage() {
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
             </svg>
-            <span>✅ تم قبول الطلب بنجاح!</span>
+            <span>${t('requestAccepted')}</span>
           </div>
         `;
         document.body.appendChild(alertDiv);
@@ -388,17 +394,17 @@ export default function RequestsPage() {
                   className="border-white/20 bg-white/10 text-white hover:bg-white/20"
                 >
                   <ArrowLeft className="w-4 h-4 ml-2" />
-                  العودة
+                  {t('back')}
                 </Button>
                 <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
                   <Inbox className="w-8 h-8 text-white" />
                 </div>
                 <div>
                   <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
-                    طلبات الضيف
+                    {t('guestRequests')}
                   </h1>
                   <p className="text-purple-200/80">
-                    إدارة شاملة لجميع طلبات وشكاوى النزلاء
+                    {t('guestRequestsDesc')}
                   </p>
                 </div>
               </div>
@@ -409,7 +415,7 @@ export default function RequestsPage() {
                   className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
                 >
                   <Plus className="w-4 h-4 ml-2" />
-                  طلب جديد
+                  {t('newRequest')}
                 </Button>
 
                 <Button
@@ -418,7 +424,7 @@ export default function RequestsPage() {
                   className="border-white/20 bg-white/10 text-white hover:bg-white/20"
                 >
                   <Download className="w-4 h-4 ml-2" />
-                  تصدير
+                  {t('export')}
                 </Button>
 
                 <Button
@@ -429,7 +435,7 @@ export default function RequestsPage() {
                   }}
                 >
                   <RefreshCw className="w-4 h-4 ml-2" />
-                  تحديث
+                  {t('refresh')}
                 </Button>
               </div>
             </div>
@@ -441,7 +447,7 @@ export default function RequestsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white/70 text-sm">إجمالي الطلبات</p>
+                    <p className="text-white/70 text-sm">{t('totalRequests')}</p>
                     <p className="text-3xl font-bold text-white">{stats.total}</p>
                   </div>
                   <Inbox className="w-8 h-8 text-purple-400" />
@@ -453,7 +459,7 @@ export default function RequestsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white/70 text-sm">قيد الانتظار</p>
+                    <p className="text-white/70 text-sm">{t('statusPending')}</p>
                     <p className="text-3xl font-bold text-yellow-300">{stats.pending}</p>
                   </div>
                   <Clock className="w-8 h-8 text-yellow-400" />
@@ -465,7 +471,7 @@ export default function RequestsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white/70 text-sm">قيد التنفيذ</p>
+                    <p className="text-white/70 text-sm">{t('inProgressRequests')}</p>
                     <p className="text-3xl font-bold text-blue-300">{stats.inProgress}</p>
                   </div>
                   <AlertCircle className="w-8 h-8 text-blue-400" />
@@ -477,7 +483,7 @@ export default function RequestsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white/70 text-sm">مكتملة</p>
+                    <p className="text-white/70 text-sm">{t('completedRequests')}</p>
                     <p className="text-3xl font-bold text-green-300">{stats.completed}</p>
                   </div>
                   <CheckCircle className="w-8 h-8 text-green-400" />
@@ -495,7 +501,7 @@ export default function RequestsPage() {
               <div className="relative">
                 <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 w-5 h-5" />
                 <Input
-                  placeholder="البحث في الغرفة، النزيل، النوع..."
+                  placeholder={t('searchRequests')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="bg-white/10 border-white/20 text-white placeholder:text-white/50 pr-10"
