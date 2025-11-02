@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دليل تثبيت التطبيق على iPhone</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            animation: bounce 1s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .step {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border-right: 8px solid #667eea;
+            position: relative;
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .step-number {
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .step h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+        
+        .step p {
+            color: #333;
+            line-height: 1.8;
+            font-size: 1.1em;
+        }
+        
+        .icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .warning {
+            background: linear-gradient(135deg, #fff5e6 0%, #ffe0b3 100%);
+            border-right: 8px solid #ff9800;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .warning h3 {
+            color: #e65100;
+            margin-bottom: 10px;
+        }
+        
+        .success {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border-right: 8px solid #4caf50;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .success h3 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+        
+        .image-placeholder {
+            background: #f0f0f0;
+            border: 3px dashed #ccc;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            margin: 20px 0;
+            color: #999;
+        }
+        
+        .image-placeholder svg {
+            width: 100px;
+            height: 100px;
+            opacity: 0.3;
+        }
+        
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s;
+            display: inline-block;
+            text-decoration: none;
+            margin-top: 20px;
+        }
+        
+        .button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+        
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .tips {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .tips h3 {
+            color: #1565c0;
+            margin-bottom: 15px;
+        }
+        
+        .tips ul {
+            margin-right: 20px;
+        }
+        
+        .tips li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 دليل تثبيت التطبيق على iPhone</h1>
+            <p style="font-size: 1.2em; margin-top: 10px;">خطوات سهلة وسريعة</p>
+        </div>
+        
+        <div class="content">
+            <!-- تحذير مهم -->
+            <div class="warning">
+                <h3>⚠️ مهم جداً!</h3>
+                <p><strong>يجب استخدام متصفح Safari فقط</strong> - لن يعمل مع Chrome أو Firefox</p>
+            </div>
+
+            <!-- الخطوة 1 -->
+            <div class="step" style="animation-delay: 0.1s;">
+                <span class="step-number">1</span>
+                <div class="icon">🌐</div>
+                <h2>افتح الموقع في Safari</h2>
+                <p>1. افتح تطبيق <strong>Safari</strong> على iPhone</p>
+                <p>2. اكتب رابط الموقع في شريط العنوان</p>
+                <p>3. سجل دخول بحسابك العادي</p>
+                
+                <div class="image-placeholder">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4Z" />
+                    </svg>
+                    <p>صورة توضيحية: Safari مع الموقع مفتوح</p>
+                </div>
+            </div>
+
+            <!-- الخطوة 2 -->
+            <div class="step" style="animation-delay: 0.2s;">
+                <span class="step-number">2</span>
+                <div class="icon">📤</div>
+                <h2>اضغط على زر المشاركة</h2>
+                <p>1. ابحث عن <strong>زر المشاركة</strong> (المربع مع السهم لفوق)</p>
+                <p>2. موجود في أسفل الشاشة في وسط شريط الأدوات</p>
+                <p>3. أو في شريط العنوان فوق</p>
+                
+                <div class="image-placeholder">
+                    <div style="font-size: 5em;">📤</div>
+                    <p>شكل زر المشاركة</p>
+                </div>
+            </div>
+
+            <!-- الخطوة 3 -->
+            <div class="step" style="animation-delay: 0.3s;">
+                <span class="step-number">3</span>
+                <div class="icon">➕</div>
+                <h2>اختر "إضافة إلى الشاشة الرئيسية"</h2>
+                <p>1. ستظهر قائمة بخيارات المشاركة</p>
+                <p>2. ابحث عن: <strong>"Add to Home Screen"</strong></p>
+                <p>3. أو بالعربي: <strong>"إضافة إلى الشاشة الرئيسية"</strong></p>
+                <p>4. قد تحتاج السحب لأسفل في القائمة لإيجاده</p>
+                
+                <div class="image-placeholder">
+                    <div style="font-size: 3em; display: flex; flex-direction: column; align-items: center;">
+                        <span>📱</span>
+                        <span style="font-size: 0.5em; margin: 10px 0;">➕</span>
+                        <span>🏠</span>
+                    </div>
+                    <p>خيار "إضافة إلى الشاشة الرئيسية"</p>
+                </div>
+            </div>
+
+            <!-- الخطوة 4 -->
+            <div class="step" style="animation-delay: 0.4s;">
+                <span class="step-number">4</span>
+                <div class="icon">✅</div>
+                <h2>اضغط "إضافة"</h2>
+                <p>1. سيظهر لك اسم التطبيق: <strong>"المضيف سمارت"</strong></p>
+                <p>2. وأيقونة التطبيق</p>
+                <p>3. اضغط زر <strong>"إضافة"</strong> أو <strong>"Add"</strong> في أعلى اليمين</p>
+                
+                <div class="image-placeholder">
+                    <div style="font-size: 4em;">✅</div>
+                    <p>زر الإضافة</p>
+                </div>
+            </div>
+
+            <!-- النجاح -->
+            <div class="success">
+                <h3>🎉 تهانينا!</h3>
+                <p>التطبيق الآن على الشاشة الرئيسية!</p>
+                <p><strong>افتحه من الأيقونة الجديدة</strong> وسيعمل مثل تطبيق حقيقي</p>
+            </div>
+
+            <!-- نصائح -->
+            <div class="tips">
+                <h3>💡 نصائح مهمة</h3>
+                <ul>
+                    <li><strong>افتح التطبيق من الأيقونة دائماً</strong> - وليس من Safari</li>
+                    <li><strong>لا تغلق التطبيق تماماً</strong> - اتركه في الخلفية</li>
+                    <li><strong>فعّل الإشعارات</strong> عند أول فتح للتطبيق</li>
+                    <li><strong>إبقاء الإنترنت مفعّل</strong> لاستقبال الإشعارات</li>
+                    <li>الإشعارات ستصل حتى مع قفل الشاشة ✅</li>
+                </ul>
+            </div>
+
+            <!-- حل المشاكل -->
+            <div class="warning">
+                <h3>🔧 حل المشاكل الشائعة</h3>
+                <p><strong>لا أجد زر "إضافة إلى الشاشة الرئيسية"</strong></p>
+                <ul style="margin-right: 20px; margin-top: 10px;">
+                    <li>تأكد أنك في Safari وليس Chrome</li>
+                    <li>حاول السحب لأسفل في قائمة المشاركة</li>
+                    <li>حدّث iOS لآخر إصدار</li>
+                </ul>
+                
+                <p style="margin-top: 15px;"><strong>الإشعارات لا تصل</strong></p>
+                <ul style="margin-right: 20px; margin-top: 10px;">
+                    <li>تأكد أنك فتحت التطبيق من الأيقونة وليس Safari</li>
+                    <li>اسمح بالإشعارات عند الطلب</li>
+                    <li>تحقق من إعدادات > الإشعارات > Safari</li>
+                    <li>اترك التطبيق في الخلفية (لا تغلقه تماماً)</li>
+                </ul>
+            </div>
+
+            <!-- فيديو توضيحي -->
+            <div style="text-align: center; margin-top: 40px;">
+                <h2 style="color: #667eea; margin-bottom: 20px;">📹 فيديو توضيحي</h2>
+                <p style="margin-bottom: 20px;">شاهد الخطوات بالفيديو:</p>
+                
+                <div class="video-container">
+                    <!-- يمكنك إضافة فيديو YouTube هنا -->
+                    <div style="background: #f0f0f0; height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+                        <div style="font-size: 5em;">🎬</div>
+                        <p style="color: #999; margin-top: 20px;">سيتم إضافة فيديو توضيحي قريباً</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- زر العودة -->
+            <div style="text-align: center; margin-top: 40px;">
+                <a href="/dashboard" class="button">
+                    🏠 العودة للتطبيق
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check if already installed
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            const success = document.createElement('div');
+            success.className = 'success';
+            success.style.cssText = 'position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; max-width: 90%; animation: slideDown 0.5s ease-out;';
+            success.innerHTML = `
+                <h3>✅ أنت تستخدم التطبيق الآن!</h3>
+                <p>التطبيق مثبت ويعمل بشكل صحيح</p>
+            `;
+            document.body.appendChild(success);
+
+            setTimeout(() => {
+                success.style.animation = 'slideUp 0.5s ease-out forwards';
+                setTimeout(() => success.remove(), 500);
+            }, 5000);
+        }
+
+        // Detect if Safari
+        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+        if (!isSafari && /iPhone|iPad|iPod/.test(navigator.userAgent)) {
+            const warning = document.querySelector('.warning');
+            warning.style.animation = 'shake 0.5s ease-in-out infinite';
+        }
+    </script>
+
+    <style>
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -100%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+            to {
+                opacity: 0;
+                transform: translate(-50%, -100%);
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+    </style>
+</body>
+</html>
