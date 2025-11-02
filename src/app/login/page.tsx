@@ -31,10 +31,19 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [particles, setParticles] = useState<Array<{left: string, top: string, delay: string, duration: string}>>([]);
 
-  // Animation on mount
+  // Animation on mount + Generate particles on client only
   useEffect(() => {
     setIsVisible(true);
+    // Generate random positions for particles on client only (avoid hydration mismatch)
+    const generatedParticles = [...Array(20)].map(() => ({
+      left: `${Math.random() * 100}%`,
+      top: `${Math.random() * 100}%`,
+      delay: `${Math.random() * 5}s`,
+      duration: `${5 + Math.random() * 10}s`
+    }));
+    setParticles(generatedParticles);
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -95,15 +104,15 @@ export default function LoginPage() {
       
       {/* Floating Particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
+        {particles.map((particle, i) => (
           <div
             key={i}
             className="absolute w-2 h-2 bg-white/20 rounded-full animate-float"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${5 + Math.random() * 10}s`
+              left: particle.left,
+              top: particle.top,
+              animationDelay: particle.delay,
+              animationDuration: particle.duration
             }}
           />
         ))}
