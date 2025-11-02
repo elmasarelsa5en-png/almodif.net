@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth-context';
+import { useLanguage } from '@/contexts/language-context';
 import { PermissionGuard, HasPermission, usePermissions } from '@/components/PermissionGuard';
 import { RefreshPermissionsButton } from '@/components/RefreshPermissionsButton';
 import { 
@@ -75,6 +76,7 @@ const ICON_MAP = {
 
 export default function RoomsPage() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [filteredRooms, setFilteredRooms] = useState<Room[]>([]);
   const [activeFilter, setActiveFilter] = useState<RoomStatus | 'All'>('All');
@@ -842,15 +844,15 @@ export default function RoomsPage() {
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6 flex items-center justify-center">
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border border-white/20 text-center">
             <div className="text-6xl mb-4">🔒</div>
-            <h2 className="text-2xl font-bold text-white mb-2">غير مصرح لك</h2>
+            <h2 className="text-2xl font-bold text-white mb-2">{t('error')}</h2>
             <p className="text-gray-300 mb-6">
-              ليس لديك الصلاحية لعرض صفحة الغرف
+              {t('noData')}
             </p>
             <button
               onClick={() => window.history.back()}
               className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-6 py-3 rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all duration-300 font-medium"
             >
-              العودة للخلف
+              {t('back')}
             </button>
           </div>
         </div>
