@@ -75,6 +75,145 @@ const ICON_MAP = {
   AlertTriangle
 };
 
+// ✨ Services History Dialog Component
+function ServicesHistoryDialog({ 
+  room, 
+  isOpen, 
+  onClose, 
+  getRoomServicesHistory 
+}: { 
+  room: Room | null; 
+  isOpen: boolean; 
+  onClose: () => void;
+  getRoomServicesHistory: (room: Room) => Promise<any>;
+}) {
+  const [services, setServices] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && room) {
+      setLoading(true);
+      getRoomServicesHistory(room).then(data => {
+        setServices(data.services || []);
+        setLoading(false);
+      });
+    }
+  }, [isOpen, room, getRoomServicesHistory]);
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  if (!room) return null;
+
+  const totalAmount = services.reduce((sum, service) => sum + (service.amount || 0), 0);
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <FileText className="w-5 h-5 text-green-600" />
+            سجل خدمات غرفة {room.number}
+          </DialogTitle>
+          <DialogDescription>
+            {room.guestName && `النزيل: ${room.guestName}`}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="py-4">
+          {loading ? (
+            <div className="text-center py-8 text-gray-500">جاري التحميل...</div>
+          ) : services.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">لا توجد خدمات مسجلة</div>
+          ) : (
+            <div className="space-y-4">
+              <div className="rounded-lg border">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 text-right text-sm font-semibold">التاريخ</th>
+                      <th className="px-4 py-3 text-right text-sm font-semibold">النوع</th>
+                      <th className="px-4 py-3 text-right text-sm font-semibold">التفاصيل</th>
+                      <th className="px-4 py-3 text-right text-sm font-semibold">الحالة</th>
+                      <th className="px-4 py-3 text-right text-sm font-semibold">المبلغ</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {services.map((service, index) => (
+                      <tr key={index} className="border-t hover:bg-gray-50">
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {service.date ? new Date(service.date).toLocaleDateString('ar-SA', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          }) : '-'}
+                        </td>
+                        <td className="px-4 py-3">
+                          <Badge variant={
+                            service.category === 'coffee' ? 'default' :
+                            service.category === 'laundry' ? 'secondary' :
+                            'outline'
+                          }>
+                            {service.category === 'coffee' ? 'قهوة' :
+                             service.category === 'laundry' ? 'مغسلة' :
+                             service.category === 'restaurant' ? 'مطعم' :
+                             service.type || 'خدمة'}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-700">
+                          {service.details || service.items?.map((item: any) => item.name).join(', ') || '-'}
+                        </td>
+                        <td className="px-4 py-3">
+                          <Badge variant={
+                            service.status === 'completed' ? 'default' :
+                            service.status === 'pending' ? 'secondary' :
+                            'outline'
+                          }>
+                            {service.status === 'completed' ? 'مكتمل' :
+                             service.status === 'pending' ? 'قيد التنفيذ' :
+                             service.status === 'accepted' ? 'مقبول' :
+                             service.status || 'غير محدد'}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-3 text-sm font-semibold text-gray-900">
+                          {service.amount ? `${service.amount.toFixed(2)} ر.س` : '-'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot className="bg-blue-50 border-t-2 border-blue-200">
+                    <tr>
+                      <td colSpan={4} className="px-4 py-3 text-right font-bold text-gray-700">
+                        الإجمالي:
+                      </td>
+                      <td className="px-4 py-3 text-lg font-bold text-blue-600">
+                        {totalAmount.toFixed(2)} ر.س
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <DialogFooter className="gap-2">
+          <Button variant="outline" onClick={onClose}>
+            إغلاق
+          </Button>
+          <Button onClick={handlePrint} className="bg-green-600 hover:bg-green-700">
+            <FileText className="w-4 h-4 ml-2" />
+            طباعة
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function RoomsPage() {
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -99,6 +238,14 @@ export default function RoomsPage() {
   const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
   const [lateCheckoutRooms, setLateCheckoutRooms] = useState<Room[]>([]);
   const [showLateCheckoutAlert, setShowLateCheckoutAlert] = useState(false);
+  
+  // ✨ Context Menu States
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; room: Room } | null>(null);
+  const [isExtendDialogOpen, setIsExtendDialogOpen] = useState(false);
+  const [extendDays, setExtendDays] = useState(1);
+  const [extendNotes, setExtendNotes] = useState('');
+  const [isServicesHistoryOpen, setIsServicesHistoryOpen] = useState(false);
+  const [selectedRoomForServices, setSelectedRoomForServices] = useState<Room | null>(null);
   const [overdueRooms, setOverdueRooms] = useState<Array<Room & { daysOverdue: number }>>([]);
   const [showOverdueAlert, setShowOverdueAlert] = useState(false);
 
@@ -164,6 +311,21 @@ export default function RoomsPage() {
 
     return () => clearInterval(interval);
   }, [rooms]);
+  
+  // ✨ إغلاق Context Menu عند النقر في أي مكان
+  useEffect(() => {
+    const handleClick = () => setContextMenu(null);
+    const handleScroll = () => setContextMenu(null);
+    
+    if (contextMenu) {
+      document.addEventListener('click', handleClick);
+      document.addEventListener('scroll', handleScroll);
+      return () => {
+        document.removeEventListener('click', handleClick);
+        document.removeEventListener('scroll', handleScroll);
+      };
+    }
+  }, [contextMenu]);
   
   const loadRoomsData = async () => {
     try {
@@ -730,6 +892,117 @@ export default function RoomsPage() {
     return false;
   };
 
+  // ✨ معالج Context Menu (كليك يمين)
+  const handleContextMenu = (e: React.MouseEvent, room: Room) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      room
+    });
+  };
+
+  // ✨ معالج التمديد
+  const handleExtendStay = async () => {
+    if (!contextMenu || !user) return;
+    
+    const room = contextMenu.room;
+    
+    // التحقق من أن الغرفة مشغولة
+    if (room.status !== 'Occupied' && room.status !== 'CheckoutToday') {
+      alert('لا يمكن تمديد إقامة غرفة غير مشغولة');
+      setIsExtendDialogOpen(false);
+      return;
+    }
+
+    if (!room.bookingDetails?.checkOut?.date) {
+      alert('لا يوجد تاريخ checkout محدد لهذه الغرفة');
+      setIsExtendDialogOpen(false);
+      return;
+    }
+
+    try {
+      // حساب التاريخ الجديد
+      const currentCheckout = new Date(room.bookingDetails.checkOut.date);
+      const newCheckout = new Date(currentCheckout);
+      newCheckout.setDate(newCheckout.getDate() + extendDays);
+
+      const updatedRoom: Room = {
+        ...room,
+        bookingDetails: {
+          ...room.bookingDetails,
+          checkOut: {
+            ...room.bookingDetails.checkOut,
+            date: newCheckout.toISOString()
+          }
+        },
+        status: 'Occupied', // تغيير الحالة إلى Occupied إذا كانت CheckoutToday
+        events: [
+          ...room.events,
+          {
+            id: Date.now().toString(),
+            type: 'status_change' as const,
+            description: `تم تمديد الإقامة ${extendDays} يوم - التاريخ الجديد: ${newCheckout.toLocaleDateString('ar-SA')}${extendNotes ? ` - ملاحظة: ${extendNotes}` : ''}`,
+            timestamp: new Date().toISOString(),
+            user: user.name || user.username || 'غير معروف'
+          }
+        ],
+        lastUpdated: new Date().toISOString()
+      };
+
+      await saveRoomToFirebase(updatedRoom);
+      
+      alert(`✅ تم تمديد الإقامة ${extendDays} يوم بنجاح!\nالتاريخ الجديد: ${newCheckout.toLocaleDateString('ar-SA')}`);
+      
+      setIsExtendDialogOpen(false);
+      setExtendDays(1);
+      setExtendNotes('');
+      setContextMenu(null);
+    } catch (error) {
+      console.error('خطأ في تمديد الإقامة:', error);
+      alert('حدث خطأ في تمديد الإقامة');
+    }
+  };
+
+  // ✨ جلب سجل الخدمات للغرفة
+  const getRoomServicesHistory = async (room: Room) => {
+    try {
+      const { db } = await import('@/lib/firebase');
+      const { collection, query, where, getDocs } = await import('firebase/firestore');
+      
+      // جلب جميع الطلبات من Firebase
+      const requestsRef = collection(db, 'requests');
+      const q = query(requestsRef, where('room', '==', room.number));
+      const querySnapshot = await getDocs(q);
+      
+      const services: any[] = [];
+      let totalAmount = 0;
+      
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        services.push({
+          id: doc.id,
+          type: data.type || 'خدمة',
+          description: data.description || data.notes || '',
+          amount: data.totalAmount || 0,
+          date: data.createdAt || new Date().toISOString(),
+          status: data.status || 'pending',
+          category: data.menuCategory || data.linkedSection || 'عام'
+        });
+        totalAmount += (data.totalAmount || 0);
+      });
+      
+      return {
+        services: services.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+        totalAmount
+      };
+    } catch (error) {
+      console.error('خطأ في جلب سجل الخدمات:', error);
+      return { services: [], totalAmount: 0 };
+    }
+  };
+
   // مكون بطاقة الشقة
   const RoomCard = ({ room }: { room: Room }) => {
     const config = ROOM_STATUS_CONFIG[room.status];
@@ -756,6 +1029,7 @@ export default function RoomsPage() {
           e.stopPropagation();
           openRoomDetails(room);
         }}
+        onContextMenu={(e) => handleContextMenu(e, room)}
         style={imageUrl ? { backgroundImage: `url(${imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
       >
         {/* تنبيه متأخر عن checkout */}
@@ -1802,6 +2076,125 @@ export default function RoomsPage() {
 
       {/* حافظة بيانات النزيل العائمة */}
       <GuestDataClipboard position="bottom-left" />
+
+      {/* ✨ Context Menu */}
+      {contextMenu && (
+        <div
+          className="fixed bg-white rounded-lg shadow-2xl border border-gray-200 py-2 z-50 min-w-[200px]"
+          style={{
+            top: contextMenu.y,
+            left: contextMenu.x
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="px-4 py-2 border-b border-gray-200 font-semibold text-gray-700">
+            غرفة {contextMenu.room.number}
+          </div>
+          
+          {(contextMenu.room.status === 'Occupied' || contextMenu.room.status === 'CheckoutToday') && (
+            <button
+              onClick={() => {
+                setIsExtendDialogOpen(true);
+                setContextMenu(null);
+              }}
+              className="w-full px-4 py-2 text-right hover:bg-blue-50 transition-colors flex items-center gap-2 text-gray-700"
+            >
+              <Calendar className="w-4 h-4 text-blue-600" />
+              تمديد الإقامة
+            </button>
+          )}
+          
+          <button
+            onClick={async () => {
+              setSelectedRoomForServices(contextMenu.room);
+              setIsServicesHistoryOpen(true);
+              setContextMenu(null);
+            }}
+            className="w-full px-4 py-2 text-right hover:bg-green-50 transition-colors flex items-center gap-2 text-gray-700"
+          >
+            <FileText className="w-4 h-4 text-green-600" />
+            سجل الخدمات
+          </button>
+        </div>
+      )}
+
+      {/* ✨ Dialog تمديد الإقامة */}
+      <Dialog open={isExtendDialogOpen} onOpenChange={setIsExtendDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-blue-600" />
+              تمديد الإقامة
+            </DialogTitle>
+            <DialogDescription>
+              {contextMenu && `غرفة ${contextMenu.room.number} - ${contextMenu.room.guestName}`}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">عدد الأيام</label>
+              <Input
+                type="number"
+                min="1"
+                max="365"
+                value={extendDays}
+                onChange={(e) => setExtendDays(parseInt(e.target.value) || 1)}
+                className="text-right"
+              />
+            </div>
+            
+            <div>
+              <label className="text-sm font-medium mb-2 block">ملاحظات (اختياري)</label>
+              <Input
+                type="text"
+                value={extendNotes}
+                onChange={(e) => setExtendNotes(e.target.value)}
+                placeholder="سبب التمديد..."
+                className="text-right"
+              />
+            </div>
+            
+            {contextMenu?.room.bookingDetails?.checkOut?.date && (
+              <div className="bg-blue-50 p-3 rounded-lg text-sm">
+                <p className="text-gray-600">
+                  <strong>التاريخ الحالي:</strong> {new Date(contextMenu.room.bookingDetails.checkOut.date).toLocaleDateString('ar-SA')}
+                </p>
+                <p className="text-blue-600 font-semibold mt-1">
+                  <strong>التاريخ الجديد:</strong> {new Date(new Date(contextMenu.room.bookingDetails.checkOut.date).setDate(new Date(contextMenu.room.bookingDetails.checkOut.date).getDate() + extendDays)).toLocaleDateString('ar-SA')}
+                </p>
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsExtendDialogOpen(false);
+                setExtendDays(1);
+                setExtendNotes('');
+              }}
+            >
+              إلغاء
+            </Button>
+            <Button onClick={handleExtendStay} className="bg-blue-600 hover:bg-blue-700">
+              تأكيد التمديد
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ✨ Dialog سجل الخدمات */}
+      <ServicesHistoryDialog
+        room={selectedRoomForServices}
+        isOpen={isServicesHistoryOpen}
+        onClose={() => {
+          setIsServicesHistoryOpen(false);
+          setSelectedRoomForServices(null);
+        }}
+        getRoomServicesHistory={getRoomServicesHistory}
+      />
       </div>
     </PermissionGuard>
   )
