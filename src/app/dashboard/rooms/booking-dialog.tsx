@@ -678,11 +678,19 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
           </div>
           
           <!-- بيانات الفندق -->
-          <div class="hotel-info">
-            <h2>${contractSettings.hotelName}</h2>
-            <p>${contractSettings.address} - ${contractSettings.city}</p>
-            <p>📞 هاتف: ${contractSettings.phone} | 📧 ${contractSettings.email}</p>
-            <p>الرقم الضريبي: ${contractSettings.taxNumber} | السجل التجاري: ${contractSettings.commercialRegister}</p>
+          <div class="hotel-info" style="text-align: center; line-height: 1.8;">
+            <h2 style="margin-bottom: 10px; color: #1e40af; font-size: 24px;">${contractSettings.hotelName}</h2>
+            <p style="font-size: 14px; color: #374151; margin: 5px 0;">
+              ${contractSettings.address} - ${contractSettings.city}
+            </p>
+            <p style="font-size: 13px; color: #4b5563; margin: 5px 0;">
+              📞 هاتف: <strong>${contractSettings.phone}</strong> | 
+              📧 <strong>${contractSettings.email}</strong>
+            </p>
+            <p style="font-size: 13px; color: #6b7280; margin: 5px 0;">
+              الرقم الضريبي: <strong>${contractSettings.taxNumber}</strong> | 
+              السجل التجاري: <strong>${contractSettings.commercialRegister}</strong>
+            </p>
           </div>
           
           <!-- جدول بيانات العقد -->
@@ -723,12 +731,6 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                 <td class="value"><strong>${totalAmount}</strong> ر.س</td>
                 <td class="label">المدفوع</td>
                 <td class="value" style="color: green"><strong>${totalDeposits}</strong> ر.س</td>
-              </tr>
-              <tr>
-                <td class="label">التأمين</td>
-                <td class="value">${contractSettings.securityDeposit} ر.س</td>
-                <td class="label">الحجم</td>
-                <td class="value">${room.type}</td>
               </tr>
             </tbody>
           </table>
@@ -791,9 +793,24 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
           </div>
           
           <!-- الفوتر -->
-          <div class="footer">
-            <p>بتوقيع هذا العقد، يُقر المستأجر بموافقته على جميع الشروط والأحكام المذكورة وفقاً للأنظمة والسياسات الخاصة بالمنشأة</p>
-            <p><strong>${contractSettings.hotelName}</strong> - ${contractSettings.phone}</p>
+          <div class="footer" style="text-align: center; line-height: 1.6;">
+            <p style="margin-bottom: 10px; font-size: 13px; color: #4b5563;">
+              بتوقيع هذا العقد، يُقر المستأجر بموافقته على جميع الشروط والأحكام المذكورة وفقاً للأنظمة والسياسات الخاصة بالمنشأة
+            </p>
+            <p style="font-size: 14px; margin: 5px 0;">
+              <strong style="color: #1e40af;">${contractSettings.hotelName}</strong>
+            </p>
+            <p style="font-size: 13px; color: #6b7280; margin: 5px 0;">
+              ${contractSettings.address} - ${contractSettings.city}
+            </p>
+            <p style="font-size: 12px; color: #6b7280; margin: 5px 0;">
+              📞 <strong>${contractSettings.phone}</strong> | 
+              📧 <strong>${contractSettings.email}</strong>
+            </p>
+            <p style="font-size: 11px; color: #9ca3af; margin: 5px 0;">
+              الرقم الضريبي: <strong>${contractSettings.taxNumber}</strong> | 
+              السجل التجاري: <strong>${contractSettings.commercialRegister}</strong>
+            </p>
           </div>
         </div>
       </body>
