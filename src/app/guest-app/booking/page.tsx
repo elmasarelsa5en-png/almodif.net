@@ -67,10 +67,10 @@ export default function BookingPage() {
   useEffect(() => {
     loadAvailableRooms();
     
-    // مراقبة حالة تسجيل الدخول
+    // مراقبة حالة تسجيل الدخول من Firebase Auth
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        console.log('🔐 User logged in:', user.uid, user.email);
+        console.log('🔐 User logged in (Firebase Auth):', user.uid, user.email);
         // تحميل بيانات المستخدم من Firestore
         try {
           // محاولة من guests أولاً
@@ -88,7 +88,7 @@ export default function BookingPage() {
               email: user.email,
               ...userDoc.data()
             };
-            console.log('✅ User data loaded:', userData);
+            console.log('✅ User data loaded from Firestore:', userData);
             setCurrentUser(userData);
           } else {
             console.warn('⚠️ User document not found in Firestore');
@@ -109,8 +109,22 @@ export default function BookingPage() {
           });
         }
       } else {
-        console.log('⚠️ No user logged in');
-        setCurrentUser(null);
+        // التحقق من localStorage للضيوف المسجلين عبر النظام القديم
+        console.log('⚠️ No Firebase Auth user, checking localStorage...');
+        const guestSession = localStorage.getItem('guest_session');
+        if (guestSession) {
+          try {
+            const guestData = JSON.parse(guestSession);
+            console.log('✅ Guest data loaded from localStorage:', guestData);
+            setCurrentUser(guestData);
+          } catch (error) {
+            console.error('❌ Error parsing guest session:', error);
+            setCurrentUser(null);
+          }
+        } else {
+          console.log('⚠️ No guest session found');
+          setCurrentUser(null);
+        }
       }
     });
     
