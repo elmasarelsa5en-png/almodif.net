@@ -353,6 +353,9 @@ export default function NewRequestPage() {
         fullDescription = `${formData.type}: ${subItemNames}${formData.notes ? '\n' + formData.notes : ''}`;
       }
 
+      // Find the assigned employee details
+      const assignedEmp = employees.find(emp => emp.id === formData.assignedEmployee);
+      
       // Create request object for Firebase
       const newRequest: any = {
         room: formData.room,
@@ -363,8 +366,10 @@ export default function NewRequestPage() {
         notes: formData.notes,
         status: 'awaiting_employee_approval',
         createdAt: new Date().toISOString(),
+        createdBy: user?.name || user?.username || 'الإدارة',
         priority: formData.priority,
-        assignedEmployee: formData.assignedEmployee,
+        assignedEmployee: assignedEmp ? assignedEmp.name : formData.assignedEmployee,
+        assignedEmployeeId: formData.assignedEmployee, // حفظ الـ ID للرجوع إليه
         employeeApprovalStatus: 'pending',
         selectedSubItems: selectedSubItems.length > 0 ? selectedSubItems : undefined,
         linkedSection: selectedCategory || selectedType?.linkedSection,
