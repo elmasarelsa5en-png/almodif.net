@@ -1499,9 +1499,9 @@ export default function RoomsPage() {
           </div>
         ) : (
           /* عرض القائمة - تصميم جدول احترافي */
-          <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
+          <div className="bg-gradient-to-br from-slate-900/95 via-blue-900/95 to-purple-900/95 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden border-2 border-white/20">
             {/* رأس الجدول */}
-            <div className="bg-gradient-to-r from-slate-700 to-slate-800 text-white">
+            <div className="bg-gradient-to-r from-blue-600/90 via-indigo-600/90 to-purple-600/90 text-white border-b-2 border-white/20">
               <div className="grid grid-cols-12 gap-4 px-6 py-4 font-bold text-sm">
                 <div className="col-span-1 text-center">رقم الوحدة</div>
                 <div className="col-span-1 text-center">الحالة</div>
@@ -1516,7 +1516,7 @@ export default function RoomsPage() {
             </div>
 
             {/* محتوى الجدول */}
-            <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-white/10">
               {filteredRooms
                 .sort((a, b) => a.number.localeCompare(b.number))
                 .map((room, index) => {
@@ -1540,20 +1540,20 @@ export default function RoomsPage() {
                     <div
                       key={room.id}
                       onClick={() => openRoomDetails(room)}
-                      className={`grid grid-cols-12 gap-4 px-6 py-4 hover:bg-blue-50 transition-colors cursor-pointer ${
-                        index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                      className={`grid grid-cols-12 gap-4 px-6 py-4 hover:bg-gradient-to-r hover:from-blue-500/20 hover:to-purple-500/20 transition-all cursor-pointer ${
+                        index % 2 === 0 ? 'bg-white/5' : 'bg-white/10'
                       }`}
                     >
                       {/* رقم الوحدة */}
                       <div className="col-span-1 flex items-center justify-center">
-                        <div className="bg-blue-600 text-white font-bold rounded-lg px-3 py-2 text-lg">
+                        <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-lg px-3 py-2 text-lg shadow-lg">
                           {room.number}
                         </div>
                       </div>
 
                       {/* الحالة */}
                       <div className="col-span-1 flex items-center justify-center">
-                        <Badge className={`${config.color} text-xs whitespace-nowrap`}>
+                        <Badge className={`${config.color} text-xs whitespace-nowrap shadow-md`}>
                           {config.label}
                         </Badge>
                       </div>
@@ -1562,13 +1562,13 @@ export default function RoomsPage() {
                       <div className="col-span-2 flex items-center">
                         {isOccupied && room.guestName ? (
                           <div>
-                            <div className="font-semibold text-gray-900">{room.guestName}</div>
+                            <div className="font-semibold text-white">{room.guestName}</div>
                             {room.guestPhone && (
-                              <div className="text-xs text-gray-500">📱 {room.guestPhone}</div>
+                              <div className="text-xs text-blue-200">📱 {room.guestPhone}</div>
                             )}
                           </div>
                         ) : (
-                          <span className="text-gray-400 text-sm">-</span>
+                          <span className="text-white/40 text-sm">-</span>
                         )}
                       </div>
 
@@ -1576,19 +1576,19 @@ export default function RoomsPage() {
                       <div className="col-span-2 flex items-center">
                         {room.bookingDetails?.checkIn?.date ? (
                           <div>
-                            <div className="text-sm font-medium text-gray-700">
+                            <div className="text-sm font-medium text-white">
                               {new Date(room.bookingDetails.checkIn.date).toLocaleDateString('ar-EG', {
                                 day: '2-digit',
                                 month: '2-digit',
                                 year: 'numeric'
                               })}
                             </div>
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-blue-200">
                               {room.bookingDetails.checkIn.time || '12:00 ظهراً'}
                             </div>
                           </div>
                         ) : (
-                          <span className="text-gray-400 text-sm">-</span>
+                          <span className="text-white/40 text-sm">-</span>
                         )}
                       </div>
 
@@ -1596,36 +1596,36 @@ export default function RoomsPage() {
                       <div className="col-span-2 flex items-center">
                         {room.bookingDetails?.checkOut?.date ? (
                           <div>
-                            <div className="text-sm font-medium text-gray-700">
+                            <div className="text-sm font-medium text-white">
                               {new Date(room.bookingDetails.checkOut.date).toLocaleDateString('ar-EG', {
                                 day: '2-digit',
                                 month: '2-digit',
                                 year: 'numeric'
                               })}
                             </div>
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-blue-200">
                               {room.bookingDetails.checkOut.time || '12:00 ظهراً'}
                             </div>
                           </div>
                         ) : (
-                          <span className="text-gray-400 text-sm">-</span>
+                          <span className="text-white/40 text-sm">-</span>
                         )}
                       </div>
 
                       {/* نوع الوحدة */}
                       <div className="col-span-1 flex items-center justify-center">
-                        <span className="text-sm text-gray-600 text-center">{room.type}</span>
+                        <span className="text-sm text-blue-100 text-center">{room.type}</span>
                       </div>
 
                       {/* الليالي (الإيجار اليومي) */}
                       <div className="col-span-1 flex items-center justify-end">
                         {nights > 0 && roomPrice ? (
                           <div className="text-right">
-                            <div className="font-semibold text-gray-900">{nights}</div>
-                            <div className="text-xs text-gray-500">شهري</div>
+                            <div className="font-semibold text-white">{nights}</div>
+                            <div className="text-xs text-blue-200">شهري</div>
                           </div>
                         ) : (
-                          <span className="text-gray-400 text-sm">-</span>
+                          <span className="text-white/40 text-sm">-</span>
                         )}
                       </div>
 
@@ -1633,25 +1633,25 @@ export default function RoomsPage() {
                       <div className="col-span-1 flex items-center justify-end">
                         {totalRent > 0 ? (
                           <div className="text-right">
-                            <div className="font-bold text-gray-900">{totalRent.toLocaleString()}</div>
+                            <div className="font-bold text-yellow-300">{totalRent.toLocaleString()}</div>
                           </div>
                         ) : roomPrice ? (
                           <div className="text-right">
-                            <div className="font-semibold text-gray-700">{roomPrice.pricePerDay.toLocaleString()}</div>
+                            <div className="font-semibold text-yellow-200">{roomPrice.pricePerDay.toLocaleString()}</div>
                           </div>
                         ) : (
-                          <span className="text-gray-400 text-sm">-</span>
+                          <span className="text-white/40 text-sm">-</span>
                         )}
                       </div>
 
                       {/* الرصيد */}
                       <div className="col-span-1 flex items-center justify-center">
                         {room.currentDebt > 0 ? (
-                          <div className="bg-red-100 text-red-700 font-bold px-3 py-1 rounded-lg text-sm">
+                          <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white font-bold px-3 py-1 rounded-lg text-sm shadow-lg">
                             {room.currentDebt.toLocaleString()}
                           </div>
                         ) : (
-                          <div className="bg-green-100 text-green-700 font-bold px-3 py-1 rounded-lg text-sm">
+                          <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold px-3 py-1 rounded-lg text-sm shadow-lg">
                             0
                           </div>
                         )}
@@ -1663,7 +1663,7 @@ export default function RoomsPage() {
 
             {/* إجمالي في النهاية */}
             {filteredRooms.length === 0 && (
-              <div className="py-12 text-center text-gray-400">
+              <div className="py-12 text-center text-white/60">
                 <BedDouble className="w-16 h-16 mx-auto mb-4 opacity-30" />
                 <p className="text-lg">لا توجد وحدات متاحة</p>
               </div>
