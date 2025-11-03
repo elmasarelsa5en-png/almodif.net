@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from "react"
+import { createPortal } from "react-dom"
 import { ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -9,6 +10,7 @@ interface SelectContextValue {
   setOpen: (open: boolean) => void
   value: string
   setValue: (value: string) => void
+  triggerRef: React.MutableRefObject<HTMLButtonElement | null>
 }
 
 const SelectContext = React.createContext<SelectContextValue | undefined>(undefined)
@@ -23,6 +25,7 @@ interface SelectProps {
 const Select = ({ children, value, onValueChange, defaultValue }: SelectProps) => {
   const [open, setOpen] = React.useState(false)
   const [internalValue, setInternalValue] = React.useState(defaultValue || "")
+  const triggerRef = React.useRef<HTMLButtonElement | null>(null)
   
   const currentValue = value !== undefined ? value : internalValue
   
@@ -35,7 +38,7 @@ const Select = ({ children, value, onValueChange, defaultValue }: SelectProps) =
   }
   
   return (
-    <SelectContext.Provider value={{ open, setOpen, value: currentValue, setValue }}>
+    <SelectContext.Provider value={{ open, setOpen, value: currentValue, setValue, triggerRef }}>
       <div className="relative">
         {children}
       </div>
@@ -50,11 +53,15 @@ const SelectTrigger = React.forwardRef<
   const context = React.useContext(SelectContext)
   if (!context) throw new Error('SelectTrigger must be used within Select')
   
-  const { open, setOpen } = context
+  const { open, setOpen, triggerRef } = context
   
   return (
     <button
-      ref={ref}
+      ref={(node) => {
+        triggerRef.current = node
+        if (typeof ref === 'function') ref(node)
+        else if (ref) ref.current = node
+      }}
       className={cn(
         "flex h-10 w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
         className
@@ -99,36 +106,97 @@ const SelectContent = React.forwardRef<
   const context = React.useContext(SelectContext)
   if (!context) throw new Error('SelectContent must be used within Select')
   
-  const { open, setOpen } = context
+  const { open, setOpen, triggerRef } = context
+  const contentRef = React.useRef<HTMLDivElement>(null)
+  const [position, setPosition] = React.useState({ top: 0, left: 0, width: 0 })
+  
+  // حساب موقع القائمة
+  const updatePosition = React.useCallback(() => {
+    if (open && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect()
+      setPosition({
+        top: rect.bottom + window.scrollY + 4,
+        left: rect.left + window.scrollX,
+        width: rect.width
+      })
+    }
+  }, [open, triggerRef])
+  
+  React.useEffect(() => {
+    if (open) {
+      setTimeout(updatePosition, 0)
+    }
+  }, [open, updatePosition])
+  
+  React.useEffect(() => {
+    if (!open) return
+    
+    window.addEventListener('scroll', updatePosition, true)
+    window.addEventListener('resize', updatePosition)
+    
+    return () => {
+      window.removeEventListener('scroll', updatePosition, true)
+      window.removeEventListener('resize', updatePosition)
+    }
+  }, [open, updatePosition])
   
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (ref && typeof ref === 'object' && ref.current && !ref.current.contains(event.target as Node)) {
+      const target = event.target as Node
+      if (
+        contentRef.current && 
+        !contentRef.current.contains(target) &&
+        triggerRef.current &&
+        !triggerRef.current.contains(target)
+      ) {
+        setOpen(false)
+      }
+    }
+    
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
         setOpen(false)
       }
     }
     
     if (open) {
-      document.addEventListener('mousedown', handleClickOutside)
-      return () => document.removeEventListener('mousedown', handleClickOutside)
+      setTimeout(() => {
+        document.addEventListener('mousedown', handleClickOutside)
+        document.addEventListener('keydown', handleEscapeKey)
+      }, 0)
+      
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside)
+        document.removeEventListener('keydown', handleEscapeKey)
+      }
     }
-  }, [open, setOpen, ref])
+  }, [open, setOpen, triggerRef])
   
-  if (!open) return null
+  React.useImperativeHandle(ref, () => contentRef.current as HTMLDivElement)
   
-  return (
+  if (!open || typeof window === 'undefined') return null
+  
+  return createPortal(
     <div
-      ref={ref}
+      ref={contentRef}
       className={cn(
-        "absolute top-full mt-1 w-full min-w-[8rem] overflow-hidden rounded-md border bg-white shadow-md select-content",
+        "fixed min-w-[8rem] overflow-hidden rounded-md border bg-white shadow-xl z-[99999]",
+        "animate-in fade-in slide-in-from-top-2 duration-200",
+        "max-h-[300px] overflow-y-auto",
         className
       )}
+      style={{
+        top: `${position.top}px`,
+        left: `${position.left}px`,
+        width: `${position.width}px`,
+      }}
       {...props}
     >
       <div className="p-1">
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 })
 SelectContent.displayName = "SelectContent"
