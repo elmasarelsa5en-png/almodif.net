@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils"
 interface DropdownMenuContextValue {
   open: boolean
   setOpen: (open: boolean) => void
+  triggerRef: React.MutableRefObject<HTMLElement | null>
 }
 
 const DropdownMenuContext = React.createContext<DropdownMenuContextValue | undefined>(undefined)
@@ -17,6 +18,7 @@ let globalOpenDropdowns: Set<(open: boolean) => void> = new Set()
 
 const DropdownMenu = ({ children }: { children: React.ReactNode }) => {
   const [open, setOpen] = React.useState(false)
+  const triggerRef = React.useRef<HTMLElement | null>(null)
   
   // دالة محسنة لإغلاق القوائم الأخرى
   const setOpenEnhanced = React.useCallback((newOpen: boolean) => {
@@ -40,7 +42,7 @@ const DropdownMenu = ({ children }: { children: React.ReactNode }) => {
   }, [])
   
   return (
-    <DropdownMenuContext.Provider value={{ open, setOpen: setOpenEnhanced }}>
+    <DropdownMenuContext.Provider value={{ open, setOpen: setOpenEnhanced, triggerRef }}>
       <div className="relative">{children}</div>
     </DropdownMenuContext.Provider>
   )
@@ -55,7 +57,15 @@ const DropdownMenuTrigger = React.forwardRef<
   const context = React.useContext(DropdownMenuContext)
   if (!context) throw new Error('DropdownMenuTrigger must be used within DropdownMenu')
   
-  const { open, setOpen } = context
+  const { open, setOpen, triggerRef } = context
+  const internalRef = React.useRef<HTMLElement>(null)
+  
+  // دمج الـ refs
+  React.useEffect(() => {
+    if (internalRef.current) {
+      triggerRef.current = internalRef.current
+    }
+  }, [triggerRef])
   
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -65,17 +75,23 @@ const DropdownMenuTrigger = React.forwardRef<
   if (asChild) {
     return React.cloneElement(children as React.ReactElement, {
       onClick: handleClick,
-      'data-dropdown-trigger': 'true',
-      ref
+      ref: (node: HTMLElement) => {
+        internalRef.current = node
+        if (typeof ref === 'function') ref(node as any)
+        else if (ref) (ref as any).current = node
+      }
     })
   }
   
   return (
     <button
-      ref={ref}
+      ref={(node) => {
+        internalRef.current = node
+        if (typeof ref === 'function') ref(node)
+        else if (ref) ref.current = node
+      }}
       className={cn("cursor-pointer", className)}
       onClick={handleClick}
-      data-dropdown-trigger="true"
       {...props}
     >
       {children}
@@ -93,89 +109,68 @@ const DropdownMenuContent = React.forwardRef<
   const context = React.useContext(DropdownMenuContext)
   if (!context) throw new Error('DropdownMenuContent must be used within DropdownMenu')
   
-  const { open, setOpen } = context
+  const { open, setOpen, triggerRef } = context
   const contentRef = React.useRef<HTMLDivElement>(null)
-  const triggerRef = React.useRef<HTMLElement | null>(null)
   const [position, setPosition] = React.useState({ top: 0, left: 0, width: 0 })
   
   // حساب موقع القائمة بناءً على موقع الزر
+  const updatePosition = React.useCallback(() => {
+    if (open && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect()
+      
+      let left = rect.left + window.scrollX
+      let top = rect.bottom + window.scrollY + 8
+      const width = rect.width
+      
+      // تعديل الموقع بناءً على align
+      if (align === 'end') {
+        left = rect.right + window.scrollX
+        if (contentRef.current) {
+          left -= contentRef.current.offsetWidth
+        }
+      } else if (align === 'center') {
+        left = rect.left + window.scrollX + (width / 2)
+        if (contentRef.current) {
+          left -= contentRef.current.offsetWidth / 2
+        }
+      }
+      
+      setPosition({ top, left, width })
+    }
+  }, [open, align, triggerRef])
+  
+  // تحديث الموقع عند الفتح
   React.useEffect(() => {
     if (open) {
-      // البحث عن الزر المحفز
-      const trigger = document.querySelector('[data-dropdown-trigger="true"]') as HTMLElement
-      if (trigger) {
-        triggerRef.current = trigger
-        const rect = trigger.getBoundingClientRect()
-        
-        let left = rect.left + window.scrollX
-        let top = rect.bottom + window.scrollY + 8
-        const width = rect.width
-        
-        // تعديل الموقع بناءً على align
-        if (align === 'end') {
-          left = rect.right + window.scrollX
-          if (contentRef.current) {
-            left -= contentRef.current.offsetWidth
-          }
-        } else if (align === 'center') {
-          left = rect.left + window.scrollX + (width / 2)
-          if (contentRef.current) {
-            left -= contentRef.current.offsetWidth / 2
-          }
-        }
-        
-        setPosition({ top, left, width })
-      }
+      // تأخير صغير للتأكد من أن الـ trigger ref محدث
+      setTimeout(updatePosition, 0)
     }
-  }, [open, align])
+  }, [open, updatePosition])
   
   // تحديث الموقع عند الـ scroll
   React.useEffect(() => {
     if (!open) return
     
-    const handleScroll = () => {
-      if (triggerRef.current) {
-        const rect = triggerRef.current.getBoundingClientRect()
-        let left = rect.left + window.scrollX
-        let top = rect.bottom + window.scrollY + 8
-        const width = rect.width
-        
-        if (align === 'end') {
-          left = rect.right + window.scrollX
-          if (contentRef.current) {
-            left -= contentRef.current.offsetWidth
-          }
-        } else if (align === 'center') {
-          left = rect.left + window.scrollX + (width / 2)
-          if (contentRef.current) {
-            left -= contentRef.current.offsetWidth / 2
-          }
-        }
-        
-        setPosition({ top, left, width })
-      }
-    }
+    window.addEventListener('scroll', updatePosition, true)
+    window.addEventListener('resize', updatePosition)
     
-    window.addEventListener('scroll', handleScroll, true)
-    return () => window.removeEventListener('scroll', handleScroll, true)
-  }, [open, align])
+    return () => {
+      window.removeEventListener('scroll', updatePosition, true)
+      window.removeEventListener('resize', updatePosition)
+    }
+  }, [open, updatePosition])
   
   // إغلاق عند الضغط خارج القائمة
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node
-      if (contentRef.current && !contentRef.current.contains(target)) {
-        const triggers = document.querySelectorAll('[data-dropdown-trigger]')
-        let isClickOnTrigger = false
-        triggers.forEach(trigger => {
-          if (trigger.contains(target)) {
-            isClickOnTrigger = true
-          }
-        })
-        
-        if (!isClickOnTrigger) {
-          setOpen(false)
-        }
+      if (
+        contentRef.current && 
+        !contentRef.current.contains(target) &&
+        triggerRef.current &&
+        !triggerRef.current.contains(target)
+      ) {
+        setOpen(false)
       }
     }
     
@@ -196,7 +191,7 @@ const DropdownMenuContent = React.forwardRef<
         document.removeEventListener('keydown', handleEscapeKey)
       }
     }
-  }, [open, setOpen])
+  }, [open, setOpen, triggerRef])
   
   React.useImperativeHandle(ref, () => contentRef.current as HTMLDivElement)
   
