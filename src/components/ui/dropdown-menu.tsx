@@ -202,7 +202,8 @@ const DropdownMenuContent = React.forwardRef<
     <div
       ref={contentRef}
       className={cn(
-        "fixed min-w-[8rem] overflow-hidden rounded-md border bg-white p-1 text-gray-900 shadow-xl z-[99999]",
+        "fixed min-w-[8rem] overflow-hidden rounded-md border border-white/20 shadow-xl z-[99999]",
+        "bg-slate-900/98 backdrop-blur-xl text-white",
         "animate-in fade-in slide-in-from-top-2 duration-200",
         "max-h-[calc(100vh-120px)] overflow-y-auto",
         className
@@ -243,7 +244,8 @@ const DropdownMenuItem = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-gray-100 focus:bg-gray-100",
+        "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors",
+        "text-white hover:bg-white/10 focus:bg-white/10 cursor-pointer",
         inset && "pl-8",
         className
       )}
@@ -263,7 +265,7 @@ const DropdownMenuLabel = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "px-2 py-1.5 text-sm font-semibold text-gray-900",
+      "px-2 py-1.5 text-sm font-semibold text-white",
       inset && "pl-8",
       className
     )}
@@ -278,7 +280,7 @@ const DropdownMenuSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <hr
     ref={ref}
-    className={cn("-mx-1 my-1 h-px bg-gray-200", className)}
+    className={cn("-mx-1 my-1 h-px bg-white/20", className)}
     {...props}
   />
 ))
@@ -303,7 +305,7 @@ const DropdownMenuSubContent = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "min-w-[8rem] overflow-hidden rounded-md border bg-white p-1 text-gray-900 shadow-lg dropdown-content",
+      "min-w-[8rem] overflow-hidden rounded-md border border-white/20 bg-slate-900/98 backdrop-blur-xl p-1 text-white shadow-lg",
       className
     )}
     {...props}
@@ -320,7 +322,7 @@ const DropdownMenuSubTrigger = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-gray-100",
+      "flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none text-white hover:bg-white/10",
       inset && "pl-8",
       className
     )}
@@ -343,7 +345,7 @@ const DropdownMenuCheckboxItem = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors hover:bg-gray-100",
+      "relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors text-white hover:bg-white/10",
       className
     )}
     {...props}
@@ -360,7 +362,7 @@ const DropdownMenuRadioItem = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors hover:bg-gray-100",
+      "relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors text-white hover:bg-white/10",
       className
     )}
     {...props}

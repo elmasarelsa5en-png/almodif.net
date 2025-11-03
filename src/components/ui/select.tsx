@@ -180,7 +180,8 @@ const SelectContent = React.forwardRef<
     <div
       ref={contentRef}
       className={cn(
-        "fixed min-w-[8rem] overflow-hidden rounded-md border bg-white shadow-xl z-[99999]",
+        "fixed min-w-[8rem] overflow-hidden rounded-md border border-white/20 shadow-xl z-[99999]",
+        "bg-slate-900/98 backdrop-blur-xl text-white",
         "animate-in fade-in slide-in-from-top-2 duration-200",
         "max-h-[300px] overflow-y-auto",
         className
@@ -220,9 +221,9 @@ const SelectItem = React.forwardRef<
       className={cn(
         "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors",
         disabled 
-          ? "text-gray-400 cursor-not-allowed" 
-          : "hover:bg-gray-100 focus:bg-gray-100 cursor-pointer",
-        isSelected && !disabled && "bg-blue-100 text-blue-900",
+          ? "text-gray-500 cursor-not-allowed" 
+          : "text-white hover:bg-white/10 focus:bg-white/10 cursor-pointer",
+        isSelected && !disabled && "bg-blue-600/50 text-white font-semibold",
         className
       )}
       onClick={disabled ? undefined : () => setValue(value)}
@@ -240,7 +241,7 @@ const SelectLabel = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("py-1.5 pl-8 pr-2 text-sm font-semibold", className)}
+    className={cn("py-1.5 pl-8 pr-2 text-sm font-semibold text-white", className)}
     {...props}
   />
 ))
@@ -252,7 +253,7 @@ const SelectSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("-mx-1 my-1 h-px bg-gray-200", className)}
+    className={cn("-mx-1 my-1 h-px bg-white/20", className)}
     {...props}
   />
 ))
