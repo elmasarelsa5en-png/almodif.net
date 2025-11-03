@@ -573,16 +573,16 @@ export default function BookingsPage() {
                       <select
                         value={selectedStatus}
                         onChange={(e) => setSelectedStatus(e.target.value as BookingStatus | 'الكل')}
-                        className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-white"
+                        className="w-full px-3 py-2 bg-slate-800/95 border border-white/30 rounded-lg text-white focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50 transition-all"
                       >
-                        <option value="الكل">جميع الحالات</option>
-                        <option value="غير مؤكدة">غير مؤكدة</option>
-                        <option value="قائمة">قائمة</option>
-                        <option value="جاهز_دخول">جاهز لتسجيل الدخول</option>
-                        <option value="جاهز_خروج">جاهز لتسجيل الخروج</option>
-                        <option value="قادمة">قادمة</option>
-                        <option value="مكتملة">مكتملة</option>
-                        <option value="ملغية">ملغية</option>
+                        <option value="الكل" className="bg-slate-800 text-white">جميع الحالات</option>
+                        <option value="غير مؤكدة" className="bg-slate-800 text-white">غير مؤكدة</option>
+                        <option value="قائمة" className="bg-slate-800 text-white">قائمة</option>
+                        <option value="جاهز_دخول" className="bg-slate-800 text-white">جاهز لتسجيل الدخول</option>
+                        <option value="جاهز_خروج" className="bg-slate-800 text-white">جاهز لتسجيل الخروج</option>
+                        <option value="قادمة" className="bg-slate-800 text-white">قادمة</option>
+                        <option value="مكتملة" className="bg-slate-800 text-white">مكتملة</option>
+                        <option value="ملغية" className="bg-slate-800 text-white">ملغية</option>
                       </select>
                     </div>
 
@@ -592,16 +592,16 @@ export default function BookingsPage() {
                       <select
                         value={selectedSource}
                         onChange={(e) => setSelectedSource(e.target.value)}
-                        className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-white"
+                        className="w-full px-3 py-2 bg-slate-800/95 border border-white/30 rounded-lg text-white focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50 transition-all"
                       >
-                        <option value="الكل">جميع المصادر</option>
-                        <option value="تطبيق النزلاء">📱 تطبيق النزلاء</option>
-                        <option value="حجز_مباشر">📞 حجز مباشر</option>
-                        <option value="الموقع الإلكتروني">💻 الموقع الإلكتروني</option>
-                        <option value="Booking.com">🏢 Booking.com</option>
-                        <option value="Airbnb">🏠 Airbnb</option>
-                        <option value="Agoda">✈️ Agoda</option>
-                        <option value="وكيل_سفر">🎫 وكيل سفر</option>
+                        <option value="الكل" className="bg-slate-800 text-white">جميع المصادر</option>
+                        <option value="تطبيق النزلاء" className="bg-slate-800 text-white">📱 تطبيق النزلاء</option>
+                        <option value="حجز_مباشر" className="bg-slate-800 text-white">📞 حجز مباشر</option>
+                        <option value="الموقع الإلكتروني" className="bg-slate-800 text-white">💻 الموقع الإلكتروني</option>
+                        <option value="Booking.com" className="bg-slate-800 text-white">🏢 Booking.com</option>
+                        <option value="Airbnb" className="bg-slate-800 text-white">🏠 Airbnb</option>
+                        <option value="Agoda" className="bg-slate-800 text-white">✈️ Agoda</option>
+                        <option value="وكيل_سفر" className="bg-slate-800 text-white">🎫 وكيل سفر</option>
                       </select>
                     </div>
 
