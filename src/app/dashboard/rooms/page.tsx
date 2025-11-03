@@ -2021,17 +2021,9 @@ export default function RoomsPage() {
                   const roomPrice = roomPrices[room.type];
                   const isOccupied = room.status === 'Occupied' || room.status === 'CheckoutToday' || room.status === 'Overdue';
                   
-                  // حساب عدد الليالي
-                  let nights = 0;
-                  let totalRent = 0;
-                  if (room.bookingDetails?.checkIn?.date && room.bookingDetails?.checkOut?.date) {
-                    const checkIn = new Date(room.bookingDetails.checkIn.date);
-                    const checkOut = new Date(room.bookingDetails.checkOut.date);
-                    nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
-                    if (roomPrice) {
-                      totalRent = nights * roomPrice.pricePerDay;
-                    }
-                  }
+                  // حساب عدد الليالي والإيجار الكلي من العقد
+                  const nights = room.bookingDetails?.numberOfDays || 0;
+                  const totalRent = room.bookingDetails?.financial?.totalAmount || 0;
 
                   return (
                     <div
@@ -2121,10 +2113,10 @@ export default function RoomsPage() {
 
                       {/* الليالي (الإيجار اليومي) */}
                       <div className="col-span-1 flex items-center justify-end">
-                        {nights > 0 && roomPrice ? (
+                        {nights > 0 ? (
                           <div className="text-right">
-                            <div className="font-semibold text-white">{nights}</div>
-                            <div className="text-xs text-blue-200">شهري</div>
+                            <div className="font-bold text-white text-lg">{nights}</div>
+                            <div className="text-xs text-blue-200">ليلة</div>
                           </div>
                         ) : (
                           <span className="text-white/40 text-sm">-</span>
@@ -2135,11 +2127,8 @@ export default function RoomsPage() {
                       <div className="col-span-1 flex items-center justify-end">
                         {totalRent > 0 ? (
                           <div className="text-right">
-                            <div className="font-bold text-yellow-300">{totalRent.toLocaleString()}</div>
-                          </div>
-                        ) : roomPrice ? (
-                          <div className="text-right">
-                            <div className="font-semibold text-yellow-200">{roomPrice.pricePerDay.toLocaleString()}</div>
+                            <div className="font-bold text-yellow-300 text-lg">{totalRent.toLocaleString()}</div>
+                            <div className="text-xs text-yellow-200">ر.س</div>
                           </div>
                         ) : (
                           <span className="text-white/40 text-sm">-</span>
