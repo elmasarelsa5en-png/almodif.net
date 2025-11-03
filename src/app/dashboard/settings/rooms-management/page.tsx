@@ -382,7 +382,7 @@ export default function RoomsManagementPage() {
               <div>
                 <div className="flex items-center gap-2">
                   <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
-                    إدارة الغرف والشقق
+                    إدارة الوحدات
                   </h1>
                   {isSyncing ? (
                     <Cloud className="w-5 h-5 text-yellow-400 animate-pulse" />

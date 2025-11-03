@@ -115,7 +115,7 @@ export default function SettingsPage() {
     {
       id: 'rooms-management',
       title: 'إدارة الغرف',
-      description: 'إضافة، تعديل، وضبط إعدادات الغرف والشقق',
+      description: 'إضافة، تعديل، وضبط إعدادات الوحدات',
       icon: Bed,
       color: 'from-blue-500 to-cyan-500',
       href: '/dashboard/settings/rooms-management',

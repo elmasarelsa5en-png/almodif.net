@@ -45,7 +45,7 @@ import {
   FileText as ExpenseVoucher, // سندات الصرف
   UserCheck, // إحصائيات الموظفين
   Lock, // الحجوزات المفتوحة
-  Wrench, // تغيير الشقق
+  Wrench, // تغيير الوحدات
   PieChart, // الضرائب والرسوم
   Building, // حالة الغرف
   X, // التناقض

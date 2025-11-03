@@ -284,10 +284,10 @@ export default function RoomsPage() {
       
       if (overdue.length > 0) {
         setShowOverdueAlert(true);
-        console.log(`⚠️ تم العثور على ${overdue.length} شقة متأخرة عن موعد الخروج`);
+        console.log(`⚠️ تم العثور على ${overdue.length} وحدة متأخرة عن موعد الخروج`);
       }
       
-      // تحديث حالة الشقق تلقائياً
+      // تحديث حالة الوحدات تلقائياً
       const updatedRooms = autoUpdateRoomStatusByCheckout(rooms);
       if (JSON.stringify(updatedRooms) !== JSON.stringify(rooms)) {
         setRooms(updatedRooms);
@@ -392,7 +392,7 @@ export default function RoomsPage() {
     }
   };
 
-  // تصفية الشقق
+  // تصفية الوحدات
   useEffect(() => {
     let filtered = rooms;
 
@@ -414,7 +414,7 @@ export default function RoomsPage() {
     setFilteredRooms(filtered);
   }, [rooms, activeFilter, typeFilter, searchTerm]);
 
-  // احصائيات الشقق
+  // احصائيات الوحدات
   const stats = {
     total: rooms.length,
     available: rooms.filter(r => r.status === 'Available').length,
@@ -427,7 +427,7 @@ export default function RoomsPage() {
     occupancyRate: Math.round((rooms.filter(r => r.status === 'Occupied').length / rooms.length) * 100)
   };
 
-  // معالج تغيير حالة الشقة
+  // معالج تغيير حالة الوحدة
   const handleStatusChange = async () => {
     if (!selectedRoom || !user) return;
     
@@ -508,8 +508,8 @@ export default function RoomsPage() {
               guest: selectedRoom.guestName || 'ضيف سابق',
               phone: selectedRoom.guestPhone || '',
               type: 'تنظيف',
-              notes: `تنظيف بعد خروج النزيل - الشقة ${selectedRoom.number}`,
-              description: `الشقة خرج منها النزيل وتحتاج تنظيف شامل وتجهيز للنزيل القادم`,
+              notes: `تنظيف بعد خروج النزيل - الوحدة ${selectedRoom.number}`,
+              description: `الوحدة خرج منها النزيل وتحتاج تنظيف شامل وتجهيز للنزيل القادم`,
               priority: 'high' as const,
               assignedEmployee: '', // طلب عام لكل الموظفين
               status: 'pending' as const,
@@ -535,9 +535,9 @@ export default function RoomsPage() {
             console.error('❌ خطأ في إنشاء طلب التنظيف:', error);
           }
           
-          alert('✅ تم إنهاء إقامة النزيل وتحديث حالة الغرفة بنجاح\n🧹 تم إنشاء طلب تنظيف تلقائي');
+          alert('✅ تم إنهاء إقامة النزيل وتحديث حالة الوحدة بنجاح\n🧹 تم إنشاء طلب تنظيف تلقائي');
         } else {
-          alert('✅ تم تغيير حالة الشقة بنجاح');
+          alert('✅ تم تغيير حالة الوحدة بنجاح');
         }
       }
     } catch (error) {
@@ -600,7 +600,7 @@ export default function RoomsPage() {
           paymentMethod: paymentMethod.type,
           cardType: paymentMethod.cardType,
           receiptNumberExternal: paymentMethod.receiptNumber,
-          description: `دفعة لتسديد ديون الشقة ${selectedRoom.number}`,
+          description: `دفعة لتسديد ديون الوحدة ${selectedRoom.number}`,
           category: 'room_rent',
           paidBy: user.name || user.username || 'غير معروف',
           createdBy: user.username || user.name || 'unknown',
@@ -633,7 +633,7 @@ export default function RoomsPage() {
     setPaymentMethod({ type: 'cash' });
   };
 
-  // فتح تفاصيل الشقة - دائماً نافذة الحجز
+  // فتح تفاصيل الوحدة - دائماً نافذة الحجز
   const openRoomDetails = (room: Room) => {
     setSelectedRoom(room);
     setNewStatus(room.status);
@@ -1003,7 +1003,7 @@ export default function RoomsPage() {
     }
   };
 
-  // مكون بطاقة الشقة
+  // مكون بطاقة الوحدة
   const RoomCard = ({ room }: { room: Room }) => {
     const config = ROOM_STATUS_CONFIG[room.status];
     const typeConfig = ROOM_TYPE_CONFIG[room.type as keyof typeof ROOM_TYPE_CONFIG] || {
@@ -1141,7 +1141,7 @@ export default function RoomsPage() {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-indigo-500/10 rounded-full blur-2xl"></div>
       </div>
 
-      {/* تنبيه الشقق المتأخرة عن موعد الخروج - أعلى أولوية */}
+      {/* تنبيه الوحدات المتأخرة عن موعد الخروج - أعلى أولوية */}
       {showOverdueAlert && overdueRooms.length > 0 && (
         <div className="fixed top-4 right-4 left-4 z-[60] max-w-2xl mx-auto animate-in slide-in-from-top">
           <div className="bg-gradient-to-r from-red-800 via-red-900 to-red-950 text-white rounded-2xl shadow-2xl border-2 border-red-600 overflow-hidden animate-pulse">
@@ -1438,7 +1438,7 @@ export default function RoomsPage() {
           </div>
         </div>
 
-        {/* شبكة الشقق */}
+        {/* شبكة الوحدات */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
           {filteredRooms
             .sort((a, b) => a.number.localeCompare(b.number))
@@ -1448,7 +1448,7 @@ export default function RoomsPage() {
         </div>
       </div>
 
-      {/* نافذة تفاصيل الشقة */}
+      {/* نافذة تفاصيل الوحدة */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
         <DialogContent className="max-w-3xl bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 backdrop-blur-md border-white/20 shadow-2xl">
           <DialogHeader className="bg-gradient-to-r from-slate-800/50 to-blue-900/50 rounded-lg p-4 -m-6 mb-6">
@@ -1605,7 +1605,7 @@ export default function RoomsPage() {
                 </Card>
               )}
               
-              {/* معلومات الشقة الحالية */}
+              {/* معلومات الوحدة الحالية */}
               <div className="grid grid-cols-2 gap-6">
                 <Card className="bg-white/10 backdrop-blur-md border-white/20">
                   <CardContent className="p-4">
@@ -1683,8 +1683,8 @@ export default function RoomsPage() {
                                 <div className="text-right">
                                   <div className="text-white font-semibold text-lg">{config.label}</div>
                                   <div className="text-white/70 text-sm">
-                                    {status === 'Available' && 'الشقة جاهزة للحجز'}
-                                    {status === 'Occupied' && 'يوجد نزيل في الشقة'}
+                                    {status === 'Available' && 'الوحدة جاهزة للحجز'}
+                                    {status === 'Occupied' && 'يوجد نزيل في الوحدة'}
                                     {status === 'Reserved' && 'محجوزة ولم يصل النزيل بعد'}
                                     {status === 'Cleaning' && 'تحتاج إلى تنظيف وتجهيز'}
                                     {status === 'Maintenance' && 'تحتاج إلى صيانة أو إصلاح'}
@@ -1711,11 +1711,11 @@ export default function RoomsPage() {
                       <Input
                         value={guestName}
                         onChange={(e) => setGuestName(e.target.value)}
-                        placeholder="أدخل اسم النزيل المقيم أو المحجوز للشقة"
+                        placeholder="أدخل اسم النزيل المقيم أو المحجوز للوحدة"
                         className="border-2 border-blue-400/50 focus:border-blue-400 bg-white/10 text-white placeholder:text-white/60 text-lg p-3"
                       />
                       <p className="text-xs text-blue-200/70 mt-2">
-                        {newStatus === 'Occupied' ? 'اسم النزيل المقيم حالياً في الشقة' : 'اسم الشخص الذي حجز الشقة'}
+                        {newStatus === 'Occupied' ? 'اسم النزيل المقيم حالياً في الوحدة' : 'اسم الشخص الذي حجز الوحدة'}
                       </p>
                     </div>
                   )}
@@ -1782,7 +1782,7 @@ export default function RoomsPage() {
               <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
                 <CreditCard className="w-6 h-6 text-white" />
               </div>
-              تسديد المبلغ - شقة {selectedRoom?.number}
+              تسديد المبلغ - وحدة {selectedRoom?.number}
             </DialogTitle>
             <DialogDescription className="text-blue-200/80 font-medium">
               إدخال تفاصيل عملية الدفع
@@ -1952,7 +1952,7 @@ export default function RoomsPage() {
               if (newStatus === 'NeedsCleaning') {
                 alert('✅ تم إنهاء العقد وتغيير الحالة إلى "تحتاج تنظيف"');
               } else {
-                alert('✅ تم تغيير حالة الشقة بنجاح');
+                alert('✅ تم تغيير حالة الوحدة بنجاح');
               }
             }
           } catch (error) {

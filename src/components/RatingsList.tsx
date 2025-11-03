@@ -193,7 +193,7 @@ export function RatingsList({ targetId, targetType, showSummary = true }: Rating
                     <div>
                       <p className="text-white font-semibold">{rating.guestName || 'نزيل'}</p>
                       {rating.roomNumber && (
-                        <p className="text-white/60 text-sm">شقة {rating.roomNumber}</p>
+                        <p className="text-white/60 text-sm">وحدة {rating.roomNumber}</p>
                       )}
                     </div>
                   </div>

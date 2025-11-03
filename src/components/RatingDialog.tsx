@@ -167,7 +167,7 @@ export function RatingDialog({
           <div className="text-center">
             <h2 className="text-2xl font-bold text-white mb-2">{typeInfo.title}</h2>
             <p className="text-white/90 text-lg font-semibold">{targetName}</p>
-            {roomNumber && <p className="text-white/70 text-sm">شقة رقم {roomNumber}</p>}
+            {roomNumber && <p className="text-white/70 text-sm">وحدة رقم {roomNumber}</p>}
           </div>
         </div>
 
@@ -268,7 +268,7 @@ export function RatingDialog({
               </div>
               <div>
                 <p className="text-white font-semibold">{guestName}</p>
-                {roomNumber && <p className="text-white/60 text-sm">شقة {roomNumber}</p>}
+                {roomNumber && <p className="text-white/60 text-sm">وحدة {roomNumber}</p>}
               </div>
             </div>
           </div>

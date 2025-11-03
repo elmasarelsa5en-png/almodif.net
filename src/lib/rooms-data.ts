@@ -105,7 +105,7 @@ export interface PaymentMethod {
   receiptNumber?: string;
 }
 
-// إعدادات حالات الشقق
+// إعدادات حالات الوحدات
 export const ROOM_STATUS_CONFIG = {
   Available: {
     label: 'متاحة',
@@ -115,7 +115,7 @@ export const ROOM_STATUS_CONFIG = {
     statusColor: 'text-white',
     accentColor: 'bg-green-500',
     textColor: 'text-white',
-    description: 'الشقة متاحة للحجز'
+    description: 'الوحدة متاحة للحجز'
   },
   Occupied: {
     label: 'مشغولة',
@@ -125,7 +125,7 @@ export const ROOM_STATUS_CONFIG = {
     statusColor: 'text-white',
     accentColor: 'bg-cyan-500',
     textColor: 'text-white',
-    description: 'يوجد نزيل في الشقة'
+    description: 'يوجد نزيل في الوحدة'
   },
   CheckoutToday: {
     label: 'خروج اليوم',
@@ -155,7 +155,7 @@ export const ROOM_STATUS_CONFIG = {
     statusColor: 'text-white',
     accentColor: 'bg-gray-500',
     textColor: 'text-white',
-    description: 'الشقة تحتاج صيانة'
+    description: 'الوحدة تحتاج صيانة'
   },
   NeedsCleaning: {
     label: 'تحتاج تنظيف',
@@ -188,7 +188,7 @@ export const ROOM_STATUS_CONFIG = {
   }
 } as const;
 
-// إعدادات أنواع الشقق
+// إعدادات أنواع الوحدات
 export const ROOM_TYPE_CONFIG = {
   'غرفة وصالة': {
     label: 'غرفة وصالة',
@@ -240,10 +240,10 @@ export const ROOM_TYPE_CONFIG = {
   }
 } as const;
 
-// بيانات الشقق الأولية - تبدأ فاضية
+// بيانات الوحدات الأولية - تبدأ فاضية
 export const generateInitialRooms = (): Room[] => {
   // التطبيق يبدأ بدون أي بيانات وهمية
-  // المستخدم يضيف الشقق والبيانات بنفسه
+  // المستخدم يضيف الوحدات والبيانات بنفسه
   return [];
 };
 
@@ -476,7 +476,7 @@ export const getDaysOverdue = (checkoutDate: string): number => {
 };
 
 /**
- * التحقق إذا كانت الشقة متأخرة عن موعد الخروج
+ * التحقق إذا كانت الوحدة متأخرة عن موعد الخروج
  * @param checkoutDate تاريخ الخروج
  * @returns true إذا كان التاريخ الحالي بعد تاريخ الخروج
  */
@@ -587,9 +587,9 @@ export const getLateCheckoutRooms = (rooms: Room[]): Room[] => {
 };
 
 /**
- * الحصول على قائمة الشقق المتأخرة عن موعد الخروج (Overdue)
- * @param rooms قائمة الغرف
- * @returns قائمة الغرف المتأخرة مع عدد الأيام
+ * الحصول على قائمة الوحدات المتأخرة عن موعد الخروج (Overdue)
+ * @param rooms قائمة الوحدات
+ * @returns قائمة الوحدات المتأخرة مع عدد الأيام
  */
 export const getOverdueRooms = (rooms: Room[]): Array<Room & { daysOverdue: number }> => {
   return rooms

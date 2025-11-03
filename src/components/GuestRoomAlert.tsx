@@ -27,7 +27,7 @@ export function GuestRoomAlert({ guestName }: GuestRoomAlertProps) {
                 مرحباً {guestName}! 👋
               </h3>
               <p className="text-amber-100 leading-relaxed">
-                حسابك تم إنشاؤه بنجاح، ولكن لم يتم تخصيص غرفة أو شقة لك حتى الآن.
+                حسابك تم إنشاؤه بنجاح، ولكن لم يتم تخصيص وحدة لك حتى الآن.
               </p>
             </div>
 
@@ -85,7 +85,7 @@ export function ServiceBlockedAlert({ serviceName }: { serviceName?: string }) {
         
         <p className="text-red-100 mb-2 leading-relaxed max-w-md mx-auto">
           {serviceName ? `خدمة ${serviceName} ` : 'هذه الخدمة '}
-          غير متاحة حالياً لأنه لم يتم تسجيل دخولك إلى غرفة أو شقة في الفندق بعد.
+          غير متاحة حالياً لأنه لم يتم تسجيل دخولك إلى وحدة في الفندق بعد.
         </p>
         
         <p className="text-white/70 text-sm mb-6">

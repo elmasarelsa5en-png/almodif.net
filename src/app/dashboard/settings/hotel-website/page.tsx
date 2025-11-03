@@ -28,7 +28,7 @@ export default function HotelWebsiteSettingsPage() {
     {
       id: 'rooms-catalog',
       title: 'كتالوج الغرف',
-      description: 'إدارة الغرف والشقق المتاحة للحجز - الصور والأسعار والمواصفات',
+      description: 'إدارة الوحدات المتاحة للحجز - الصور والأسعار والمواصفات',
       icon: BookOpen,
       color: 'from-blue-500 via-cyan-500 to-teal-500',
       href: '/dashboard/settings/rooms-catalog',

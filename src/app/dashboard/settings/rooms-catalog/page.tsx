@@ -311,10 +311,10 @@ export default function RoomsCatalogPage() {
             <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center shadow-lg shadow-amber-500/50">
               <Home className="h-7 w-7 text-white" />
             </div>
-            كتالوج الغرف والشقق
+            كتالوج الوحدات
           </h1>
-          <p className="text-gray-600 mt-3 text-lg">
-            إدارة الغرف والشقق المتاحة في الفندق (محفوظة في Firebase)
+          <p className="text-gray-400 mt-3">
+            إدارة الوحدات المتاحة في الفندق (محفوظة في Firebase)
           </p>
         </div>
         
@@ -926,7 +926,7 @@ export default function RoomsCatalogPage() {
             <Home className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-xl font-semibold mb-2">لا توجد غرف مضافة بعد</h3>
             <p className="text-muted-foreground mb-6">
-              ابدأ بإضافة الغرف والشقق المتاحة في الفندق
+              ابدأ بإضافة الوحدات المتاحة في الفندق
             </p>
             <Button onClick={handleAddNew} size="lg">
               <Plus className="h-4 w-4 ml-2" />
