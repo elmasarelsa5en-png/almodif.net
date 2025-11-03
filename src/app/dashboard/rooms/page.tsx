@@ -1377,7 +1377,7 @@ export default function RoomsPage() {
             </Button>
 
             {/* زر التقرير */}
-            <div className="relative z-[100]" onMouseLeave={(e) => {
+            <div className="relative z-[9999]" onMouseLeave={(e) => {
               // تأخير إخفاء القائمة
               const target = e.currentTarget;
               setTimeout(() => {
