@@ -123,6 +123,9 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
   const [deposits, setDeposits] = useState<number[]>([]);
   const [advancePayments, setAdvancePayments] = useState<number[]>([]);
   const [dailyRate, setDailyRate] = useState(0);
+  const [baseDailyRate, setBaseDailyRate] = useState(0); // السعر الأساسي من الكتالوج (ثابت)
+  const [discount, setDiscount] = useState(0); // الخصم
+  const [discountType, setDiscountType] = useState<'fixed' | 'percentage'>('fixed'); // نوع الخصم
   const [totalAmount, setTotalAmount] = useState(0);
 
   // تهيئة البيانات عند فتح الحوار
@@ -140,10 +143,12 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
       if (roomTypeData) {
         // استخدام السعر اليومي من الكتالوج
         const priceToUse = rentalType === 'daily' ? roomTypeData.pricePerDay : roomTypeData.pricePerMonth;
-        setDailyRate(priceToUse || room.price || 0);
+        setBaseDailyRate(priceToUse || room.price || 0); // حفظ السعر الأساسي
+        setDailyRate(priceToUse || room.price || 0); // السعر الفعلي
         console.log('✅ تم تحميل السعر من الكتالوج:', priceToUse);
       } else {
         // استخدام السعر من بيانات الغرفة كبديل
+        setBaseDailyRate(room.price || 0);
         setDailyRate(room.price || 0);
         console.log('ℹ️ استخدام السعر من بيانات الغرفة:', room.price);
       }
@@ -222,6 +227,27 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
     }
   };
 
+  // حساب السعر بعد الخصم
+  useEffect(() => {
+    if (baseDailyRate > 0) {
+      let finalPrice = baseDailyRate;
+      
+      if (discount > 0) {
+        if (discountType === 'percentage') {
+          // خصم بالنسبة المئوية
+          finalPrice = baseDailyRate - (baseDailyRate * discount / 100);
+        } else {
+          // خصم ثابت
+          finalPrice = baseDailyRate - discount;
+        }
+      }
+      
+      // التأكد من أن السعر لا يكون سالب
+      finalPrice = Math.max(0, finalPrice);
+      setDailyRate(finalPrice);
+    }
+  }, [baseDailyRate, discount, discountType]);
+
   // حساب المبلغ الإجمالي
   useEffect(() => {
     const total = dailyRate * numberOfDays;
@@ -280,8 +306,21 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
   };
 
   const handleSave = async () => {
+    // 1. التحقق من اختيار النزيل
     if (!selectedGuest) {
-      alert('يرجى اختيار نزيل');
+      alert('❌ يرجى اختيار نزيل');
+      return;
+    }
+
+    // 2. التحقق من مصدر الحجز
+    if (!bookingSource) {
+      alert('❌ يرجى تحديد مصدر الحجز');
+      return;
+    }
+
+    // 3. التحقق من سبب الزيارة
+    if (!visitType) {
+      alert('❌ يرجى تحديد سبب الزيارة (سياحة أو عمل)');
       return;
     }
 
@@ -303,7 +342,10 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
       company,
       visitType,
       financial: {
-        dailyRate,
+        baseDailyRate, // السعر الأساسي من الكتالوج
+        discount, // مقدار الخصم
+        discountType, // نوع الخصم
+        dailyRate, // السعر النهائي بعد الخصم
         totalAmount,
         deposits,
         advancePayments,
@@ -677,7 +719,7 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
             <div style="font-size: 13px; color: #374151; margin: 8px 0;">
               <strong>رقم العقد:</strong> ${contractNumber} | 
               <strong>التاريخ:</strong> ${new Date().toLocaleDateString('ar-SA')} | 
-              <strong>الموافق:</strong> ${formatHijriDate(new Date())}
+              <strong>الموافق:</strong> ${formatHijriDate(new Date().toISOString().split('T')[0])}
             </div>
             
             <!-- معلومات الفندق الكاملة في 3 أسطر مضغوطة -->
@@ -985,9 +1027,11 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                 
                 {/* مصدر الحجز */}
                 <div>
-                  <label className="block text-sm text-gray-600 mb-2">مصدر الحجز</label>
+                  <label className="block text-sm text-gray-600 mb-2">
+                    مصدر الحجز <span className="text-red-500 font-bold">*</span>
+                  </label>
                   <Select value={bookingSource} onValueChange={setBookingSource}>
-                    <SelectTrigger className="w-full px-3 py-2 border border-gray-300 rounded bg-white text-gray-900">
+                    <SelectTrigger className="w-full px-3 py-2 border-2 border-gray-300 rounded bg-white text-gray-900 focus:border-blue-500">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-white border border-gray-300">
@@ -1019,9 +1063,11 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
 
                 {/* نوع الزيارة */}
                 <div>
-                  <label className="block text-sm text-gray-600 mb-2">نوع الزيارة</label>
+                  <label className="block text-sm text-gray-600 mb-2">
+                    نوع الزيارة <span className="text-red-500 font-bold">*</span>
+                  </label>
                   <Select value={visitType} onValueChange={setVisitType}>
-                    <SelectTrigger className="w-full px-3 py-2 border border-gray-300 rounded bg-white text-gray-900">
+                    <SelectTrigger className="w-full px-3 py-2 border-2 border-gray-300 rounded bg-white text-gray-900 focus:border-blue-500">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-white border border-gray-300">
@@ -1370,18 +1416,70 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
 
                 {/* الإيجار اليومي و عدد الأيام */}
                 <div className="space-y-3">
+                  {/* السعر الأساسي (ثابت من الكتالوج) */}
                   <div>
-                    <label className="text-sm font-bold text-gray-700 block mb-1">الإيجار اليومي</label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        value={dailyRate}
-                        onChange={(e) => setDailyRate(parseFloat(e.target.value) || 0)}
-                        className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
-                      />
-                      <span className="text-xs text-gray-500">ر.س</span>
+                    <label className="text-sm font-bold text-gray-700 block mb-1">السعر الأساسي (من الكتالوج)</label>
+                    <div className="px-3 py-2 bg-gray-100 rounded text-base font-bold text-gray-900 border-2 border-gray-300">
+                      {baseDailyRate.toFixed(2)} ر.س
                     </div>
                   </div>
+                  
+                  {/* الخصم */}
+                  <div>
+                    <label className="text-sm font-bold text-gray-700 block mb-1">الخصم (اختياري)</label>
+                    <div className="space-y-2">
+                      {/* نوع الخصم */}
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setDiscountType('fixed')}
+                          className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-colors ${
+                            discountType === 'fixed'
+                              ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md'
+                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          }`}
+                        >
+                          مبلغ ثابت
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDiscountType('percentage')}
+                          className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-colors ${
+                            discountType === 'percentage'
+                              ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-md'
+                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          }`}
+                        >
+                          نسبة مئوية
+                        </button>
+                      </div>
+                      
+                      {/* مقدار الخصم */}
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          min="0"
+                          max={discountType === 'percentage' ? 100 : baseDailyRate}
+                          value={discount}
+                          onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
+                          placeholder={discountType === 'percentage' ? '0-100' : '0'}
+                          className="flex-1 px-3 py-2 border-2 border-gray-300 rounded text-sm focus:border-blue-500 focus:outline-none"
+                        />
+                        <span className="text-sm text-gray-600 font-medium w-8">
+                          {discountType === 'percentage' ? '%' : 'ر.س'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* السعر بعد الخصم */}
+                  <div>
+                    <label className="text-sm font-bold text-green-700 block mb-1">السعر النهائي (بعد الخصم)</label>
+                    <div className="px-3 py-2 bg-gradient-to-r from-green-100 to-green-200 rounded text-base font-bold text-green-900 border-2 border-green-400 shadow-sm">
+                      {dailyRate.toFixed(2)} ر.س
+                    </div>
+                  </div>
+                  
                   <div>
                     <label className="text-sm font-bold text-gray-700 block mb-1">عدد الأيام</label>
                     <div className="px-2 py-1 bg-gray-100 rounded text-sm font-bold text-gray-900">

@@ -11,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Upload, Loader2, UserPlus, Image as ImageIcon, Edit, Download, Clipboard, Camera, X } from 'lucide-react';
 import Tesseract from 'tesseract.js';
 import { getGuestDataFromClipboard, clearGuestClipboard, saveGuestDataToClipboard } from './GuestDataClipboard';
+import { Combobox, type ComboboxOption } from '@/components/ui/combobox';
+import { COUNTRIES } from '@/lib/countries';
 
 interface GuestData {
   fullName: string;
@@ -416,6 +418,11 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
       return;
     }
 
+    if (!guestData.nationality.trim()) {
+      alert('يرجى اختيار الجنسية');
+      return;
+    }
+
     onSubmit({ ...guestData, roomNumber });
     
     // إعادة تعيين النموذج
@@ -635,12 +642,18 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
               </div>
 
               <div>
-                <Label htmlFor="nationality" className="text-blue-200">الجنسية</Label>
-                <Input
-                  id="nationality"
+                <Label htmlFor="nationality" className="text-blue-200">الجنسية *</Label>
+                <Combobox
+                  options={COUNTRIES.map(country => ({
+                    value: country.nameAr,
+                    label: country.nameAr,
+                    searchLabel: country.nameEn
+                  }))}
                   value={guestData.nationality}
-                  onChange={(e) => handleInputChange('nationality', e.target.value)}
-                  placeholder="مثال: مواطن"
+                  onValueChange={(value) => handleInputChange('nationality', value)}
+                  placeholder="اختر الجنسية..."
+                  searchPlaceholder="ابحث عن الدولة..."
+                  emptyMessage="لا توجد دولة بهذا الاسم"
                   className="bg-white/10 border-blue-400/30 text-white"
                 />
               </div>

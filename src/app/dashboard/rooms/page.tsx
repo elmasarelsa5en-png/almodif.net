@@ -63,10 +63,13 @@ import {
   saveRoomToFirebase,
   subscribeToRooms
 } from '@/lib/firebase-sync';
+import { db } from '@/lib/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import AddGuestDialog from '@/components/AddGuestDialog';
 import AddRoomsFromImageDialog from '@/components/AddRoomsFromImageDialog';
 import GuestDataClipboard from '@/components/GuestDataClipboard';
 import BookingDialog from './booking-dialog';
+import EarlyCheckoutDialog from './early-checkout-dialog';
 
 const ICON_MAP = {
   CheckCircle2,
@@ -241,6 +244,10 @@ export default function RoomsPage() {
   const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
   const [lateCheckoutRooms, setLateCheckoutRooms] = useState<Room[]>([]);
   const [showLateCheckoutAlert, setShowLateCheckoutAlert] = useState(false);
+  
+  // 🔥 Early Checkout Dialog States
+  const [isEarlyCheckoutDialogOpen, setIsEarlyCheckoutDialogOpen] = useState(false);
+  const [earlyCheckoutRoom, setEarlyCheckoutRoom] = useState<Room | null>(null);
   
   // ✨ Context Menu States
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; room: Room } | null>(null);
@@ -759,6 +766,17 @@ export default function RoomsPage() {
     if (!selectedRoom || !user) return;
     
     try {
+      // 🔥 حساب الديون التلقائي
+      const totalDebt = bookingData.financial.remaining; // المتبقي = الدين
+      const hasDebt = totalDebt > 0;
+      
+      console.log('💰 حساب الديون:', {
+        totalAmount: bookingData.financial.totalAmount,
+        totalDeposits: bookingData.financial.totalDeposits,
+        remaining: bookingData.financial.remaining,
+        hasDebt
+      });
+      
       // تحديث بيانات الغرفة مع معلومات الحجز
       const updatedRoom: Room = {
         ...selectedRoom,
@@ -771,6 +789,14 @@ export default function RoomsPage() {
         guestIdExpiry: bookingData.guest.expiryDate || bookingData.guest.idExpiry,
         guestEmail: bookingData.guest.email,
         balance: bookingData.financial.remaining,
+        
+        // 🔥 نظام الديون التلقائي
+        currentDebt: totalDebt, // إجمالي الديون الحالية
+        roomDebt: totalDebt, // دين الإقامة فقط (الآن)
+        servicesDebt: 0, // دين الخدمات (سيُحسب لاحقاً من المنيو)
+        lastDebtUpdate: new Date().toISOString(),
+        debtStartDate: hasDebt ? new Date().toISOString() : undefined,
+        
         // حفظ بيانات الحجز الإضافية
         bookingDetails: {
           contractNumber: bookingData.contractNumber,
@@ -791,7 +817,7 @@ export default function RoomsPage() {
           {
             id: Date.now().toString(),
             type: 'check_in' as const,
-            description: `حجز جديد - عقد رقم: ${bookingData.contractNumber} - ${bookingData.guest.fullName || bookingData.guest.name}`,
+            description: `حجز جديد - عقد رقم: ${bookingData.contractNumber} - ${bookingData.guest.fullName || bookingData.guest.name}${hasDebt ? ` - دين: ${totalDebt} ر.س` : ''}`,
             timestamp: new Date().toISOString(),
             user: user.name || user.username,
             newValue: 'Occupied'
@@ -803,7 +829,9 @@ export default function RoomsPage() {
         roomNumber: updatedRoom.number,
         guestName: updatedRoom.guestName,
         guestPhone: updatedRoom.guestPhone,
-        status: updatedRoom.status
+        status: updatedRoom.status,
+        hasDebt,
+        totalDebt
       });
 
       // حفظ في Firebase
@@ -2154,6 +2182,25 @@ export default function RoomsPage() {
           
           if (!user) return;
           
+          // 🔥 التحقق من الخروج المبكر
+          if (newStatus === 'NeedsCleaning') {
+            const room = rooms.find(r => r.id === roomId);
+            if (room && room.bookingDetails) {
+              const bookedCheckoutDate = new Date(room.bookingDetails.checkOut.date);
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              bookedCheckoutDate.setHours(0, 0, 0, 0);
+              
+              // إذا كان تاريخ الخروج المحجوز في المستقبل (خروج مبكر)
+              if (bookedCheckoutDate > today) {
+                console.log('⚠️ اكتشاف خروج مبكر - فتح نافذة التنبيه');
+                setEarlyCheckoutRoom(room);
+                setIsEarlyCheckoutDialogOpen(true);
+                return; // إيقاف العملية حتى يختار المستخدم
+              }
+            }
+          }
+          
           // 🔥 عند تغيير الحالة لـ NeedsCleaning، نحذف بيانات النزيل تماماً
           const clearGuestData = newStatus === 'NeedsCleaning' || newStatus === 'Available' || newStatus === 'Maintenance';
           
@@ -2419,6 +2466,107 @@ export default function RoomsPage() {
         }}
         getRoomServicesHistory={getRoomServicesHistory}
       />
+
+      {/* 🔥 Early Checkout Dialog */}
+      {earlyCheckoutRoom && (
+        <EarlyCheckoutDialog
+          isOpen={isEarlyCheckoutDialogOpen}
+          onClose={() => {
+            setIsEarlyCheckoutDialogOpen(false);
+            setEarlyCheckoutRoom(null);
+          }}
+          onConfirm={async (checkoutDate: string, refundMethod: 'cash' | 'card' | 'transfer') => {
+            if (!earlyCheckoutRoom || !user) return;
+
+            try {
+              console.log('💰 معالجة الخروج المبكر:', {
+                roomNumber: earlyCheckoutRoom.number,
+                checkoutDate,
+                refundMethod
+              });
+
+              // حساب المبلغ المسترد
+              const bookedCheckoutDate = new Date(earlyCheckoutRoom.bookingDetails!.checkOut.date);
+              const selectedCheckoutDate = new Date(checkoutDate);
+              const diffTime = Math.abs(bookedCheckoutDate.getTime() - selectedCheckoutDate.getTime());
+              const unusedDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+              const dailyRate = earlyCheckoutRoom.bookingDetails!.financial.dailyRate;
+              const refundAmount = unusedDays * dailyRate;
+
+              // 🔥 إنشاء سند صرف إذا كان هناك مبلغ مسترد
+              if (refundAmount > 0 && checkoutDate === new Date().toISOString().split('T')[0] && db) {
+                const paymentMethodAr = refundMethod === 'cash' ? 'نقدي' : 
+                                       refundMethod === 'card' ? 'شبكة' : 'تحويل بنكي';
+                
+                const refundData = {
+                  type: 'refund',
+                  amount: refundAmount,
+                  paymentMethod: refundMethod,
+                  paymentMethodAr,
+                  guestName: earlyCheckoutRoom.guestName,
+                  roomNumber: earlyCheckoutRoom.number,
+                  contractNumber: earlyCheckoutRoom.bookingDetails!.contractNumber,
+                  description: `استرداد مبلغ لـ ${earlyCheckoutRoom.guestName} - خروج مبكر من غرفة ${earlyCheckoutRoom.number} - ${unusedDays} أيام غير مستخدمة`,
+                  date: new Date().toISOString(),
+                  createdAt: serverTimestamp(),
+                  createdBy: user.name || user.username,
+                  status: 'completed',
+                  unusedDays,
+                  originalCheckoutDate: earlyCheckoutRoom.bookingDetails!.checkOut.date,
+                  actualCheckoutDate: checkoutDate
+                };
+
+                await addDoc(collection(db, 'refunds'), refundData);
+                
+                // إضافة في الحسابات العامة كسند صرف
+                await addDoc(collection(db, 'accounting-transactions'), {
+                  ...refundData,
+                  category: 'refund',
+                  categoryAr: 'مستردات'
+                });
+                
+                console.log('✅ تم إنشاء سند صرف رقم:', refundData.contractNumber);
+              }
+
+              // تحديث حالة الغرفة
+              const updatedRooms = updateRoomStatus(
+                rooms,
+                earlyCheckoutRoom.id,
+                'NeedsCleaning' as RoomStatus,
+                user.name || user.username,
+                undefined,
+                true // مسح بيانات النزيل
+              );
+
+              const updatedRoom = updatedRooms.find(r => r.id === earlyCheckoutRoom.id);
+              if (updatedRoom) {
+                await saveRoomToFirebase(updatedRoom);
+                setRooms(updatedRooms);
+                setFilteredRooms(updatedRooms);
+                
+                alert(`✅ تم إنهاء العقد${refundAmount > 0 ? ` وإنشاء سند صرف بمبلغ ${refundAmount} ر.س` : ''}`);
+              }
+
+              setIsEarlyCheckoutDialogOpen(false);
+              setEarlyCheckoutRoom(null);
+            } catch (error) {
+              console.error('❌ خطأ في معالجة الخروج المبكر:', error);
+              alert('حدث خطأ في معالجة الخروج المبكر');
+            }
+          }}
+          bookedDays={earlyCheckoutRoom.bookingDetails?.numberOfDays || 0}
+          actualDays={(() => {
+            if (!earlyCheckoutRoom.bookingDetails) return 0;
+            const checkInDate = new Date(earlyCheckoutRoom.bookingDetails.checkIn.date);
+            const today = new Date();
+            const diffTime = Math.abs(today.getTime() - checkInDate.getTime());
+            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          })()}
+          contractCheckoutDate={earlyCheckoutRoom.bookingDetails?.checkOut.date || ''}
+          todayDate={new Date().toISOString().split('T')[0]}
+          dailyRate={earlyCheckoutRoom.bookingDetails?.financial.dailyRate || 0}
+        />
+      )}
       </div>
     </PermissionGuard>
   )
