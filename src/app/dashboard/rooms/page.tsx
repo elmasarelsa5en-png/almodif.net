@@ -24,7 +24,9 @@ import {
   UserPlus,
   Image,
   X,
-  FileText
+  FileText,
+  LayoutGrid,
+  List
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -219,7 +221,7 @@ export default function RoomsPage() {
   const { t } = useLanguage();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [filteredRooms, setFilteredRooms] = useState<Room[]>([]);
-  const [activeFilter, setActiveFilter] = useState<RoomStatus | 'All'>('All');
+  const [activeFilter, setActiveFilter] = useState<RoomStatus | 'All' | 'OccupiedAll'>('All');
   const [typeFilter, setTypeFilter] = useState<string>('All');
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -233,6 +235,7 @@ export default function RoomsPage() {
   const [showStatusFilters, setShowStatusFilters] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [showTypeFilters, setShowTypeFilters] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isAddGuestOpen, setIsAddGuestOpen] = useState(false);
   const [isAddRoomsFromImageOpen, setIsAddRoomsFromImageOpen] = useState(false);
   const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
@@ -397,7 +400,14 @@ export default function RoomsPage() {
     let filtered = rooms;
 
     // فلتر الحالة
-    if (activeFilter !== 'All') {
+    if (activeFilter === 'OccupiedAll') {
+      // فلتر "مشغولة" يشمل: Occupied + CheckoutToday + Overdue
+      filtered = filtered.filter(room => 
+        room.status === 'Occupied' || 
+        room.status === 'CheckoutToday' || 
+        room.status === 'Overdue'
+      );
+    } else if (activeFilter !== 'All') {
       filtered = filtered.filter(room => room.status === activeFilter);
     }
 
@@ -419,6 +429,7 @@ export default function RoomsPage() {
     total: rooms.length,
     available: rooms.filter(r => r.status === 'Available').length,
     occupied: rooms.filter(r => r.status === 'Occupied').length,
+    occupiedAll: rooms.filter(r => r.status === 'Occupied' || r.status === 'CheckoutToday' || r.status === 'Overdue').length,
     maintenance: rooms.filter(r => r.status === 'Maintenance').length,
     needsCleaning: rooms.filter(r => r.status === 'NeedsCleaning').length,
     reserved: rooms.filter(r => r.status === 'Reserved').length,
@@ -1308,8 +1319,34 @@ export default function RoomsPage() {
               {t('viewAll')} ({stats.total})
             </Button>
 
+            {/* أزرار طريقة العرض */}
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setViewMode('grid')}
+                className={`px-4 py-6 rounded-xl font-bold text-base transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 ${
+                  viewMode === 'grid'
+                    ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white border-2 border-green-400'
+                    : 'bg-slate-700/50 text-blue-200 border-2 border-slate-600 hover:bg-slate-600/70 hover:text-white'
+                }`}
+                title="عرض شبكة"
+              >
+                <LayoutGrid className="w-5 h-5" />
+              </Button>
+              <Button
+                onClick={() => setViewMode('list')}
+                className={`px-4 py-6 rounded-xl font-bold text-base transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 ${
+                  viewMode === 'list'
+                    ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white border-2 border-green-400'
+                    : 'bg-slate-700/50 text-blue-200 border-2 border-slate-600 hover:bg-slate-600/70 hover:text-white'
+                }`}
+                title="عرض قائمة"
+              >
+                <List className="w-5 h-5" />
+              </Button>
+            </div>
+
             {/* زر التقرير */}
-            <div className="relative" onMouseLeave={(e) => {
+            <div className="relative z-50" onMouseLeave={(e) => {
               // تأخير إخفاء القائمة
               const target = e.currentTarget;
               setTimeout(() => {
@@ -1366,6 +1403,18 @@ export default function RoomsPage() {
                     <div className="flex-1 text-right">
                       <div>تحتاج تنظيف</div>
                       <div className="text-xs text-orange-200">({stats.needsCleaning})</div>
+                    </div>
+                  </button>
+                  
+                  {/* مشغولة (جديد) */}
+                  <button
+                    onClick={() => setActiveFilter('OccupiedAll')}
+                    className="w-full px-4 py-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-sm transition-all flex items-center gap-3"
+                  >
+                    <span className="text-xl">🛏️</span>
+                    <div className="flex-1 text-right">
+                      <div>مشغولة</div>
+                      <div className="text-xs text-cyan-200">({stats.occupiedAll})</div>
                     </div>
                   </button>
                   
@@ -1438,14 +1487,98 @@ export default function RoomsPage() {
           </div>
         </div>
 
-        {/* شبكة الوحدات */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-          {filteredRooms
-            .sort((a, b) => a.number.localeCompare(b.number))
-            .map(room => (
-              <RoomCard key={room.id} room={room} />
-            ))}
-        </div>
+        {/* عرض الوحدات - Grid أو List */}
+        {viewMode === 'grid' ? (
+          /* شبكة الوحدات */
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+            {filteredRooms
+              .sort((a, b) => a.number.localeCompare(b.number))
+              .map(room => (
+                <RoomCard key={room.id} room={room} />
+              ))}
+          </div>
+        ) : (
+          /* عرض القائمة */
+          <div className="space-y-3">
+            {filteredRooms
+              .sort((a, b) => a.number.localeCompare(b.number))
+              .map(room => {
+                const config = ROOM_STATUS_CONFIG[room.status];
+                const typeConfig = ROOM_TYPE_CONFIG[room.type as keyof typeof ROOM_TYPE_CONFIG] || {
+                  color: 'bg-gradient-to-r from-gray-400 to-gray-600 text-white',
+                  borderColor: 'border-gray-500',
+                  icon: 'Home'
+                };
+                const roomPrice = roomPrices[room.type];
+                const isOccupied = room.status === 'Occupied' || room.status === 'CheckoutToday';
+                const isCheckoutToday = room.status === 'CheckoutToday';
+                const isLate = isCheckoutToday && room.bookingDetails?.checkOut?.date && isLateCheckout(room.bookingDetails.checkOut.date);
+
+                return (
+                  <div
+                    key={room.id}
+                    onClick={() => openRoomDetails(room)}
+                    className={`bg-gradient-to-r ${config.bgColor} rounded-xl p-4 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-xl border-2 ${isLate ? 'border-red-500 animate-pulse' : 'border-white/20'}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      {/* رقم الوحدة والحالة */}
+                      <div className="flex items-center gap-4">
+                        <div className="text-center bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
+                          <div className="text-3xl font-black text-white">{room.number}</div>
+                        </div>
+                        
+                        <div>
+                          <Badge className={`${config.color} mb-2`}>
+                            {config.label}
+                          </Badge>
+                          <div className="text-sm text-white/90">
+                            {room.type}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* معلومات النزيل */}
+                      {isOccupied && room.guestName && (
+                        <div className="flex-1 mx-6 bg-white/10 backdrop-blur-sm rounded-lg p-3">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Users className="w-4 h-4 text-white" />
+                            <span className="font-bold text-white">{room.guestName}</span>
+                          </div>
+                          {room.guestPhone && (
+                            <div className="text-xs text-white/80">📱 {room.guestPhone}</div>
+                          )}
+                          {room.bookingDetails?.checkOut && (
+                            <div className="text-xs text-white/80 mt-1">
+                              خروج: {room.bookingDetails.checkOut.date} - {room.bookingDetails.checkOut.time || '12:00 ظهراً'}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* السعر والدين */}
+                      <div className="text-left">
+                        {roomPrice && (
+                          <div className="text-sm text-white/90 mb-1">
+                            💰 {roomPrice.pricePerDay} ر.س/يوم
+                          </div>
+                        )}
+                        {room.currentDebt > 0 && (
+                          <div className="text-sm font-bold text-red-300">
+                            دين: {room.currentDebt} ر.س
+                          </div>
+                        )}
+                        {isLate && room.bookingDetails?.checkOut?.date && (
+                          <div className="text-xs font-bold text-red-200 bg-red-900/50 px-2 py-1 rounded mt-1">
+                            ⚠️ متأخر {Math.floor((new Date().getTime() - new Date(room.bookingDetails.checkOut.date).getTime()) / (1000 * 60 * 60 * 24))} يوم
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        )}
       </div>
 
       {/* نافذة تفاصيل الوحدة */}
