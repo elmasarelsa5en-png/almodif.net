@@ -3,7 +3,9 @@
 @tailwind utilities;
 
 /* نظام الألوان الاحترافي للمضيف */
-:root { /* Dark background */ /* Light foreground */
+:root {
+  --background: #0f172a; /* Dark background */
+  --foreground: #f1f5f9; /* Light foreground */
   
   /* الألوان الأساسية - التدرج الأزرق البنفسجي */
   --primary-50: #f0f9ff;
@@ -38,8 +40,11 @@
 
 body {
   /* التدرج اللوني المتحرك الجديد */
+  background: linear-gradient(-45deg, #581c87, #1e1b4b, #0c4a6e, #3b0764);
   background-size: 400% 400%;
   animation: gradientShift 15s ease infinite;
+  
+  color: var(--foreground);
   font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
   direction: rtl;
 }
@@ -408,14 +413,11 @@ body {
  }
 }
 
-
-
+/* تعطيل override الخلفية من shadcn */
 @layer base {
   * {
     @apply border-border;
  }
-  body {
-    @apply bg-background text-foreground;
- }
+  /* تم تعطيل bg-background و text-foreground لأنهما يتعارضان مع التدرج */
 }
 
