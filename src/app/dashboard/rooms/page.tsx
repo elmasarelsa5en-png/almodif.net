@@ -427,6 +427,386 @@ export default function RoomsPage() {
   const [isReportDropdownOpen, setIsReportDropdownOpen] = useState(false);
   const reportButtonRef = useRef<HTMLButtonElement>(null);
 
+  // 🎨 دالة إنشاء بيانات تجريبية
+  const createMockData = async () => {
+    if (!user) return;
+
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const nextWeek = new Date(today);
+    nextWeek.setDate(nextWeek.getDate() + 7);
+    const lastWeek = new Date(today);
+    lastWeek.setDate(lastWeek.getDate() - 7);
+
+    const mockRooms: Room[] = [
+      // ✅ غرف متاحة (Available)
+      {
+        id: 'mock-101',
+        number: '101',
+        floor: 1,
+        type: 'شقة عائلية',
+        status: 'Available',
+        balance: 0,
+        currentDebt: 0,
+        roomDebt: 0,
+        servicesDebt: 0,
+        payments: [],
+        events: [],
+        lastUpdated: today.toISOString()
+      },
+      {
+        id: 'mock-102',
+        number: '102',
+        floor: 1,
+        type: 'غرفة فردية',
+        status: 'Available',
+        balance: 0,
+        currentDebt: 0,
+        roomDebt: 0,
+        servicesDebt: 0,
+        payments: [],
+        events: [],
+        lastUpdated: today.toISOString()
+      },
+      
+      // 🔵 غرف مشغولة (Occupied)
+      {
+        id: 'mock-201',
+        number: '201',
+        floor: 2,
+        type: 'جناح VIP',
+        status: 'Occupied',
+        balance: 0,
+        currentDebt: 0,
+        roomDebt: 0,
+        servicesDebt: 0,
+        guestName: 'أحمد محمد السعيد',
+        guestPhone: '0501234567',
+        guestIdNumber: '1234567890',
+        guestNationality: 'سعودي',
+        bookingDetails: {
+          contractNumber: 'C-2025-001',
+          bookingSource: 'مباشر',
+          rentalType: 'daily',
+          checkIn: {
+            date: lastWeek.toISOString().split('T')[0],
+            time: '14:00'
+          },
+          checkOut: {
+            date: nextWeek.toISOString().split('T')[0],
+            time: '12:00'
+          },
+          numberOfDays: 14,
+          visitType: 'سياحة',
+          financial: {
+            dailyRate: 300,
+            totalAmount: 4200,
+            deposits: [4200],
+            advancePayments: [],
+            totalDeposits: 4200,
+            totalAdvance: 0,
+            remaining: 0
+          },
+          createdAt: lastWeek.toISOString(),
+          createdBy: user.name || 'مدير النظام'
+        },
+        payments: [
+          {
+            id: 'pay-001',
+            amount: 4200,
+            date: lastWeek.toISOString().split('T')[0],
+            time: '14:00',
+            method: 'cash',
+            paidBy: user.name || 'مدير النظام'
+          }
+        ],
+        events: [],
+        lastUpdated: today.toISOString()
+      },
+      {
+        id: 'mock-202',
+        number: '202',
+        floor: 2,
+        type: 'شقة عائلية',
+        status: 'Occupied',
+        balance: -500,
+        currentDebt: 500,
+        roomDebt: 500,
+        servicesDebt: 0,
+        guestName: 'فاطمة علي العتيبي',
+        guestPhone: '0557654321',
+        guestIdNumber: '2987654321',
+        guestNationality: 'سعودي',
+        bookingDetails: {
+          contractNumber: 'C-2025-002',
+          bookingSource: 'مباشر',
+          rentalType: 'monthly',
+          checkIn: {
+            date: lastWeek.toISOString().split('T')[0],
+            time: '15:00'
+          },
+          checkOut: {
+            date: nextWeek.toISOString().split('T')[0],
+            time: '12:00'
+          },
+          numberOfDays: 30,
+          visitType: 'عمل',
+          financial: {
+            dailyRate: 0,
+            totalAmount: 3500,
+            deposits: [3000],
+            advancePayments: [],
+            totalDeposits: 3000,
+            totalAdvance: 0,
+            remaining: 500
+          },
+          createdAt: lastWeek.toISOString(),
+          createdBy: user.name || 'مدير النظام'
+        },
+        payments: [
+          {
+            id: 'pay-002',
+            amount: 3000,
+            date: lastWeek.toISOString().split('T')[0],
+            time: '15:00',
+            method: 'transfer',
+            paidBy: user.name || 'مدير النظام'
+          }
+        ],
+        events: [],
+        lastUpdated: today.toISOString()
+      },
+
+      // 🟡 غرف خروج اليوم (CheckoutToday)
+      {
+        id: 'mock-301',
+        number: '301',
+        floor: 3,
+        type: 'غرفة مزدوجة',
+        status: 'CheckoutToday',
+        balance: 0,
+        currentDebt: 0,
+        roomDebt: 0,
+        servicesDebt: 0,
+        guestName: 'محمد عبدالله القحطاني',
+        guestPhone: '0503456789',
+        guestIdNumber: '3456789012',
+        guestNationality: 'سعودي',
+        bookingDetails: {
+          contractNumber: 'C-2025-003',
+          bookingSource: 'مباشر',
+          rentalType: 'daily',
+          checkIn: {
+            date: lastWeek.toISOString().split('T')[0],
+            time: '14:00'
+          },
+          checkOut: {
+            date: today.toISOString().split('T')[0],
+            time: '12:00'
+          },
+          numberOfDays: 7,
+          visitType: 'سياحة',
+          financial: {
+            dailyRate: 200,
+            totalAmount: 1400,
+            deposits: [1400],
+            advancePayments: [],
+            totalDeposits: 1400,
+            totalAdvance: 0,
+            remaining: 0
+          },
+          createdAt: lastWeek.toISOString(),
+          createdBy: user.name || 'مدير النظام'
+        },
+        payments: [
+          {
+            id: 'pay-003',
+            amount: 1400,
+            date: lastWeek.toISOString().split('T')[0],
+            time: '14:00',
+            method: 'card',
+            paidBy: user.name || 'مدير النظام'
+          }
+        ],
+        events: [],
+        lastUpdated: today.toISOString()
+      },
+
+      // 🔴 غرف متأخرة (Overdue)
+      {
+        id: 'mock-401',
+        number: '401',
+        floor: 4,
+        type: 'شقة استوديو',
+        status: 'Overdue',
+        balance: -1200,
+        currentDebt: 1200,
+        roomDebt: 1200,
+        servicesDebt: 0,
+        guestName: 'خالد إبراهيم الدوسري',
+        guestPhone: '0509876543',
+        guestIdNumber: '4567890123',
+        guestNationality: 'سعودي',
+        bookingDetails: {
+          contractNumber: 'C-2025-004',
+          bookingSource: 'مباشر',
+          rentalType: 'daily',
+          checkIn: {
+            date: new Date(today.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            time: '14:00'
+          },
+          checkOut: {
+            date: new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            time: '12:00'
+          },
+          numberOfDays: 8,
+          visitType: 'عمل',
+          financial: {
+            dailyRate: 250,
+            totalAmount: 2000,
+            deposits: [800],
+            advancePayments: [],
+            totalDeposits: 800,
+            totalAdvance: 0,
+            remaining: 1200
+          },
+          createdAt: new Date(today.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+          createdBy: user.name || 'مدير النظام'
+        },
+        overdueInfo: {
+          daysOverdue: 2,
+          extraDebt: 500,
+          originalCheckoutDate: new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+        },
+        payments: [
+          {
+            id: 'pay-004',
+            amount: 800,
+            date: new Date(today.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            time: '14:00',
+            method: 'cash',
+            paidBy: user.name || 'مدير النظام'
+          }
+        ],
+        events: [],
+        lastUpdated: today.toISOString()
+      },
+
+      // 🟣 غرف محجوزة (Reserved)
+      {
+        id: 'mock-501',
+        number: '501',
+        floor: 5,
+        type: 'جناح ملكي',
+        status: 'Reserved',
+        balance: -1500,
+        currentDebt: 0,
+        roomDebt: 0,
+        servicesDebt: 0,
+        guestName: 'سارة محمود الشمري',
+        guestPhone: '0551234567',
+        guestIdNumber: '5678901234',
+        guestNationality: 'سعودي',
+        bookingDetails: {
+          contractNumber: 'C-2025-005',
+          bookingSource: 'مباشر',
+          rentalType: 'daily',
+          checkIn: {
+            date: tomorrow.toISOString().split('T')[0],
+            time: '14:00'
+          },
+          checkOut: {
+            date: new Date(tomorrow.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            time: '12:00'
+          },
+          numberOfDays: 5,
+          visitType: 'سياحة',
+          financial: {
+            dailyRate: 500,
+            totalAmount: 2500,
+            deposits: [1000],
+            advancePayments: [],
+            totalDeposits: 1000,
+            totalAdvance: 0,
+            remaining: 1500
+          },
+          createdAt: today.toISOString(),
+          createdBy: user.name || 'مدير النظام'
+        },
+        payments: [
+          {
+            id: 'pay-005',
+            amount: 1000,
+            date: today.toISOString().split('T')[0],
+            time: '10:00',
+            method: 'card',
+            paidBy: user.name || 'مدير النظام'
+          }
+        ],
+        events: [],
+        lastUpdated: today.toISOString()
+      },
+
+      // 🟠 غرف تحتاج تنظيف (NeedsCleaning)
+      {
+        id: 'mock-601',
+        number: '601',
+        floor: 6,
+        type: 'غرفة فردية',
+        status: 'NeedsCleaning',
+        balance: 0,
+        currentDebt: 0,
+        roomDebt: 0,
+        servicesDebt: 0,
+        payments: [],
+        events: [],
+        lastUpdated: today.toISOString()
+      },
+
+      // ⚫ غرف صيانة (Maintenance)
+      {
+        id: 'mock-701',
+        number: '701',
+        floor: 7,
+        type: 'شقة عائلية',
+        status: 'Maintenance',
+        balance: 0,
+        currentDebt: 0,
+        roomDebt: 0,
+        servicesDebt: 0,
+        guestNotes: 'تسريب في الحمام - جاري الإصلاح',
+        payments: [],
+        events: [],
+        lastUpdated: today.toISOString()
+      }
+    ];
+
+    try {
+      // حفظ البيانات في Firebase
+      console.log('🎨 بدء إضافة البيانات التجريبية...');
+      for (const room of mockRooms) {
+        await saveRoomToFirebase(room);
+      }
+      console.log('✅ تم إضافة 8 غرف تجريبية بنجاح!');
+      
+      // تحديث القائمة
+      await loadRoomsData();
+      
+      alert('✅ تم إضافة البيانات التجريبية بنجاح!\n\n' +
+            '🟢 2 غرف متاحة (101, 102)\n' +
+            '🔵 2 غرف مشغولة (201, 202)\n' +
+            '🟡 1 غرفة خروج اليوم (301)\n' +
+            '🔴 1 غرفة متأخرة مع ديون (401)\n' +
+            '🟣 1 غرفة محجوزة (501)\n' +
+            '🟠 1 غرفة تحتاج تنظيف (601)\n' +
+            '⚫ 1 غرفة صيانة (701)');
+    } catch (error) {
+      console.error('❌ خطأ في إضافة البيانات التجريبية:', error);
+      alert('حدث خطأ أثناء إضافة البيانات التجريبية');
+    }
+  };
+
   // تحميل البيانات عند بدء التشغيل
   useEffect(() => {
     loadRoomsData();
@@ -1505,6 +1885,16 @@ export default function RoomsPage() {
             
             {/* أزرار طريقة العرض - في أعلى اليسار */}
             <div className="flex gap-2">
+              {/* زر البيانات التجريبية */}
+              <Button
+                onClick={createMockData}
+                className="px-4 py-2 rounded-xl font-bold text-sm transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 bg-gradient-to-r from-pink-600 to-purple-600 text-white border-2 border-pink-400"
+                title="إضافة بيانات تجريبية"
+              >
+                <span className="text-lg mr-2">🎨</span>
+                بيانات تجريبية
+              </Button>
+              
               <Button
                 onClick={() => setViewMode('grid')}
                 className={`px-4 py-2 rounded-xl font-bold text-sm transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 ${
