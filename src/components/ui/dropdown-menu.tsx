@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from "react"
+import { createPortal } from "react-dom"
 import { ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -94,39 +95,76 @@ const DropdownMenuContent = React.forwardRef<
   
   const { open, setOpen } = context
   const contentRef = React.useRef<HTMLDivElement>(null)
+  const triggerRef = React.useRef<HTMLElement | null>(null)
+  const [position, setPosition] = React.useState({ top: 0, left: 0, width: 0 })
   
-  // تعديل موضع القائمة تلقائياً لتبقى داخل الشاشة
+  // حساب موقع القائمة بناءً على موقع الزر
   React.useEffect(() => {
-    if (open && contentRef.current) {
-      const rect = contentRef.current.getBoundingClientRect()
-      const viewportWidth = window.innerWidth
-      const viewportHeight = window.innerHeight
-      
-      // تحقق من الخروج من اليمين
-      if (rect.right > viewportWidth) {
-        contentRef.current.style.left = 'auto'
-        contentRef.current.style.right = '0'
-      }
-      
-      // تحقق من الخروج من اليسار
-      if (rect.left < 0) {
-        contentRef.current.style.left = '0'
-        contentRef.current.style.right = 'auto'
-      }
-      
-      // تحقق من الخروج من الأسفل
-      if (rect.bottom > viewportHeight) {
-        contentRef.current.style.maxHeight = `${viewportHeight - rect.top - 20}px`
+    if (open) {
+      // البحث عن الزر المحفز
+      const trigger = document.querySelector('[data-dropdown-trigger="true"]') as HTMLElement
+      if (trigger) {
+        triggerRef.current = trigger
+        const rect = trigger.getBoundingClientRect()
+        
+        let left = rect.left + window.scrollX
+        let top = rect.bottom + window.scrollY + 8
+        const width = rect.width
+        
+        // تعديل الموقع بناءً على align
+        if (align === 'end') {
+          left = rect.right + window.scrollX
+          if (contentRef.current) {
+            left -= contentRef.current.offsetWidth
+          }
+        } else if (align === 'center') {
+          left = rect.left + window.scrollX + (width / 2)
+          if (contentRef.current) {
+            left -= contentRef.current.offsetWidth / 2
+          }
+        }
+        
+        setPosition({ top, left, width })
       }
     }
-  }, [open])
+  }, [open, align])
   
+  // تحديث الموقع عند الـ scroll
+  React.useEffect(() => {
+    if (!open) return
+    
+    const handleScroll = () => {
+      if (triggerRef.current) {
+        const rect = triggerRef.current.getBoundingClientRect()
+        let left = rect.left + window.scrollX
+        let top = rect.bottom + window.scrollY + 8
+        const width = rect.width
+        
+        if (align === 'end') {
+          left = rect.right + window.scrollX
+          if (contentRef.current) {
+            left -= contentRef.current.offsetWidth
+          }
+        } else if (align === 'center') {
+          left = rect.left + window.scrollX + (width / 2)
+          if (contentRef.current) {
+            left -= contentRef.current.offsetWidth / 2
+          }
+        }
+        
+        setPosition({ top, left, width })
+      }
+    }
+    
+    window.addEventListener('scroll', handleScroll, true)
+    return () => window.removeEventListener('scroll', handleScroll, true)
+  }, [open, align])
+  
+  // إغلاق عند الضغط خارج القائمة
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node
-      // تحقق من أن الضغط ليس على المحتوى نفسه أو على الزر
       if (contentRef.current && !contentRef.current.contains(target)) {
-        // تأكد أن الضغط ليس على أي trigger button
         const triggers = document.querySelectorAll('[data-dropdown-trigger]')
         let isClickOnTrigger = false
         triggers.forEach(trigger => {
@@ -148,7 +186,6 @@ const DropdownMenuContent = React.forwardRef<
     }
     
     if (open) {
-      // استخدم timeout صغير لتجنب إغلاق القائمة فوراً بعد فتحها
       setTimeout(() => {
         document.addEventListener('mousedown', handleClickOutside)
         document.addEventListener('keydown', handleEscapeKey)
@@ -161,35 +198,30 @@ const DropdownMenuContent = React.forwardRef<
     }
   }, [open, setOpen])
   
-  // دمج refs
   React.useImperativeHandle(ref, () => contentRef.current as HTMLDivElement)
   
-  if (!open) return null
+  if (!open || typeof window === 'undefined') return null
   
-  return (
+  // استخدام Portal لعرض القائمة في document.body
+  return createPortal(
     <div
       ref={contentRef}
       className={cn(
-        "absolute min-w-[8rem] overflow-hidden rounded-md border bg-white p-1 text-gray-900 shadow-xl dropdown-content z-50",
-        "max-w-[calc(100vw-2rem)]", // عرض أقصى مع margin
-        align === 'end' && 'right-0',
-        align === 'start' && 'left-0',
-        align === 'center' && 'left-1/2 -translate-x-1/2',
-        "bottom-auto top-[calc(100%+8px)]", // تأكد من ظهور القائمة أسفل الزر
-        // تأكد من أن القائمة تبقى داخل الشاشة
+        "fixed min-w-[8rem] overflow-hidden rounded-md border bg-white p-1 text-gray-900 shadow-xl z-[99999]",
+        "animate-in fade-in slide-in-from-top-2 duration-200",
         "max-h-[calc(100vh-120px)] overflow-y-auto",
-        // للجوال: تأكد من عدم الخروج من الشاشة
-        "md:max-w-[90vw]",
         className
       )}
       style={{
-        // تأكد من أن القائمة لا تخرج من الشاشة على اليمين
-        maxWidth: 'min(90vw, 400px)',
+        top: `${position.top}px`,
+        left: `${position.left}px`,
+        minWidth: align === 'start' || align === 'center' ? `${position.width}px` : undefined,
       }}
       {...props}
     >
       {children}
-    </div>
+    </div>,
+    document.body
   )
 })
 DropdownMenuContent.displayName = "DropdownMenuContent"
