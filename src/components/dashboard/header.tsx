@@ -851,7 +851,7 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
           )}
 
           {/* Notifications - Icon Only with Badge */}
-          <DropdownMenu modal={false}>
+          <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
@@ -871,11 +871,8 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent 
-              align="end" 
-              side="bottom"
-              sideOffset={8}
-              className="w-[calc(100vw-2rem)] sm:w-96 max-w-md bg-gray-800 shadow-xl z-50 mr-2 sm:mr-0"
-              style={{ maxWidth: 'calc(100vw - 1rem)', right: '0.5rem' }}
+              align="end"
+              className="w-[calc(100vw-2rem)] sm:w-96 max-w-md bg-gray-800 shadow-xl z-[9999]"
             >
               <DropdownMenuLabel className="flex items-center justify-between text-gray-900">
                 <span className="font-semibold">الإشعارات الذكية</span>
@@ -1018,7 +1015,7 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
           </DropdownMenu>
 
           {/* User Profile - Dropdown Menu */}
-          <DropdownMenu modal={false}>
+          <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
@@ -1045,9 +1042,7 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent 
               align="end" 
-              side="bottom"
-              sideOffset={8}
-              className="w-48 bg-white shadow-xl border border-gray-200 z-[100]"
+              className="w-48 bg-white shadow-xl border border-gray-200 z-[9999]"
             >
               <DropdownMenuLabel className="text-gray-900 font-semibold">
                 <div className="font-semibold">{user?.name || user?.username}</div>
