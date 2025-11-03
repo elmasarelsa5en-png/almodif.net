@@ -1498,85 +1498,176 @@ export default function RoomsPage() {
               ))}
           </div>
         ) : (
-          /* عرض القائمة */
-          <div className="space-y-3">
-            {filteredRooms
-              .sort((a, b) => a.number.localeCompare(b.number))
-              .map(room => {
-                const config = ROOM_STATUS_CONFIG[room.status];
-                const typeConfig = ROOM_TYPE_CONFIG[room.type as keyof typeof ROOM_TYPE_CONFIG] || {
-                  color: 'bg-gradient-to-r from-gray-400 to-gray-600 text-white',
-                  borderColor: 'border-gray-500',
-                  icon: 'Home'
-                };
-                const roomPrice = roomPrices[room.type];
-                const isOccupied = room.status === 'Occupied' || room.status === 'CheckoutToday';
-                const isCheckoutToday = room.status === 'CheckoutToday';
-                const isLate = isCheckoutToday && room.bookingDetails?.checkOut?.date && isLateCheckout(room.bookingDetails.checkOut.date);
+          /* عرض القائمة - تصميم جدول احترافي */
+          <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
+            {/* رأس الجدول */}
+            <div className="bg-gradient-to-r from-slate-700 to-slate-800 text-white">
+              <div className="grid grid-cols-12 gap-4 px-6 py-4 font-bold text-sm">
+                <div className="col-span-1 text-center">رقم الوحدة</div>
+                <div className="col-span-1 text-center">الحالة</div>
+                <div className="col-span-2">اسم النزيل</div>
+                <div className="col-span-2">دخول في</div>
+                <div className="col-span-2">خروج في</div>
+                <div className="col-span-1 text-center">الوحدة</div>
+                <div className="col-span-1 text-right">الليالي (الإيجار)</div>
+                <div className="col-span-1 text-right">الإيجار الكلي</div>
+                <div className="col-span-1 text-center">الرصيد</div>
+              </div>
+            </div>
 
-                return (
-                  <div
-                    key={room.id}
-                    onClick={() => openRoomDetails(room)}
-                    className={`bg-gradient-to-r ${config.bgColor} rounded-xl p-4 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-xl border-2 ${isLate ? 'border-red-500 animate-pulse' : 'border-white/20'}`}
-                  >
-                    <div className="flex items-center justify-between">
-                      {/* رقم الوحدة والحالة */}
-                      <div className="flex items-center gap-4">
-                        <div className="text-center bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
-                          <div className="text-3xl font-black text-white">{room.number}</div>
-                        </div>
-                        
-                        <div>
-                          <Badge className={`${config.color} mb-2`}>
-                            {config.label}
-                          </Badge>
-                          <div className="text-sm text-white/90">
-                            {room.type}
-                          </div>
+            {/* محتوى الجدول */}
+            <div className="divide-y divide-gray-200">
+              {filteredRooms
+                .sort((a, b) => a.number.localeCompare(b.number))
+                .map((room, index) => {
+                  const config = ROOM_STATUS_CONFIG[room.status];
+                  const roomPrice = roomPrices[room.type];
+                  const isOccupied = room.status === 'Occupied' || room.status === 'CheckoutToday' || room.status === 'Overdue';
+                  
+                  // حساب عدد الليالي
+                  let nights = 0;
+                  let totalRent = 0;
+                  if (room.bookingDetails?.checkIn?.date && room.bookingDetails?.checkOut?.date) {
+                    const checkIn = new Date(room.bookingDetails.checkIn.date);
+                    const checkOut = new Date(room.bookingDetails.checkOut.date);
+                    nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
+                    if (roomPrice) {
+                      totalRent = nights * roomPrice.pricePerDay;
+                    }
+                  }
+
+                  return (
+                    <div
+                      key={room.id}
+                      onClick={() => openRoomDetails(room)}
+                      className={`grid grid-cols-12 gap-4 px-6 py-4 hover:bg-blue-50 transition-colors cursor-pointer ${
+                        index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                      }`}
+                    >
+                      {/* رقم الوحدة */}
+                      <div className="col-span-1 flex items-center justify-center">
+                        <div className="bg-blue-600 text-white font-bold rounded-lg px-3 py-2 text-lg">
+                          {room.number}
                         </div>
                       </div>
 
-                      {/* معلومات النزيل */}
-                      {isOccupied && room.guestName && (
-                        <div className="flex-1 mx-6 bg-white/10 backdrop-blur-sm rounded-lg p-3">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Users className="w-4 h-4 text-white" />
-                            <span className="font-bold text-white">{room.guestName}</span>
-                          </div>
-                          {room.guestPhone && (
-                            <div className="text-xs text-white/80">📱 {room.guestPhone}</div>
-                          )}
-                          {room.bookingDetails?.checkOut && (
-                            <div className="text-xs text-white/80 mt-1">
-                              خروج: {room.bookingDetails.checkOut.date} - {room.bookingDetails.checkOut.time || '12:00 ظهراً'}
-                            </div>
-                          )}
-                        </div>
-                      )}
+                      {/* الحالة */}
+                      <div className="col-span-1 flex items-center justify-center">
+                        <Badge className={`${config.color} text-xs whitespace-nowrap`}>
+                          {config.label}
+                        </Badge>
+                      </div>
 
-                      {/* السعر والدين */}
-                      <div className="text-left">
-                        {roomPrice && (
-                          <div className="text-sm text-white/90 mb-1">
-                            💰 {roomPrice.pricePerDay} ر.س/يوم
+                      {/* اسم النزيل */}
+                      <div className="col-span-2 flex items-center">
+                        {isOccupied && room.guestName ? (
+                          <div>
+                            <div className="font-semibold text-gray-900">{room.guestName}</div>
+                            {room.guestPhone && (
+                              <div className="text-xs text-gray-500">📱 {room.guestPhone}</div>
+                            )}
                           </div>
+                        ) : (
+                          <span className="text-gray-400 text-sm">-</span>
                         )}
-                        {room.currentDebt > 0 && (
-                          <div className="text-sm font-bold text-red-300">
-                            دين: {room.currentDebt} ر.س
+                      </div>
+
+                      {/* دخول في */}
+                      <div className="col-span-2 flex items-center">
+                        {room.bookingDetails?.checkIn?.date ? (
+                          <div>
+                            <div className="text-sm font-medium text-gray-700">
+                              {new Date(room.bookingDetails.checkIn.date).toLocaleDateString('ar-EG', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric'
+                              })}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {room.bookingDetails.checkIn.time || '12:00 ظهراً'}
+                            </div>
                           </div>
+                        ) : (
+                          <span className="text-gray-400 text-sm">-</span>
                         )}
-                        {isLate && room.bookingDetails?.checkOut?.date && (
-                          <div className="text-xs font-bold text-red-200 bg-red-900/50 px-2 py-1 rounded mt-1">
-                            ⚠️ متأخر {Math.floor((new Date().getTime() - new Date(room.bookingDetails.checkOut.date).getTime()) / (1000 * 60 * 60 * 24))} يوم
+                      </div>
+
+                      {/* خروج في */}
+                      <div className="col-span-2 flex items-center">
+                        {room.bookingDetails?.checkOut?.date ? (
+                          <div>
+                            <div className="text-sm font-medium text-gray-700">
+                              {new Date(room.bookingDetails.checkOut.date).toLocaleDateString('ar-EG', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric'
+                              })}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {room.bookingDetails.checkOut.time || '12:00 ظهراً'}
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-sm">-</span>
+                        )}
+                      </div>
+
+                      {/* نوع الوحدة */}
+                      <div className="col-span-1 flex items-center justify-center">
+                        <span className="text-sm text-gray-600 text-center">{room.type}</span>
+                      </div>
+
+                      {/* الليالي (الإيجار اليومي) */}
+                      <div className="col-span-1 flex items-center justify-end">
+                        {nights > 0 && roomPrice ? (
+                          <div className="text-right">
+                            <div className="font-semibold text-gray-900">{nights}</div>
+                            <div className="text-xs text-gray-500">شهري</div>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-sm">-</span>
+                        )}
+                      </div>
+
+                      {/* الإيجار الكلي */}
+                      <div className="col-span-1 flex items-center justify-end">
+                        {totalRent > 0 ? (
+                          <div className="text-right">
+                            <div className="font-bold text-gray-900">{totalRent.toLocaleString()}</div>
+                          </div>
+                        ) : roomPrice ? (
+                          <div className="text-right">
+                            <div className="font-semibold text-gray-700">{roomPrice.pricePerDay.toLocaleString()}</div>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-sm">-</span>
+                        )}
+                      </div>
+
+                      {/* الرصيد */}
+                      <div className="col-span-1 flex items-center justify-center">
+                        {room.currentDebt > 0 ? (
+                          <div className="bg-red-100 text-red-700 font-bold px-3 py-1 rounded-lg text-sm">
+                            {room.currentDebt.toLocaleString()}
+                          </div>
+                        ) : (
+                          <div className="bg-green-100 text-green-700 font-bold px-3 py-1 rounded-lg text-sm">
+                            0
                           </div>
                         )}
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+            </div>
+
+            {/* إجمالي في النهاية */}
+            {filteredRooms.length === 0 && (
+              <div className="py-12 text-center text-gray-400">
+                <BedDouble className="w-16 h-16 mx-auto mb-4 opacity-30" />
+                <p className="text-lg">لا توجد وحدات متاحة</p>
+              </div>
+            )}
           </div>
         )}
       </div>
