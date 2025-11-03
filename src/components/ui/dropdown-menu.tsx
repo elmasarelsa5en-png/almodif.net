@@ -117,6 +117,8 @@ const DropdownMenuContent = React.forwardRef<
   const updatePosition = React.useCallback(() => {
     if (open && triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect()
+      const contentWidth = contentRef.current?.offsetWidth || 320
+      const contentHeight = contentRef.current?.offsetHeight || 400
       
       let left = rect.left + window.scrollX
       let top = rect.bottom + window.scrollY + 8
@@ -125,13 +127,36 @@ const DropdownMenuContent = React.forwardRef<
       // تعديل الموقع بناءً على align
       if (align === 'end') {
         left = rect.right + window.scrollX
-        if (contentRef.current) {
-          left -= contentRef.current.offsetWidth
-        }
+        left -= contentWidth
       } else if (align === 'center') {
         left = rect.left + window.scrollX + (width / 2)
-        if (contentRef.current) {
-          left -= contentRef.current.offsetWidth / 2
+        left -= contentWidth / 2
+      }
+      
+      // التأكد من عدم الخروج من الشاشة - الحدود اليسرى واليمنى
+      const padding = 8 // مسافة أمان من حواف الشاشة
+      const viewportWidth = window.innerWidth
+      
+      // إذا خرجت القائمة من اليمين
+      if (left + contentWidth > viewportWidth - padding) {
+        left = viewportWidth - contentWidth - padding
+      }
+      
+      // إذا خرجت القائمة من اليسار
+      if (left < padding) {
+        left = padding
+      }
+      
+      // التأكد من عدم الخروج من الشاشة - أعلى وأسفل
+      const viewportHeight = window.innerHeight
+      
+      // إذا خرجت القائمة من أسفل الشاشة، اعرضها فوق الزر
+      if (top + contentHeight > viewportHeight - padding) {
+        top = rect.top + window.scrollY - contentHeight - 8
+        
+        // إذا كانت فوق الشاشة أيضاً، اعرضها بجانب الزر
+        if (top < padding) {
+          top = padding
         }
       }
       
@@ -144,6 +169,8 @@ const DropdownMenuContent = React.forwardRef<
     if (open) {
       // تأخير صغير للتأكد من أن الـ trigger ref محدث
       setTimeout(updatePosition, 0)
+      // تحديث ثاني بعد render علشان نحسب الحجم الفعلي
+      setTimeout(updatePosition, 50)
     }
   }, [open, updatePosition])
   
