@@ -215,11 +215,62 @@ body {
   direction: rtl;
 }
 
+/* تصغير عام لجميع أحجام الخطوط والمسافات */
+html {
+  font-size: 14px; /* تقليل من 16px إلى 14px */
+}
+
+/* تقليل المسافات والخطوط بشكل عام */
+.text-xs { font-size: 0.65rem !important; } /* 9.1px بدلاً من 12px */
+.text-sm { font-size: 0.8rem !important; }  /* 11.2px بدلاً من 14px */
+.text-base { font-size: 0.9rem !important; } /* 12.6px بدلاً من 16px */
+.text-lg { font-size: 1rem !important; }    /* 14px بدلاً من 18px */
+.text-xl { font-size: 1.1rem !important; }  /* 15.4px بدلاً من 20px */
+.text-2xl { font-size: 1.3rem !important; } /* 18.2px بدلاً من 24px */
+.text-3xl { font-size: 1.6rem !important; } /* 22.4px بدلاً من 30px */
+
+/* تقليل المسافات الداخلية (padding) */
+.p-1 { padding: 0.15rem !important; }  /* 2.1px بدلاً من 4px */
+.p-2 { padding: 0.3rem !important; }   /* 4.2px بدلاً من 8px */
+.p-3 { padding: 0.5rem !important; }   /* 7px بدلاً من 12px */
+.p-4 { padding: 0.7rem !important; }   /* 9.8px بدلاً من 16px */
+.p-5 { padding: 0.85rem !important; }  /* 11.9px بدلاً من 20px */
+.p-6 { padding: 1rem !important; }     /* 14px بدلاً من 24px */
+.p-8 { padding: 1.3rem !important; }   /* 18.2px بدلاً من 32px */
+
+/* تقليل الفراغات بين العناصر (gap) */
+.gap-1 { gap: 0.15rem !important; }
+.gap-2 { gap: 0.3rem !important; }
+.gap-3 { gap: 0.5rem !important; }
+.gap-4 { gap: 0.7rem !important; }
+.gap-5 { gap: 0.85rem !important; }
+.gap-6 { gap: 1rem !important; }
+.gap-8 { gap: 1.3rem !important; }
+
+/* تقليل الفراغات العمودية (space-y) */
+.space-y-1 > * + * { margin-top: 0.15rem !important; }
+.space-y-2 > * + * { margin-top: 0.3rem !important; }
+.space-y-3 > * + * { margin-top: 0.5rem !important; }
+.space-y-4 > * + * { margin-top: 0.7rem !important; }
+.space-y-6 > * + * { margin-top: 1rem !important; }
+
+/* تقليل الفراغات الأفقية (space-x) */
+.space-x-1 > * + * { margin-right: 0.15rem !important; }
+.space-x-2 > * + * { margin-right: 0.3rem !important; }
+.space-x-3 > * + * { margin-right: 0.5rem !important; }
+.space-x-4 > * + * { margin-right: 0.7rem !important; }
+
+/* تقليل line-height */
+.leading-tight { line-height: 1.15 !important; }
+.leading-snug { line-height: 1.25 !important; }
+.leading-normal { line-height: 1.4 !important; }
+.leading-relaxed { line-height: 1.5 !important; }
+
 /* تحسينات للجوال */
 @media (max-width: 768px) {
   /* تصغير الخطوط على الجوال */
   html {
-    font-size: 14px;
+    font-size: 12px; /* تقليل أكثر على الجوال */
   }
   
   /* تحسين المساحات */
@@ -260,14 +311,14 @@ body {
 /* تحسينات للأجهزة اللوحية */
 @media (min-width: 768px) and (max-width: 1024px) {
   html {
-    font-size: 15px;
+    font-size: 13px; /* تقليل من 15px إلى 13px */
   }
 }
 
 /* تحسين للشاشات الكبيرة جداً */
 @media (min-width: 1920px) {
   html {
-    font-size: 18px;
+    font-size: 15px; /* تقليل من 18px إلى 15px */
   }
 }
 
