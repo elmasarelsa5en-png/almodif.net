@@ -329,7 +329,8 @@ export default function BookingsPage() {
   const handleDeleteBooking = async (id: string) => {
     if (confirm('هل أنت متأكد من حذف هذا الحجز؟')) {
       await BookingService.deleteBooking(id);
-      setBookings(BookingService.getBookings());
+      // تحديث القائمة بإزالة الحجز المحذوف فقط
+      setBookings(prevBookings => prevBookings.filter(b => b.id !== id));
     }
   };
 

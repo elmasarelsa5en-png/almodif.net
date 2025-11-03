@@ -1326,11 +1326,40 @@ export default function RoomsPage() {
       <div className="relative z-10 max-w-[1800px] mx-auto space-y-8 p-4 lg:p-8">
         {/* Filter Section - تصميم أنيق */}
         <div className="bg-gradient-to-r from-slate-800/80 via-blue-900/80 to-purple-900/80 backdrop-blur-xl rounded-2xl p-6 shadow-xl border border-white/10">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-2xl">🔽</span>
+          {/* Header مع أزرار العرض */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
+                <span className="text-2xl">🔽</span>
+              </div>
+              <h2 className="text-xl font-bold text-white">{t('filterByStatus')}</h2>
             </div>
-            <h2 className="text-xl font-bold text-white">{t('filterByStatus')}</h2>
+            
+            {/* أزرار طريقة العرض - في أعلى اليسار */}
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setViewMode('grid')}
+                className={`px-4 py-2 rounded-xl font-bold text-sm transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 ${
+                  viewMode === 'grid'
+                    ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white border-2 border-green-400'
+                    : 'bg-slate-700/50 text-blue-200 border-2 border-slate-600 hover:bg-slate-600/70 hover:text-white'
+                }`}
+                title="عرض شبكة"
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </Button>
+              <Button
+                onClick={() => setViewMode('list')}
+                className={`px-4 py-2 rounded-xl font-bold text-sm transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 ${
+                  viewMode === 'list'
+                    ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white border-2 border-green-400'
+                    : 'bg-slate-700/50 text-blue-200 border-2 border-slate-600 hover:bg-slate-600/70 hover:text-white'
+                }`}
+                title="عرض قائمة"
+              >
+                <List className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
 
           <div className="flex items-center flex-wrap gap-3">
@@ -1347,34 +1376,8 @@ export default function RoomsPage() {
               {t('viewAll')} ({stats.total})
             </Button>
 
-            {/* أزرار طريقة العرض */}
-            <div className="flex gap-2">
-              <Button
-                onClick={() => setViewMode('grid')}
-                className={`px-4 py-6 rounded-xl font-bold text-base transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 ${
-                  viewMode === 'grid'
-                    ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white border-2 border-green-400'
-                    : 'bg-slate-700/50 text-blue-200 border-2 border-slate-600 hover:bg-slate-600/70 hover:text-white'
-                }`}
-                title="عرض شبكة"
-              >
-                <LayoutGrid className="w-5 h-5" />
-              </Button>
-              <Button
-                onClick={() => setViewMode('list')}
-                className={`px-4 py-6 rounded-xl font-bold text-base transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 ${
-                  viewMode === 'list'
-                    ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white border-2 border-green-400'
-                    : 'bg-slate-700/50 text-blue-200 border-2 border-slate-600 hover:bg-slate-600/70 hover:text-white'
-                }`}
-                title="عرض قائمة"
-              >
-                <List className="w-5 h-5" />
-              </Button>
-            </div>
-
             {/* زر التقرير */}
-            <div className="relative z-50" onMouseLeave={(e) => {
+            <div className="relative z-[100]" onMouseLeave={(e) => {
               // تأخير إخفاء القائمة
               const target = e.currentTarget;
               setTimeout(() => {
@@ -1568,6 +1571,11 @@ export default function RoomsPage() {
                     <div
                       key={room.id}
                       onClick={() => openRoomDetails(room)}
+                      onContextMenu={(e) => {
+                        e.preventDefault();
+                        setContextMenu({ x: e.clientX, y: e.clientY, room });
+                        setSelectedRoom(room);
+                      }}
                       className={`grid grid-cols-12 gap-4 px-6 py-4 hover:bg-gradient-to-r hover:from-blue-500/20 hover:to-purple-500/20 transition-all cursor-pointer ${
                         index % 2 === 0 ? 'bg-white/5' : 'bg-white/10'
                       }`}
@@ -2351,7 +2359,7 @@ export default function RoomsPage() {
       {/* ✨ Context Menu */}
       {contextMenu && (
         <div
-          className="fixed bg-white rounded-lg shadow-2xl border border-gray-200 py-2 z-50 min-w-[200px]"
+          className="fixed bg-white rounded-lg shadow-2xl border border-gray-200 py-2 z-[9999] min-w-[200px]"
           style={{
             top: contextMenu.y,
             left: contextMenu.x
@@ -2360,6 +2368,145 @@ export default function RoomsPage() {
         >
           <div className="px-4 py-2 border-b border-gray-200 font-semibold text-gray-700">
             غرفة {contextMenu.room.number}
+          </div>
+          
+          {/* تغيير الحالة */}
+          <div className="border-b border-gray-200">
+            <div className="px-4 py-2 text-sm font-semibold text-gray-500">تغيير الحالة</div>
+            
+            {contextMenu.room.status === 'Occupied' && (
+              <button
+                onClick={async () => {
+                  if (!user) return;
+                  
+                  // تنبيه الخروج المبكر
+                  const room = contextMenu.room;
+                  if (room.bookingDetails) {
+                    const bookedCheckoutDate = new Date(room.bookingDetails.checkOut.date);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    bookedCheckoutDate.setHours(0, 0, 0, 0);
+                    
+                    if (bookedCheckoutDate > today) {
+                      setEarlyCheckoutRoom(room);
+                      setIsEarlyCheckoutDialogOpen(true);
+                      setContextMenu(null);
+                      return;
+                    }
+                  }
+                  
+                  // خروج عادي
+                  const updatedRooms = updateRoomStatus(
+                    rooms,
+                    room.id,
+                    'NeedsCleaning' as RoomStatus,
+                    user.name || user.username,
+                    undefined,
+                    true
+                  );
+                  
+                  const updatedRoom = updatedRooms.find(r => r.id === room.id);
+                  if (updatedRoom) {
+                    await saveRoomToFirebase(updatedRoom);
+                    setRooms(updatedRooms);
+                    setFilteredRooms(updatedRooms);
+                    alert('✅ تم تسجيل الخروج');
+                  }
+                  setContextMenu(null);
+                }}
+                className="w-full px-4 py-2 text-right hover:bg-orange-50 transition-colors flex items-center gap-2 text-gray-700"
+              >
+                <Trash2 className="w-4 h-4 text-orange-600" />
+                تسجيل خروج (إنهاء العقد)
+              </button>
+            )}
+            
+            {contextMenu.room.status === 'NeedsCleaning' && (
+              <>
+                <button
+                  onClick={async () => {
+                    if (!user) return;
+                    const updatedRooms = updateRoomStatus(
+                      rooms,
+                      contextMenu.room.id,
+                      'Available' as RoomStatus,
+                      user.name || user.username
+                    );
+                    const updatedRoom = updatedRooms.find(r => r.id === contextMenu.room.id);
+                    if (updatedRoom) {
+                      await saveRoomToFirebase(updatedRoom);
+                      setRooms(updatedRooms);
+                      setFilteredRooms(updatedRooms);
+                      alert('✅ تم تغيير الحالة إلى متاحة');
+                    }
+                    setContextMenu(null);
+                  }}
+                  className="w-full px-4 py-2 text-right hover:bg-green-50 transition-colors flex items-center gap-2 text-gray-700"
+                >
+                  <CheckCircle2 className="w-4 h-4 text-green-600" />
+                  متاحة
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!user) return;
+                    const updatedRooms = updateRoomStatus(
+                      rooms,
+                      contextMenu.room.id,
+                      'Maintenance' as RoomStatus,
+                      user.name || user.username
+                    );
+                    const updatedRoom = updatedRooms.find(r => r.id === contextMenu.room.id);
+                    if (updatedRoom) {
+                      await saveRoomToFirebase(updatedRoom);
+                      setRooms(updatedRooms);
+                      setFilteredRooms(updatedRooms);
+                      alert('✅ تم تغيير الحالة إلى صيانة');
+                    }
+                    setContextMenu(null);
+                  }}
+                  className="w-full px-4 py-2 text-right hover:bg-yellow-50 transition-colors flex items-center gap-2 text-gray-700"
+                >
+                  <Hammer className="w-4 h-4 text-yellow-600" />
+                  صيانة
+                </button>
+              </>
+            )}
+            
+            {(contextMenu.room.status === 'Available' || contextMenu.room.status === 'Maintenance') && (
+              <button
+                onClick={async () => {
+                  if (!user) return;
+                  const targetStatus = contextMenu.room.status === 'Available' ? 'Maintenance' : 'Available';
+                  const updatedRooms = updateRoomStatus(
+                    rooms,
+                    contextMenu.room.id,
+                    targetStatus as RoomStatus,
+                    user.name || user.username
+                  );
+                  const updatedRoom = updatedRooms.find(r => r.id === contextMenu.room.id);
+                  if (updatedRoom) {
+                    await saveRoomToFirebase(updatedRoom);
+                    setRooms(updatedRooms);
+                    setFilteredRooms(updatedRooms);
+                    alert(`✅ تم تغيير الحالة إلى ${targetStatus === 'Maintenance' ? 'صيانة' : 'متاحة'}`);
+                  }
+                  setContextMenu(null);
+                }}
+                className="w-full px-4 py-2 text-right hover:bg-blue-50 transition-colors flex items-center gap-2 text-gray-700"
+              >
+                {contextMenu.room.status === 'Available' ? (
+                  <>
+                    <Hammer className="w-4 h-4 text-yellow-600" />
+                    صيانة
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 text-green-600" />
+                    متاحة
+                  </>
+                )}
+              </button>
+            )}
           </div>
           
           {(contextMenu.room.status === 'Occupied' || contextMenu.room.status === 'CheckoutToday') && (
