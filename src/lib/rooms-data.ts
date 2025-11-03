@@ -85,7 +85,10 @@ export interface Room {
     createdAt: string;
     createdBy: string;
     guestSignature?: string; // التوقيع الإلكتروني للنزيل (base64)
+    originalCheckoutDate?: string; // تاريخ الخروج الأصلي قبل التمديد
+    autoExtended?: boolean; // علامة أن الحجز تم تمديده تلقائياً
   };
+  lateCheckoutNote?: string; // ملاحظة عن التمديد التلقائي
   events: RoomEvent[];
   lastUpdated: string;
 }
@@ -441,9 +444,9 @@ export const isCheckoutToday = (checkoutDate: string): boolean => {
 };
 
 /**
- * التحقق من تأخر الـ checkout (بعد الساعة 2 ظهراً)
+ * التحقق إذا كان الخروج متأخر عن الموعد المحدد
  * @param checkoutDate تاريخ الخروج من bookingDetails
- * @returns true إذا كان الخروج اليوم وتأخر عن الساعة 2 ظهراً
+ * @returns true إذا كان الخروج اليوم وتأخر عن الساعة 5 عصراً (17:00)
  */
 export const isLateCheckout = (checkoutDate: string): boolean => {
   if (!isCheckoutToday(checkoutDate)) return false;
@@ -451,8 +454,8 @@ export const isLateCheckout = (checkoutDate: string): boolean => {
   const now = new Date();
   const currentHour = now.getHours();
   
-  // بعد الساعة 2 ظهراً (14:00)
-  return currentHour >= 14;
+  // بعد الساعة 5 عصراً (17:00)
+  return currentHour >= 17;
 };
 
 /**
@@ -531,9 +534,44 @@ export const autoUpdateRoomStatusByCheckout = (rooms: Room[]): Room[] => {
       }
     }
     
-    // إذا كانت الغرفة CheckoutToday لكن التاريخ مختلف، نرجعها لـ Occupied أو Overdue
+    // إذا كانت الغرفة CheckoutToday وتجاوزت الساعة 5 عصراً - إضافة يوم تلقائياً
     if (room.status === 'CheckoutToday' && room.bookingDetails?.checkOut?.date) {
       const checkoutDate = room.bookingDetails.checkOut.date;
+      
+      // التحقق من Late Checkout (بعد الساعة 5 عصراً)
+      if (isLateCheckout(checkoutDate)) {
+        console.log(`🕐 تمديد تلقائي: الغرفة ${room.number} - إضافة يوم بعد الساعة 5 عصراً`);
+        
+        // إضافة يوم واحد لتاريخ الخروج
+        const currentCheckout = new Date(checkoutDate);
+        const newCheckout = new Date(currentCheckout.getTime() + 24 * 60 * 60 * 1000);
+        const newCheckoutDateStr = newCheckout.toISOString().split('T')[0];
+        
+        // حساب سعر اليوم الإضافي
+        const extraDayDebt = room.price || 0;
+        const currentServicesDebt = room.servicesDebt || 0;
+        const currentRoomDebt = room.roomDebt || 0;
+        
+        return {
+          ...room,
+          status: 'Occupied' as RoomStatus, // تحويل لـ Occupied مع تاريخ خروج جديد
+          bookingDetails: {
+            ...room.bookingDetails,
+            checkOut: {
+              ...room.bookingDetails.checkOut!,
+              date: newCheckoutDateStr,
+            },
+            originalCheckoutDate: checkoutDate, // حفظ التاريخ الأصلي
+            autoExtended: true, // علامة أنه تم التمديد تلقائياً
+          },
+          roomDebt: currentRoomDebt + extraDayDebt,
+          currentDebt: currentRoomDebt + extraDayDebt + currentServicesDebt,
+          lastUpdated: new Date().toISOString(),
+          lastDebtUpdate: new Date().toISOString(),
+          lateCheckoutNote: `تم التمديد تلقائياً بعد الساعة 5 عصراً - إضافة يوم واحد`,
+        };
+      }
+      
       const daysOverdue = getDaysOverdue(checkoutDate);
       
       if (daysOverdue > 0) {
