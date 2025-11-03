@@ -1060,7 +1060,7 @@ export default function RoomsPage() {
 
     return (
       <div
-        className={`relative group cursor-pointer transition-transform duration-200 will-change-transform hover:scale-[1.02] hover:shadow-xl hover:shadow-blue-500/20 rounded-2xl overflow-hidden min-h-[220px] ${
+        className={`relative group cursor-pointer transition-transform duration-200 will-change-transform hover:scale-[1.02] hover:shadow-xl hover:shadow-blue-500/20 rounded-2xl overflow-hidden min-h-[220px] z-0 ${
           imageUrl ? '' : config.bgColor
         } active:scale-95 ${isLate ? 'animate-pulse ring-4 ring-red-500' : ''}`}
         onClick={(e) => {
@@ -1521,7 +1521,7 @@ export default function RoomsPage() {
         {/* عرض الوحدات - Grid أو List */}
         {viewMode === 'grid' ? (
           /* شبكة الوحدات */
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 relative z-0">
             {filteredRooms
               .sort((a, b) => a.number.localeCompare(b.number))
               .map(room => (
