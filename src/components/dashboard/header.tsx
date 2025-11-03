@@ -851,7 +851,7 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
           )}
 
           {/* Notifications - Icon Only with Badge */}
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
@@ -870,7 +870,13 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
                 )}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[calc(100vw-2rem)] sm:w-96 max-w-md bg-gray-800 shadow-xl z-50">
+            <DropdownMenuContent 
+              align="end" 
+              side="bottom"
+              sideOffset={8}
+              className="w-[calc(100vw-2rem)] sm:w-96 max-w-md bg-gray-800 shadow-xl z-50 mr-2 sm:mr-0"
+              style={{ maxWidth: 'calc(100vw - 1rem)', right: '0.5rem' }}
+            >
               <DropdownMenuLabel className="flex items-center justify-between text-gray-900">
                 <span className="font-semibold">الإشعارات الذكية</span>
                 <div className="flex gap-2">
@@ -1012,7 +1018,7 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
           </DropdownMenu>
 
           {/* User Profile - Dropdown Menu */}
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
@@ -1037,7 +1043,12 @@ export default function Header({ onMenuClick, className }: HeaderProps) {
                 </div>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 bg-white shadow-xl border border-gray-200 z-[100]">
+            <DropdownMenuContent 
+              align="end" 
+              side="bottom"
+              sideOffset={8}
+              className="w-48 bg-white shadow-xl border border-gray-200 z-[100]"
+            >
               <DropdownMenuLabel className="text-gray-900 font-semibold">
                 <div className="font-semibold">{user?.name || user?.username}</div>
               </DropdownMenuLabel>

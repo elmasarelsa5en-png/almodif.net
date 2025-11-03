@@ -406,6 +406,26 @@ html {
   background: rgba(59, 130, 246, 0.6);
 }
 
+/* إصلاح القوائم المنسدلة - منع الخروج من حدود الشاشة */
+[data-radix-popper-content-wrapper] {
+  max-width: calc(100vw - 1rem) !important;
+  z-index: 9999 !important;
+}
+
+[role="menu"],
+[role="dialog"] {
+  max-width: calc(100vw - 1rem) !important;
+}
+
+/* تحسين positioning للقوائم المنسدلة على الجوال */
+@media (max-width: 640px) {
+  [data-radix-popper-content-wrapper] {
+    left: 0.5rem !important;
+    right: 0.5rem !important;
+    max-width: calc(100vw - 1rem) !important;
+  }
+}
+
 
 
 @layer base {
