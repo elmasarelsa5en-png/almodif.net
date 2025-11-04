@@ -325,7 +325,7 @@ export default function HomePage() {
                     </div>
                   </div>
 
-                  {/* Solution 4: Unified Inbox */}
+                  {/* Solution 4: Unified Communication */}
                   <div className="bg-gradient-to-br from-orange-600/20 to-red-600/20 backdrop-blur-sm rounded-xl p-5 border border-orange-400/30 hover:scale-105 transition-transform duration-300">
                     <div className="flex items-start gap-3 mb-3">
                       <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -334,12 +334,15 @@ export default function HomePage() {
                       <div>
                         <h4 className="text-xl font-bold text-white mb-1">صندوق رسائل موحد</h4>
                         <p className="text-orange-100 text-sm leading-relaxed">
-                          جميع رسائل WhatsApp والدردشة في مكان واحد مع ردود تلقائية ذكية
+                          جميع رسائل WhatsApp، Facebook، Instagram، Twitter في مكان واحد مع ردود تلقائية ذكية
                         </p>
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       <span className="text-xs bg-orange-500/30 text-orange-200 px-2 py-1 rounded">WhatsApp</span>
+                      <span className="text-xs bg-orange-500/30 text-orange-200 px-2 py-1 rounded">Facebook</span>
+                      <span className="text-xs bg-orange-500/30 text-orange-200 px-2 py-1 rounded">Instagram</span>
+                      <span className="text-xs bg-orange-500/30 text-orange-200 px-2 py-1 rounded">Twitter</span>
                       <span className="text-xs bg-orange-500/30 text-orange-200 px-2 py-1 rounded">AI Chatbot</span>
                       <span className="text-xs bg-orange-500/30 text-orange-200 px-2 py-1 rounded">Auto Reply</span>
                     </div>
@@ -734,13 +737,14 @@ export default function HomePage() {
                       4
                     </div>
                   </div>
-                  <h3 className="text-xl font-bold text-white mb-3">إدارة موحدة</h3>
+                  <h3 className="text-xl font-bold text-white mb-3">تواصل موحد ذكي</h3>
                   <p className="text-blue-100/70 text-sm leading-relaxed">
-                    جميع الرسائل من WhatsApp والتطبيق في مكان واحد مع ردود تلقائية ذكية
+                    جميع منصات التواصل (WhatsApp، Facebook، Instagram، Twitter) في مكان واحد مع ردود تلقائية ذكية
                   </p>
                   <div className="mt-4 flex flex-wrap gap-2 justify-center">
                     <span className="text-xs bg-orange-500/20 text-orange-300 px-3 py-1 rounded-full">AI Bot</span>
                     <span className="text-xs bg-orange-500/20 text-orange-300 px-3 py-1 rounded-full">24/7</span>
+                    <span className="text-xs bg-orange-500/20 text-orange-300 px-3 py-1 rounded-full">Multi-Platform</span>
                   </div>
                 </div>
               </div>
@@ -995,6 +999,200 @@ export default function HomePage() {
                     <p className="text-green-200 text-sm">عند الربط مع جميع المنصات</p>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Social Media Integration Section - NEW */}
+        <section className="py-12 lg:py-20 bg-gradient-to-b from-orange-900/20 to-black/20 relative overflow-hidden">
+          {/* Animated Background */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-20 right-20 w-96 h-96 bg-orange-500 rounded-full filter blur-3xl animate-pulse"></div>
+            <div className="absolute bottom-10 left-10 w-80 h-80 bg-red-500 rounded-full filter blur-3xl animate-pulse" style={{animationDelay: '1.5s'}}></div>
+          </div>
+
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center gap-2 bg-orange-500/20 text-orange-300 px-5 py-2 rounded-full text-sm font-semibold mb-6 border border-orange-400/30">
+                <MessageCircle className="w-5 h-5 animate-pulse" />
+                صندوق وارد موحد لجميع المنصات
+              </div>
+              <h2 className="text-3xl lg:text-5xl font-bold text-white mb-4">
+                <span className="bg-gradient-to-r from-orange-400 via-red-400 to-pink-400 bg-clip-text text-transparent">
+                  رُد على عملائك
+                </span> من مكان واحد
+              </h2>
+              <p className="text-xl text-blue-100/80 max-w-3xl mx-auto leading-relaxed">
+                اربط جميع حساباتك على منصات التواصل الاجتماعي ورُد تلقائياً بذكاء اصطناعي
+              </p>
+            </div>
+
+            {/* Main Integration Card */}
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-3xl p-8 lg:p-12 border border-white/20 shadow-2xl mb-12">
+              <div className="grid lg:grid-cols-2 gap-10 items-center">
+                {/* Left Side - Platforms */}
+                <div>
+                  <h3 className="text-2xl lg:text-3xl font-bold text-white mb-6">
+                    المنصات المدعومة
+                  </h3>
+                  
+                  <div className="space-y-4">
+                    {/* WhatsApp */}
+                    <div className="bg-gradient-to-r from-green-600/20 to-emerald-600/20 backdrop-blur-sm rounded-xl p-5 border border-green-400/30 hover:scale-105 transition-all duration-300 cursor-pointer group">
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform">
+                          <span className="text-2xl">💬</span>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-white font-bold text-lg mb-1">WhatsApp Business</h4>
+                          <p className="text-green-200 text-sm">الأكثر استخداماً في المنطقة</p>
+                        </div>
+                        <div className="bg-green-500/20 text-green-300 px-3 py-1 rounded-full text-xs font-bold">متصل</div>
+                      </div>
+                    </div>
+
+                    {/* Facebook Messenger */}
+                    <div className="bg-gradient-to-r from-blue-600/20 to-indigo-600/20 backdrop-blur-sm rounded-xl p-5 border border-blue-400/30 hover:scale-105 transition-all duration-300 cursor-pointer group">
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform">
+                          <span className="text-2xl">📘</span>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-white font-bold text-lg mb-1">Facebook Messenger</h4>
+                          <p className="text-blue-200 text-sm">تواصل فوري مع متابعيك</p>
+                        </div>
+                        <div className="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full text-xs font-bold">متصل</div>
+                      </div>
+                    </div>
+
+                    {/* Instagram DM */}
+                    <div className="bg-gradient-to-r from-pink-600/20 to-purple-600/20 backdrop-blur-sm rounded-xl p-5 border border-pink-400/30 hover:scale-105 transition-all duration-300 cursor-pointer group">
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 bg-gradient-to-br from-pink-500 via-purple-500 to-orange-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform">
+                          <span className="text-2xl">📷</span>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-white font-bold text-lg mb-1">Instagram Direct</h4>
+                          <p className="text-pink-200 text-sm">رسائل مباشرة من Instagram</p>
+                        </div>
+                        <div className="bg-pink-500/20 text-pink-300 px-3 py-1 rounded-full text-xs font-bold">متصل</div>
+                      </div>
+                    </div>
+
+                    {/* Twitter/X */}
+                    <div className="bg-gradient-to-r from-slate-600/20 to-gray-700/20 backdrop-blur-sm rounded-xl p-5 border border-slate-400/30 hover:scale-105 transition-all duration-300 cursor-pointer group">
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 bg-gradient-to-br from-slate-600 to-gray-700 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform">
+                          <span className="text-2xl">𝕏</span>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-white font-bold text-lg mb-1">Twitter / X</h4>
+                          <p className="text-slate-200 text-sm">رسائل خاصة وتعليقات</p>
+                        </div>
+                        <div className="bg-slate-500/20 text-slate-300 px-3 py-1 rounded-full text-xs font-bold">متصل</div>
+                      </div>
+                    </div>
+
+                    {/* Telegram */}
+                    <div className="bg-gradient-to-r from-sky-600/20 to-blue-600/20 backdrop-blur-sm rounded-xl p-5 border border-sky-400/30 hover:scale-105 transition-all duration-300 cursor-pointer group">
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 bg-gradient-to-br from-sky-500 to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform">
+                          <span className="text-2xl">✈️</span>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-white font-bold text-lg mb-1">Telegram</h4>
+                          <p className="text-sky-200 text-sm">دردشة سريعة وآمنة</p>
+                        </div>
+                        <div className="bg-sky-500/20 text-sky-300 px-3 py-1 rounded-full text-xs font-bold">متصل</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Side - Features */}
+                <div className="bg-gradient-to-br from-orange-600/10 to-red-600/10 backdrop-blur-sm rounded-2xl p-8 border border-orange-400/20">
+                  <div className="text-center mb-8">
+                    <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-2xl">
+                      <Sparkles className="w-10 h-10 text-white" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-white mb-2">الذكاء الاصطناعي</h3>
+                    <p className="text-orange-100/80">يرد على عملائك تلقائياً</p>
+                  </div>
+
+                  <div className="space-y-4 mb-8">
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <CheckCircle className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <h4 className="text-white font-bold mb-1">ردود فورية 24/7</h4>
+                        <p className="text-blue-100/70 text-sm">البوت يرد على الاستفسارات الشائعة تلقائياً</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <CheckCircle className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <h4 className="text-white font-bold mb-1">تحويل ذكي للموظفين</h4>
+                        <p className="text-blue-100/70 text-sm">يحول الاستفسارات المعقدة للموظف المناسب</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <CheckCircle className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <h4 className="text-white font-bold mb-1">صندوق وارد موحد</h4>
+                        <p className="text-blue-100/70 text-sm">كل الرسائل في واجهة واحدة سهلة</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <CheckCircle className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <h4 className="text-white font-bold mb-1">تحليلات متقدمة</h4>
+                        <p className="text-blue-100/70 text-sm">تقارير عن أوقات الذروة ورضا العملاء</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-xl p-4 border border-green-400/30">
+                    <div className="flex items-center gap-3">
+                      <TrendingUp className="w-8 h-8 text-green-400" />
+                      <div>
+                        <p className="text-white font-bold">تحسين 90% في سرعة الرد</p>
+                        <p className="text-green-200 text-sm">مقارنة بالرد اليدوي التقليدي</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Benefits Grid */}
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="text-center p-6 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 hover:bg-white/10 transition-all">
+                <div className="text-5xl mb-4">⚡</div>
+                <h4 className="text-xl font-bold text-white mb-2">ردود فورية</h4>
+                <p className="text-blue-100/70 text-sm">متوسط وقت الرد أقل من 30 ثانية</p>
+              </div>
+
+              <div className="text-center p-6 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 hover:bg-white/10 transition-all">
+                <div className="text-5xl mb-4">🎯</div>
+                <h4 className="text-xl font-bold text-white mb-2">دقة عالية</h4>
+                <p className="text-blue-100/70 text-sm">AI يفهم السياق ويرد بدقة 95%</p>
+              </div>
+
+              <div className="text-center p-6 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 hover:bg-white/10 transition-all">
+                <div className="text-5xl mb-4">💰</div>
+                <h4 className="text-xl font-bold text-white mb-2">توفير التكاليف</h4>
+                <p className="text-blue-100/70 text-sm">تقليل الحاجة لفريق دعم كبير</p>
               </div>
             </div>
           </div>
