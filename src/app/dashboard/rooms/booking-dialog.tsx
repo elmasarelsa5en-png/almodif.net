@@ -1027,20 +1027,24 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                 
                 {/* مصدر الحجز */}
                 <div>
-                  <label className="block text-sm text-gray-600 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     مصدر الحجز <span className="text-red-500 font-bold">*</span>
                   </label>
                   <Select value={bookingSource} onValueChange={setBookingSource}>
-                    <SelectTrigger className="w-full px-3 py-2 border-2 border-gray-300 rounded bg-white text-gray-900 focus:border-blue-500">
-                      <SelectValue />
+                    <SelectTrigger className="w-full h-11 px-4 py-2 border-2 border-gray-300 rounded-lg bg-white text-gray-900 font-medium hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+                      <SelectValue placeholder="اختر المصدر" />
                     </SelectTrigger>
-                    <SelectContent className="bg-white border border-gray-300">
+                    <SelectContent className="bg-white border-2 border-gray-300 rounded-lg shadow-xl max-h-[300px] overflow-y-auto z-[9999]">
                       {BOOKING_SOURCES.map(source => (
-                        <SelectItem key={source.value} value={source.value} className="text-gray-900">
-                          <span className="flex items-center gap-2">
-                            <span>{source.icon}</span>
+                        <SelectItem 
+                          key={source.value} 
+                          value={source.value} 
+                          className="text-gray-900 hover:bg-blue-50 cursor-pointer py-3 px-4 text-base font-medium"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl">{source.icon}</span>
                             <span>{source.label}</span>
-                          </span>
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -1049,34 +1053,42 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
 
                 {/* نوع الإيجار */}
                 <div>
-                  <label className="block text-sm text-gray-600 mb-2">نوع الإيجار</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">نوع الإيجار</label>
                   <Select value={rentalType} onValueChange={(value: 'daily' | 'monthly') => setRentalType(value)}>
-                    <SelectTrigger className="w-full px-3 py-2 border border-gray-300 rounded bg-white text-gray-900">
-                      <SelectValue />
+                    <SelectTrigger className="w-full h-11 px-4 py-2 border-2 border-gray-300 rounded-lg bg-white text-gray-900 font-medium hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+                      <SelectValue placeholder="اختر النوع" />
                     </SelectTrigger>
-                    <SelectContent className="bg-white border border-gray-300">
-                      <SelectItem value="daily" className="text-gray-900">يومي</SelectItem>
-                      <SelectItem value="monthly" className="text-gray-900">شهري</SelectItem>
+                    <SelectContent className="bg-white border-2 border-gray-300 rounded-lg shadow-xl z-[9999]">
+                      <SelectItem value="daily" className="text-gray-900 hover:bg-blue-50 cursor-pointer py-3 px-4 text-base font-medium">
+                        📅 يومي
+                      </SelectItem>
+                      <SelectItem value="monthly" className="text-gray-900 hover:bg-blue-50 cursor-pointer py-3 px-4 text-base font-medium">
+                        📆 شهري
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 {/* نوع الزيارة */}
                 <div>
-                  <label className="block text-sm text-gray-600 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     نوع الزيارة <span className="text-red-500 font-bold">*</span>
                   </label>
                   <Select value={visitType} onValueChange={setVisitType}>
-                    <SelectTrigger className="w-full px-3 py-2 border-2 border-gray-300 rounded bg-white text-gray-900 focus:border-blue-500">
-                      <SelectValue />
+                    <SelectTrigger className="w-full h-11 px-4 py-2 border-2 border-gray-300 rounded-lg bg-white text-gray-900 font-medium hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+                      <SelectValue placeholder="اختر نوع الزيارة" />
                     </SelectTrigger>
-                    <SelectContent className="bg-white border border-gray-300">
+                    <SelectContent className="bg-white border-2 border-gray-300 rounded-lg shadow-xl z-[9999]">
                       {VISIT_TYPES.map(type => (
-                        <SelectItem key={type.value} value={type.value} className="text-gray-900">
-                          <span className="flex items-center gap-2">
-                            <span>{type.icon}</span>
+                        <SelectItem 
+                          key={type.value} 
+                          value={type.value} 
+                          className="text-gray-900 hover:bg-blue-50 cursor-pointer py-3 px-4 text-base font-medium"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl">{type.icon}</span>
                             <span>{type.label}</span>
-                          </span>
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -1241,16 +1253,20 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                       <td className="px-4 py-3 text-sm font-semibold text-gray-600">نوع الزيارة</td>
                       <td className="px-4 py-3">
                         <Select value={visitType} onValueChange={setVisitType}>
-                          <SelectTrigger className="w-full border-gray-300 bg-white">
-                            <SelectValue />
+                          <SelectTrigger className="w-full h-10 px-3 py-2 border-2 border-gray-300 rounded-lg bg-white text-gray-900 font-medium hover:border-blue-400 focus:border-blue-500 transition-all">
+                            <SelectValue placeholder="اختر نوع الزيارة" />
                           </SelectTrigger>
-                          <SelectContent className="bg-white">
+                          <SelectContent className="bg-white border-2 border-gray-300 rounded-lg shadow-xl z-[9999]">
                             {VISIT_TYPES.map(type => (
-                              <SelectItem key={type.value} value={type.value}>
-                                <span className="flex items-center gap-2">
-                                  <span>{type.icon}</span>
+                              <SelectItem 
+                                key={type.value} 
+                                value={type.value}
+                                className="text-gray-900 hover:bg-blue-50 cursor-pointer py-2 px-3 text-sm font-medium"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <span className="text-lg">{type.icon}</span>
                                   <span>{type.label}</span>
-                                </span>
+                                </div>
                               </SelectItem>
                             ))}
                           </SelectContent>
