@@ -745,6 +745,202 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* Booking Platforms Integration Section - NEW */}
+        <section className="py-12 lg:py-20 bg-gradient-to-b from-black/20 to-indigo-900/20 relative overflow-hidden">
+          {/* Animated Background */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-10 left-10 w-96 h-96 bg-indigo-500 rounded-full filter blur-3xl animate-pulse"></div>
+            <div className="absolute bottom-10 right-10 w-80 h-80 bg-blue-500 rounded-full filter blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+          </div>
+
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center gap-2 bg-indigo-500/20 text-indigo-300 px-5 py-2 rounded-full text-sm font-semibold mb-6 border border-indigo-400/30">
+                <TrendingUp className="w-5 h-5 animate-pulse" />
+                ربط مباشر مع منصات الحجز العالمية
+              </div>
+              <h2 className="text-3xl lg:text-5xl font-bold text-white mb-4">
+                استقبل الحجوزات من <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">كل مكان</span>
+              </h2>
+              <p className="text-xl text-blue-100/80 max-w-3xl mx-auto leading-relaxed">
+                نظام ربط تلقائي مع أكبر منصات الحجز في العالم - جميع حجوزاتك في مكان واحد!
+              </p>
+            </div>
+
+            {/* Main Integration Card */}
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-3xl p-8 lg:p-12 border border-white/20 shadow-2xl mb-12">
+              <div className="text-center mb-10">
+                <h3 className="text-2xl lg:text-3xl font-bold text-white mb-3">
+                  🌐 التكامل الذكي مع قنوات الحجز
+                </h3>
+                <p className="text-blue-100/70 text-lg">
+                  اربط فندقك مع المنصات العالمية وأدِر كل شيء من لوحة تحكم واحدة
+                </p>
+              </div>
+
+              {/* Platforms Grid */}
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+                {/* Booking.com */}
+                <div className="bg-gradient-to-br from-blue-600/20 to-blue-800/20 backdrop-blur-sm rounded-2xl p-6 border border-blue-400/30 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/30 transition-all duration-300 cursor-pointer group">
+                  <div className="text-center">
+                    <div className="w-20 h-20 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform">
+                      <span className="text-white text-2xl font-bold">B</span>
+                    </div>
+                    <h4 className="text-xl font-bold text-white mb-2">Booking.com</h4>
+                    <p className="text-blue-200 text-sm mb-3">المنصة الأكبر عالمياً</p>
+                    <div className="flex items-center justify-center gap-2 text-xs">
+                      <div className="bg-green-500/20 text-green-300 px-3 py-1 rounded-full">متصل</div>
+                      <div className="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full">تلقائي</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Agoda */}
+                <div className="bg-gradient-to-br from-red-600/20 to-pink-800/20 backdrop-blur-sm rounded-2xl p-6 border border-red-400/30 hover:scale-105 hover:shadow-2xl hover:shadow-red-500/30 transition-all duration-300 cursor-pointer group">
+                  <div className="text-center">
+                    <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform">
+                      <span className="text-white text-2xl font-bold">A</span>
+                    </div>
+                    <h4 className="text-xl font-bold text-white mb-2">Agoda</h4>
+                    <p className="text-red-200 text-sm mb-3">رائدة في آسيا والشرق الأوسط</p>
+                    <div className="flex items-center justify-center gap-2 text-xs">
+                      <div className="bg-green-500/20 text-green-300 px-3 py-1 rounded-full">متصل</div>
+                      <div className="bg-red-500/20 text-red-300 px-3 py-1 rounded-full">API</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Almosafer */}
+                <div className="bg-gradient-to-br from-green-600/20 to-emerald-800/20 backdrop-blur-sm rounded-2xl p-6 border border-green-400/30 hover:scale-105 hover:shadow-2xl hover:shadow-green-500/30 transition-all duration-300 cursor-pointer group">
+                  <div className="text-center">
+                    <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform">
+                      <span className="text-white text-xl font-bold">🧳</span>
+                    </div>
+                    <h4 className="text-xl font-bold text-white mb-2">المسافر</h4>
+                    <p className="text-green-200 text-sm mb-3">الأشهر في السعودية</p>
+                    <div className="flex items-center justify-center gap-2 text-xs">
+                      <div className="bg-green-500/20 text-green-300 px-3 py-1 rounded-full">متصل</div>
+                      <div className="bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-full">محلي</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Almatar */}
+                <div className="bg-gradient-to-br from-orange-600/20 to-amber-800/20 backdrop-blur-sm rounded-2xl p-6 border border-orange-400/30 hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/30 transition-all duration-300 cursor-pointer group">
+                  <div className="text-center">
+                    <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform">
+                      <span className="text-white text-xl font-bold">✈️</span>
+                    </div>
+                    <h4 className="text-xl font-bold text-white mb-2">المطار</h4>
+                    <p className="text-orange-200 text-sm mb-3">منصة سعودية موثوقة</p>
+                    <div className="flex items-center gap-2 justify-center text-xs">
+                      <div className="bg-green-500/20 text-green-300 px-3 py-1 rounded-full">متصل</div>
+                      <div className="bg-orange-500/20 text-orange-300 px-3 py-1 rounded-full">محلي</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Benefits */}
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:bg-white/10 transition-all">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Calendar className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="text-white font-bold mb-2">تزامن تلقائي</h4>
+                      <p className="text-blue-100/70 text-sm">
+                        تحديث فوري للتوافر والأسعار على جميع المنصات في نفس اللحظة
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:bg-white/10 transition-all">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <CheckCircle className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="text-white font-bold mb-2">لا حجوزات مزدوجة</h4>
+                      <p className="text-blue-100/70 text-sm">
+                        نظام ذكي يمنع الحجز المزدوج ويدير الغرف تلقائياً
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:bg-white/10 transition-all">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <BarChart3 className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="text-white font-bold mb-2">تقارير موحدة</h4>
+                      <p className="text-blue-100/70 text-sm">
+                        تحليل شامل لأداء جميع القنوات في مكان واحد
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* How It Works */}
+            <div className="bg-gradient-to-r from-indigo-600/10 via-blue-600/10 to-purple-600/10 backdrop-blur-sm rounded-3xl p-8 lg:p-10 border border-white/10">
+              <div className="text-center mb-8">
+                <h3 className="text-2xl lg:text-3xl font-bold text-white mb-3">
+                  كيف يعمل النظام؟
+                </h3>
+                <p className="text-blue-100/70">بساطة في 3 خطوات فقط</p>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-full flex items-center justify-center mx-auto mb-4 text-white text-2xl font-bold shadow-lg">
+                    1
+                  </div>
+                  <h4 className="text-xl font-bold text-white mb-2">الربط السريع</h4>
+                  <p className="text-blue-100/70 text-sm">
+                    نربط حساباتك على المنصات خلال دقائق فقط
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-white text-2xl font-bold shadow-lg">
+                    2
+                  </div>
+                  <h4 className="text-xl font-bold text-white mb-2">التزامن التلقائي</h4>
+                  <p className="text-blue-100/70 text-sm">
+                    النظام يتزامن تلقائياً مع كل التغييرات
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4 text-white text-2xl font-bold shadow-lg">
+                    3
+                  </div>
+                  <h4 className="text-xl font-bold text-white mb-2">إدارة مركزية</h4>
+                  <p className="text-blue-100/70 text-sm">
+                    أدِر كل شيء من لوحة تحكم واحدة
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-10 text-center">
+                <div className="inline-flex items-center gap-3 bg-gradient-to-r from-green-500/20 to-emerald-500/20 px-6 py-4 rounded-2xl border border-green-400/30">
+                  <Sparkles className="w-6 h-6 text-yellow-400" />
+                  <div className="text-left">
+                    <p className="text-white font-bold text-lg">زيادة الحجوزات حتى 300%</p>
+                    <p className="text-green-200 text-sm">عند الربط مع جميع المنصات</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* CTA Section - Enhanced */}
         <section className="py-12 lg:py-20 bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-indigo-600/20 backdrop-blur-sm relative overflow-hidden">
           {/* Animated Background Elements */}
