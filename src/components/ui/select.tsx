@@ -11,6 +11,8 @@ interface SelectContextValue {
   value: string
   setValue: (value: string) => void
   triggerRef: React.MutableRefObject<HTMLButtonElement | null>
+  selectedLabel: string
+  setSelectedLabel: (label: string) => void
 }
 
 const SelectContext = React.createContext<SelectContextValue | undefined>(undefined)
@@ -25,11 +27,13 @@ interface SelectProps {
 const Select = ({ children, value, onValueChange, defaultValue }: SelectProps) => {
   const [open, setOpen] = React.useState(false)
   const [internalValue, setInternalValue] = React.useState(defaultValue || "")
+  const [selectedLabel, setSelectedLabel] = React.useState("")
   const triggerRef = React.useRef<HTMLButtonElement | null>(null)
   
   const currentValue = value !== undefined ? value : internalValue
   
   const setValue = (newValue: string) => {
+    console.log('✅ setValue called with:', newValue)
     if (value === undefined) {
       setInternalValue(newValue)
     }
@@ -38,7 +42,7 @@ const Select = ({ children, value, onValueChange, defaultValue }: SelectProps) =
   }
   
   return (
-    <SelectContext.Provider value={{ open, setOpen, value: currentValue, setValue, triggerRef }}>
+    <SelectContext.Provider value={{ open, setOpen, value: currentValue, setValue, triggerRef, selectedLabel, setSelectedLabel }}>
       <div className="relative">
         {children}
       </div>
@@ -85,15 +89,18 @@ const SelectValue = React.forwardRef<
   const context = React.useContext(SelectContext)
   if (!context) throw new Error('SelectValue must be used within Select')
   
-  const { value } = context
+  const { selectedLabel, value } = context
+  
+  // عرض النص المحفوظ أو placeholder
+  const displayText = selectedLabel || value || placeholder
   
   return (
     <span
       ref={ref}
-      className={cn("block truncate", className)}
+      className={cn("block truncate", !displayText && "text-gray-400", className)}
       {...props}
     >
-      {value || placeholder}
+      {displayText}
     </span>
   )
 })
@@ -160,13 +167,15 @@ const SelectContent = React.forwardRef<
     }
     
     if (open) {
-      setTimeout(() => {
-        document.addEventListener('mousedown', handleClickOutside)
+      // استخدام setTimeout لتجنب التعارض مع click event
+      const timeoutId = setTimeout(() => {
+        document.addEventListener('click', handleClickOutside, true)
         document.addEventListener('keydown', handleEscapeKey)
-      }, 0)
+      }, 100)
       
       return () => {
-        document.removeEventListener('mousedown', handleClickOutside)
+        clearTimeout(timeoutId)
+        document.removeEventListener('click', handleClickOutside, true)
         document.removeEventListener('keydown', handleEscapeKey)
       }
     }
@@ -212,8 +221,41 @@ const SelectItem = React.forwardRef<
   const context = React.useContext(SelectContext)
   if (!context) throw new Error('SelectItem must be used within Select')
   
-  const { setValue, value: selectedValue } = context
+  const { setValue, setSelectedLabel, value: selectedValue } = context
   const isSelected = selectedValue === value
+  
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!disabled) {
+      console.log('🔵 SelectItem clicked:', value, 'Label:', children)
+      
+      // استخراج النص من children
+      let label = ''
+      if (typeof children === 'string') {
+        label = children
+      } else if (React.isValidElement(children)) {
+        // إذا كان children عبارة عن element (مثل div مع span)
+        const childrenText = extractText(children)
+        label = childrenText
+      }
+      
+      setSelectedLabel(label)
+      setValue(value)
+    }
+  }
+  
+  // دالة لاستخراج النص من React elements
+  const extractText = (node: any): string => {
+    if (typeof node === 'string') return node
+    if (typeof node === 'number') return String(node)
+    if (!node) return ''
+    if (Array.isArray(node)) return node.map(extractText).join('')
+    if (React.isValidElement(node)) {
+      return extractText(node.props.children)
+    }
+    return ''
+  }
   
   return (
     <div
@@ -226,7 +268,10 @@ const SelectItem = React.forwardRef<
         isSelected && !disabled && "bg-blue-600 text-white font-bold hover:bg-blue-700",
         className
       )}
-      onClick={disabled ? undefined : () => setValue(value)}
+      onClick={handleClick}
+      onMouseDown={(e) => e.preventDefault()}
+      role="option"
+      aria-selected={isSelected}
       {...props}
     >
       {children}
