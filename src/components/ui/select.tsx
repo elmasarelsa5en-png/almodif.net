@@ -180,10 +180,10 @@ const SelectContent = React.forwardRef<
     <div
       ref={contentRef}
       className={cn(
-        "fixed min-w-[8rem] overflow-hidden rounded-md border border-white/20 shadow-xl z-[99999]",
-        "bg-slate-900/98 backdrop-blur-xl text-white",
+        "fixed min-w-[8rem] overflow-hidden rounded-lg border-2 shadow-2xl z-[99999]",
+        "bg-white text-gray-900",
         "animate-in fade-in slide-in-from-top-2 duration-200",
-        "max-h-[300px] overflow-y-auto",
+        "max-h-[400px] overflow-y-auto",
         className
       )}
       style={{
@@ -193,7 +193,7 @@ const SelectContent = React.forwardRef<
       }}
       {...props}
     >
-      <div className="p-1">
+      <div className="p-2">
         {children}
       </div>
     </div>,
@@ -219,11 +219,11 @@ const SelectItem = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors",
+        "relative flex cursor-pointer select-none items-center rounded-lg px-3 py-3 text-sm outline-none transition-all duration-200",
         disabled 
-          ? "text-gray-500 cursor-not-allowed" 
-          : "text-white hover:bg-white/10 focus:bg-white/10 cursor-pointer",
-        isSelected && !disabled && "bg-blue-600/50 text-white font-semibold",
+          ? "text-gray-400 cursor-not-allowed opacity-50" 
+          : "text-gray-900 hover:bg-blue-50 hover:text-blue-700 active:bg-blue-100",
+        isSelected && !disabled && "bg-blue-600 text-white font-bold hover:bg-blue-700",
         className
       )}
       onClick={disabled ? undefined : () => setValue(value)}
