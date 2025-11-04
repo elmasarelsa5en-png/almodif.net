@@ -254,16 +254,19 @@ export default function HomePage() {
                 <div className="flex items-center justify-center gap-3 mb-6">
                   <Sparkles className="w-10 h-10 text-yellow-400 animate-pulse" />
                   <h3 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
-                    منظومة متكاملة لإدارة فندقك
+                    منظومة شاملة متكاملة
                   </h3>
                   <Sparkles className="w-10 h-10 text-yellow-400 animate-pulse" />
                 </div>
                 
-                <p className="text-xl lg:text-2xl text-center text-blue-50 font-semibold leading-relaxed mb-8">
-                  🎯 نقدم لك <span className="text-yellow-300">4 حلول في واحد</span> لتحويل فندقك إلى منشأة رقمية متطورة
+                <p className="text-xl lg:text-2xl text-center text-blue-50 font-semibold leading-relaxed mb-4">
+                  🚀 أكثر من <span className="text-yellow-300 text-3xl font-bold">50+ ميزة وأداة</span> احترافية
+                </p>
+                <p className="text-lg text-center text-blue-100/80 mb-8">
+                  نظام متكامل يغطي كل جوانب إدارة فندقك من A إلى Z
                 </p>
 
-                {/* 4 Main Solutions Grid */}
+                {/* Main Solutions Grid */}
                 <div className="grid md:grid-cols-2 gap-4 mb-6">
                   {/* Solution 1: Management System */}
                   <div className="bg-gradient-to-br from-blue-600/20 to-cyan-600/20 backdrop-blur-sm rounded-xl p-5 border border-blue-400/30 hover:scale-105 transition-transform duration-300">
@@ -282,6 +285,7 @@ export default function HomePage() {
                       <span className="text-xs bg-blue-500/30 text-blue-200 px-2 py-1 rounded">Dashboard</span>
                       <span className="text-xs bg-blue-500/30 text-blue-200 px-2 py-1 rounded">Analytics</span>
                       <span className="text-xs bg-blue-500/30 text-blue-200 px-2 py-1 rounded">CRM</span>
+                      <span className="text-xs bg-blue-500/30 text-blue-200 px-2 py-1 rounded">Reports</span>
                     </div>
                   </div>
 
@@ -302,6 +306,7 @@ export default function HomePage() {
                       <span className="text-xs bg-green-500/30 text-green-200 px-2 py-1 rounded">Mobile App</span>
                       <span className="text-xs bg-green-500/30 text-green-200 px-2 py-1 rounded">QR Menu</span>
                       <span className="text-xs bg-green-500/30 text-green-200 px-2 py-1 rounded">Orders</span>
+                      <span className="text-xs bg-green-500/30 text-green-200 px-2 py-1 rounded">Reviews</span>
                     </div>
                   </div>
 
@@ -322,6 +327,7 @@ export default function HomePage() {
                       <span className="text-xs bg-purple-500/30 text-purple-200 px-2 py-1 rounded">Custom Website</span>
                       <span className="text-xs bg-purple-500/30 text-purple-200 px-2 py-1 rounded">SEO</span>
                       <span className="text-xs bg-purple-500/30 text-purple-200 px-2 py-1 rounded">Booking</span>
+                      <span className="text-xs bg-purple-500/30 text-purple-200 px-2 py-1 rounded">Domain</span>
                     </div>
                   </div>
 
@@ -345,6 +351,45 @@ export default function HomePage() {
                       <span className="text-xs bg-orange-500/30 text-orange-200 px-2 py-1 rounded">Twitter</span>
                       <span className="text-xs bg-orange-500/30 text-orange-200 px-2 py-1 rounded">AI Chatbot</span>
                       <span className="text-xs bg-orange-500/30 text-orange-200 px-2 py-1 rounded">Auto Reply</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Additional Features Highlight */}
+                <div className="bg-gradient-to-r from-indigo-600/20 via-purple-600/20 to-pink-600/20 backdrop-blur-sm rounded-xl p-5 border border-indigo-400/30 mb-6">
+                  <h4 className="text-center text-white font-bold text-lg mb-4">وأكثر من ذلك بكثير...</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
+                    <div>
+                      <div className="text-2xl mb-1">☕</div>
+                      <p className="text-white text-sm font-medium">نقاط البيع POS</p>
+                    </div>
+                    <div>
+                      <div className="text-2xl mb-1">🍽️</div>
+                      <p className="text-white text-sm font-medium">إدارة المطعم</p>
+                    </div>
+                    <div>
+                      <div className="text-2xl mb-1">👕</div>
+                      <p className="text-white text-sm font-medium">خدمة المغسلة</p>
+                    </div>
+                    <div>
+                      <div className="text-2xl mb-1">💰</div>
+                      <p className="text-white text-sm font-medium">المحاسبة الذكية</p>
+                    </div>
+                    <div>
+                      <div className="text-2xl mb-1">🌐</div>
+                      <p className="text-white text-sm font-medium">منصات الحجز</p>
+                    </div>
+                    <div>
+                      <div className="text-2xl mb-1">📊</div>
+                      <p className="text-white text-sm font-medium">تقارير متقدمة</p>
+                    </div>
+                    <div>
+                      <div className="text-2xl mb-1">🤖</div>
+                      <p className="text-white text-sm font-medium">AI Chatbot</p>
+                    </div>
+                    <div>
+                      <div className="text-2xl mb-1">🔔</div>
+                      <p className="text-white text-sm font-medium">إشعارات فورية</p>
                     </div>
                   </div>
                 </div>
