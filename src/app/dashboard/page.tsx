@@ -1186,6 +1186,15 @@ const Dashboard: React.FC = () => {
             animation-delay: 6s;
           }
         `}</style>
+
+        {/* Footer */}
+        <footer className="bg-slate-900/50 backdrop-blur-md border-t border-slate-700/50 py-6 mt-12">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <p className="text-slate-400 text-sm text-center">
+              © 2025 Eng/Akram elmasry . جميع الحقوق محفوظة.
+            </p>
+          </div>
+        </footer>
       </div>
     </ProtectedRoute>
   );
