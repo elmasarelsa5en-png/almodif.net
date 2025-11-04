@@ -541,44 +541,103 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Services Grid */}
-        <section className="py-12 lg:py-20 bg-black/20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
-                {t('servicesTitle')}
+        {/* Services Grid - Enhanced */}
+        <section className="py-12 lg:py-20 bg-gradient-to-b from-black/20 to-black/30 relative overflow-hidden">
+          {/* Background Decorative Elements */}
+          <div className="absolute inset-0 opacity-5">
+            <div className="absolute top-20 left-10 w-96 h-96 bg-blue-500 rounded-full filter blur-3xl"></div>
+            <div className="absolute bottom-20 right-10 w-80 h-80 bg-purple-500 rounded-full filter blur-3xl"></div>
+          </div>
+
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div className="text-center mb-12 lg:mb-16">
+              <div className="inline-flex items-center gap-2 bg-blue-500/20 text-blue-300 px-5 py-2 rounded-full text-sm font-semibold mb-6 border border-blue-400/30">
+                <Sparkles className="w-5 h-5 animate-pulse" />
+                خدمات متكاملة
+              </div>
+              <h2 className="text-3xl lg:text-5xl font-bold text-white mb-4">
+                كل ما تحتاجه لإدارة فندقك
               </h2>
-              <p className="text-blue-100/80 text-lg max-w-2xl mx-auto">
-                {t('servicesSubtitle')}
+              <p className="text-xl text-blue-100/80 max-w-3xl mx-auto">
+                في مكان واحد - نظام شامل يغطي كل جوانب العمل الفندقي
               </p>
             </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-              {services.map((service, index) => (
-                <Card 
-                  key={index}
-                  className="bg-white/5 border-white/10 hover:bg-white/10 transition-all duration-500 cursor-pointer group hover:scale-110 hover:rotate-1 hover:shadow-2xl hover:shadow-blue-500/20 relative overflow-hidden"
-                  onClick={() => window.location.href = service.path}
-                  style={{
-                    transitionDelay: `${index * 50}ms`
-                  }}
-                >
-                  {/* Shine effect on hover */}
-                  <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:animate-shine transition-opacity"></div>
-                  
-                  <CardContent className="p-4 lg:p-6 text-center relative z-10">
-                    <div className="w-12 h-12 lg:w-16 lg:h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-3 lg:mb-4 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500 shadow-lg group-hover:shadow-blue-400/50">
-                      {React.cloneElement(service.icon, { className: "text-white group-hover:scale-110 transition-transform" })}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
+              {services.map((service, index) => {
+                // Define colors for each service
+                const colors = [
+                  'from-blue-500 to-cyan-600',      // Rooms
+                  'from-green-500 to-emerald-600',  // CRM
+                  'from-purple-500 to-pink-600',    // Analytics
+                  'from-amber-500 to-orange-600',   // Coffee Shop
+                  'from-red-500 to-rose-600',       // Restaurant
+                  'from-indigo-500 to-blue-600',    // Laundry
+                  'from-teal-500 to-cyan-600',      // Accounting
+                  'from-violet-500 to-purple-600'   // Settings
+                ];
+
+                return (
+                  <div
+                    key={index}
+                    onClick={() => window.location.href = service.path}
+                    className="group cursor-pointer"
+                    style={{
+                      animationDelay: `${index * 100}ms`
+                    }}
+                  >
+                    <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-500 hover:scale-105 hover:-translate-y-2 shadow-lg hover:shadow-2xl overflow-hidden">
+                      {/* Gradient Background on Hover */}
+                      <div className={`absolute inset-0 bg-gradient-to-br ${colors[index]} opacity-0 group-hover:opacity-10 transition-opacity duration-500`}></div>
+                      
+                      {/* Shine Effect */}
+                      <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 -translate-x-full group-hover:translate-x-full transition-all duration-1000"></div>
+                      
+                      {/* Content */}
+                      <div className="relative z-10 text-center">
+                        {/* Icon Container */}
+                        <div className={`w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-br ${colors[index]} rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl group-hover:shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500`}>
+                          {React.cloneElement(service.icon, { 
+                            className: "w-8 h-8 lg:w-10 lg:h-10 text-white group-hover:scale-110 transition-transform duration-300" 
+                          })}
+                        </div>
+                        
+                        {/* Title */}
+                        <h3 className="text-white font-bold text-base lg:text-lg mb-2 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-blue-200 group-hover:bg-clip-text transition-all duration-300">
+                          {service.title}
+                        </h3>
+                        
+                        {/* Description */}
+                        <p className="text-blue-100/60 text-xs lg:text-sm leading-relaxed group-hover:text-blue-100/90 transition-colors duration-300">
+                          {service.desc}
+                        </p>
+                        
+                        {/* Arrow Icon on Hover */}
+                        <div className="mt-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+                          <div className="inline-flex items-center gap-1 text-blue-300 text-xs font-semibold">
+                            <span>استكشف</span>
+                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Corner Decoration */}
+                      <div className="absolute top-2 right-2 w-2 h-2 bg-white/30 rounded-full group-hover:scale-150 group-hover:bg-white/60 transition-all duration-300"></div>
+                      <div className="absolute bottom-2 left-2 w-2 h-2 bg-white/30 rounded-full group-hover:scale-150 group-hover:bg-white/60 transition-all duration-300"></div>
                     </div>
-                    <h3 className="text-white font-bold text-sm lg:text-base mb-1 lg:mb-2 group-hover:text-blue-300 transition-colors">
-                      {service.title}
-                    </h3>
-                    <p className="text-blue-100/60 text-xs lg:text-sm group-hover:text-blue-100/80 transition-colors">
-                      {service.desc}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Bottom CTA */}
+            <div className="mt-16 text-center">
+              <div className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-indigo-500/20 backdrop-blur-sm px-8 py-4 rounded-2xl border border-white/20">
+                <CheckCircle className="w-6 h-6 text-green-400" />
+                <p className="text-white font-semibold text-lg">
+                  جميع الخدمات متكاملة في نظام واحد سهل الاستخدام
+                </p>
+              </div>
             </div>
           </div>
         </section>
