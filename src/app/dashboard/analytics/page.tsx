@@ -137,49 +137,51 @@ const AnalyticsPage = () => {
           </div>
 
           {/* Main Occupancy Card - Hero */}
-          <Card className="bg-gradient-to-br from-blue-600/20 to-purple-600/20 backdrop-blur-md border-blue-400/30 mb-8 shadow-2xl">
+          <Card className="bg-gradient-to-br from-slate-800/90 via-blue-900/40 to-purple-900/40 backdrop-blur-xl border-2 border-white/20 mb-8 shadow-2xl hover:shadow-blue-500/20 transition-all duration-300">
             <CardContent className="p-8">
               <div className="grid md:grid-cols-2 gap-8 items-center">
-                <div>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className={`w-16 h-16 ${occupancyStatus.bgColor} rounded-2xl flex items-center justify-center`}>
-                      <StatusIcon className={`w-8 h-8 ${occupancyStatus.color}`} />
+                <div className="space-y-6">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-20 h-20 ${occupancyStatus.bgColor} rounded-2xl flex items-center justify-center shadow-lg border-2 ${occupancyStatus.color.replace('text-', 'border-')}/50`}>
+                      <StatusIcon className={`w-10 h-10 ${occupancyStatus.color}`} />
                     </div>
                     <div>
-                      <p className="text-slate-300 text-sm">معدل الإشغال الحالي</p>
-                      <p className={`text-sm font-semibold ${occupancyStatus.color}`}>{occupancyStatus.status}</p>
+                      <p className="text-slate-200 text-base font-medium">معدل الإشغال الحالي</p>
+                      <p className={`text-lg font-bold ${occupancyStatus.color} flex items-center gap-2`}>
+                        {occupancyStatus.status}
+                      </p>
                     </div>
                   </div>
                   
-                  <div className="mb-6">
-                    <div className="flex items-baseline gap-2 mb-2">
-                      <span className="text-6xl font-bold text-white">{occupancyRate}</span>
-                      <span className="text-3xl text-slate-300">%</span>
+                  <div className="bg-gradient-to-br from-white/10 to-white/5 rounded-2xl p-6 border border-white/20 backdrop-blur-sm">
+                    <div className="flex items-baseline gap-3 mb-3">
+                      <span className="text-7xl font-extrabold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent drop-shadow-lg">{occupancyRate}</span>
+                      <span className="text-4xl font-bold text-slate-300">%</span>
                     </div>
-                    <p className="text-slate-400">
+                    <p className="text-slate-300 font-medium text-base">
                       {occupiedRooms} من {totalRooms} غرفة مشغولة حالياً
                     </p>
                   </div>
 
-                  <div className="bg-slate-800/50 rounded-xl p-4 backdrop-blur-sm">
-                    <div className="w-full bg-slate-700 rounded-full h-3 mb-3">
+                  <div className="bg-gradient-to-br from-slate-700/50 to-slate-800/50 rounded-2xl p-5 backdrop-blur-sm border border-white/10">
+                    <div className="w-full bg-slate-900/50 rounded-full h-4 mb-4 shadow-inner">
                       <div
-                        className="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full transition-all duration-500"
+                        className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 h-4 rounded-full transition-all duration-700 shadow-lg shadow-blue-500/50"
                         style={{ width: `${occupancyRate}%` }}
                       ></div>
                     </div>
-                    <div className="grid grid-cols-3 gap-2 text-xs">
-                      <div>
-                        <span className="text-slate-400">متاحة:</span>
-                        <span className="text-green-400 font-bold ml-1">{availableRooms}</span>
+                    <div className="grid grid-cols-3 gap-3 text-sm">
+                      <div className="bg-green-500/10 rounded-lg p-2 border border-green-500/30">
+                        <span className="text-green-400 font-semibold block">متاحة</span>
+                        <span className="text-white font-bold text-xl">{availableRooms}</span>
                       </div>
-                      <div>
-                        <span className="text-slate-400">صيانة:</span>
-                        <span className="text-yellow-400 font-bold ml-1">{maintenanceRooms}</span>
+                      <div className="bg-yellow-500/10 rounded-lg p-2 border border-yellow-500/30">
+                        <span className="text-yellow-400 font-semibold block">صيانة</span>
+                        <span className="text-white font-bold text-xl">{maintenanceRooms}</span>
                       </div>
-                      <div>
-                        <span className="text-slate-400">تنظيف:</span>
-                        <span className="text-blue-400 font-bold ml-1">{cleaningRooms}</span>
+                      <div className="bg-blue-500/10 rounded-lg p-2 border border-blue-500/30">
+                        <span className="text-blue-400 font-semibold block">تنظيف</span>
+                        <span className="text-white font-bold text-xl">{cleaningRooms}</span>
                       </div>
                     </div>
                   </div>
@@ -187,30 +189,59 @@ const AnalyticsPage = () => {
 
                 <div className="space-y-4">
                   {/* Recommendations */}
-                  <div className="bg-white/5 backdrop-blur-sm rounded-xl p-5 border border-white/10">
+                  <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 backdrop-blur-sm rounded-2xl p-6 border-2 border-blue-400/30 shadow-lg">
                     <div className="flex items-start gap-3">
-                      <Target className="w-6 h-6 text-blue-400 flex-shrink-0 mt-1" />
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <Target className="w-5 h-5 text-white" />
+                      </div>
                       <div>
-                        <h4 className="text-white font-bold mb-2">توصيات الأداء</h4>
+                        <h4 className="text-white font-bold text-lg mb-3">توصيات الأداء</h4>
                         {parseFloat(occupancyRate) < 50 && (
                           <div className="space-y-2">
-                            <p className="text-sm text-slate-300">• تفعيل عروض ترويجية خاصة</p>
-                            <p className="text-sm text-slate-300">• التواصل مع العملاء السابقين</p>
-                            <p className="text-sm text-slate-300">• زيادة الحملات التسويقية</p>
+                            <p className="text-sm text-slate-200 flex items-center gap-2">
+                              <span className="w-2 h-2 bg-red-400 rounded-full"></span>
+                              تفعيل عروض ترويجية خاصة
+                            </p>
+                            <p className="text-sm text-slate-200 flex items-center gap-2">
+                              <span className="w-2 h-2 bg-red-400 rounded-full"></span>
+                              التواصل مع العملاء السابقين
+                            </p>
+                            <p className="text-sm text-slate-200 flex items-center gap-2">
+                              <span className="w-2 h-2 bg-red-400 rounded-full"></span>
+                              زيادة الحملات التسويقية
+                            </p>
                           </div>
                         )}
                         {parseFloat(occupancyRate) >= 50 && parseFloat(occupancyRate) < 85 && (
                           <div className="space-y-2">
-                            <p className="text-sm text-slate-300">• الأداء جيد، استمر في الاستراتيجية الحالية</p>
-                            <p className="text-sm text-slate-300">• راقب التقييمات والمراجعات</p>
-                            <p className="text-sm text-slate-300">• حسّن تجربة الضيوف</p>
+                            <p className="text-sm text-slate-200 flex items-center gap-2">
+                              <span className="w-2 h-2 bg-yellow-400 rounded-full"></span>
+                              الأداء جيد، استمر في الاستراتيجية الحالية
+                            </p>
+                            <p className="text-sm text-slate-200 flex items-center gap-2">
+                              <span className="w-2 h-2 bg-yellow-400 rounded-full"></span>
+                              راقب التقييمات والمراجعات
+                            </p>
+                            <p className="text-sm text-slate-200 flex items-center gap-2">
+                              <span className="w-2 h-2 bg-yellow-400 rounded-full"></span>
+                              حسّن تجربة الضيوف
+                            </p>
                           </div>
                         )}
                         {parseFloat(occupancyRate) >= 85 && (
                           <div className="space-y-2">
-                            <p className="text-sm text-slate-300">• أداء ممتاز! يمكن رفع الأسعار</p>
-                            <p className="text-sm text-slate-300">• ركز على العملاء المميزين</p>
-                            <p className="text-sm text-slate-300">• حافظ على جودة الخدمة</p>
+                            <p className="text-sm text-slate-200 flex items-center gap-2">
+                              <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                              أداء ممتاز! يمكن رفع الأسعار
+                            </p>
+                            <p className="text-sm text-slate-200 flex items-center gap-2">
+                              <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                              ركز على العملاء المميزين
+                            </p>
+                            <p className="text-sm text-slate-200 flex items-center gap-2">
+                              <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                              حافظ على جودة الخدمة
+                            </p>
                           </div>
                         )}
                       </div>
@@ -218,20 +249,24 @@ const AnalyticsPage = () => {
                   </div>
 
                   {/* Quick Stats */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Calendar className="w-5 h-5 text-green-400" />
-                        <p className="text-slate-400 text-xs">حجوزات نشطة</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/10 backdrop-blur-sm rounded-xl p-5 border-2 border-green-400/30 hover:border-green-400/50 transition-all">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-10 h-10 bg-green-500/30 rounded-lg flex items-center justify-center">
+                          <Calendar className="w-5 h-5 text-green-400" />
+                        </div>
+                        <p className="text-slate-200 text-xs font-semibold">حجوزات نشطة</p>
                       </div>
-                      <p className="text-2xl font-bold text-white">{activeBookings.length}</p>
+                      <p className="text-3xl font-bold text-white">{activeBookings.length}</p>
                     </div>
-                    <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Percent className="w-5 h-5 text-blue-400" />
-                        <p className="text-slate-400 text-xs">نسبة التوفر</p>
+                    <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/10 backdrop-blur-sm rounded-xl p-5 border-2 border-blue-400/30 hover:border-blue-400/50 transition-all">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-10 h-10 bg-blue-500/30 rounded-lg flex items-center justify-center">
+                          <Percent className="w-5 h-5 text-blue-400" />
+                        </div>
+                        <p className="text-slate-200 text-xs font-semibold">نسبة التوفر</p>
                       </div>
-                      <p className="text-2xl font-bold text-white">{availabilityRate}%</p>
+                      <p className="text-3xl font-bold text-white">{availabilityRate}%</p>
                     </div>
                   </div>
                 </div>
