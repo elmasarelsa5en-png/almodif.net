@@ -557,7 +557,10 @@ export default function MenuItemsPage() {
                 <Label className="text-white font-semibold">التصنيف *</Label>
                 <Select
                   value={formData.category}
-                  onValueChange={(value) => setFormData({ ...formData, category: value, subCategory: '' })}
+                  onValueChange={(value) => {
+                    console.log('🟢 Category selected:', value);
+                    setFormData({ ...formData, category: value, subCategory: '' });
+                  }}
                 >
                   <SelectTrigger className="bg-white/10 border-purple-500/30 text-white">
                     <SelectValue placeholder="اختر التصنيف..." />
@@ -576,7 +579,10 @@ export default function MenuItemsPage() {
                 <Label className="text-white font-semibold">التصنيف الفرعي (اختياري)</Label>
                 <Select
                   value={formData.subCategory}
-                  onValueChange={(value) => setFormData({ ...formData, subCategory: value })}
+                  onValueChange={(value) => {
+                    console.log('🟢 SubCategory selected:', value);
+                    setFormData({ ...formData, subCategory: value });
+                  }}
                 >
                   <SelectTrigger className="bg-white/10 border-purple-500/30 text-white">
                     <SelectValue placeholder="اختر التصنيف..." />
