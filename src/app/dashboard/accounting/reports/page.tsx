@@ -30,46 +30,38 @@ export default function ReportsPage() {
 
   const profitLossData = {
     revenue: {
-      rooms: 95000,
-      restaurant: 18000,
-      services: 8000,
-      coffeeshop: 4000,
-      total: 125000
+      rooms: 0,
+      restaurant: 0,
+      services: 0,
+      coffeeshop: 0,
+      total: 0
     },
     expenses: {
-      utilities: 8000,
-      maintenance: 5000,
-      cleaning: 3000,
-      salaries: 25000,
-      supplies: 4000,
-      total: 45000
+      utilities: 0,
+      maintenance: 0,
+      cleaning: 0,
+      salaries: 0,
+      supplies: 0,
+      total: 0
     },
-    netProfit: 80000
+    netProfit: 0
   };
 
   const monthlyTrends = [
-    { month: 'يناير', revenue: 118000, expenses: 42000, profit: 76000 },
-    { month: 'فبراير', revenue: 125000, expenses: 45000, profit: 80000 },
-    { month: 'مارس', revenue: 132000, expenses: 48000, profit: 84000 },
-    { month: 'أبريل', revenue: 128000, expenses: 46000, profit: 82000 },
-    { month: 'مايو', revenue: 135000, expenses: 49000, profit: 86000 },
-    { month: 'يونيو', revenue: 142000, expenses: 52000, profit: 90000 }
+    // البدء من الصفر - لا توجد بيانات شهرية
   ];
 
   const categoryAnalysis = [
-    { category: 'إيرادات الغرف', amount: 95000, percentage: 76, trend: '+8%' },
-    { category: 'المطعم', amount: 18000, percentage: 14, trend: '+12%' },
-    { category: 'خدمات إضافية', amount: 8000, percentage: 6, trend: '+5%' },
-    { category: 'الكوفي شوب', amount: 4000, percentage: 3, trend: '+15%' }
+    // البدء من الصفر - لا توجد تحليلات
   ];
 
   const kpiData = {
-    profitMargin: 64,
-    growthRate: 12.5,
-    expenseRatio: 36,
-    dailyAverage: 4167,
-    occupancyRate: 78,
-    revenuePerRoom: 3125
+    profitMargin: 0,
+    growthRate: 0,
+    expenseRatio: 0,
+    dailyAverage: 0,
+    occupancyRate: 0,
+    revenuePerRoom: 0
   };
 
   const handleExportReport = (reportType: string) => {

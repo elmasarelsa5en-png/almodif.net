@@ -20,19 +20,11 @@ export default function FinancialDashboardPage() {
   const router = useRouter();
 
   const monthlyData = [
-    { month: 'يناير', revenue: 120000, expenses: 45000, profit: 75000 },
-    { month: 'فبراير', revenue: 135000, expenses: 48000, profit: 87000 },
-    { month: 'مارس', revenue: 142000, expenses: 52000, profit: 90000 },
-    { month: 'أبريل', revenue: 138000, expenses: 49000, profit: 89000 },
-    { month: 'مايو', revenue: 155000, expenses: 53000, profit: 102000 },
-    { month: 'يونيو', revenue: 148000, expenses: 51000, profit: 97000 }
+    // البدء من الصفر - لا توجد بيانات شهرية
   ];
 
   const categoryBreakdown = [
-    { category: 'إيرادات الغرف', amount: 95000, percentage: 76 },
-    { category: 'المطعم', amount: 18000, percentage: 14 },
-    { category: 'خدمات إضافية', amount: 8000, percentage: 6 },
-    { category: 'الكوفي شوب', amount: 4000, percentage: 3 }
+    // البدء من الصفر - لا توجد بيانات تصنيفية
   ];
 
   return (
