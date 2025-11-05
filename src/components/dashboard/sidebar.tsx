@@ -222,13 +222,6 @@ const navigationItems: NavigationItem[] = [
         permission: 'view_payment_vouchers',
       },
       {
-        icon: DollarSign,
-        labelKey: 'expenseVouchers',
-        descKey: 'expenseVouchersDesc',
-        href: '/dashboard/expenses',
-        permission: 'view_expense_vouchers',
-      },
-      {
         icon: FileText,
         labelKey: 'promissoryNotes',
         descKey: 'promissoryNotesDesc',
