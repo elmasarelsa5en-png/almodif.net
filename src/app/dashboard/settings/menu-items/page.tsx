@@ -150,12 +150,14 @@ export default function MenuItemsPage() {
         nameAr: formData.nameAr,
         price: parseFloat(formData.price),
         category: formData.category,
-        subCategory: formData.subCategory || undefined,
-        description: formData.description || undefined,
-        image: formData.image || undefined,
         available: formData.available,
         createdAt: editingItem?.createdAt || new Date().toISOString(),
       };
+
+      // Add optional fields only if they have values
+      if (formData.subCategory) itemData.subCategory = formData.subCategory;
+      if (formData.description) itemData.description = formData.description;
+      if (formData.image) itemData.image = formData.image;
 
       if (editingItem) {
         await updateMenuItem(editingItem.id, itemData);
