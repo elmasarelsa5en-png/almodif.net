@@ -465,12 +465,12 @@ export default function RestaurantPage() {
                     <Card className="bg-white/5 backdrop-blur-xl border-amber-400/20 hover:border-amber-400/40 transition-all duration-500 overflow-hidden shadow-2xl hover:shadow-amber-500/25 h-full">
                       {/* Item image and badges */}
                       <div className="relative h-48 bg-gradient-to-br from-amber-100 via-orange-50 to-yellow-100 overflow-hidden">
-                        <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="absolute inset-0 flex items-center justify-center p-4">
                           {item.image && item.image.startsWith('data:image') ? (
                             <img 
                               src={item.image} 
                               alt={item.nameAr}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                              className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-300"
                             />
                           ) : (
                             <motion.div 
