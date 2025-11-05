@@ -401,47 +401,6 @@ export default function AccountingPage() {
             </Card>
           </div>
 
-          {/* قسم ملخص البيانات المستوردة */}
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-white/20">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <CheckCircle className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-white">البيانات المستوردة</h2>
-                  <p className="text-blue-200/80">تم استيراد بيانات الحركة النقدية لشهر (6) بنجاح</p>
-                </div>
-              </div>
-              <Button 
-                onClick={() => navigateToSection('/dashboard/accounting/import-summary')}
-                className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-lg"
-              >
-                <Eye className="ml-2 w-4 h-4" />
-                عرض التفاصيل
-              </Button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 p-4 rounded-lg">
-                <div className="text-2xl font-bold text-green-400">49</div>
-                <div className="text-green-200/80 text-sm">معاملة نقدية</div>
-              </div>
-              <div className="bg-gradient-to-r from-blue-500/20 to-indigo-500/20 p-4 rounded-lg">
-                <div className="text-2xl font-bold text-blue-400">34,053</div>
-                <div className="text-blue-200/80 text-sm">إجمالي المقبوضات</div>
-              </div>
-              <div className="bg-gradient-to-r from-red-500/20 to-pink-500/20 p-4 rounded-lg">
-                <div className="text-2xl font-bold text-red-400">26,077.5</div>
-                <div className="text-red-200/80 text-sm">إجمالي المصروفات</div>
-              </div>
-              <div className="bg-gradient-to-r from-purple-500/20 to-violet-500/20 p-4 rounded-lg">
-                <div className="text-2xl font-bold text-purple-400">7,975.5</div>
-                <div className="text-purple-200/80 text-sm">الرصيد النهائي</div>
-              </div>
-            </div>
-          </div>
-
           {/* قسم استيراد البيانات من Excel */}
           <ExcelImportSection onNavigateToSection={navigateToSection} />
 

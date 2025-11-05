@@ -150,13 +150,15 @@
             let messages = [];
             
             try {
-                // 1. إلغاء Service Workers
-                if ('serviceWorker' in navigator) {
+                // 1. إلغاء Service Workers (فقط على http/https)
+                if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
                     const registrations = await navigator.serviceWorker.getRegistrations();
                     for (let registration of registrations) {
                         await registration.unregister();
                     }
                     messages.push('✅ تم إلغاء تسجيل Service Workers');
+                } else if (!location.protocol.startsWith('http')) {
+                    messages.push('ℹ️ Service Workers غير متاحة (file://)');
                 }
                 
                 // 2. مسح Cache Storage
