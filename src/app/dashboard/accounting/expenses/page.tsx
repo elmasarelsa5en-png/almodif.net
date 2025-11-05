@@ -46,46 +46,7 @@ export default function ExpensesPage() {
   const [showImportZone, setShowImportZone] = useState(false);
 
   const [expenses, setExpenses] = useState([
-    {
-      id: 1,
-      description: 'فاتورة كهرباء شهر أكتوبر',
-      amount: 1200,
-      category: 'المرافق',
-      date: '2025-10-09',
-      paymentMethod: 'تحويل بنكي',
-      receipt: 'REC-001',
-      notes: 'فاتورة شهرية للكهرباء'
-    },
-    {
-      id: 2,
-      description: 'شراء مستلزمات تنظيف',
-      amount: 350,
-      category: 'التنظيف',
-      date: '2025-10-08',
-      paymentMethod: 'نقدي',
-      receipt: 'REC-002',
-      notes: 'مواد تنظيف للغرف'
-    },
-    {
-      id: 3,
-      description: 'إصلاح مكيف الهواء - غرفة 205',
-      amount: 800,
-      category: 'الصيانة',
-      date: '2025-10-07',
-      paymentMethod: 'بطاقة ائتمان',
-      receipt: 'REC-003',
-      notes: 'صيانة عاجلة'
-    },
-    {
-      id: 4,
-      description: 'رواتب الموظفين - أكتوبر',
-      amount: 25000,
-      category: 'الرواتب',
-      date: '2025-10-01',
-      paymentMethod: 'تحويل بنكي',
-      receipt: 'REC-004',
-      notes: 'رواتب شهر أكتوبر'
-    }
+    // البدء من الصفر - لا توجد مصروفات
   ]);
 
   // فحص البيانات المستوردة

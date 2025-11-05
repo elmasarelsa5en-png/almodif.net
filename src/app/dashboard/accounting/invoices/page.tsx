@@ -71,66 +71,7 @@ export default function InvoicesPage() {
   const [groupByCustomer, setGroupByCustomer] = useState(false);
 
   const [invoices, setInvoices] = useState([
-    {
-      id: 1,
-      number: 'INV-2025-001',
-      customerName: 'أحمد محمد',
-      room: '205',
-      amount: 1500,
-      amountBeforeTax: 1250,
-      amountAfterTax: 1500,
-      taxNumber: '123-456-789',
-      paymentType: 'نقدي',
-      status: 'مدفوع',
-      date: '2025-10-09',
-      dueDate: '2025-10-15',
-      description: 'إقامة 3 ليالي - غرفة مزدوجة'
-    },
-    {
-      id: 2,
-      number: 'INV-2025-002',
-      customerName: 'فاطمة أحمد',
-      room: '307',
-      amount: 2200,
-      amountBeforeTax: 1833.33,
-      amountAfterTax: 2200,
-      taxNumber: '234-567-890',
-      paymentType: 'بطاقة ائتمان',
-      status: 'معلق',
-      date: '2025-10-08',
-      dueDate: '2025-10-14',
-      description: 'إقامة 5 ليالي - جناح ملكي'
-    },
-    {
-      id: 3,
-      number: 'INV-2025-003',
-      customerName: 'محمد علي',
-      room: '156',
-      amount: 800,
-      amountBeforeTax: 666.67,
-      amountAfterTax: 800,
-      taxNumber: '345-678-901',
-      paymentType: 'تحويل بنكي',
-      status: 'متأخر',
-      date: '2025-10-05',
-      dueDate: '2025-10-11',
-      description: 'إقامة ليلتين - غرفة فردية'
-    },
-    {
-      id: 4,
-      number: 'INV-2025-004',
-      customerName: 'سارة محمود',
-      room: '401',
-      amount: 3500,
-      amountBeforeTax: 2916.67,
-      amountAfterTax: 3500,
-      taxNumber: '456-789-012',
-      paymentType: 'نقدي',
-      status: 'مدفوع',
-      date: '2025-10-07',
-      dueDate: '2025-10-13',
-      description: 'إقامة أسبوع - جناح رئاسي'
-    }
+    // البدء من الصفر - لا توجد فواتير
   ]);
 
   // فحص البيانات المستوردة
