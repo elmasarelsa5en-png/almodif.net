@@ -34,6 +34,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -540,12 +541,15 @@ export default function MenuItemsPage() {
           })}
         </div>
 
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="bg-gradient-to-br from-slate-900 to-purple-900 border-purple-500/50 text-white max-w-2xl">
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen} modal={true}>
+          <DialogContent className="bg-gradient-to-br from-slate-900 to-purple-900 border-purple-500/50 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
                 {editingItem ? 'تعديل صنف' : 'إضافة صنف جديد'}
               </DialogTitle>
+              <DialogDescription className="text-purple-200">
+                {editingItem ? 'قم بتعديل بيانات الصنف' : 'أضف صنف جديد للقائمة'}
+              </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4">
@@ -558,7 +562,7 @@ export default function MenuItemsPage() {
                   <SelectTrigger className="bg-white/10 border-purple-500/30 text-white">
                     <SelectValue placeholder="اختر التصنيف..." />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-900 border-purple-500/30">
+                  <SelectContent className="bg-slate-900 border-purple-500/30 z-[9999]">
                     {categories.map((cat) => (
                       <SelectItem key={cat.value} value={cat.value} className="text-white">
                         {cat.labelAr}
@@ -577,7 +581,7 @@ export default function MenuItemsPage() {
                   <SelectTrigger className="bg-white/10 border-purple-500/30 text-white">
                     <SelectValue placeholder="اختر التصنيف..." />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-900 border-purple-500/30">
+                  <SelectContent className="bg-slate-900 border-purple-500/30 z-[9999]">
                     {(subCategories[formData.category] || []).map((sub) => (
                       <SelectItem key={sub} value={sub} className="text-white">
                         {sub}
@@ -698,6 +702,9 @@ export default function MenuItemsPage() {
                 <Settings className="h-6 w-6 text-purple-400" />
                 إدارة الفئات والتصنيفات
               </DialogTitle>
+              <DialogDescription className="text-purple-200">
+                إضافة وتعديل وحذف الفئات والفئات الفرعية
+              </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-6">
