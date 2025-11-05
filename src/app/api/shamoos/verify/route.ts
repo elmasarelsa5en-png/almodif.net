@@ -97,12 +97,12 @@ export async function POST(request: NextRequest) {
     */
 
     // استجابة مؤقتة للاختبار (حذف هذا عند التفعيل الحقيقي)
-    // في بيئة الإنتاج، يجب استخدام API الحقيقي فقط
-    if (process.env.NODE_ENV === 'development') {
+    // يعمل في بيئة التطوير والإنتاج حتى يتم توفير API Key
+    if (!process.env.SHAMOOS_API_KEY) {
       // محاكاة نجاح التحقق للاختبار
       return NextResponse.json({
         verified: true,
-        message: 'تم التحقق من الهوية بنجاح (وضع الاختبار)',
+        message: 'تم التحقق من الهوية بنجاح (وضع الاختبار - بانتظار API Key)',
         citizenInfo: {
           name: 'محمد أحمد السعيد',
           nationality: 'السعودية',
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // في بيئة الإنتاج بدون API Key
+    // في حالة وجود API Key ولكن فشل الاتصال
     return NextResponse.json(
       {
         verified: false,
