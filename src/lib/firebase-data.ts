@@ -469,7 +469,7 @@ export interface MenuItem {
   name: string;
   nameAr: string;
   price: number;
-  category: 'coffee' | 'restaurant' | 'laundry' | 'room-services' | 'reception';
+  category: string; // Changed from fixed values to string to support custom categories
   subCategory?: string;
   description?: string;
   descriptionAr?: string;

@@ -15,6 +15,9 @@ import {
   ImageIcon,
   BedDouble,
   HelpCircle,
+  Settings,
+  Tag,
+  X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -45,14 +48,14 @@ import {
 } from '@/lib/firebase-data';
 
 const CATEGORIES = [
-  { value: 'coffee', label: 'كوفي شوب', icon: Coffee, color: 'amber' },
-  { value: 'restaurant', label: 'مطعم', icon: Utensils, color: 'orange' },
-  { value: 'laundry', label: 'مغسلة', icon: Shirt, color: 'blue' },
-  { value: 'room-services', label: 'خدمات الغرف', icon: BedDouble, color: 'purple' },
-  { value: 'reception', label: 'خدمات الاستقبال', icon: HelpCircle, color: 'green' },
+  { value: 'coffee', label: 'Coffee Shop', labelAr: 'كوفي شوب', icon: Coffee, color: 'amber' },
+  { value: 'restaurant', label: 'Restaurant', labelAr: 'مطعم', icon: Utensils, color: 'orange' },
+  { value: 'laundry', label: 'Laundry', labelAr: 'مغسلة', icon: Shirt, color: 'blue' },
+  { value: 'room-services', label: 'Room Services', labelAr: 'خدمات الغرف', icon: BedDouble, color: 'purple' },
+  { value: 'reception', label: 'Reception', labelAr: 'خدمات الاستقبال', icon: HelpCircle, color: 'green' },
 ];
 
-const SUB_CATEGORIES = {
+const DEFAULT_SUB_CATEGORIES = {
   coffee: ['مشروبات ساخنة', 'مشروبات باردة', 'حلويات', 'وجبات خفيفة'],
   restaurant: ['مقبلات', 'أطباق رئيسية', 'حلويات', 'مشروبات', 'سلطات'],
   laundry: ['ملابس', 'مفروشات', 'خدمات خاصة'],
@@ -67,8 +70,23 @@ export default function MenuItemsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [loading, setLoading] = useState(false);
+  
+  // إدارة الفئات والفئات الفرعية
+  const [categories, setCategories] = useState(CATEGORIES);
+  const [subCategories, setSubCategories] = useState(DEFAULT_SUB_CATEGORIES);
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [categoryFormData, setCategoryFormData] = useState({
+    value: '',
+    label: '',
+    labelAr: '',
+    icon: 'Coffee',
+    color: 'amber',
+  });
+  const [newSubCategory, setNewSubCategory] = useState('');
+  const [selectedCategoryForSub, setSelectedCategoryForSub] = useState('');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -201,14 +219,114 @@ export default function MenuItemsPage() {
   };
 
   const getCategoryIcon = (category) => {
-    const cat = CATEGORIES.find((c) => c.value === category);
+    const cat = categories.find((c) => c.value === category);
     const Icon = cat?.icon || Coffee;
     return <Icon className="h-4 w-4" />;
   };
 
   const getCategoryColor = (category) => {
-    const cat = CATEGORIES.find((c) => c.value === category);
+    const cat = categories.find((c) => c.value === category);
     return cat?.color || 'gray';
+  };
+
+  // Category Management Functions
+  const handleAddCategory = () => {
+    setCategoryFormData({ value: '', label: '', labelAr: '', icon: 'Coffee', color: 'blue' });
+    setEditingCategory(null);
+    setIsCategoryDialogOpen(true);
+  };
+
+  const handleEditCategory = (category) => {
+    setCategoryFormData({
+      value: category.value,
+      label: category.label,
+      labelAr: category.labelAr,
+      icon: category.icon?.name || 'Coffee',
+      color: category.color,
+    });
+    setEditingCategory(category.value);
+    setIsCategoryDialogOpen(true);
+  };
+
+  const handleSaveCategory = () => {
+    if (!categoryFormData.value || !categoryFormData.label || !categoryFormData.labelAr) {
+      alert('يرجى ملء جميع الحقول المطلوبة');
+      return;
+    }
+
+    const iconComponents = { Coffee, Utensils, Shirt, BedDouble, HelpCircle };
+    const IconComponent = iconComponents[categoryFormData.icon] || Coffee;
+
+    const newCategory = {
+      value: categoryFormData.value,
+      label: categoryFormData.label,
+      labelAr: categoryFormData.labelAr,
+      icon: IconComponent,
+      color: categoryFormData.color,
+    };
+
+    if (editingCategory) {
+      // Edit existing category
+      setCategories(categories.map(cat => 
+        cat.value === editingCategory ? newCategory : cat
+      ));
+    } else {
+      // Add new category
+      if (categories.find(cat => cat.value === categoryFormData.value)) {
+        alert('هذه الفئة موجودة بالفعل');
+        return;
+      }
+      setCategories([...categories, newCategory]);
+      setSubCategories({ ...subCategories, [categoryFormData.value]: [] });
+    }
+
+    setIsCategoryDialogOpen(false);
+    setCategoryFormData({ value: '', label: '', labelAr: '', icon: 'Coffee', color: 'blue' });
+    setEditingCategory(null);
+  };
+
+  const handleDeleteCategory = (categoryValue) => {
+    // Check if there are items in this category
+    const itemsInCategory = items.filter(item => item.category === categoryValue);
+    if (itemsInCategory.length > 0) {
+      alert(`لا يمكن حذف هذه الفئة لأنها تحتوي على ${itemsInCategory.length} صنف`);
+      return;
+    }
+
+    if (!confirm('هل تريد حذف هذه الفئة؟')) return;
+
+    setCategories(categories.filter(cat => cat.value !== categoryValue));
+    const newSubCategories = { ...subCategories };
+    delete newSubCategories[categoryValue];
+    setSubCategories(newSubCategories);
+  };
+
+  const handleAddSubCategory = () => {
+    if (!newSubCategory.trim() || !selectedCategoryForSub) {
+      alert('يرجى إدخال اسم الفئة الفرعية واختيار الفئة');
+      return;
+    }
+
+    const categorySubCategories = subCategories[selectedCategoryForSub] || [];
+    if (categorySubCategories.includes(newSubCategory.trim())) {
+      alert('هذه الفئة الفرعية موجودة بالفعل');
+      return;
+    }
+
+    setSubCategories({
+      ...subCategories,
+      [selectedCategoryForSub]: [...categorySubCategories, newSubCategory.trim()],
+    });
+    setNewSubCategory('');
+  };
+
+  const handleRemoveSubCategory = (category, subCategory) => {
+    if (!confirm(`هل تريد حذف "${subCategory}"؟`)) return;
+
+    setSubCategories({
+      ...subCategories,
+      [category]: subCategories[category].filter(sub => sub !== subCategory),
+    });
   };
 
   return (
@@ -234,16 +352,26 @@ export default function MenuItemsPage() {
               </p>
             </div>
           </div>
-          <Button
-            onClick={() => {
-              resetForm();
-              setIsDialogOpen(true);
-            }}
-            className="bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 hover:from-purple-700 hover:via-pink-700 hover:to-rose-700 shadow-xl shadow-purple-500/50 transition-all hover:scale-105 text-white font-bold"
-          >
-            <Plus className="h-5 w-5 mr-2" />
-            إضافة صنف جديد
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={handleAddCategory}
+              variant="outline"
+              className="bg-white/10 text-white border-white/20 hover:bg-white/20 transition-all hover:scale-105"
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              إعدادات الفئات
+            </Button>
+            <Button
+              onClick={() => {
+                resetForm();
+                setIsDialogOpen(true);
+              }}
+              className="bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 hover:from-purple-700 hover:via-pink-700 hover:to-rose-700 shadow-xl shadow-purple-500/50 transition-all hover:scale-105 text-white font-bold"
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              إضافة صنف جديد
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
@@ -261,7 +389,7 @@ export default function MenuItemsPage() {
               <p className="text-sm text-white/90 mt-1 font-bold">جميع الفئات</p>
             </CardContent>
           </Card>
-          {CATEGORIES.map((cat) => {
+          {categories.map((cat) => {
             const Icon = cat.icon;
             const count = items.filter((i) => i.category === cat.value).length;
             const colorClasses = {
@@ -281,7 +409,7 @@ export default function MenuItemsPage() {
                     <div className="p-2 bg-white/10 rounded-lg shadow-lg">
                       <Icon className="h-5 w-5 text-white" />
                     </div>
-                    {cat.label}
+                    {cat.labelAr}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -315,7 +443,7 @@ export default function MenuItemsPage() {
                   <SelectItem value="all" className="text-white font-bold">
                     كل الفئات
                   </SelectItem>
-                  {CATEGORIES.map((cat) => (
+                  {categories.map((cat) => (
                     <SelectItem key={cat.value} value={cat.value} className="text-white font-bold">
                       {cat.label}
                     </SelectItem>
@@ -427,7 +555,7 @@ export default function MenuItemsPage() {
                     <SelectValue placeholder="اختر التصنيف..." />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-900 border-purple-500/30">
-                    {CATEGORIES.map((cat) => (
+                    {categories.map((cat) => (
                       <SelectItem key={cat.value} value={cat.value} className="text-white">
                         {cat.label}
                       </SelectItem>
@@ -446,7 +574,7 @@ export default function MenuItemsPage() {
                     <SelectValue placeholder="اختر التصنيف..." />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-900 border-purple-500/30">
-                    {SUB_CATEGORIES[formData.category].map((sub) => (
+                    {(subCategories[formData.category] || []).map((sub) => (
                       <SelectItem key={sub} value={sub} className="text-white">
                         {sub}
                       </SelectItem>
@@ -526,6 +654,239 @@ export default function MenuItemsPage() {
               >
                 {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
                 {editingItem ? 'تحديث' : 'إضافة'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Category Management Dialog */}
+        <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
+          <DialogContent className="bg-gradient-to-br from-slate-900 via-purple-900/50 to-slate-900 border-purple-500/50 max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold text-white flex items-center gap-3">
+                <Settings className="h-6 w-6 text-purple-400" />
+                إدارة الفئات والتصنيفات
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-6">
+              {/* Existing Categories */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                  <Tag className="h-5 w-5 text-purple-400" />
+                  الفئات الحالية
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {categories.map((cat) => (
+                    <div
+                      key={cat.value}
+                      className="bg-white/10 border border-white/20 rounded-lg p-4 flex items-center justify-between hover:bg-white/15 transition-all"
+                    >
+                      <div className="flex items-center gap-3">
+                        {getCategoryIcon(cat.value)}
+                        <div>
+                          <div className="text-white font-medium">{cat.labelAr}</div>
+                          <div className="text-purple-300 text-sm">{cat.label}</div>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleEditCategory(cat)}
+                          className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/20"
+                        >
+                          تعديل
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDeleteCategory(cat.value)}
+                          className="text-red-400 hover:text-red-300 hover:bg-red-500/20"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Add/Edit Category Form */}
+              <div className="space-y-4 bg-white/5 rounded-lg p-4 border border-purple-500/30">
+                <h3 className="text-lg font-semibold text-white">
+                  {editingCategory ? 'تعديل الفئة' : 'إضافة فئة جديدة'}
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-white font-semibold">رمز الفئة (value) *</Label>
+                    <Input
+                      value={categoryFormData.value}
+                      onChange={(e) =>
+                        setCategoryFormData({ ...categoryFormData, value: e.target.value })
+                      }
+                      placeholder="coffee, restaurant, laundry..."
+                      disabled={editingCategory !== null}
+                      className="bg-white/10 border-purple-500/30 text-white placeholder:text-purple-300/50"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-white font-semibold">الاسم (إنجليزي) *</Label>
+                    <Input
+                      value={categoryFormData.label}
+                      onChange={(e) =>
+                        setCategoryFormData({ ...categoryFormData, label: e.target.value })
+                      }
+                      placeholder="Coffee Shop"
+                      className="bg-white/10 border-purple-500/30 text-white placeholder:text-purple-300/50"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-white font-semibold">الاسم (عربي) *</Label>
+                    <Input
+                      value={categoryFormData.labelAr}
+                      onChange={(e) =>
+                        setCategoryFormData({ ...categoryFormData, labelAr: e.target.value })
+                      }
+                      placeholder="كوفي شوب"
+                      className="bg-white/10 border-purple-500/30 text-white placeholder:text-purple-300/50"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-white font-semibold">الأيقونة *</Label>
+                    <Select
+                      value={categoryFormData.icon}
+                      onValueChange={(value) =>
+                        setCategoryFormData({ ...categoryFormData, icon: value })
+                      }
+                    >
+                      <SelectTrigger className="bg-white/10 border-purple-500/30 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-900 border-purple-500/30">
+                        <SelectItem value="Coffee" className="text-white">☕ Coffee</SelectItem>
+                        <SelectItem value="Utensils" className="text-white">🍴 Utensils</SelectItem>
+                        <SelectItem value="Shirt" className="text-white">👔 Shirt</SelectItem>
+                        <SelectItem value="BedDouble" className="text-white">🛏️ Bed</SelectItem>
+                        <SelectItem value="HelpCircle" className="text-white">❓ Help</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-white font-semibold">اللون *</Label>
+                    <Select
+                      value={categoryFormData.color}
+                      onValueChange={(value) =>
+                        setCategoryFormData({ ...categoryFormData, color: value })
+                      }
+                    >
+                      <SelectTrigger className="bg-white/10 border-purple-500/30 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-900 border-purple-500/30">
+                        <SelectItem value="amber" className="text-white">🟡 Amber</SelectItem>
+                        <SelectItem value="orange" className="text-white">🟠 Orange</SelectItem>
+                        <SelectItem value="blue" className="text-white">🔵 Blue</SelectItem>
+                        <SelectItem value="purple" className="text-white">🟣 Purple</SelectItem>
+                        <SelectItem value="green" className="text-white">🟢 Green</SelectItem>
+                        <SelectItem value="red" className="text-white">🔴 Red</SelectItem>
+                        <SelectItem value="pink" className="text-white">🩷 Pink</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={handleSaveCategory}
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 w-full"
+                >
+                  {editingCategory ? 'تحديث الفئة' : 'إضافة الفئة'}
+                </Button>
+              </div>
+
+              {/* Subcategories Management */}
+              <div className="space-y-4 bg-white/5 rounded-lg p-4 border border-purple-500/30">
+                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                  <Tag className="h-5 w-5 text-purple-400" />
+                  إدارة الفئات الفرعية
+                </h3>
+
+                {/* Add Subcategory */}
+                <div className="flex gap-2">
+                  <Select value={selectedCategoryForSub} onValueChange={setSelectedCategoryForSub}>
+                    <SelectTrigger className="bg-white/10 border-purple-500/30 text-white flex-1">
+                      <SelectValue placeholder="اختر الفئة الرئيسية..." />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-900 border-purple-500/30">
+                      {categories.map((cat) => (
+                        <SelectItem key={cat.value} value={cat.value} className="text-white">
+                          {cat.labelAr}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    value={newSubCategory}
+                    onChange={(e) => setNewSubCategory(e.target.value)}
+                    placeholder="اسم الفئة الفرعية..."
+                    className="bg-white/10 border-purple-500/30 text-white flex-1"
+                  />
+                  <Button
+                    onClick={handleAddSubCategory}
+                    className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    إضافة
+                  </Button>
+                </div>
+
+                {/* Display Subcategories */}
+                <div className="space-y-3">
+                  {categories.map((cat) => (
+                    <div key={cat.value}>
+                      {subCategories[cat.value] && subCategories[cat.value].length > 0 && (
+                        <div className="space-y-2">
+                          <div className="text-white font-medium flex items-center gap-2">
+                            {getCategoryIcon(cat.value)}
+                            {cat.labelAr}
+                          </div>
+                          <div className="flex flex-wrap gap-2 pr-7">
+                            {subCategories[cat.value].map((sub) => (
+                              <Badge
+                                key={sub}
+                                variant="secondary"
+                                className="bg-purple-500/20 text-purple-200 border border-purple-500/30 flex items-center gap-1 px-3 py-1"
+                              >
+                                {sub}
+                                <button
+                                  onClick={() => handleRemoveSubCategory(cat.value, sub)}
+                                  className="ml-1 hover:text-red-400 transition-colors"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setIsCategoryDialogOpen(false)}
+                className="border-purple-500/50 bg-purple-500/10 text-purple-300 hover:bg-purple-500/20"
+              >
+                إغلاق
               </Button>
             </DialogFooter>
           </DialogContent>
