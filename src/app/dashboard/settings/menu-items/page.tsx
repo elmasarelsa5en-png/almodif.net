@@ -555,46 +555,41 @@ export default function MenuItemsPage() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label className="text-white font-semibold">التصنيف *</Label>
-                <Select
+                <select
                   value={formData.category}
-                  onValueChange={(value) => {
-                    console.log('🟢 Category selected:', value);
-                    setFormData({ ...formData, category: value, subCategory: '' });
+                  onChange={(e) => {
+                    console.log('🟢 Category selected:', e.target.value);
+                    setFormData({ ...formData, category: e.target.value, subCategory: '' });
                   }}
+                  className="flex h-10 w-full items-center justify-between rounded-md border border-purple-500/30 bg-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
                 >
-                  <SelectTrigger className="bg-white/10 border-purple-500/30 text-white">
-                    <SelectValue placeholder="اختر التصنيف..." />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-900 border-purple-500/30 z-[9999]">
-                    {categories.map((cat) => (
-                      <SelectItem key={cat.value} value={cat.value} className="text-white">
-                        {cat.labelAr}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <option value="" disabled className="bg-slate-900 text-white">اختر التصنيف...</option>
+                  {categories.map((cat) => (
+                    <option key={cat.value} value={cat.value} className="bg-slate-900 text-white">
+                      {cat.labelAr}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="space-y-2">
                 <Label className="text-white font-semibold">التصنيف الفرعي (اختياري)</Label>
-                <Select
+                <select
                   value={formData.subCategory}
-                  onValueChange={(value) => {
-                    console.log('🟢 SubCategory selected:', value);
-                    setFormData({ ...formData, subCategory: value });
+                  onChange={(e) => {
+                    console.log('🟢 SubCategory selected:', e.target.value);
+                    setFormData({ ...formData, subCategory: e.target.value });
                   }}
+                  className="flex h-10 w-full items-center justify-between rounded-md border border-purple-500/30 bg-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                  disabled={!formData.category || !subCategories[formData.category]?.length}
                 >
-                  <SelectTrigger className="bg-white/10 border-purple-500/30 text-white">
-                    <SelectValue placeholder="اختر التصنيف..." />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-900 border-purple-500/30 z-[9999]">
-                    {(subCategories[formData.category] || []).map((sub) => (
-                      <SelectItem key={sub} value={sub} className="text-white">
-                        {sub}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <option value="" className="bg-slate-900 text-white">اختر التصنيف...</option>
+                  {(subCategories[formData.category] || []).map((sub) => (
+                    <option key={sub} value={sub} className="bg-slate-900 text-white">
+                      {sub}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="space-y-2">
