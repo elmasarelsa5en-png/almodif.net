@@ -216,6 +216,13 @@ const navigationItems: NavigationItem[] = [
       },
       {
         icon: DollarSign,
+        labelKey: 'paymentVouchers',
+        descKey: 'paymentVouchersDesc',
+        href: '/dashboard/accounting/payment-vouchers',
+        permission: 'view_payment_vouchers',
+      },
+      {
+        icon: DollarSign,
         labelKey: 'expenseVouchers',
         descKey: 'expenseVouchersDesc',
         href: '/dashboard/expenses',
