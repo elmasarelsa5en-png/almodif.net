@@ -126,6 +126,8 @@ export default function MenuItemsPage() {
     try {
       setLoading(true);
       const allItems = await getMenuItems();
+      console.log('📋 Total Menu Items:', allItems.length);
+      console.log('📋 Categories:', [...new Set(allItems.map(item => item.category))]);
       setItems(allItems);
     } catch (error) {
       console.error('Error loading items:', error);
@@ -156,10 +158,12 @@ export default function MenuItemsPage() {
 
       if (editingItem) {
         await updateMenuItem(editingItem.id, itemData);
-        alert(' تم تحديث الصنف بنجاح');
+        console.log('✅ Item updated:', itemData);
+        alert('✅ تم تحديث الصنف بنجاح');
       } else {
         await addMenuItem(itemData);
-        alert(' تم إضافة الصنف بنجاح');
+        console.log('✅ Item added:', itemData);
+        alert('✅ تم إضافة الصنف بنجاح');
       }
 
       await loadItems();

@@ -189,9 +189,13 @@ export default function CoffeeShopPage() {
 
     // Subscribe to real-time updates
     const unsubscribe = subscribeToMenuItems((allItems) => {
+      console.log('📦 Total items from Firebase:', allItems.length);
       const coffeeItems = allItems.filter(item => item.category === 'coffee');
+      console.log('☕ Coffee items:', coffeeItems.length);
       if (coffeeItems.length > 0) {
         setMenuItems(coffeeItems as CoffeeItem[]);
+      } else {
+        console.log('⚠️ No coffee items found, keeping default menu');
       }
     });
 
