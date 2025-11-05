@@ -466,12 +466,20 @@ export default function RestaurantPage() {
                       {/* Item image and badges */}
                       <div className="relative h-48 bg-gradient-to-br from-amber-100 via-orange-50 to-yellow-100 overflow-hidden">
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <motion.div 
-                            className="text-6xl group-hover:scale-110 transition-transform duration-300"
-                            whileHover={{ rotate: [0, -10, 10, 0] }}
-                          >
-                            {item.image}
-                          </motion.div>
+                          {item.image && item.image.startsWith('data:image') ? (
+                            <img 
+                              src={item.image} 
+                              alt={item.nameAr}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                            />
+                          ) : (
+                            <motion.div 
+                              className="text-6xl group-hover:scale-110 transition-transform duration-300"
+                              whileHover={{ rotate: [0, -10, 10, 0] }}
+                            >
+                              {item.image || '🍽️'}
+                            </motion.div>
+                          )}
                         </div>
                         
                         {/* Price badge */}
@@ -640,7 +648,11 @@ export default function RestaurantPage() {
                       className="bg-white/5 rounded-xl p-4 border border-amber-400/20"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="text-2xl">{item.image}</div>
+                        {item.image && item.image.startsWith('data:image') ? (
+                          <img src={item.image} alt={item.nameAr} className="w-12 h-12 object-cover rounded-lg" />
+                        ) : (
+                          <div className="text-2xl">{item.image || '🍽️'}</div>
+                        )}
                         <div className="flex-1">
                           <h4 className="text-amber-200 font-semibold">{item.nameAr}</h4>
                           <p className="text-amber-300/80 text-sm">{item.price} ريال</p>

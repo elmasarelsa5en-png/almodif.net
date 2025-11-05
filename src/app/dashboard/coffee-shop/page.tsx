@@ -468,12 +468,20 @@ export default function CoffeeShopPage() {
                       {/* Item image and badges */}
                       <div className="relative h-48 bg-gradient-to-br from-amber-100 via-orange-50 to-yellow-100 overflow-hidden">
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <motion.div 
-                            className="text-6xl group-hover:scale-110 transition-transform duration-300"
-                            whileHover={{ rotate: [0, -10, 10, 0] }}
-                          >
-                            {item.image}
-                          </motion.div>
+                          {item.image && item.image.startsWith('data:image') ? (
+                            <img 
+                              src={item.image} 
+                              alt={item.nameAr}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                            />
+                          ) : (
+                            <motion.div 
+                              className="text-6xl group-hover:scale-110 transition-transform duration-300"
+                              whileHover={{ rotate: [0, -10, 10, 0] }}
+                            >
+                              {item.image || '☕'}
+                            </motion.div>
+                          )}
                         </div>
                         
                         {/* Price badge */}

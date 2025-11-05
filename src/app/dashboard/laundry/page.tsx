@@ -637,12 +637,20 @@ export default function LaundryPage() {
                       {/* Item image and badges */}
                       <div className="relative h-36 md:h-48 bg-gradient-to-br from-cyan-100 via-blue-50 to-purple-100 overflow-hidden">
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <motion.div 
-                            className="text-5xl md:text-6xl group-hover:scale-110 transition-transform duration-300"
-                            whileHover={{ rotate: [0, -10, 10, 0] }}
-                          >
-                            {item.image}
-                          </motion.div>
+                          {item.image && item.image.startsWith('data:image') ? (
+                            <img 
+                              src={item.image} 
+                              alt={item.nameAr}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                            />
+                          ) : (
+                            <motion.div 
+                              className="text-5xl md:text-6xl group-hover:scale-110 transition-transform duration-300"
+                              whileHover={{ rotate: [0, -10, 10, 0] }}
+                            >
+                              {item.image || '🧺'}
+                            </motion.div>
+                          )}
                         </div>
                         
                         {/* Price badge */}
@@ -787,7 +795,11 @@ export default function LaundryPage() {
                       className="bg-white/5 rounded-xl p-4 border border-cyan-400/20"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="text-2xl">{item.image}</div>
+                        {item.image && item.image.startsWith('data:image') ? (
+                          <img src={item.image} alt={item.nameAr} className="w-12 h-12 object-cover rounded-lg" />
+                        ) : (
+                          <div className="text-2xl">{item.image || '🧺'}</div>
+                        )}
                         <div className="flex-1">
                           <h4 className="text-cyan-200 font-semibold">{item.nameAr}</h4>
                           <p className="text-cyan-300/80 text-sm">{item.price} ريال</p>
