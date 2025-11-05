@@ -12,10 +12,12 @@ import {
   DollarSign,
   CreditCard,
   Printer,
-  Filter
+  Filter,
+  Plus
 } from 'lucide-react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { getAllReceipts, getReceiptsSummary, type Receipt } from '@/lib/receipts-system';
+import ReceiptDialog from '@/components/ReceiptDialog';
 
 export default function ReceiptsPage() {
   const [receipts, setReceipts] = useState<Receipt[]>([]);
@@ -25,6 +27,7 @@ export default function ReceiptsPage() {
   const [summary, setSummary] = useState<any>(null);
   const [filterType, setFilterType] = useState<string>('all');
   const [filterPaymentMethod, setFilterPaymentMethod] = useState<string>('all');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
     loadReceipts();
@@ -229,13 +232,24 @@ export default function ReceiptsPage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
         {/* Header */}
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-white/20 mb-6">
-          <h1 className="text-4xl font-bold text-white mb-2 flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg">
-              <FileText className="w-8 h-8" />
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-4xl font-bold text-white mb-2 flex items-center gap-3">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg">
+                  <FileText className="w-8 h-8" />
+                </div>
+                سندات القبض
+              </h1>
+              <p className="text-white/80 text-lg">إدارة وعرض جميع سندات القبض والإيصالات</p>
             </div>
-            سندات القبض
-          </h1>
-          <p className="text-white/80 text-lg">إدارة وعرض جميع سندات القبض والإيصالات</p>
+            <Button
+              onClick={() => setIsDialogOpen(true)}
+              className="bg-white text-green-600 hover:bg-green-50 border-2 border-white/30 shadow-lg px-8 py-6 text-lg font-bold transition-all hover:scale-105"
+            >
+              <Plus className="ml-2 w-6 h-6" />
+              إضافة سند قبض جديد
+            </Button>
+          </div>
         </div>
 
         {/* Summary Cards */}
@@ -440,6 +454,17 @@ export default function ReceiptsPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Dialog إضافة سند قبض */}
+        <ReceiptDialog
+          isOpen={isDialogOpen}
+          onClose={() => setIsDialogOpen(false)}
+          onSuccess={() => {
+            setIsDialogOpen(false);
+            loadReceipts();
+            loadSummary();
+          }}
+        />
       </div>
     </ProtectedRoute>
   );
