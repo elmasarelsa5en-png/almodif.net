@@ -43,6 +43,11 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
   const [roomNumber, setRoomNumber] = useState('');
   const [hasClipboardData, setHasClipboardData] = useState(false);
   const [showClipboardPrompt, setShowClipboardPrompt] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verificationResult, setVerificationResult] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
   const [guestData, setGuestData] = useState<GuestData>({
     fullName: '',
     nationality: '',
@@ -119,6 +124,65 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
       notes: guestData.notes
     });
     alert('تم حفظ البيانات مؤقتاً! يمكنك استخدامها لاحقاً.');
+  };
+
+  // التحقق من رقم الهوية عبر منصة شموس
+  const verifyWithShamoos = async () => {
+    if (!guestData.idNumber) {
+      alert('⚠️ يرجى إدخال رقم الهوية أولاً');
+      return;
+    }
+
+    setIsVerifying(true);
+    setVerificationResult(null);
+
+    try {
+      // استدعاء API منصة شموس
+      // ملاحظة: يجب استبدال هذا بـ API الحقيقي من منصة شموس
+      const response = await fetch('/api/shamoos/verify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          idNumber: guestData.idNumber,
+          idType: 'national_id'
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.verified) {
+        // نجح التحقق - تعبئة البيانات تلقائياً
+        setVerificationResult({
+          success: true,
+          message: 'تم التحقق من الهوية بنجاح ✓'
+        });
+
+        // تعبئة البيانات من الاستجابة
+        if (data.citizenInfo) {
+          setGuestData(prev => ({
+            ...prev,
+            fullName: data.citizenInfo.name || prev.fullName,
+            nationality: data.citizenInfo.nationality || prev.nationality,
+            expiryDate: data.citizenInfo.expiryDate || prev.expiryDate,
+          }));
+        }
+      } else {
+        setVerificationResult({
+          success: false,
+          message: data.message || 'فشل التحقق من الهوية'
+        });
+      }
+    } catch (error) {
+      console.error('خطأ في التحقق من شموس:', error);
+      setVerificationResult({
+        success: false,
+        message: 'خطأ في الاتصال بمنصة شموس'
+      });
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -669,24 +733,61 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
 
               <div>
                 <Label htmlFor="idType" className="text-blue-200">نوع الإثبات</Label>
-                <Input
+                <select
                   id="idType"
                   value={guestData.idType}
                   onChange={(e) => handleInputChange('idType', e.target.value)}
-                  placeholder="مثال: بطاقة هوية مدنية"
-                  className="bg-white/10 border-blue-400/30 text-white"
-                />
+                  className="w-full h-11 px-4 border-2 bg-white/10 border-blue-400/30 rounded-lg text-white font-medium hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                >
+                  <option value="" className="bg-slate-900 text-white">اختر نوع الإثبات</option>
+                  <option value="هوية وطنية" className="bg-slate-900 text-white">🪪 هوية وطنية</option>
+                  <option value="جواز سفر" className="bg-slate-900 text-white">🛂 جواز سفر</option>
+                  <option value="إقامة" className="bg-slate-900 text-white">📇 إقامة</option>
+                </select>
               </div>
 
               <div>
                 <Label htmlFor="idNumber" className="text-blue-200">رقم الإثبات</Label>
-                <Input
-                  id="idNumber"
-                  value={guestData.idNumber}
-                  onChange={(e) => handleInputChange('idNumber', e.target.value)}
-                  placeholder="رقم الهوية/الإقامة"
-                  className="bg-white/10 border-blue-400/30 text-white"
-                />
+                <div className="flex gap-2">
+                  <Input
+                    id="idNumber"
+                    value={guestData.idNumber}
+                    onChange={(e) => handleInputChange('idNumber', e.target.value)}
+                    placeholder="رقم الهوية/الإقامة"
+                    className="bg-white/10 border-blue-400/30 text-white flex-1"
+                  />
+                  {guestData.idType === 'هوية وطنية' && guestData.idNumber && (
+                    <Button
+                      type="button"
+                      onClick={verifyWithShamoos}
+                      disabled={isVerifying}
+                      className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white whitespace-nowrap"
+                    >
+                      {isVerifying ? (
+                        <>
+                          <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                          جاري التحقق...
+                        </>
+                      ) : (
+                        <>
+                          ✓ تحقق من شموس
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
+                {verificationResult && (
+                  <div className={`mt-2 p-3 rounded-lg ${
+                    verificationResult.success 
+                      ? 'bg-green-500/20 border border-green-500/50 text-green-200' 
+                      : 'bg-red-500/20 border border-red-500/50 text-red-200'
+                  }`}>
+                    <p className="text-sm font-semibold">
+                      {verificationResult.success ? '✅ ' : '❌ '}
+                      {verificationResult.message}
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div>
