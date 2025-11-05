@@ -21,6 +21,7 @@ export default function ReceiptDialog({ isOpen, onClose, onSuccess }: Props) {
   const [guestName, setGuestName] = useState('');
   const [amount, setAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [cardType, setCardType] = useState(''); // نوع البطاقة
   const [category, setCategory] = useState('room_rent');
   const [description, setDescription] = useState('');
   const [paidBy, setPaidBy] = useState('');
@@ -59,6 +60,7 @@ export default function ReceiptDialog({ isOpen, onClose, onSuccess }: Props) {
         type: 'room_payment',
         amount: parseFloat(amount),
         paymentMethod: paymentMethod as 'cash' | 'card' | 'transfer',
+        cardType: cardType || undefined,
         category: category as 'room_rent' | 'services' | 'laundry' | 'restaurant' | 'coffee' | 'other',
         description: description || `سند قبض ${category === 'room_rent' ? 'إيجار شقة' : category}`,
         roomNumber: roomNumber || undefined,
@@ -83,6 +85,7 @@ export default function ReceiptDialog({ isOpen, onClose, onSuccess }: Props) {
     setGuestName('');
     setAmount('');
     setPaymentMethod('cash');
+    setCardType('');
     setCategory('room_rent');
     setDescription('');
     setNotes('');
@@ -181,6 +184,26 @@ export default function ReceiptDialog({ isOpen, onClose, onSuccess }: Props) {
               </select>
             </div>
           </div>
+
+          {/* Card Type (only shown when payment method is card) */}
+          {paymentMethod === 'card' && (
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <label className="block text-sm font-medium text-gray-700 mb-2">نوع البطاقة <span className="text-red-500">*</span></label>
+              <select
+                value={cardType}
+                onChange={(e) => setCardType(e.target.value)}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white"
+              >
+                <option value="">-- اختر نوع البطاقة --</option>
+                <option value="mada">💳 مدى (Mada)</option>
+                <option value="mastercard">💳 ماستر كارد (Mastercard)</option>
+                <option value="amex">💳 أمريكان إكسبريس (American Express)</option>
+                <option value="gccnet">💳 الشبكة الخليجية (GCC Net)</option>
+                <option value="unionpay">💳 يونيون باي (UnionPay)</option>
+              </select>
+            </div>
+          )}
 
           {/* Row 4: Category */}
           <div>
