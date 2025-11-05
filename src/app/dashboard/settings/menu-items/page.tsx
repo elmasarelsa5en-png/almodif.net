@@ -561,7 +561,7 @@ export default function MenuItemsPage() {
                   <SelectContent className="bg-slate-900 border-purple-500/30">
                     {categories.map((cat) => (
                       <SelectItem key={cat.value} value={cat.value} className="text-white">
-                        {cat.label}
+                        {cat.labelAr}
                       </SelectItem>
                     ))}
                   </SelectContent>
