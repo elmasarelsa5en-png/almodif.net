@@ -13,8 +13,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
-import { db } from '@/lib/firebase';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { getMenuItemsByCategory } from '@/lib/firebase-data';
 import PaymentDialog, { PaymentResult } from '@/components/PaymentDialog';
 
 interface MenuItem {
@@ -132,48 +131,18 @@ export default function GuestMenuPage() {
       
       setLoading(true);
       try {
-        let foundItems: MenuItem[] = [];
+        console.log(`📱 Guest App: Loading menu for ${category} from Firebase`);
         
-        // نجرب localStorage أولاً (أسرع)
-        const localData = localStorage.getItem(config.localStorageKey);
-        if (localData) {
-          const items = JSON.parse(localData) as MenuItem[];
-          foundItems = items.filter(item => item.available !== false);
-          console.log(`✅ Loaded ${foundItems.length} items from localStorage for ${category}`);
-        }
-
-        // إذا لم يوجد في localStorage، نجرب Firebase
-        if (foundItems.length === 0 && db) {
-          console.log(`🔥 Trying Firebase for category: ${config.firebaseCategory}`);
-          const menuItemsRef = collection(db, 'menu-items');
-          const q = query(
-            menuItemsRef,
-            where('category', '==', config.firebaseCategory)
-          );
-          const querySnapshot = await getDocs(q);
-          
-          if (!querySnapshot.empty) {
-            foundItems = querySnapshot.docs.map(doc => ({
-              id: doc.id,
-              ...doc.data()
-            } as MenuItem));
-            foundItems = foundItems.filter(item => item.available !== false);
-            console.log(`✅ Loaded ${foundItems.length} items from Firebase`);
-          }
-        }
+        // Load directly from Firebase using the helper function
+        const items = await getMenuItemsByCategory(config.firebaseCategory as any);
+        const availableItems = items.filter(item => item.available !== false);
         
-        // إذا ما فيش حاجة، نستخدم البيانات الافتراضية
-        if (foundItems.length === 0) {
-          console.log(`⚠️ No items found, using default items for ${config.firebaseCategory}`);
-          foundItems = DEFAULT_MENU_ITEMS[config.firebaseCategory] || [];
-        }
+        console.log(`✅ Loaded ${availableItems.length} items from Firebase`);
+        setMenuItems(availableItems as MenuItem[]);
         
-        setMenuItems(foundItems);
       } catch (error) {
         console.error('❌ Error loading menu items:', error);
-        // استخدام البيانات الافتراضية في حالة الخطأ
-        const defaultItems = DEFAULT_MENU_ITEMS[config.firebaseCategory] || [];
-        setMenuItems(defaultItems);
+        setMenuItems([]);
       } finally {
         setLoading(false);
       }

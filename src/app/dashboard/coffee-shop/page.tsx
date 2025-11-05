@@ -407,26 +407,36 @@ export default function CoffeeShopPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {[
-                  { id: 'all', label: 'جميع المنتجات', icon: <Star className="h-4 w-4" /> },
-                  { id: 'hot-coffee', label: 'قهوة ساخنة', icon: <Flame className="h-4 w-4" /> },
-                  { id: 'cold-coffee', label: 'قهوة مثلجة', icon: <Snowflake className="h-4 w-4" /> },
-                  { id: 'tea', label: 'شاي وأعشاب', icon: <Coffee className="h-4 w-4" /> },
-                  { id: 'dessert', label: 'حلويات', icon: <Cookie className="h-4 w-4" /> },
-                  { id: 'pastry', label: 'معجنات', icon: <Croissant className="h-4 w-4" /> }
-                ].map((category) => (
-                  <motion.div key={category.id} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                {/* Show "All" category always */}
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Button
+                    variant={selectedCategory === 'all' ? "default" : "ghost"}
+                    onClick={() => setSelectedCategory('all')}
+                    className={`w-full justify-start text-right ${
+                      selectedCategory === 'all'
+                        ? 'bg-amber-500 text-white shadow-lg'
+                        : 'text-amber-200 hover:bg-amber-500/20'
+                    }`}
+                  >
+                    <Star className="h-4 w-4" />
+                    <span className="mr-2">جميع المنتجات</span>
+                  </Button>
+                </motion.div>
+                
+                {/* Dynamic categories from Firebase items */}
+                {menuItems && Array.from(new Set(menuItems.map(item => item.subCategory).filter(Boolean))).map((subCat) => (
+                  <motion.div key={subCat} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Button
-                      variant={selectedCategory === category.id ? "default" : "ghost"}
-                      onClick={() => setSelectedCategory(category.id)}
+                      variant={selectedCategory === subCat ? "default" : "ghost"}
+                      onClick={() => setSelectedCategory(subCat as string)}
                       className={`w-full justify-start text-right ${
-                        selectedCategory === category.id
+                        selectedCategory === subCat
                           ? 'bg-amber-500 text-white shadow-lg'
                           : 'text-amber-200 hover:bg-amber-500/20'
                       }`}
                     >
-                      {category.icon}
-                      <span className="mr-2">{category.label}</span>
+                      <Coffee className="h-4 w-4" />
+                      <span className="mr-2">{subCat}</span>
                     </Button>
                   </motion.div>
                 ))}
@@ -502,17 +512,14 @@ export default function CoffeeShopPage() {
                         )}
 
                         {/* Category badge */}
-                        <div className="absolute bottom-4 left-4">
-                          <Badge variant="outline" className="bg-white/90 text-amber-800 border-amber-400">
-                            {getCategoryIcon(item.category)}
-                            <span className="mr-1 text-xs">
-                              {item.category === 'hot-coffee' ? 'قهوة ساخنة' :
-                               item.category === 'cold-coffee' ? 'قهوة مثلجة' :
-                               item.category === 'tea' ? 'شاي' :
-                               item.category === 'dessert' ? 'حلويات' : 'معجنات'}
-                            </span>
-                          </Badge>
-                        </div>
+                        {item.subCategory && (
+                          <div className="absolute bottom-4 left-4">
+                            <Badge variant="outline" className="bg-white/90 text-amber-800 border-amber-400">
+                              <Coffee className="h-3 w-3 ml-1" />
+                              <span className="text-xs">{item.subCategory}</span>
+                            </Badge>
+                          </div>
+                        )}
                       </div>
 
                       {/* Item details */}
