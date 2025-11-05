@@ -33,9 +33,10 @@ interface AddGuestDialogProps {
   onClose: () => void;
   onSubmit: (guestData: GuestData & { roomNumber: string }) => void;
   availableRooms: string[];
+  preselectedRoom?: string; // رقم الغرفة المحدد مسبقاً (يخفي dropdown)
 }
 
-export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms }: AddGuestDialogProps) {
+export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms, preselectedRoom }: AddGuestDialogProps) {
   const [activeTab, setActiveTab] = useState('manual');
   const [isProcessing, setIsProcessing] = useState(false);
   const [ocrProgress, setOcrProgress] = useState(0);
@@ -73,8 +74,13 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
         setHasClipboardData(true);
         setShowClipboardPrompt(true);
       }
+      
+      // إذا كانت الغرفة محددة مسبقاً، قم بتعيينها تلقائياً
+      if (preselectedRoom) {
+        setRoomNumber(preselectedRoom);
+      }
     }
-  }, [open]);
+  }, [open, preselectedRoom]);
 
   // تحميل البيانات من الحافظة
   const loadFromClipboard = () => {
@@ -614,21 +620,24 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
 
           <TabsContent value="manual" className="space-y-4 mt-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-2">
-                <Label htmlFor="roomNumber" className="text-blue-200">رقم الغرفة *</Label>
-                <Select value={roomNumber} onValueChange={setRoomNumber}>
-                  <SelectTrigger className="bg-white/10 border-blue-400/30 text-white">
-                    <SelectValue placeholder="اختر رقم الغرفة" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-900 border-white/20">
-                    {availableRooms.map((room) => (
-                      <SelectItem key={room} value={room} className="text-white hover:bg-slate-700/50">
-                        غرفة {room}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* إخفاء حقل رقم الغرفة إذا كانت محددة مسبقاً */}
+              {!preselectedRoom && (
+                <div className="col-span-2">
+                  <Label htmlFor="roomNumber" className="text-blue-200">رقم الغرفة *</Label>
+                  <Select value={roomNumber} onValueChange={setRoomNumber}>
+                    <SelectTrigger className="bg-white/10 border-blue-400/30 text-white">
+                      <SelectValue placeholder="اختر رقم الغرفة" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-900 border-white/20">
+                      {availableRooms.map((room) => (
+                        <SelectItem key={room} value={room} className="text-white hover:bg-slate-700/50">
+                          غرفة {room}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               <div className="col-span-2">
                 <Label htmlFor="fullName" className="text-blue-200">الاسم الكامل *</Label>
@@ -764,17 +773,20 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
           </TabsContent>
 
           <TabsContent value="ocr" className="space-y-4 mt-4">
-            <div className="col-span-2">
-              <Label htmlFor="roomNumberOcr" className="text-blue-200">رقم الغرفة *</Label>
-              <Input
-                id="roomNumberOcr"
-                value={roomNumber}
-                onChange={(e) => setRoomNumber(e.target.value)}
-                placeholder="مثال: 201"
-                className="bg-white/10 border-blue-400/30 text-white mb-4"
-                required
-              />
-            </div>
+            {/* إخفاء حقل رقم الغرفة إذا كانت محددة مسبقاً */}
+            {!preselectedRoom && (
+              <div className="col-span-2">
+                <Label htmlFor="roomNumberOcr" className="text-blue-200">رقم الغرفة *</Label>
+                <Input
+                  id="roomNumberOcr"
+                  value={roomNumber}
+                  onChange={(e) => setRoomNumber(e.target.value)}
+                  placeholder="مثال: 201"
+                  className="bg-white/10 border-blue-400/30 text-white mb-4"
+                  required
+                />
+              </div>
+            )}
 
             <div className="border-2 border-dashed border-blue-400/50 rounded-xl p-8 text-center bg-white/5">
               <input

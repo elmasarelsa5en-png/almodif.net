@@ -1569,6 +1569,7 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
           setIsAddGuestOpen(false);
         }}
         availableRooms={room ? [room.number] : []}
+        preselectedRoom={room?.number}
       />
     </>
   );
