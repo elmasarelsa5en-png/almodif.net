@@ -584,8 +584,7 @@ export default function LaundryPage() {
                   { id: 'dry-cleaning', label: 'تنظيف جاف', icon: <Shirt className="h-3 w-3 md:h-4 md:w-4" /> },
                   { id: 'express', label: 'سريع', icon: <Flame className="h-3 w-3 md:h-4 md:w-4" /> },
                   { id: 'special', label: 'خاص', icon: <Droplet className="h-3 w-3 md:h-4 md:w-4" /> },
-                  { id: 'extra', label: 'إضافي', icon: <Star className="h-3 w-3 md:h-4 md:w-4" /> },
-                  { id: 'extra', label: 'إضافي', icon: <Award className="h-3 w-3 md:h-4 md:w-4" /> }
+                  { id: 'premium', label: 'مميز', icon: <Award className="h-3 w-3 md:h-4 md:w-4" /> }
                 ].map((category) => (
                   <motion.div key={category.id} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Button

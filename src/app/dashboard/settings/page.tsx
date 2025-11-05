@@ -173,7 +173,7 @@ export default function SettingsPage() {
                 إعدادات المطور الكاملة
                 <ChevronRight className="h-6 w-6 opacity-0 group-hover:opacity-100 group-hover:-translate-x-2 transition-all text-purple-300" />
               </CardTitle>
-              <CardDescription className="text-base mt-3 space-y-2 text-white/80">
+              <div className="text-base mt-3 space-y-2 text-white/80">
                 <p className="font-semibold text-purple-200">🎯 الوصول الكامل لجميع الأدوات التقنية:</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-3 text-sm text-white/70">
                   <p>• 🖼️ إدارة صور الصفحة الرئيسية</p>
@@ -185,7 +185,7 @@ export default function SettingsPage() {
                   <p>• 🔔 الأصوات والإشعارات</p>
                   <p>• 📋 سجل التدقيق والأمان</p>
                 </div>
-              </CardDescription>
+              </div>
             </CardHeader>
           </Card>
         </div>
