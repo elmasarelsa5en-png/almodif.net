@@ -309,7 +309,7 @@ export default function PaymentVouchersPage() {
             </div>
             <Button
               onClick={() => setIsDialogOpen(true)}
-              className="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white shadow-lg px-8 py-6 text-lg"
+              className="bg-white text-red-600 hover:bg-red-50 border-2 border-white/30 shadow-lg px-8 py-6 text-lg font-bold transition-all hover:scale-105"
             >
               <Plus className="ml-2 w-6 h-6" />
               إضافة سند صرف جديد
