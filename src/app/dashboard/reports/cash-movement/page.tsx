@@ -2,279 +2,560 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { 
-  ArrowLeft, 
-  TrendingUp, 
-  TrendingDown, 
-  DollarSign,
-  CreditCard,
-  Building2,
-  Smartphone,
-  Users,
-  Calendar,
-  Download,
-  Filter,
-  Search
-} from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-
-interface Transaction {
-  id: string;
-  type: 'cash' | 'network' | 'bank' | 'digital' | 'agent';
-  amount: number;
-  description: string;
-  date: string;
-  reference?: string;
-}
-
-const paymentMethods = [
-  {
-    id: 'cash',
-    name: 'المقبوضات النقدية',
-    icon: DollarSign,
-    color: 'text-emerald-400',
-    bgColor: 'from-emerald-600/30 to-green-600/30',
-    borderColor: 'border-emerald-500/50'
-  },
-  {
-    id: 'network',
-    name: 'الشبكة (مدى/فيزا)',
-    icon: CreditCard,
-    color: 'text-blue-400',
-    bgColor: 'from-blue-600/30 to-indigo-600/30',
-    borderColor: 'border-blue-500/50'
-  },
-  {
-    id: 'bank',
-    name: 'التحويل البنكي',
-    icon: Building2,
-    color: 'text-purple-400',
-    bgColor: 'from-purple-600/30 to-fuchsia-600/30',
-    borderColor: 'border-purple-500/50'
-  },
-  {
-    id: 'digital',
-    name: 'الدفع الرقمي',
-    icon: Smartphone,
-    color: 'text-cyan-400',
-    bgColor: 'from-cyan-600/30 to-sky-600/30',
-    borderColor: 'border-cyan-500/50'
-  },
-  {
-    id: 'agent',
-    name: 'وكلاء السفر',
-    icon: Users,
-    color: 'text-amber-400',
-    bgColor: 'from-amber-600/30 to-orange-600/30',
-    borderColor: 'border-amber-500/50'
-  }
-];
+import { collection, query, where, getDocs, orderBy, Timestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 export default function CashMovementReport() {
   const router = useRouter();
-  const [selectedMethod, setSelectedMethod] = useState<string>('all');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [dateFilter, setDateFilter] = useState('today');
   
-  // بيانات تجريبية
-  const [transactions] = useState<Transaction[]>([
-    { id: '1', type: 'cash', amount: 5000, description: 'حجز غرفة 101', date: '2025-10-31 10:30', reference: 'INV-001' },
-    { id: '2', type: 'network', amount: 3500, description: 'دفع بطاقة مدى - غرفة 205', date: '2025-10-31 11:15', reference: 'POS-445' },
-    { id: '3', type: 'bank', amount: 12000, description: 'تحويل بنكي - حجز مجموعة', date: '2025-10-31 09:00', reference: 'BANK-789' },
-    { id: '4', type: 'digital', amount: 2500, description: 'دفع أبل باي - غرفة 310', date: '2025-10-31 14:20', reference: 'DIG-223' },
-    { id: '5', type: 'agent', amount: 8000, description: 'عمولة وكيل سفر - بوكينج', date: '2025-10-31 13:45', reference: 'AGT-112' },
-    { id: '6', type: 'cash', amount: 4200, description: 'حجز غرفة 402', date: '2025-10-31 15:30', reference: 'INV-002' },
-    { id: '7', type: 'network', amount: 6800, description: 'فيزا - جناح رئاسي', date: '2025-10-31 16:10', reference: 'POS-446' },
-    { id: '8', type: 'bank', amount: 15000, description: 'تحويل - حجز شركة', date: '2025-10-31 08:30', reference: 'BANK-790' }
-  ]);
-
-  const filteredTransactions = transactions.filter(t => {
-    if (selectedMethod !== 'all' && t.type !== selectedMethod) return false;
-    if (searchTerm && !t.description.toLowerCase().includes(searchTerm.toLowerCase())) return false;
-    return true;
-  });
-
-  const calculateTotal = (type?: string) => {
-    return transactions
-      .filter(t => !type || t.type === type)
-      .reduce((sum, t) => sum + t.amount, 0);
+  // State for filters
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [fromTime, setFromTime] = useState('00:00');
+  const [toTime, setToTime] = useState('23:59');
+  const [userName, setUserName] = useState('');
+  const [includeServices, setIncludeServices] = useState(true);
+  const [showPaymentTypes, setShowPaymentTypes] = useState(false);
+  
+  // State for data
+  const [receipts, setReceipts] = useState<any[]>([]);
+  const [vouchers, setVouchers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  
+  // Initialize dates to today
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0];
+    setFromDate(today);
+    setToDate(today);
+  }, []);
+  
+  // Load data function
+  const loadData = async () => {
+    if (!fromDate || !toDate) {
+      alert('الرجاء تحديد التاريخ');
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      // Create date range
+      const fromDateTime = new Date(`${fromDate}T${fromTime}`);
+      const toDateTime = new Date(`${toDate}T${toTime}`);
+      
+      // Load receipts
+      const receiptsRef = collection(db, 'receipts');
+      const receiptsQuery = query(
+        receiptsRef,
+        where('createdAt', '>=', Timestamp.fromDate(fromDateTime)),
+        where('createdAt', '<=', Timestamp.fromDate(toDateTime)),
+        orderBy('createdAt', 'desc')
+      );
+      const receiptsSnap = await getDocs(receiptsQuery);
+      const receiptsData = receiptsSnap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as any[];
+      
+      // Load payment vouchers
+      const vouchersRef = collection(db, 'payment-vouchers');
+      const vouchersQuery = query(
+        vouchersRef,
+        where('createdAt', '>=', Timestamp.fromDate(fromDateTime)),
+        where('createdAt', '<=', Timestamp.fromDate(toDateTime)),
+        orderBy('createdAt', 'desc')
+      );
+      const vouchersSnap = await getDocs(vouchersQuery);
+      const vouchersData = vouchersSnap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as any[];
+      
+      // Filter by user if specified
+      const filteredReceipts = userName 
+        ? receiptsData.filter(r => r.paidBy?.includes(userName) || r.createdBy?.includes(userName))
+        : receiptsData;
+        
+      const filteredVouchers = userName
+        ? vouchersData.filter(v => v.paidTo?.includes(userName) || v.createdBy?.includes(userName))
+        : vouchersData;
+      
+      setReceipts(filteredReceipts);
+      setVouchers(filteredVouchers);
+    } catch (error) {
+      console.error('Error loading data:', error);
+      alert('حدث خطأ في تحميل البيانات');
+    } finally {
+      setLoading(false);
+    }
   };
-
-  const getMethodConfig = (type: string) => {
-    return paymentMethods.find(m => m.id === type) || paymentMethods[0];
+  
+  // Calculate totals
+  const calculateTotals = () => {
+    const totalReceipts = receipts.reduce((sum, r) => sum + (r.amount || 0), 0);
+    const totalVouchers = vouchers.reduce((sum, v) => sum + (v.totalAmount || 0), 0);
+    
+    const cashReceipts = receipts
+      .filter(r => r.paymentMethod === 'cash')
+      .reduce((sum, r) => sum + (r.amount || 0), 0);
+      
+    const cardReceipts = receipts
+      .filter(r => r.paymentMethod === 'card')
+      .reduce((sum, r) => sum + (r.amount || 0), 0);
+      
+    const transferReceipts = receipts
+      .filter(r => r.paymentMethod === 'transfer')
+      .reduce((sum, r) => sum + (r.amount || 0), 0);
+    
+    const cashVouchers = vouchers
+      .filter(v => v.paidFrom === 'cash_register')
+      .reduce((sum, v) => sum + (v.totalAmount || 0), 0);
+      
+    const bankVouchers = vouchers
+      .filter(v => v.paidFrom === 'bank')
+      .reduce((sum, v) => sum + (v.totalAmount || 0), 0);
+    
+    return {
+      totalReceipts,
+      totalVouchers,
+      cashReceipts,
+      cardReceipts,
+      transferReceipts,
+      cashVouchers,
+      bankVouchers,
+      netCash: cashReceipts - cashVouchers,
+      netBank: (cardReceipts + transferReceipts) - bankVouchers,
+      netTotal: totalReceipts - totalVouchers
+    };
+  };
+  
+  const totals = calculateTotals();
+  
+  // Format currency
+  const formatCurrency = (amount: number) => {
+    return amount.toFixed(2);
+  };
+  
+  // Format date time
+  const formatDateTime = (timestamp: any) => {
+    if (!timestamp) return '';
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return date.toLocaleString('ar-SA', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 p-4 md:p-6 lg:p-8">
-      {/* Header */}
-      <div className="mb-6">
-        <Button
-          variant="ghost"
-          onClick={() => router.back()}
-          className="text-slate-300 hover:text-white mb-4"
-        >
-          <ArrowLeft className="w-4 h-4 ml-2" />
-          رجوع
-        </Button>
-
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <motion.h1 
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-3xl md:text-4xl font-bold text-white mb-2"
-            >
-              💰 تقرير حركة الصندوق
-            </motion.h1>
-            <p className="text-slate-400">متابعة جميع المقبوضات والمدفوعات</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6" dir="rtl">
+      <div className="max-w-[1400px] mx-auto">
+        {/* Header - Filter Form */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6 print:shadow-none">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-2xl font-bold text-gray-800">تقرير حركة الصندوق</h1>
+            <div className="text-sm text-gray-600">
+              {new Date().toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} -- {new Date().toLocaleTimeString('ar-SA')}
+            </div>
           </div>
-
-          <div className="flex gap-2">
-            <Button className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700">
-              <Download className="w-4 h-4 ml-2" />
-              تصدير PDF
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
-        {paymentMethods.map((method) => {
-          const total = calculateTotal(method.id);
-          const Icon = method.icon;
           
-          return (
-            <motion.div
-              key={method.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.1 }}
-            >
-              <Card 
-                className={`bg-gradient-to-br ${method.bgColor} border-2 ${method.borderColor} backdrop-blur-sm cursor-pointer hover:scale-105 transition-all duration-300 ${selectedMethod === method.id ? 'ring-2 ring-white shadow-2xl' : ''}`}
-                onClick={() => setSelectedMethod(selectedMethod === method.id ? 'all' : method.id)}
-              >
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${method.bgColor} border ${method.borderColor} flex items-center justify-center`}>
-                      <Icon className={`w-6 h-6 ${method.color}`} />
-                    </div>
-                    <TrendingUp className="w-5 h-5 text-emerald-400" />
-                  </div>
-                  <h3 className="text-sm text-slate-300 mb-1">{method.name}</h3>
-                  <p className={`text-2xl font-bold ${method.color}`}>
-                    {total.toLocaleString()} ر.س
-                  </p>
-                </CardContent>
-              </Card>
-            </motion.div>
-          );
-        })}
-      </div>
-
-      {/* Total Summary */}
-      <Card className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 border-2 border-purple-500/50 backdrop-blur-sm mb-6">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
+          {/* First Row - Date and Time Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            {/* From Date */}
             <div>
-              <h3 className="text-lg text-slate-300 mb-1">إجمالي المقبوضات اليوم</h3>
-              <p className="text-4xl font-bold text-white">
-                {calculateTotal().toLocaleString()} <span className="text-2xl text-slate-400">ر.س</span>
-              </p>
+              <label className="block text-sm text-gray-600 mb-2">من</label>
+              <input
+                type="date"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded text-gray-700 bg-white focus:outline-none focus:border-blue-500"
+              />
             </div>
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-2xl">
-              <DollarSign className="w-10 h-10 text-white" />
+            
+            {/* To Date */}
+            <div>
+              <label className="block text-sm text-gray-600 mb-2">إلى</label>
+              <input
+                type="date"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded text-gray-700 bg-white focus:outline-none focus:border-blue-500"
+              />
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Filters */}
-      <Card className="bg-slate-800/50 border-slate-700/50 backdrop-blur-sm mb-6">
-        <CardContent className="p-4">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                <Input
-                  placeholder="بحث في المعاملات..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pr-10 bg-slate-900/50 border-slate-700"
+            
+            {/* From Time */}
+            <div>
+              <label className="block text-sm text-gray-600 mb-2">من الساعة</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="0"
+                  max="23"
+                  value={fromTime.split(':')[0]}
+                  onChange={(e) => {
+                    const val = Math.min(23, Math.max(0, parseInt(e.target.value) || 0));
+                    setFromTime(`${val.toString().padStart(2, '0')}:${fromTime.split(':')[1]}`);
+                  }}
+                  className="w-16 px-2 py-2 border border-gray-300 rounded text-gray-700 text-center bg-white"
                 />
+                <span>:</span>
+                <input
+                  type="number"
+                  min="0"
+                  max="59"
+                  value={fromTime.split(':')[1]}
+                  onChange={(e) => {
+                    const val = Math.min(59, Math.max(0, parseInt(e.target.value) || 0));
+                    setFromTime(`${fromTime.split(':')[0]}:${val.toString().padStart(2, '0')}`);
+                  }}
+                  className="w-16 px-2 py-2 border border-gray-300 rounded text-gray-700 text-center bg-white"
+                />
+                <select className="px-2 py-2 border border-gray-300 rounded text-gray-700 bg-white">
+                  <option>ص</option>
+                  <option>م</option>
+                </select>
               </div>
             </div>
             
-            <select
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="px-4 py-2 bg-slate-900/50 border border-slate-700 rounded-lg text-white"
-            >
-              <option value="today">اليوم</option>
-              <option value="yesterday">أمس</option>
-              <option value="week">هذا الأسبوع</option>
-              <option value="month">هذا الشهر</option>
+            {/* To Time */}
+            <div>
+              <label className="block text-sm text-gray-600 mb-2">إلى الساعة</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="0"
+                  max="23"
+                  value={toTime.split(':')[0]}
+                  onChange={(e) => {
+                    const val = Math.min(23, Math.max(0, parseInt(e.target.value) || 0));
+                    setToTime(`${val.toString().padStart(2, '0')}:${toTime.split(':')[1]}`);
+                  }}
+                  className="w-16 px-2 py-2 border border-gray-300 rounded text-gray-700 text-center bg-white"
+                />
+                <span>:</span>
+                <input
+                  type="number"
+                  min="0"
+                  max="59"
+                  value={toTime.split(':')[1]}
+                  onChange={(e) => {
+                    const val = Math.min(59, Math.max(0, parseInt(e.target.value) || 0));
+                    setToTime(`${toTime.split(':')[0]}:${val.toString().padStart(2, '0')}`);
+                  }}
+                  className="w-16 px-2 py-2 border border-gray-300 rounded text-gray-700 text-center bg-white"
+                />
+                <select className="px-2 py-2 border border-gray-300 rounded text-gray-700 bg-white">
+                  <option>ص</option>
+                  <option>م</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          {/* Second Row */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <input
+              type="text"
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              placeholder="-- اسم المستخدم --"
+              className="px-3 py-2 border border-gray-300 rounded text-gray-700 bg-white"
+            />
+            
+            <select className="px-3 py-2 border border-gray-300 rounded text-gray-700 bg-white">
+              <option>حركة الصندوق للمحجوزات المغلقة</option>
             </select>
+            
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={includeServices}
+                onChange={(e) => setIncludeServices(e.target.checked)}
+                className="w-4 h-4"
+              />
+              <span className="text-sm">تضمين سندات الخدمات المقدمة نقداً</span>
+            </label>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Transactions Table */}
-      <Card className="bg-slate-800/50 border-slate-700/50 backdrop-blur-sm">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <Calendar className="w-5 h-5" />
-            المعاملات ({filteredTransactions.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {filteredTransactions.map((transaction, index) => {
-              const config = getMethodConfig(transaction.type);
-              const Icon = config.icon;
-              
-              return (
-                <motion.div
-                  key={transaction.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className={`flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r ${config.bgColor} border ${config.borderColor} hover:scale-[1.02] transition-all duration-300`}
-                >
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${config.bgColor} border ${config.borderColor} flex items-center justify-center flex-shrink-0`}>
-                    <Icon className={`w-6 h-6 ${config.color}`} />
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-white font-semibold mb-1">{transaction.description}</h4>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Badge className={`${config.bgColor} ${config.color} border ${config.borderColor} text-xs`}>
-                        {config.name}
-                      </Badge>
-                      <span className="text-xs text-slate-400">{transaction.date}</span>
-                      {transaction.reference && (
-                        <span className="text-xs text-slate-500">#{transaction.reference}</span>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="text-left">
-                    <p className={`text-2xl font-bold ${config.color}`}>
-                      {transaction.amount.toLocaleString()}
-                    </p>
-                    <p className="text-xs text-slate-400">ر.س</p>
-                  </div>
-                </motion.div>
-              );
-            })}
+          
+          {/* Third Row */}
+          <div className="mb-4">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={showPaymentTypes}
+                onChange={(e) => setShowPaymentTypes(e.target.checked)}
+                className="w-4 h-4"
+              />
+              <span className="text-sm">مجاميع انواع طرق الدفع مع التأمين</span>
+            </label>
           </div>
-        </CardContent>
-      </Card>
+          
+          {/* Buttons */}
+          <div className="flex gap-3 print:hidden">
+            <button
+              onClick={loadData}
+              disabled={loading}
+              className="px-8 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
+            >
+              {loading ? 'جاري التحميل...' : 'طباعة'}
+            </button>
+            <button
+              onClick={() => router.back()}
+              className="px-8 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+            >
+              عرض
+            </button>
+          </div>
+        </div>
+        
+        {/* Report Content */}
+        <div className="bg-white rounded-lg shadow-md p-8">
+          {/* Report Header */}
+          <div className="text-center mb-8 pb-6 border-b-2 border-gray-400">
+            <h2 className="text-2xl font-bold mb-2">تقرير حركة الصندوق</h2>
+            <p className="text-gray-600">من {fromDate} {fromTime} إلى {toDate} {toTime}</p>
+          </div>
+          
+          {/* Summary Table - نفس التصميم من الصورة */}
+          <div className="overflow-x-auto mb-8">
+            <table className="w-full border-collapse text-sm">
+              <tbody>
+                <tr className="bg-gray-50">
+                  <td colSpan={6} className="px-3 py-2 text-center font-bold border border-gray-400">إجمالي الكمبياليات :</td>
+                  <td className="px-3 py-2 text-center font-bold border border-gray-400">0.00</td>
+                </tr>
+                
+                <tr className="bg-blue-100">
+                  <td className="px-3 py-2 text-center font-bold border border-gray-400">سندات القبض</td>
+                  <td className="px-3 py-2 text-center font-bold border border-gray-400">إجمالي القبض</td>
+                  <td className="px-3 py-2 border border-gray-400" colSpan={2}></td>
+                  <td className="px-3 py-2 text-center font-bold border border-gray-400">سندات الصرف</td>
+                  <td className="px-3 py-2 text-center font-bold border border-gray-400">إجمالي الصرف</td>
+                  <td className="px-3 py-2 border border-gray-400"></td>
+                </tr>
+                
+                <tr>
+                  <td className="px-3 py-2 border border-gray-400">المقبوضات نقدي ({receipts.filter(r => r.paymentMethod === 'cash').length})</td>
+                  <td className="px-3 py-2 text-right font-semibold border border-gray-400">{formatCurrency(totals.cashReceipts)}</td>
+                  <td className="px-3 py-2 border border-gray-400" colSpan={2}></td>
+                  <td className="px-3 py-2 border border-gray-400">الدفع الرقمي ({vouchers.filter(v => v.paidFrom === 'cash_register').length})</td>
+                  <td className="px-3 py-2 text-right font-semibold border border-gray-400">{formatCurrency(totals.cashVouchers)}</td>
+                  <td className="px-3 py-2 border border-gray-400"></td>
+                </tr>
+                
+                <tr>
+                  <td className="px-3 py-2 border border-gray-400">شبكة ({receipts.filter(r => r.paymentMethod === 'card').length})</td>
+                  <td className="px-3 py-2 text-right font-semibold border border-gray-400">{formatCurrency(totals.cardReceipts)}</td>
+                  <td className="px-3 py-2 border border-gray-400" colSpan={2}></td>
+                  <td className="px-3 py-2 border border-gray-400">شيك (0)</td>
+                  <td className="px-3 py-2 text-right font-semibold border border-gray-400">0.00</td>
+                  <td className="px-3 py-2 border border-gray-400"></td>
+                </tr>
+                
+                <tr>
+                  <td className="px-3 py-2 border border-gray-400">تحويل بنكي ({receipts.filter(r => r.paymentMethod === 'transfer').length})</td>
+                  <td className="px-3 py-2 text-right font-semibold border border-gray-400">{formatCurrency(totals.transferReceipts)}</td>
+                  <td className="px-3 py-2 border border-gray-400" colSpan={2}></td>
+                  <td className="px-3 py-2 border border-gray-400">تحويل بنكي ({vouchers.filter(v => v.paidFrom === 'bank').length})</td>
+                  <td className="px-3 py-2 text-right font-semibold border border-gray-400">{formatCurrency(totals.bankVouchers)}</td>
+                  <td className="px-3 py-2 border border-gray-400"></td>
+                </tr>
+                
+                <tr>
+                  <td className="px-3 py-2 border border-gray-400">الدفع الرقمي (0)</td>
+                  <td className="px-3 py-2 text-right border border-gray-400">0.00</td>
+                  <td className="px-3 py-2 border border-gray-400" colSpan={2}></td>
+                  <td className="px-3 py-2 border border-gray-400">وكلاء السفر (0)</td>
+                  <td className="px-3 py-2 text-right border border-gray-400">0.00</td>
+                  <td className="px-3 py-2 border border-gray-400"></td>
+                </tr>
+                
+                <tr>
+                  <td className="px-3 py-2 border border-gray-400">وكلاء السفر (0)</td>
+                  <td className="px-3 py-2 text-right border border-gray-400">0.00</td>
+                  <td className="px-3 py-2 border border-gray-400" colSpan={2}></td>
+                  <td className="px-3 py-2 border border-gray-400">مقبوضات التأمين (0)</td>
+                  <td className="px-3 py-2 text-right border border-gray-400">0.00</td>
+                  <td className="px-3 py-2 border border-gray-400"></td>
+                </tr>
+                
+                <tr>
+                  <td className="px-3 py-2 border border-gray-400">شبكة / مدى (0)</td>
+                  <td className="px-3 py-2 text-right border border-gray-400">0.00</td>
+                  <td className="px-3 py-2 border border-gray-400" colSpan={2}></td>
+                  <td className="px-3 py-2 border border-gray-400">مصروفات التأمين (0)</td>
+                  <td className="px-3 py-2 text-right border border-gray-400">0.00</td>
+                  <td className="px-3 py-2 border border-gray-400"></td>
+                </tr>
+                
+                <tr className="bg-gray-200">
+                  <td colSpan={7} className="py-1 border border-gray-400"></td>
+                </tr>
+                
+                <tr>
+                  <td className="px-3 py-2 border border-gray-400">المبالغ المحولة من البنك :</td>
+                  <td className="px-3 py-2 text-right border border-gray-400">0.00</td>
+                  <td className="px-3 py-2 border border-gray-400" colSpan={2}></td>
+                  <td className="px-3 py-2 border border-gray-400">المبالغ المحولة إلى البنك :</td>
+                  <td className="px-3 py-2 text-right border border-gray-400">0.00</td>
+                  <td className="px-3 py-2 border border-gray-400"></td>
+                </tr>
+                
+                <tr>
+                  <td className="px-3 py-2 border border-gray-400">المبالغ المحولة من البنك :</td>
+                  <td className="px-3 py-2 text-right border border-gray-400">0.00</td>
+                  <td className="px-3 py-2 font-semibold border border-gray-400">صافي البنك :</td>
+                  <td className="px-3 py-2 text-right font-bold bg-yellow-100 border border-gray-400">{formatCurrency(totals.netBank)}</td>
+                  <td className="px-3 py-2 border border-gray-400">صافي التأمين :</td>
+                  <td className="px-3 py-2 text-right border border-gray-400">0.00</td>
+                  <td className="px-3 py-2 border border-gray-400"></td>
+                </tr>
+                
+                <tr className="bg-gray-200">
+                  <td colSpan={7} className="py-1 border border-gray-400"></td>
+                </tr>
+                
+                <tr>
+                  <td className="px-3 py-2 border border-gray-400">المبالغ السابقة</td>
+                  <td className="px-3 py-2 text-right border border-gray-400">0.00</td>
+                  <td className="px-3 py-2 border border-gray-400" colSpan={2}></td>
+                  <td className="px-3 py-2 border border-gray-400">التأثيرات السابقة :</td>
+                  <td className="px-3 py-2 text-right border border-gray-400">0.00</td>
+                  <td className="px-3 py-2 border border-gray-400"></td>
+                </tr>
+                
+                <tr>
+                  <td className="px-3 py-2 border border-gray-400">القيمة المضافة على القبض :</td>
+                  <td className="px-3 py-2 text-right border border-gray-400">0.00</td>
+                  <td className="px-3 py-2 border border-gray-400" colSpan={2}></td>
+                  <td className="px-3 py-2 border border-gray-400">القيمة المضافة على الصرف :</td>
+                  <td className="px-3 py-2 text-right border border-gray-400">0.00</td>
+                  <td className="px-3 py-2 border border-gray-400"></td>
+                </tr>
+                
+                <tr className="bg-blue-100">
+                  <td className="px-3 py-3 font-bold border border-gray-400">إجمالي القبض</td>
+                  <td className="px-3 py-3 text-right font-bold text-lg text-green-700 border border-gray-400">{formatCurrency(totals.totalReceipts)}</td>
+                  <td className="px-3 py-3 border border-gray-400" colSpan={2}></td>
+                  <td className="px-3 py-3 font-bold border border-gray-400">إجمالي الصرف</td>
+                  <td className="px-3 py-3 text-right font-bold text-lg text-red-700 border border-gray-400">{formatCurrency(totals.totalVouchers)}</td>
+                  <td className="px-3 py-3 border border-gray-400"></td>
+                </tr>
+                
+                <tr className="bg-gray-200">
+                  <td colSpan={7} className="py-1 border border-gray-400"></td>
+                </tr>
+                
+                <tr>
+                  <td className="px-3 py-3 font-bold border border-gray-400">المبالغ المحولة إلى البنك :</td>
+                  <td className="px-3 py-3 text-right font-bold border border-gray-400">{formatCurrency(totals.netBank)}</td>
+                  <td className="px-3 py-3 font-semibold border border-gray-400">إجمالي الصندوق :</td>
+                  <td className="px-3 py-3 text-right font-bold text-green-700 bg-green-100 border border-gray-400">{formatCurrency(totals.netCash)}</td>
+                  <td className="px-3 py-3 border border-gray-400">إجمالي المصندوق :</td>
+                  <td className="px-3 py-3 text-right border border-gray-400">0.00</td>
+                  <td className="px-3 py-3 border border-gray-400"></td>
+                </tr>
+                
+                <tr className="bg-green-100">
+                  <td className="px-3 py-4 font-bold border border-gray-400">رصيد البنك ( للفترة المحددة):</td>
+                  <td className="px-3 py-4 text-right font-bold text-xl text-green-700 border border-gray-400">{formatCurrency(totals.netBank)}</td>
+                  <td className="px-3 py-4 border border-gray-400" colSpan={5}></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          {/* Detailed Transactions */}
+          <div className="border-t-2 border-gray-400 pt-6">
+            <h3 className="text-xl font-bold mb-4">سندات القبض</h3>
+            <table className="w-full border-collapse text-sm mb-8">
+              <thead className="bg-blue-100">
+                <tr>
+                  <th className="px-3 py-2 border border-gray-400">رقم السند</th>
+                  <th className="px-3 py-2 border border-gray-400">التاريخ</th>
+                  <th className="px-3 py-2 border border-gray-400">طريقة الدفع</th>
+                  <th className="px-3 py-2 border border-gray-400">من أجل</th>
+                  <th className="px-3 py-2 border border-gray-400">المبلغ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {receipts.length === 0 ? (
+                  <tr><td colSpan={5} className="px-3 py-8 text-center text-gray-500 border border-gray-400">لا توجد سندات قبض</td></tr>
+                ) : (
+                  receipts.map(r => (
+                    <tr key={r.id} className="hover:bg-gray-50">
+                      <td className="px-3 py-2 text-center border border-gray-400">{r.receiptNumber || r.id}</td>
+                      <td className="px-3 py-2 text-center border border-gray-400">{formatDateTime(r.createdAt)}</td>
+                      <td className="px-3 py-2 text-center border border-gray-400">
+                        {r.paymentMethod === 'cash' && 'نقدي'}
+                        {r.paymentMethod === 'card' && 'شبكة / مدى'}
+                        {r.paymentMethod === 'transfer' && 'تحويل بنكي'}
+                      </td>
+                      <td className="px-3 py-2 border border-gray-400">{r.description}</td>
+                      <td className="px-3 py-2 text-right font-semibold border border-gray-400">{formatCurrency(r.amount)}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+            
+            <h3 className="text-xl font-bold mb-4 mt-8">سندات الصرف</h3>
+            <table className="w-full border-collapse text-sm">
+              <thead className="bg-red-100">
+                <tr>
+                  <th className="px-3 py-2 border border-gray-400">رقم السند</th>
+                  <th className="px-3 py-2 border border-gray-400">التاريخ</th>
+                  <th className="px-3 py-2 border border-gray-400">من أجل</th>
+                  <th className="px-3 py-2 border border-gray-400">دفع من</th>
+                  <th className="px-3 py-2 border border-gray-400">المبلغ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {vouchers.length === 0 ? (
+                  <tr><td colSpan={5} className="px-3 py-8 text-center text-gray-500 border border-gray-400">لا توجد سندات صرف</td></tr>
+                ) : (
+                  vouchers.map(v => (
+                    <tr key={v.id} className="hover:bg-gray-50">
+                      <td className="px-3 py-2 text-center border border-gray-400">{v.voucherNumber || v.id}</td>
+                      <td className="px-3 py-2 text-center border border-gray-400">{formatDateTime(v.createdAt)}</td>
+                      <td className="px-3 py-2 border border-gray-400">{v.description}</td>
+                      <td className="px-3 py-2 text-center border border-gray-400">{v.paidFrom === 'cash_register' ? 'الصندوق' : 'البنك'}</td>
+                      <td className="px-3 py-2 text-right font-semibold border border-gray-400">{formatCurrency(v.totalAmount)}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          
+          {/* Footer */}
+          <div className="mt-8 text-center text-sm text-gray-600 border-t-2 border-gray-400 pt-4">
+            اخر تحويل للبنك في تاريخ '05/11/2025' الساعة '11:32 PM' بقيمة '$453.5' برقم سند رقم '00834'
+          </div>
+          
+          {/* Bottom Summary */}
+          <div className="mt-6 grid grid-cols-2 gap-8 text-sm">
+            <div>
+              <div className="flex justify-between py-1"><span>( المقبوضات نقدي :</span><span>{formatCurrency(totals.cashReceipts)}</span></div>
+              <div className="flex justify-between py-1"><span>شبكة :</span><span>{formatCurrency(totals.cardReceipts)}</span></div>
+              <div className="flex justify-between py-1"><span>تحويل بنكي :</span><span>{formatCurrency(totals.transferReceipts)}</span></div>
+              <div className="flex justify-between py-1"><span>الدفع الرقمي :</span><span>0.00</span></div>
+              <div className="flex justify-between py-1"><span>وكلاء السفر :</span><span>0.00</span></div>
+              <div className="flex justify-between py-1 border-t mt-2 pt-2 font-bold"><span>إجمالي الكمبياليات :</span><span>0.00</span></div>
+            </div>
+            <div>
+              <div className="flex justify-between py-1"><span>الدفع الرقمي :</span><span>{formatCurrency(totals.cashVouchers)}</span></div>
+              <div className="flex justify-between py-1"><span>شيك :</span><span>0.00</span></div>
+              <div className="flex justify-between py-1"><span>تحويل بنكي :</span><span>{formatCurrency(totals.bankVouchers)}</span></div>
+              <div className="flex justify-between py-1"><span>وكلاء السفر :</span><span>0.00</span></div>
+              <div className="flex justify-between py-1"><span>مقبوضات التأمين :</span><span>0.00</span></div>
+              <div className="flex justify-between py-1"><span>مصروفات التأمين :</span><span>0.00</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
