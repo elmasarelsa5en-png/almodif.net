@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>حذف بيانات الحسابات</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.15);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .warning-box {
+            background: rgba(252, 165, 165, 0.3);
+            border: 2px solid #fca5a5;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .warning-box h2 {
+            color: #fef2f2;
+            margin: 0 0 10px 0;
+        }
+        .collections-list {
+            background: rgba(0,0,0,0.2);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+        .collection-item {
+            padding: 12px;
+            margin: 8px 0;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .collection-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        .collection-item label {
+            cursor: pointer;
+            flex: 1;
+            font-size: 1.1em;
+        }
+        button {
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            width: 100%;
+            margin: 10px 0;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .delete-btn {
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.3);
+        }
+        .delete-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4);
+        }
+        .select-all-btn {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+        }
+        .select-all-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        button:disabled {
+            background: #6b7280;
+            cursor: not-allowed;
+            transform: none;
+            opacity: 0.6;
+        }
+        #results {
+            background: rgba(0,0,0,0.2);
+            padding: 20px;
+            border-radius: 12px;
+            min-height: 100px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.8;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .log-item {
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.1);
+        }
+        .success { color: #10b981; }
+        .error { color: #ef4444; }
+        .warning { color: #f59e0b; }
+        .info { color: #3b82f6; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #fca5a5;
+        }
+        .stat-label {
+            opacity: 0.9;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗑️ حذف بيانات الحسابات</h1>
+        
+        <div class="warning-box">
+            <h2>⚠️ تحذير مهم جداً</h2>
+            <p style="font-size: 1.1em; line-height: 1.6;">
+                هذه العملية سوف تحذف <strong>جميع البيانات المحاسبية والمالية بشكل نهائي</strong>
+                <br>
+                لا يمكن التراجع عن هذه العملية بعد تنفيذها!
+            </p>
+        </div>
+
+        <div class="collections-list">
+            <h3 style="margin-top: 0;">📋 اختر البيانات المراد حذفها:</h3>
+            
+            <div class="collection-item">
+                <input type="checkbox" id="invoices" value="invoices" checked>
+                <label for="invoices">🧾 الفواتير (Invoices)</label>
+            </div>
+            
+            <div class="collection-item">
+                <input type="checkbox" id="payments" value="payments" checked>
+                <label for="payments">💰 المدفوعات (Payments)</label>
+            </div>
+            
+            <div class="collection-item">
+                <input type="checkbox" id="audit-log" value="audit-log" checked>
+                <label for="audit-log">📝 سجل المراجعة (Audit Log)</label>
+            </div>
+            
+            <div class="collection-item">
+                <input type="checkbox" id="bookings" value="bookings">
+                <label for="bookings">📅 الحجوزات (Bookings) - اختياري</label>
+            </div>
+        </div>
+
+        <button class="select-all-btn" onclick="toggleSelectAll()">
+            ✅ تحديد الكل / إلغاء التحديد
+        </button>
+        
+        <button class="delete-btn" id="deleteBtn" onclick="deleteAccountingData()">
+            🗑️ حذف البيانات المحددة
+        </button>
+        
+        <div class="stats" id="stats" style="display: none;">
+            <div class="stat-card">
+                <div class="stat-label">🧾 فواتير محذوفة</div>
+                <div class="stat-number" id="invoicesCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">💰 مدفوعات محذوفة</div>
+                <div class="stat-number" id="paymentsCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">📝 سجلات محذوفة</div>
+                <div class="stat-number" id="auditCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">📊 الإجمالي</div>
+                <div class="stat-number" id="totalCount">0</div>
+            </div>
+        </div>
+        
+        <div id="results"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import { getFirestore, collection, getDocs, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDpgPh8L_5eSHY6KdO__u3lZBM9Vz1AhAQ",
+            authDomain: "almodif.firebaseapp.com",
+            projectId: "almodif",
+            storageBucket: "almodif.firebasestorage.app",
+            messagingSenderId: "1047498170114",
+            appId: "1:1047498170114:web:a23bda21baf4d7c6bea01b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        function addLog(message, type = 'info') {
+            const resultsDiv = document.getElementById('results');
+            const logItem = document.createElement('div');
+            logItem.className = `log-item ${type}`;
+            logItem.textContent = message;
+            resultsDiv.appendChild(logItem);
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+
+        window.toggleSelectAll = function() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            checkboxes.forEach(cb => cb.checked = !allChecked);
+        };
+
+        window.deleteAccountingData = async function() {
+            const deleteBtn = document.getElementById('deleteBtn');
+            const resultsDiv = document.getElementById('results');
+            const statsDiv = document.getElementById('stats');
+            
+            // جمع المجموعات المحددة
+            const selectedCollections = [];
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            checkboxes.forEach(cb => selectedCollections.push(cb.value));
+            
+            if (selectedCollections.length === 0) {
+                alert('❌ الرجاء تحديد مجموعة واحدة على الأقل للحذف');
+                return;
+            }
+            
+            // تأكيد الحذف
+            const collectionNames = selectedCollections.join(', ');
+            const confirmed = confirm(
+                `⚠️ هل أنت متأكد من حذف البيانات التالية؟\n\n` +
+                `${collectionNames}\n\n` +
+                `هذه العملية لا يمكن التراجع عنها!`
+            );
+            
+            if (!confirmed) {
+                return;
+            }
+            
+            deleteBtn.disabled = true;
+            deleteBtn.textContent = '⏳ جاري الحذف...';
+            resultsDiv.innerHTML = '';
+            statsDiv.style.display = 'grid';
+            
+            let totalDeleted = 0;
+            const counts = {
+                'invoices': 0,
+                'payments': 0,
+                'audit-log': 0,
+                'bookings': 0
+            };
+            
+            try {
+                addLog('🔄 بدء عملية حذف البيانات المحاسبية...', 'warning');
+                addLog('', 'info');
+                
+                for (const collectionName of selectedCollections) {
+                    addLog(`📂 معالجة مجموعة: ${collectionName}`, 'info');
+                    
+                    try {
+                        const collectionRef = collection(db, collectionName);
+                        const snapshot = await getDocs(collectionRef);
+                        
+                        if (snapshot.empty) {
+                            addLog(`   ℹ️ المجموعة فارغة - لا توجد بيانات للحذف`, 'info');
+                            continue;
+                        }
+                        
+                        addLog(`   📊 تم العثور على ${snapshot.size} مستند`, 'info');
+                        
+                        let deleted = 0;
+                        for (const docSnapshot of snapshot.docs) {
+                            await deleteDoc(doc(db, collectionName, docSnapshot.id));
+                            deleted++;
+                            totalDeleted++;
+                            counts[collectionName]++;
+                            
+                            // تحديث الإحصائيات
+                            document.getElementById('invoicesCount').textContent = counts['invoices'];
+                            document.getElementById('paymentsCount').textContent = counts['payments'];
+                            document.getElementById('auditCount').textContent = counts['audit-log'];
+                            document.getElementById('totalCount').textContent = totalDeleted;
+                            
+                            if (deleted % 10 === 0) {
+                                addLog(`   ⏳ تم حذف ${deleted} من ${snapshot.size}...`, 'info');
+                            }
+                        }
+                        
+                        addLog(`   ✅ تم حذف ${deleted} مستند من ${collectionName}`, 'success');
+                        addLog('', 'info');
+                        
+                    } catch (error) {
+                        addLog(`   ❌ خطأ في حذف ${collectionName}: ${error.message}`, 'error');
+                        console.error(`Error deleting ${collectionName}:`, error);
+                    }
+                }
+                
+                addLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+                addLog('🎉 تمت عملية الحذف بنجاح!', 'success');
+                addLog('', 'info');
+                addLog('📊 ملخص العملية:', 'info');
+                if (counts['invoices'] > 0) addLog(`   🧾 الفواتير: ${counts['invoices']}`, 'success');
+                if (counts['payments'] > 0) addLog(`   💰 المدفوعات: ${counts['payments']}`, 'success');
+                if (counts['audit-log'] > 0) addLog(`   📝 سجل المراجعة: ${counts['audit-log']}`, 'success');
+                if (counts['bookings'] > 0) addLog(`   📅 الحجوزات: ${counts['bookings']}`, 'success');
+                addLog(`   📝 إجمالي المستندات المحذوفة: ${totalDeleted}`, 'success');
+                addLog('', 'info');
+                addLog('✅ تم تنظيف قاعدة البيانات من جميع البيانات المحاسبية', 'success');
+                
+                deleteBtn.textContent = '✅ تم الحذف بنجاح';
+                deleteBtn.style.background = '#6b7280';
+                
+            } catch (error) {
+                console.error('Error:', error);
+                addLog(`❌ خطأ عام: ${error.message}`, 'error');
+                deleteBtn.disabled = false;
+                deleteBtn.textContent = '🔄 إعادة المحاولة';
+            }
+        };
+    </script>
+</body>
+</html>

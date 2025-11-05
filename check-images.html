@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>فحص الصور</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        .item {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        .image-preview {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            background: white;
+            border-radius: 8px;
+            padding: 5px;
+        }
+        .info {
+            flex: 1;
+        }
+        .url {
+            font-size: 12px;
+            word-break: break-all;
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+        button {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        button:hover {
+            background: #059669;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 فحص صور الأصناف</h1>
+        <button onclick="loadItems()">تحميل الأصناف</button>
+        <div id="results"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDpgPh8L_5eSHY6KdO__u3lZBM9Vz1AhAQ",
+            authDomain: "almodif.firebaseapp.com",
+            projectId: "almodif",
+            storageBucket: "almodif.firebasestorage.app",
+            messagingSenderId: "1047498170114",
+            appId: "1:1047498170114:web:a23bda21baf4d7c6bea01b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.loadItems = async function() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>⏳ جاري التحميل...</p>';
+            
+            try {
+                const querySnapshot = await getDocs(collection(db, 'menu-items'));
+                const items = [];
+                querySnapshot.forEach((doc) => {
+                    items.push({ id: doc.id, ...doc.data() });
+                });
+
+                console.log('📊 Total items:', items.length);
+                
+                resultsDiv.innerHTML = `<h2>عدد الأصناف: ${items.length}</h2>`;
+                
+                items.slice(0, 10).forEach(item => {
+                    const imageType = item.image 
+                        ? (item.image.startsWith('data:image') ? 'Base64' 
+                            : (item.image.startsWith('http') ? 'URL' 
+                            : 'Text/Emoji')) 
+                        : 'No Image';
+                    
+                    const isImageUrl = item.image && (item.image.startsWith('data:image') || item.image.startsWith('http'));
+                    
+                    resultsDiv.innerHTML += `
+                        <div class="item">
+                            ${isImageUrl ? 
+                                `<img src="${item.image}" class="image-preview" onerror="this.style.display='none'">` 
+                                : `<div class="image-preview" style="display:flex;align-items:center;justify-content:center;font-size:48px;">${item.image || '❓'}</div>`
+                            }
+                            <div class="info">
+                                <h3>${item.nameAr}</h3>
+                                <p><strong>النوع:</strong> ${imageType}</p>
+                                <p><strong>السعر:</strong> ${item.price} ر.س</p>
+                                <p><strong>الفئة:</strong> ${item.subCategory || 'غير محدد'}</p>
+                                ${item.image ? `<div class="url"><strong>Image:</strong> ${item.image.substring(0, 150)}...</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (error) {
+                console.error('Error:', error);
+                resultsDiv.innerHTML = `<p style="color: #ff4444;">❌ خطأ: ${error.message}</p>`;
+            }
+        };
+    </script>
+</body>
+</html>

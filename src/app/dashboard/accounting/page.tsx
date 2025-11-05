@@ -40,12 +40,12 @@ import ExcelImportSection from '@/components/ExcelImportSection';
 export default function AccountingPage() {
   const router = useRouter();
   const [stats, setStats] = useState({
-    totalRevenue: 159103, // إجمالي المقبوضات من البيانات المستوردة (34053 + 125000)
-    monthlyExpenses: 71077.5, // إجمالي المصروفات من البيانات المستوردة (26077.5 + 45000)
-    netProfit: 87975.5, // صافي الربح بعد إضافة البيانات الجديدة (7975.5 + 80000)
-    pendingInvoices: 15, // زيادة عدد الفواتير المعلقة
-    overduePayments: 5, // زيادة المدفوعات المتأخرة
-    totalTransactions: 297 // إضافة 49 معاملة جديدة من الحركة النقدية
+    totalRevenue: 0,
+    monthlyExpenses: 0,
+    netProfit: 0,
+    pendingInvoices: 0,
+    overduePayments: 0,
+    totalTransactions: 0
   });
 
   // حالات النوافذ المنبثقة
@@ -72,19 +72,7 @@ export default function AccountingPage() {
   });
 
   const [recentTransactions, setRecentTransactions] = useState([
-    // معاملات مستوردة من الحركة النقدية
-    { id: 1, type: 'دخل', description: 'فواتير افتخار', amount: 1035, date: '06-أكتوبر', status: 'مكتمل', category: 'فواتير' },
-    { id: 2, type: 'مصروف', description: 'فواتير افتخار', amount: -1250, date: '06-أكتوبر', status: 'مكتمل', category: 'فواتير' },
-    { id: 3, type: 'مصروف', description: 'افتخار', amount: -1500, date: '05-أكتوبر', status: 'مكتمل', category: 'مصروفات عامة' },
-    { id: 4, type: 'مصروف', description: 'بدل ايجار شقة 501', amount: -160, date: '04-أكتوبر', status: 'مكتمل', category: 'إيجارات' },
-    { id: 5, type: 'دخل', description: 'إيرادات متنوعة', amount: 4, date: '03-أكتوبر', status: 'مكتمل', category: 'إيرادات' },
-    { id: 6, type: 'دخل', description: 'إيرادات غرف', amount: 700, date: '02-أكتوبر', status: 'مكتمل', category: 'إيرادات الغرف' },
-    { id: 7, type: 'مصروف', description: 'راتب منذر', amount: -1700, date: '02-أكتوبر', status: 'مكتمل', category: 'رواتب' },
-    { id: 8, type: 'دخل', description: 'إيرادات غرف', amount: 100, date: '01-أكتوبر', status: 'مكتمل', category: 'إيرادات الغرف' },
-    { id: 9, type: 'مصروف', description: 'راتب مصطفي', amount: -1300, date: '01-أكتوبر', status: 'مكتمل', category: 'رواتب' },
-    { id: 10, type: 'مصروف', description: 'راتب فهد مع اوفر تايم يوم وطنى مع ساعه', amount: -3795, date: '30-سبتمبر', status: 'مكتمل', category: 'رواتب' },
-    { id: 11, type: 'دخل', description: 'بدل ايجار شقة 204', amount: 920, date: '23-سبتمبر', status: 'مكتمل', category: 'إيجارات' },
-    { id: 12, type: 'مصروف', description: 'بدل ايجار شقة 308', amount: -100, date: '22-سبتمبر', status: 'مكتمل', category: 'إيجارات' }
+    // البدء من الصفر - لا توجد معاملات
   ]);
 
   // وظائف الأزرار
