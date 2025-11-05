@@ -19,7 +19,8 @@ interface GuestData {
   nationality: string;
   idType: string;
   idNumber: string;
-  expiryDate: string;
+  idCopyNumber: string; // رقم نسخة البطاقة
+  birthDate: string; // تاريخ الميلاد (بدلاً من expiryDate)
   mobile: string;
   workPhone: string;
   email: string;
@@ -54,7 +55,8 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
     nationality: '',
     idType: '',
     idNumber: '',
-    expiryDate: '',
+    idCopyNumber: '', // رقم نسخة البطاقة
+    birthDate: '', // تاريخ الميلاد
     mobile: '',
     workPhone: '',
     email: '',
@@ -98,7 +100,8 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
         nationality: clipboardData.nationality || '',
         idType: clipboardData.idType || '',
         idNumber: clipboardData.idNumber || '',
-        expiryDate: clipboardData.expiryDate || '',
+        idCopyNumber: clipboardData.idCopyNumber || '',
+        birthDate: clipboardData.birthDate || clipboardData.expiryDate || '', // دعم القديم
         mobile: clipboardData.mobile || '',
         workPhone: clipboardData.workPhone || '',
         email: clipboardData.email || '',
@@ -118,7 +121,8 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
       nationality: guestData.nationality,
       idType: guestData.idType,
       idNumber: guestData.idNumber,
-      expiryDate: guestData.expiryDate,
+      idCopyNumber: guestData.idCopyNumber,
+      birthDate: guestData.birthDate,
       mobile: guestData.mobile,
       workPhone: guestData.workPhone,
       email: guestData.email,
@@ -135,12 +139,21 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
       return;
     }
 
+    if (!guestData.idCopyNumber) {
+      alert('⚠️ يرجى إدخال رقم نسخة البطاقة أولاً');
+      return;
+    }
+
+    if (!guestData.birthDate) {
+      alert('⚠️ يرجى إدخال تاريخ الميلاد أولاً');
+      return;
+    }
+
     setIsVerifying(true);
     setVerificationResult(null);
 
     try {
-      // استدعاء API منصة شموس
-      // ملاحظة: يجب استبدال هذا بـ API الحقيقي من منصة شموس
+      // استدعاء API منصة شموس مع البيانات الثلاثة
       const response = await fetch('/api/shamoos/verify', {
         method: 'POST',
         headers: {
@@ -148,6 +161,8 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
         },
         body: JSON.stringify({
           idNumber: guestData.idNumber,
+          idCopyNumber: guestData.idCopyNumber,
+          birthDate: guestData.birthDate,
           idType: 'national_id'
         }),
       });
@@ -158,7 +173,7 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
         // نجح التحقق - تعبئة البيانات تلقائياً
         setVerificationResult({
           success: true,
-          message: 'تم التحقق من الهوية بنجاح ✓'
+          message: '✅ تم التحقق من الهوية بنجاح - البيانات متطابقة مع شموس'
         });
 
         // تعبئة البيانات من الاستجابة
@@ -167,26 +182,39 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
             ...prev,
             fullName: data.citizenInfo.name || prev.fullName,
             nationality: data.citizenInfo.nationality || prev.nationality,
-            expiryDate: data.citizenInfo.expiryDate || prev.expiryDate,
             shamoosVerified: true // ✅ تم التحقق بنجاح
           }));
         }
       } else {
+        // فشل التحقق - عرض رسالة خطأ مفصلة
+        const errorMessages = [];
+        if (data.errors) {
+          if (data.errors.idNumber) errorMessages.push('رقم الهوية غير صحيح');
+          if (data.errors.idCopyNumber) errorMessages.push('رقم نسخة البطاقة غير مطابق');
+          if (data.errors.birthDate) errorMessages.push('تاريخ الميلاد غير مطابق');
+        }
+        
         setVerificationResult({
           success: false,
-          message: data.message || 'فشل التحقق من الهوية'
+          message: errorMessages.length > 0 
+            ? `❌ فشل التحقق: ${errorMessages.join(' • ')}` 
+            : data.message || '❌ فشل التحقق من الهوية'
         });
+        
         // ❌ فشل التحقق
         setGuestData(prev => ({
           ...prev,
           shamoosVerified: false
         }));
+
+        // عرض تنبيه صوتي أو مرئي
+        alert(`⚠️ تنبيه: ${errorMessages.join('\n')}\n\nالرجاء التأكد من البيانات المدخلة.`);
       }
     } catch (error) {
       console.error('خطأ في التحقق من شموس:', error);
       setVerificationResult({
         success: false,
-        message: 'خطأ في الاتصال بمنصة شموس'
+        message: '❌ خطأ في الاتصال بمنصة شموس - يرجى المحاولة لاحقاً'
       });
     } finally {
       setIsVerifying(false);
@@ -401,7 +429,8 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
       nationality: '',
       idType: '',
       idNumber: '',
-      expiryDate: '',
+      idCopyNumber: '',
+      birthDate: '',
       mobile: '',
       workPhone: '',
       email: '',
@@ -469,10 +498,10 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
       data.email = emailMatch[0];
     }
 
-    // البحث عن تاريخ الانتهاء
+    // البحث عن تاريخ الميلاد
     const dateMatch = text.match(/\d{1,2}\/\d{1,2}\/\d{2,4}/);
     if (dateMatch) {
-      data.expiryDate = dateMatch[0];
+      data.birthDate = dateMatch[0];
     }
 
     return data;
@@ -509,7 +538,8 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
       nationality: '',
       idType: '',
       idNumber: '',
-      expiryDate: '',
+      idCopyNumber: '',
+      birthDate: '',
       mobile: '',
       workPhone: '',
       email: '',
@@ -799,14 +829,27 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
               </div>
 
               <div>
-                <Label htmlFor="expiryDate" className="text-blue-200">تاريخ الانتهاء</Label>
+                <Label htmlFor="idCopyNumber" className="text-blue-200">رقم نسخة البطاقة</Label>
                 <Input
-                  id="expiryDate"
-                  type="date"
-                  value={guestData.expiryDate}
-                  onChange={(e) => handleInputChange('expiryDate', e.target.value)}
+                  id="idCopyNumber"
+                  value={guestData.idCopyNumber}
+                  onChange={(e) => handleInputChange('idCopyNumber', e.target.value)}
+                  placeholder="رقم نسخة البطاقة"
                   className="bg-white/10 border-blue-400/30 text-white"
                 />
+                <p className="text-xs text-blue-300/70 mt-1">مطلوب للتحقق من شموس</p>
+              </div>
+
+              <div>
+                <Label htmlFor="birthDate" className="text-blue-200">تاريخ الميلاد</Label>
+                <Input
+                  id="birthDate"
+                  type="date"
+                  value={guestData.birthDate}
+                  onChange={(e) => handleInputChange('birthDate', e.target.value)}
+                  className="bg-white/10 border-blue-400/30 text-white"
+                />
+                <p className="text-xs text-blue-300/70 mt-1">مطلوب للتحقق من شموس</p>
               </div>
 
               <div>

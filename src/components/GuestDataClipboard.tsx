@@ -25,7 +25,9 @@ interface GuestClipboardData {
   nationality: string;
   idType: string;
   idNumber: string;
-  expiryDate: string;
+  idCopyNumber?: string; // رقم نسخة البطاقة
+  expiryDate?: string; // دعم قديم
+  birthDate?: string; // تاريخ الميلاد
   mobile: string;
   workPhone: string;
   email: string;
