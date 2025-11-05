@@ -418,7 +418,25 @@ export default function GuestMenuPage() {
                   <CardContent className="p-3 sm:p-4 md:p-6 flex flex-col h-full">
                     <div className="flex-1">
                       {item.image && (
-                        <div className="text-4xl sm:text-5xl md:text-6xl mb-3 sm:mb-4 text-center">{item.image}</div>
+                        <div className="mb-3 sm:mb-4 flex items-center justify-center">
+                          {item.image.startsWith('data:image') || item.image.startsWith('http') ? (
+                            <img
+                              src={item.image}
+                              alt={item.nameAr}
+                              className="w-24 h-24 sm:w-32 sm:h-32 object-contain rounded-lg bg-white/5 p-2"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                                const emojiDiv = document.createElement('div');
+                                emojiDiv.className = 'text-4xl sm:text-5xl';
+                                emojiDiv.textContent = '🍽️';
+                                target.parentNode?.appendChild(emojiDiv);
+                              }}
+                            />
+                          ) : (
+                            <div className="text-4xl sm:text-5xl md:text-6xl text-center">{item.image}</div>
+                          )}
+                        </div>
                       )}
                       <h3 className="text-base sm:text-lg md:text-xl font-bold text-white mb-2">{item.nameAr}</h3>
                       <p className="text-xs sm:text-sm text-blue-200 mb-1">{item.name}</p>

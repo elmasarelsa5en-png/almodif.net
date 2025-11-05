@@ -637,11 +637,18 @@ export default function LaundryPage() {
                       {/* Item image and badges */}
                       <div className="relative h-36 md:h-48 bg-gradient-to-br from-cyan-100 via-blue-50 to-purple-100 overflow-hidden">
                         <div className="absolute inset-0 flex items-center justify-center p-4">
-                          {item.image && item.image.startsWith('data:image') ? (
+                          {item.image && (item.image.startsWith('data:image') || item.image.startsWith('http')) ? (
                             <img 
                               src={item.image} 
                               alt={item.nameAr}
                               className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                const parent = e.currentTarget.parentElement;
+                                if (parent) {
+                                  parent.innerHTML = '<div class="text-6xl">🧺</div>';
+                                }
+                              }}
                             />
                           ) : (
                             <motion.div 
