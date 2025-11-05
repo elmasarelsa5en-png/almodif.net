@@ -93,7 +93,7 @@ export default function MenuItemsPage() {
     name: '',
     nameAr: '',
     price: '',
-    category: 'coffee',
+    category: '', // ⚠️ MUST select category explicitly
     subCategory: '',
     description: '',
     image: '',
@@ -138,8 +138,8 @@ export default function MenuItemsPage() {
   };
 
   const handleSave = async () => {
-    if (!formData.nameAr || !formData.price) {
-      alert('الرجاء إدخال اسم الصنف والسعر');
+    if (!formData.nameAr || !formData.price || !formData.category) {
+      alert('⚠️ الرجاء إدخال: اسم الصنف، السعر، والتصنيف');
       return;
     }
 
@@ -217,7 +217,7 @@ export default function MenuItemsPage() {
       name: '',
       nameAr: '',
       price: '',
-      category: 'coffee',
+      category: '', // Reset to empty - force selection
       subCategory: '',
       description: '',
       image: '',
@@ -639,7 +639,7 @@ export default function MenuItemsPage() {
                     type="text"
                     value={formData.image}
                     onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    placeholder="رابط الصورة أو إيموجي   "
+                    placeholder="مثال: ☕ 🍔 🍕 👔 🧺"
                     className="flex-1 h-10 rounded-md border border-purple-500/30 bg-slate-800 text-white px-3 focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                   <input
@@ -648,23 +648,87 @@ export default function MenuItemsPage() {
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) {
+                        console.log('📸 File selected:', file.name, 'Size:', file.size, 'bytes');
+                        
+                        // Check file size (max 800KB before compression)
+                        if (file.size > 800000) {
+                          alert('⚠️ الصورة كبيرة جداً! الحد الأقصى 800 KB قبل الضغط.\nحجم الصورة: ' + Math.round(file.size / 1024) + ' KB');
+                          e.target.value = '';
+                          return;
+                        }
+                        
+                        console.log('✅ File size OK, starting compression...');
                         const reader = new FileReader();
                         reader.onloadend = () => {
-                          setFormData({ ...formData, image: reader.result as string });
+                          console.log('📖 File read complete');
+                          // Compress image
+                          const img = new Image();
+                          img.onload = () => {
+                            console.log('🖼️ Image loaded:', img.width, 'x', img.height);
+                            const canvas = document.createElement('canvas');
+                            // Reasonable size - 150x150
+                            const MAX_WIDTH = 150;
+                            const MAX_HEIGHT = 150;
+                            let width = img.width;
+                            let height = img.height;
+
+                            if (width > height) {
+                              if (width > MAX_WIDTH) {
+                                height *= MAX_WIDTH / width;
+                                width = MAX_WIDTH;
+                              }
+                            } else {
+                              if (height > MAX_HEIGHT) {
+                                width *= MAX_HEIGHT / height;
+                                height = MAX_HEIGHT;
+                              }
+                            }
+
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx?.drawImage(img, 0, 0, width, height);
+                            
+                            // Balanced compression (quality 0.6)
+                            const compressedImage = canvas.toDataURL('image/jpeg', 0.6);
+                            console.log('✅ Compressed to:', Math.round(compressedImage.length / 1024), 'KB');
+                            
+                            // Final check - Firebase limit is ~1MB
+                            if (compressedImage.length > 900000) {
+                              alert('⚠️ الصورة ما زالت كبيرة بعد الضغط! جرب صورة أصغر.\nالحجم بعد الضغط: ' + Math.round(compressedImage.length / 1024) + ' KB');
+                              e.target.value = '';
+                              return;
+                            }
+                            
+                            console.log('✅ Image compression successful!');
+                            setFormData({ ...formData, image: compressedImage });
+                          };
+                          img.onerror = () => {
+                            console.error('❌ Failed to load image');
+                            alert('❌ فشل تحميل الصورة! تأكد أنها صورة صحيحة.');
+                          };
+                          img.src = reader.result as string;
+                        };
+                        reader.onerror = () => {
+                          console.error('❌ Failed to read file');
+                          alert('❌ فشل قراءة الملف!');
                         };
                         reader.readAsDataURL(file);
+                      } else {
+                        console.log('⚠️ No file selected');
                       }
                     }}
                     className="bg-purple-600 text-white px-4 rounded-md cursor-pointer hover:bg-purple-700"
                   />
                 </div>
+                <p className="text-xs text-purple-300 mt-1">💡 يمكنك رفع صور (حد أقصى 800 KB) أو استخدام إيموجي ☕ 🍔 👔</p>
                 {formData.image && (
                   <div className="mt-2 p-2 bg-white/5 rounded-lg flex items-center gap-2">
                     <span className="text-white text-sm">معاينة:</span>
                     {formData.image.startsWith('data:image') ? (
-                      <img src={formData.image} alt="Preview" className="h-16 w-16 object-cover rounded-lg" />
+                      <img src={formData.image} alt="Preview" className="h-20 w-20 object-cover rounded-lg border-2 border-purple-500" />
                     ) : (
-                      <span className="text-4xl">{formData.image}</span>
+                      <span className="text-5xl">{formData.image}</span>
                     )}
                   </div>
                 )}

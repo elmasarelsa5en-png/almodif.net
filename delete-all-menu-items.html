@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مسح كل الأصناف</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 500px;
+      width: 100%;
+      text-align: center;
+    }
+    h1 {
+      color: #667eea;
+      margin-bottom: 20px;
+    }
+    .warning {
+      background: #fff3cd;
+      border: 2px solid #ffc107;
+      padding: 20px;
+      border-radius: 10px;
+      margin: 20px 0;
+      color: #856404;
+    }
+    .button {
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 15px 40px;
+      font-size: 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      margin: 10px;
+      transition: all 0.3s;
+    }
+    .button:hover {
+      background: #c82333;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+    }
+    .button.cancel {
+      background: #6c757d;
+    }
+    .button.cancel:hover {
+      background: #5a6268;
+    }
+    .status {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 10px;
+      font-weight: bold;
+    }
+    .success {
+      background: #d4edda;
+      color: #155724;
+      border: 2px solid #28a745;
+    }
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 2px solid #dc3545;
+    }
+    .progress {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 2px solid #17a2b8;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🗑️ مسح كل الأصناف</h1>
+    
+    <div class="warning">
+      <h2>⚠️ تحذير!</h2>
+      <p><strong>سيتم مسح جميع الأصناف من Firebase نهائياً!</strong></p>
+      <p>هذا الإجراء لا يمكن التراجع عنه</p>
+    </div>
+
+    <div id="status"></div>
+
+    <div>
+      <button class="button" onclick="deleteAllItems()">🗑️ امسح كل الأصناف</button>
+      <button class="button cancel" onclick="window.close()">❌ إلغاء</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+    import { getFirestore, collection, getDocs, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAigwNtemHh5_jXUnnOLB1r3yXIx1yNbQI",
+      authDomain: "al-modif-crm.firebaseapp.com",
+      projectId: "al-modif-crm",
+      storageBucket: "al-modif-crm.firebasestorage.app",
+      messagingSenderId: "622775449887",
+      appId: "1:622775449887:web:e8ba94c80b0f0f53a8a73d"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window.deleteAllItems = async function() {
+      const statusDiv = document.getElementById('status');
+      
+      if (!confirm('⚠️ هل أنت متأكد من مسح كل الأصناف؟\n\nهذا الإجراء نهائي ولا يمكن التراجع عنه!')) {
+        return;
+      }
+
+      try {
+        statusDiv.className = 'status progress';
+        statusDiv.textContent = '⏳ جاري مسح الأصناف...';
+
+        const menuItemsRef = collection(db, 'menuItems');
+        const snapshot = await getDocs(menuItemsRef);
+        
+        console.log(`📊 Found ${snapshot.size} items to delete`);
+        statusDiv.textContent = `⏳ جاري مسح ${snapshot.size} صنف...`;
+
+        let deleted = 0;
+        const deletePromises = [];
+
+        snapshot.forEach((document) => {
+          deletePromises.push(
+            deleteDoc(doc(db, 'menuItems', document.id))
+              .then(() => {
+                deleted++;
+                statusDiv.textContent = `⏳ تم مسح ${deleted} من ${snapshot.size}...`;
+              })
+          );
+        });
+
+        await Promise.all(deletePromises);
+
+        statusDiv.className = 'status success';
+        statusDiv.innerHTML = `✅ تم مسح ${deleted} صنف بنجاح!<br>يمكنك الآن إضافة أصناف جديدة`;
+        
+        console.log('✅ All items deleted successfully!');
+
+      } catch (error) {
+        console.error('Error deleting items:', error);
+        statusDiv.className = 'status error';
+        statusDiv.textContent = '❌ حدث خطأ: ' + error.message;
+      }
+    };
+  </script>
+</body>
+</html>
