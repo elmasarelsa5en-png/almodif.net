@@ -34,6 +34,7 @@ import { Room } from '@/lib/rooms-data';
 import AddGuestDialog from '@/components/AddGuestDialog';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
+import { createReceipt } from '@/lib/receipts-system';
 
 interface BookingDialogProps {
   room: Room | null;
@@ -273,35 +274,48 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
     }
 
     try {
-      const receiptData = {
-        type: 'receipt',
+      // استخدام نظام سندات القبض المحدث
+      const receiptId = await createReceipt({
+        type: 'booking_deposit',
         amount: paymentData.amount,
-        paymentMethod: paymentData.method,
-        paymentMethodAr: paymentData.method === 'cash' ? 'نقدي' : 
-                         paymentData.method === 'card' ? 'بطاقة' : 'تحويل بنكي',
-        guestName: paymentData.guestName,
         roomNumber: paymentData.roomNumber,
-        contractNumber: paymentData.contractNumber,
-        description: `مقبوضات من ${paymentData.guestName} - غرفة ${paymentData.roomNumber}`,
-        date: new Date().toISOString(),
-        createdAt: serverTimestamp(),
+        guestName: paymentData.guestName,
+        paymentMethod: paymentData.method,
+        description: `دفعة حجز غرفة ${paymentData.roomNumber} - ${paymentData.guestName} - عقد ${paymentData.contractNumber}`,
+        category: 'room_rent',
+        paidBy: 'الاستقبال',
         createdBy: 'النظام',
-        status: 'completed'
-      };
-
-      const docRef = await addDoc(collection(db, 'receipts'), receiptData);
-      console.log('✅ تم حفظ سند القبض:', docRef.id);
-      
-      // إضافة أيضاً في الحسابات العامة
-      await addDoc(collection(db, 'accounting-transactions'), {
-        ...receiptData,
-        category: 'room-revenue',
-        categoryAr: 'إيرادات الغرف'
+        notes: `رقم العقد: ${paymentData.contractNumber}`
       });
-      
-      return docRef.id;
+
+      if (receiptId) {
+        console.log('✅ تم حفظ سند القبض:', receiptId);
+        
+        // إضافة أيضاً في معاملات المحاسبة
+        await addDoc(collection(db, 'accounting-transactions'), {
+          type: 'receipt',
+          amount: paymentData.amount,
+          paymentMethod: paymentData.method,
+          paymentMethodAr: paymentData.method === 'cash' ? 'نقدي' : 
+                           paymentData.method === 'card' ? 'بطاقة' : 'تحويل بنكي',
+          guestName: paymentData.guestName,
+          roomNumber: paymentData.roomNumber,
+          contractNumber: paymentData.contractNumber,
+          description: `دفعة حجز غرفة ${paymentData.roomNumber} - ${paymentData.guestName}`,
+          category: 'room-revenue',
+          categoryAr: 'إيرادات الغرف',
+          date: new Date().toISOString(),
+          createdAt: serverTimestamp(),
+          createdBy: 'النظام',
+          status: 'completed',
+          receiptId // ربط بسند القبض
+        });
+        
+        return receiptId;
+      }
     } catch (error) {
       console.error('❌ خطأ في حفظ سند القبض:', error);
+      alert('⚠️ حدث خطأ في حفظ سند القبض. يرجى المحاولة مرة أخرى.');
     }
   };
 
