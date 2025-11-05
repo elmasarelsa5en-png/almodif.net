@@ -162,7 +162,7 @@ export default function CoffeeShopPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [menuItems, setMenuItems] = useState<CoffeeItem[]>(DEFAULT_COFFEE_MENU);
+  const [menuItems, setMenuItems] = useState<CoffeeItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
   const [selectedItemForRating, setSelectedItemForRating] = useState<CoffeeItem | null>(null);
@@ -173,13 +173,11 @@ export default function CoffeeShopPage() {
       try {
         setLoading(true);
         const items = await getMenuItemsByCategory('coffee');
-        // Use Firebase items if available, otherwise keep default data
-        if (items && items.length > 0) {
-          setMenuItems(items as CoffeeItem[]);
-        }
+        console.log('☕ Loaded coffee items:', items.length);
+        setMenuItems(items as CoffeeItem[]);
       } catch (error) {
         console.error('Error loading coffee menu:', error);
-        // Keep default data on error
+        setMenuItems([]);
       } finally {
         setLoading(false);
       }
@@ -191,12 +189,8 @@ export default function CoffeeShopPage() {
     const unsubscribe = subscribeToMenuItems((allItems) => {
       console.log('📦 Total items from Firebase:', allItems.length);
       const coffeeItems = allItems.filter(item => item.category === 'coffee');
-      console.log('☕ Coffee items:', coffeeItems.length);
-      if (coffeeItems.length > 0) {
-        setMenuItems(coffeeItems as CoffeeItem[]);
-      } else {
-        console.log('⚠️ No coffee items found, keeping default menu');
-      }
+      console.log('☕ Coffee items updated:', coffeeItems.length);
+      setMenuItems(coffeeItems as CoffeeItem[]);
     });
 
     return () => unsubscribe();

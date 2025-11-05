@@ -187,7 +187,7 @@ export default function LaundryPage() {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isLaundryStaff, setIsLaundryStaff] = useState(false);
-  const [menuItems, setMenuItems] = useState<LaundryItem[]>(LAUNDRY_SERVICES);
+  const [menuItems, setMenuItems] = useState<LaundryItem[]>([]);
   const [menuLoading, setMenuLoading] = useState(true);
 
   // Load menu items from Firebase
@@ -196,13 +196,11 @@ export default function LaundryPage() {
       try {
         setMenuLoading(true);
         const items = await getMenuItemsByCategory('laundry');
-        // Use Firebase items if available, otherwise keep default data
-        if (items && items.length > 0) {
-          setMenuItems(items as LaundryItem[]);
-        }
+        console.log('🧺 Loaded laundry items:', items.length);
+        setMenuItems(items as LaundryItem[]);
       } catch (error) {
         console.error('Error loading laundry menu:', error);
-        // Keep default data on error
+        setMenuItems([]);
       } finally {
         setMenuLoading(false);
       }
@@ -213,9 +211,8 @@ export default function LaundryPage() {
     // Subscribe to real-time updates
     const unsubscribe = subscribeToMenuItems((allItems) => {
       const laundryItems = allItems.filter(item => item.category === 'laundry');
-      if (laundryItems.length > 0) {
-        setMenuItems(laundryItems as LaundryItem[]);
-      }
+      console.log('🧺 Laundry items updated:', laundryItems.length);
+      setMenuItems(laundryItems as LaundryItem[]);
     });
 
     return () => unsubscribe();

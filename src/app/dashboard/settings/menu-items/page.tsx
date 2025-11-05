@@ -620,13 +620,40 @@ export default function MenuItemsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-white font-semibold">الرمز التعبيري (Emoji)</Label>
-                <Input
-                  value={formData.image}
-                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                  placeholder="   "
-                  className="bg-white/10 border-purple-500/30 text-white placeholder:text-purple-300/50 text-3xl"
-                />
+                <Label className="text-white font-semibold">الصورة / الرمز التعبيري</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={formData.image}
+                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                    placeholder="رابط الصورة أو إيموجي   "
+                    className="bg-white/10 border-purple-500/30 text-white placeholder:text-purple-300/50 flex-1"
+                  />
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setFormData({ ...formData, image: reader.result as string });
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    className="bg-white/10 border-purple-500/30 text-white file:bg-purple-600 file:text-white file:border-0 file:px-4 file:py-2 file:rounded-md file:cursor-pointer hover:file:bg-purple-700"
+                  />
+                </div>
+                {formData.image && (
+                  <div className="flex items-center gap-2 p-2 bg-white/5 rounded-lg">
+                    <span className="text-white text-sm">معاينة:</span>
+                    {formData.image.startsWith('data:image') ? (
+                      <img src={formData.image} alt="Preview" className="h-16 w-16 object-cover rounded-lg" />
+                    ) : (
+                      <span className="text-4xl">{formData.image}</span>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center gap-3 p-4 bg-white/5 rounded-lg border border-purple-500/30">
