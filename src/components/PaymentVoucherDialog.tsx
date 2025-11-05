@@ -138,39 +138,39 @@ export default function PaymentVoucherDialog({ isOpen, onClose, onSuccess }: Pro
           {/* Row 1: Voucher Number, Dates, Time */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">رقم السند</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">رقم السند</label>
               <input
                 type="text"
                 value={voucherNumber}
                 readOnly
-                className="w-full px-3 py-2 border rounded-lg bg-gray-100 font-mono"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 font-mono text-gray-700"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">التاريخ الميلادي</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">التاريخ الميلادي</label>
               <input
                 type="date"
                 value={gregorianDate}
                 onChange={(e) => setGregorianDate(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">التاريخ الهجري</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">التاريخ الهجري</label>
               <input
                 type="text"
                 value={hijriDate}
                 readOnly
-                className="w-full px-3 py-2 border rounded-lg bg-gray-50"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">الوقت</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">الوقت</label>
               <input
                 type="time"
                 value={time}
                 onChange={(e) => setTime(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700"
               />
             </div>
           </div>
@@ -178,33 +178,33 @@ export default function PaymentVoucherDialog({ isOpen, onClose, onSuccess }: Pro
           {/* Row 2: Cashier, Paid From/To */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">أمين الصندوق</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">أمين الصندوق</label>
               <input
                 type="text"
                 value={cashier}
                 onChange={(e) => setCashier(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700"
                 placeholder="اسم أمين الصندوق"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">دفع من</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">دفع من</label>
               <input
                 type="text"
                 value={paidFrom}
                 onChange={(e) => setPaidFrom(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700"
                 placeholder="المصدر"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">المستلم <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">المستلم <span className="text-red-500">*</span></label>
               <input
                 type="text"
                 value={paidTo}
                 onChange={(e) => setPaidTo(e.target.value)}
                 required
-                className="w-full px-3 py-2 border rounded-lg"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700"
                 placeholder="اسم المستلم"
               />
             </div>
@@ -213,43 +213,43 @@ export default function PaymentVoucherDialog({ isOpen, onClose, onSuccess }: Pro
           {/* Row 3: Amount & VAT Calculations */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-blue-50 p-4 rounded-lg">
             <div>
-              <label className="block text-sm font-medium mb-2">المبلغ <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">المبلغ <span className="text-red-500">*</span></label>
               <input
                 type="number"
                 step="0.01"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 required
-                className="w-full px-3 py-2 border rounded-lg"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700"
                 placeholder="0.00"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">نسبة الضريبة %</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">نسبة الضريبة %</label>
               <input
                 type="number"
                 step="0.01"
                 value={vatRate}
                 onChange={(e) => setVatRate(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">قيمة الضريبة</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">قيمة الضريبة</label>
               <input
                 type="text"
                 value={vatAmount}
                 readOnly
-                className="w-full px-3 py-2 border rounded-lg bg-gray-100 font-bold text-orange-600"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 font-bold text-orange-600"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">المبلغ بدون ضريبة</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">المبلغ بدون ضريبة</label>
               <input
                 type="text"
                 value={totalWithoutVat}
                 readOnly
-                className="w-full px-3 py-2 border rounded-lg bg-gray-100 font-bold text-green-600"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 font-bold text-green-600"
               />
             </div>
           </div>
@@ -257,22 +257,22 @@ export default function PaymentVoucherDialog({ isOpen, onClose, onSuccess }: Pro
           {/* Row 4: Supplier Details */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">الرقم الضريبي للمورد</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">الرقم الضريبي للمورد</label>
               <input
                 type="text"
                 value={supplierTaxNumber}
                 onChange={(e) => setSupplierTaxNumber(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700"
                 placeholder="300000000000003"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">رقم فاتورة المورد</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">رقم فاتورة المورد</label>
               <input
                 type="text"
                 value={supplierInvoiceNumber}
                 onChange={(e) => setSupplierInvoiceNumber(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700"
                 placeholder="INV-2025-001"
               />
             </div>
@@ -281,12 +281,12 @@ export default function PaymentVoucherDialog({ isOpen, onClose, onSuccess }: Pro
           {/* Row 5: Payment Method & Category */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">طريقة الدفع <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">طريقة الدفع <span className="text-red-500">*</span></label>
               <select
                 value={paymentMethod}
                 onChange={(e) => setPaymentMethod(e.target.value)}
                 required
-                className="w-full px-3 py-2 border rounded-lg"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700"
               >
                 <option value="cash">💵 نقدي</option>
                 <option value="bank_transfer">🏦 تحويل بنكي</option>
@@ -294,12 +294,12 @@ export default function PaymentVoucherDialog({ isOpen, onClose, onSuccess }: Pro
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">بند الصرف <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">بند الصرف <span className="text-red-500">*</span></label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 required
-                className="w-full px-3 py-2 border rounded-lg"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700"
               >
                 <option value="">اختر البند</option>
                 <option value="utilities">⚡ مرافق وخدمات</option>
@@ -316,25 +316,25 @@ export default function PaymentVoucherDialog({ isOpen, onClose, onSuccess }: Pro
 
           {/* Row 6: Purpose */}
           <div>
-            <label className="block text-sm font-medium mb-2">من أجل <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">من أجل <span className="text-red-500">*</span></label>
             <input
               type="text"
               value={purpose}
               onChange={(e) => setPurpose(e.target.value)}
               required
-              className="w-full px-3 py-2 border rounded-lg"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700"
               placeholder="الغرض من الصرف"
             />
           </div>
 
           {/* Row 7: Notes */}
           <div>
-            <label className="block text-sm font-medium mb-2">ملاحظات</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">ملاحظات</label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
-              className="w-full px-3 py-2 border rounded-lg resize-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none text-gray-700"
               placeholder="ملاحظات إضافية..."
             />
           </div>
