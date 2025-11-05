@@ -541,99 +541,106 @@ export default function MenuItemsPage() {
           })}
         </div>
 
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen} modal={true}>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="bg-gradient-to-br from-slate-900 to-purple-900 border-purple-500/50 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              <DialogTitle className="text-2xl font-bold text-white">
                 {editingItem ? 'تعديل صنف' : 'إضافة صنف جديد'}
               </DialogTitle>
               <DialogDescription className="text-purple-200">
-                {editingItem ? 'قم بتعديل بيانات الصنف' : 'أضف صنف جديد للقائمة'}
+                املأ البيانات لإضافة صنف جديد
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label className="text-white font-semibold">التصنيف *</Label>
+            <div className="space-y-4 py-4">
+              {/* Category */}
+              <div>
+                <label className="text-white font-semibold block mb-2">التصنيف *</label>
                 <select
                   value={formData.category}
-                  onChange={(e) => {
-                    console.log('🟢 Category selected:', e.target.value);
-                    setFormData({ ...formData, category: e.target.value, subCategory: '' });
-                  }}
-                  className="flex h-10 w-full items-center justify-between rounded-md border border-purple-500/30 bg-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value, subCategory: '' })}
+                  className="w-full h-10 rounded-md border border-purple-500/30 bg-slate-800 text-white px-3 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  required
                 >
-                  <option value="" disabled className="bg-slate-900 text-white">اختر التصنيف...</option>
+                  <option value="">اختر التصنيف...</option>
                   {categories.map((cat) => (
-                    <option key={cat.value} value={cat.value} className="bg-slate-900 text-white">
+                    <option key={cat.value} value={cat.value}>
                       {cat.labelAr}
                     </option>
                   ))}
                 </select>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-white font-semibold">التصنيف الفرعي (اختياري)</Label>
-                <select
-                  value={formData.subCategory}
-                  onChange={(e) => {
-                    console.log('🟢 SubCategory selected:', e.target.value);
-                    setFormData({ ...formData, subCategory: e.target.value });
-                  }}
-                  className="flex h-10 w-full items-center justify-between rounded-md border border-purple-500/30 bg-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-                  disabled={!formData.category || !subCategories[formData.category]?.length}
-                >
-                  <option value="" className="bg-slate-900 text-white">اختر التصنيف...</option>
-                  {(subCategories[formData.category] || []).map((sub) => (
-                    <option key={sub} value={sub} className="bg-slate-900 text-white">
-                      {sub}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {/* Sub Category */}
+              {formData.category && subCategories[formData.category]?.length > 0 && (
+                <div>
+                  <label className="text-white font-semibold block mb-2">التصنيف الفرعي (اختياري)</label>
+                  <select
+                    value={formData.subCategory}
+                    onChange={(e) => setFormData({ ...formData, subCategory: e.target.value })}
+                    className="w-full h-10 rounded-md border border-purple-500/30 bg-slate-800 text-white px-3 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  >
+                    <option value="">اختر التصنيف الفرعي...</option>
+                    {subCategories[formData.category].map((sub) => (
+                      <option key={sub} value={sub}>
+                        {sub}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
-              <div className="space-y-2">
-                <Label className="text-white font-semibold">اسم الصنف (عربي) *</Label>
-                <Input
+              {/* Name Arabic */}
+              <div>
+                <label className="text-white font-semibold block mb-2">اسم الصنف (عربي) *</label>
+                <input
+                  type="text"
                   value={formData.nameAr}
                   onChange={(e) => setFormData({ ...formData, nameAr: e.target.value })}
                   placeholder="مثال: شاي، غسيل ثوب، برجر..."
-                  className="bg-white/10 border-purple-500/30 text-white placeholder:text-purple-300/50"
+                  className="w-full h-10 rounded-md border border-purple-500/30 bg-slate-800 text-white px-3 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  required
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-white font-semibold">اسم الصنف (إنجليزي) - اختياري</Label>
-                <Input
+              {/* Name English */}
+              <div>
+                <label className="text-white font-semibold block mb-2">اسم الصنف (إنجليزي) - اختياري</label>
+                <input
+                  type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="Tea, Laundry, Burger..."
-                  className="bg-white/10 border-purple-500/30 text-white placeholder:text-purple-300/50"
+                  className="w-full h-10 rounded-md border border-purple-500/30 bg-slate-800 text-white px-3 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-white font-semibold">السعر (ر.س) *</Label>
-                <Input
+              {/* Price */}
+              <div>
+                <label className="text-white font-semibold block mb-2">السعر (ر.س) *</label>
+                <input
                   type="number"
                   step="0.01"
                   value={formData.price}
                   onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                   placeholder="25.00"
-                  className="bg-white/10 border-purple-500/30 text-white placeholder:text-purple-300/50"
+                  className="w-full h-10 rounded-md border border-purple-500/30 bg-slate-800 text-white px-3 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  required
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-white font-semibold">الصورة / الرمز التعبيري</Label>
+              {/* Image/Emoji */}
+              <div>
+                <label className="text-white font-semibold block mb-2">الصورة / الرمز التعبيري</label>
                 <div className="flex gap-2">
-                  <Input
+                  <input
+                    type="text"
                     value={formData.image}
                     onChange={(e) => setFormData({ ...formData, image: e.target.value })}
                     placeholder="رابط الصورة أو إيموجي   "
-                    className="bg-white/10 border-purple-500/30 text-white placeholder:text-purple-300/50 flex-1"
+                    className="flex-1 h-10 rounded-md border border-purple-500/30 bg-slate-800 text-white px-3 focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
-                  <Input
+                  <input
                     type="file"
                     accept="image/*"
                     onChange={(e) => {
@@ -646,11 +653,11 @@ export default function MenuItemsPage() {
                         reader.readAsDataURL(file);
                       }
                     }}
-                    className="bg-white/10 border-purple-500/30 text-white file:bg-purple-600 file:text-white file:border-0 file:px-4 file:py-2 file:rounded-md file:cursor-pointer hover:file:bg-purple-700"
+                    className="bg-purple-600 text-white px-4 rounded-md cursor-pointer hover:bg-purple-700"
                   />
                 </div>
                 {formData.image && (
-                  <div className="flex items-center gap-2 p-2 bg-white/5 rounded-lg">
+                  <div className="mt-2 p-2 bg-white/5 rounded-lg flex items-center gap-2">
                     <span className="text-white text-sm">معاينة:</span>
                     {formData.image.startsWith('data:image') ? (
                       <img src={formData.image} alt="Preview" className="h-16 w-16 object-cover rounded-lg" />
@@ -661,17 +668,18 @@ export default function MenuItemsPage() {
                 )}
               </div>
 
-              <div className="flex items-center gap-3 p-4 bg-white/5 rounded-lg border border-purple-500/30">
+              {/* Available */}
+              <div className="flex items-center gap-3 p-4 bg-white/5 rounded-lg">
                 <input
                   type="checkbox"
                   id="available"
                   checked={formData.available}
                   onChange={(e) => setFormData({ ...formData, available: e.target.checked })}
-                  className="w-5 h-5 rounded border-purple-500/50"
+                  className="w-5 h-5"
                 />
-                <Label htmlFor="available" className="text-white font-medium cursor-pointer">
+                <label htmlFor="available" className="text-white font-medium cursor-pointer">
                   الصنف متاح للطلب
-                </Label>
+                </label>
               </div>
             </div>
 
@@ -685,7 +693,7 @@ export default function MenuItemsPage() {
               </Button>
               <Button
                 onClick={handleSave}
-                disabled={loading || !formData.nameAr || !formData.price}
+                disabled={loading || !formData.nameAr || !formData.price || !formData.category}
                 className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
               >
                 {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
