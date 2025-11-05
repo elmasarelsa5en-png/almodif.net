@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, AlertCircle, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { createPaymentVoucher, generatePaymentVoucherNumber, calculateVAT } from '@/lib/payment-vouchers-system';
+import { checkBalance, calculateBalances, type CashRegisterBalance } from '@/lib/cash-register-system';
 
 interface Props {
   isOpen: boolean;
@@ -20,7 +21,7 @@ export default function PaymentVoucherDialog({ isOpen, onClose, onSuccess }: Pro
   const [hijriDate, setHijriDate] = useState('');
   const [time, setTime] = useState('');
   const [cashier, setCashier] = useState('');
-  const [paidFrom, setPaidFrom] = useState('');
+  const [paidFrom, setPaidFrom] = useState('cash_register'); // صندوق أو بنك
   const [paidTo, setPaidTo] = useState('');
   const [amount, setAmount] = useState('');
   const [vatRate, setVatRate] = useState('15');
@@ -32,10 +33,15 @@ export default function PaymentVoucherDialog({ isOpen, onClose, onSuccess }: Pro
   const [category, setCategory] = useState('');
   const [purpose, setPurpose] = useState('');
   const [notes, setNotes] = useState('');
+  
+  // رصيد الصندوق والبنك
+  const [balances, setBalances] = useState<CashRegisterBalance | null>(null);
+  const [balanceCheck, setBalanceCheck] = useState<{sufficient: boolean; message: string} | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       initializeForm();
+      loadBalances();
     }
   }, [isOpen]);
 
@@ -54,6 +60,28 @@ export default function PaymentVoucherDialog({ isOpen, onClose, onSuccess }: Pro
       setTotalWithoutVat('0');
     }
   }, [amount, vatRate]);
+
+  // التحقق من الرصيد عند تغيير المبلغ أو المصدر
+  useEffect(() => {
+    if (amount && parseFloat(amount) > 0) {
+      checkBalanceAvailability();
+    } else {
+      setBalanceCheck(null);
+    }
+  }, [amount, paidFrom]);
+
+  const loadBalances = async () => {
+    const data = await calculateBalances();
+    setBalances(data);
+  };
+
+  const checkBalanceAvailability = async () => {
+    const numAmount = parseFloat(amount);
+    if (isNaN(numAmount) || numAmount <= 0) return;
+
+    const result = await checkBalance(numAmount, paidFrom as 'cash_register' | 'bank');
+    setBalanceCheck(result);
+  };
 
   const initializeForm = async () => {
     // Generate voucher number
@@ -76,17 +104,25 @@ export default function PaymentVoucherDialog({ isOpen, onClose, onSuccess }: Pro
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // التحقق من الرصيد قبل الحفظ
+    if (balanceCheck && !balanceCheck.sufficient) {
+      const confirm = window.confirm(
+        `${balanceCheck.message}\n\nهل تريد المتابعة رغم عدم كفاية الرصيد؟`
+      );
+      if (!confirm) return;
+    }
+    
     setLoading(true);
 
     try {
       await createPaymentVoucher({
-        voucherNumber,
         type: 'expense',
         amount: parseFloat(amount),
         vatRate: parseFloat(vatRate),
         vatAmount: parseFloat(vatAmount),
         totalWithoutVat: parseFloat(totalWithoutVat),
-        paymentMethod,
+        paymentMethod: paymentMethod as 'cash' | 'bank_transfer' | 'check',
         paidTo,
         paidFrom,
         category,
@@ -188,14 +224,28 @@ export default function PaymentVoucherDialog({ isOpen, onClose, onSuccess }: Pro
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">دفع من</label>
-              <input
-                type="text"
+              <label className="block text-sm font-medium text-gray-700 mb-2">دفع من <span className="text-red-500">*</span></label>
+              <select
                 value={paidFrom}
                 onChange={(e) => setPaidFrom(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700"
-                placeholder="المصدر"
-              />
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white"
+              >
+                <option value="cash_register">💵 الصندوق</option>
+                <option value="bank">🏦 البنك</option>
+              </select>
+              {balances && (
+                <div className="mt-2 text-xs">
+                  <div className="flex justify-between items-center bg-green-50 p-2 rounded">
+                    <span className="text-gray-600">رصيد الصندوق:</span>
+                    <span className="font-bold text-green-600">{balances.cashRegister.toFixed(2)} ر.س</span>
+                  </div>
+                  <div className="flex justify-between items-center bg-blue-50 p-2 rounded mt-1">
+                    <span className="text-gray-600">رصيد البنك:</span>
+                    <span className="font-bold text-blue-600">{balances.bank.toFixed(2)} ر.س</span>
+                  </div>
+                </div>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">المستلم <span className="text-red-500">*</span></label>
@@ -209,6 +259,33 @@ export default function PaymentVoucherDialog({ isOpen, onClose, onSuccess }: Pro
               />
             </div>
           </div>
+
+          {/* تنبيه الرصيد */}
+          {balanceCheck && (
+            <div className={`p-4 rounded-lg flex items-center gap-3 ${
+              balanceCheck.sufficient 
+                ? 'bg-green-50 border border-green-200' 
+                : 'bg-red-50 border border-red-200'
+            }`}>
+              {balanceCheck.sufficient ? (
+                <CheckCircle className="w-6 h-6 text-green-600" />
+              ) : (
+                <AlertCircle className="w-6 h-6 text-red-600" />
+              )}
+              <div className="flex-1">
+                <p className={`font-semibold ${
+                  balanceCheck.sufficient ? 'text-green-800' : 'text-red-800'
+                }`}>
+                  {balanceCheck.message}
+                </p>
+                {!balanceCheck.sufficient && (
+                  <p className="text-sm text-red-600 mt-1">
+                    سيتم الصرف حتى لو كان الرصيد غير كافي، يرجى التأكد من البيانات
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Row 3: Amount & VAT Calculations */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-blue-50 p-4 rounded-lg">

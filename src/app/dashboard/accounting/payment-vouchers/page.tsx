@@ -497,7 +497,8 @@ export default function PaymentVouchersPage() {
                     <tr className="bg-white/5 border-b border-white/10">
                       <th className="text-right p-4 text-white/90 font-bold text-sm">رقم السند</th>
                       <th className="text-right p-4 text-white/90 font-bold text-sm">التاريخ</th>
-                      <th className="text-right p-4 text-white/90 font-bold text-sm">من</th>
+                      <th className="text-right p-4 text-white/90 font-bold text-sm">دفع من</th>
+                      <th className="text-right p-4 text-white/90 font-bold text-sm">إلى</th>
                       <th className="text-right p-4 text-white/90 font-bold text-sm">المبلغ</th>
                       <th className="text-right p-4 text-white/90 font-bold text-sm">من أجل</th>
                       <th className="text-right p-4 text-white/90 font-bold text-sm">طريقة الدفع</th>
@@ -525,6 +526,15 @@ export default function PaymentVouchersPage() {
                           <div className="text-white/60 text-xs mt-1">
                             {new Date(voucher.createdAt).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}
                           </div>
+                        </td>
+                        <td className="p-4">
+                          <span className={`px-3 py-1.5 rounded-full text-sm font-semibold inline-flex items-center gap-1 ${
+                            voucher.paidFrom === 'cash_register' 
+                              ? 'bg-green-500/30 text-green-200 border border-green-400/30'
+                              : 'bg-blue-500/30 text-blue-200 border border-blue-400/30'
+                          }`}>
+                            {voucher.paidFrom === 'cash_register' ? '💵 الصندوق' : '🏦 البنك'}
+                          </span>
                         </td>
                         <td className="p-4">
                           <div className="text-white/90 font-semibold">{voucher.paidTo}</div>
