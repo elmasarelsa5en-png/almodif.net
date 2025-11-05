@@ -7,13 +7,14 @@ import { Input } from '@/components/ui/input';
 import { 
   FileText, 
   Download, 
-  Search, 
-  Calendar,
-  DollarSign,
-  CreditCard,
+  Plus, 
+  Edit, 
+  Trash2, 
   Printer,
+  Search,
   Filter,
-  Plus
+  Calendar,
+  DollarSign
 } from 'lucide-react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { getAllReceipts, getReceiptsSummary, type Receipt } from '@/lib/receipts-system';
@@ -22,21 +23,30 @@ import ReceiptDialog from '@/components/ReceiptDialog';
 export default function ReceiptsPage() {
   const [receipts, setReceipts] = useState<Receipt[]>([]);
   const [filteredReceipts, setFilteredReceipts] = useState<Receipt[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState<any>(null);
-  const [filterType, setFilterType] = useState<string>('all');
-  const [filterPaymentMethod, setFilterPaymentMethod] = useState<string>('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterCategory, setFilterCategory] = useState('all');
+  const [filterPaymentMethod, setFilterPaymentMethod] = useState('all');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   useEffect(() => {
     loadReceipts();
     loadSummary();
+    
+    // Set default date range (current month)
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    setStartDate(firstDay.toISOString().split('T')[0]);
+    setEndDate(lastDay.toISOString().split('T')[0]);
   }, []);
 
   useEffect(() => {
     filterData();
-  }, [searchTerm, receipts, filterType, filterPaymentMethod]);
+  }, [searchTerm, receipts, filterCategory, filterPaymentMethod, startDate, endDate]);
 
   const loadReceipts = async () => {
     try {
@@ -84,9 +94,9 @@ export default function ReceiptsPage() {
       );
     }
 
-    // تصفية بالنوع
-    if (filterType !== 'all') {
-      filtered = filtered.filter(receipt => receipt.type === filterType);
+    // تصفية بالبند
+    if (filterCategory !== 'all') {
+      filtered = filtered.filter(receipt => receipt.category === filterCategory);
     }
 
     // تصفية بطريقة الدفع
@@ -94,16 +104,25 @@ export default function ReceiptsPage() {
       filtered = filtered.filter(receipt => receipt.paymentMethod === filterPaymentMethod);
     }
 
+    // تصفية بالتاريخ
+    if (startDate) {
+      filtered = filtered.filter(receipt => 
+        new Date(receipt.createdAt) >= new Date(startDate)
+      );
+    }
+    if (endDate) {
+      filtered = filtered.filter(receipt => 
+        new Date(receipt.createdAt) <= new Date(endDate + 'T23:59:59')
+      );
+    }
+
     setFilteredReceipts(filtered);
   };
 
-  const getPaymentMethodLabel = (method: string) => {
-    const labels: Record<string, string> = {
-      cash: '💵 نقدي',
-      card: '💳 بطاقة',
-      transfer: '🏦 تحويل بنكي'
-    };
-    return labels[method] || method;
+  const handleReceiptCreated = () => {
+    loadReceipts();
+    loadSummary();
+    setIsDialogOpen(false);
   };
 
   const getCategoryLabel = (category: string) => {
@@ -116,6 +135,15 @@ export default function ReceiptsPage() {
       other: '📋 أخرى'
     };
     return labels[category] || category;
+  };
+
+  const getPaymentMethodLabel = (method: string) => {
+    const labels: Record<string, string> = {
+      cash: '💵 نقدي',
+      card: '💳 بطاقة',
+      transfer: '🏦 تحويل بنكي'
+    };
+    return labels[method] || method;
   };
 
   const printReceipt = (receipt: Receipt) => {
@@ -260,7 +288,7 @@ export default function ReceiptsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-white/70 mb-1">إجمالي المحصلات</p>
-                    <p className="text-3xl font-bold text-white">{summary.totalAmount}</p>
+                    <p className="text-3xl font-bold text-white">{summary.totalAmount.toFixed(2)}</p>
                     <p className="text-xs text-white/60 mt-1">ريال سعودي</p>
                   </div>
                   <div className="p-4 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg">
@@ -290,7 +318,7 @@ export default function ReceiptsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-white/70 mb-1">المدفوعات النقدية</p>
-                    <p className="text-3xl font-bold text-white">{summary.byPaymentMethod.cash}</p>
+                    <p className="text-3xl font-bold text-white">{summary.byPaymentMethod.cash.toFixed(2)}</p>
                     <p className="text-xs text-white/60 mt-1">ريال سعودي</p>
                   </div>
                   <div className="p-4 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-600 shadow-lg">
@@ -305,11 +333,11 @@ export default function ReceiptsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-white/70 mb-1">البطاقات البنكية</p>
-                    <p className="text-3xl font-bold text-white">{summary.byPaymentMethod.card}</p>
+                    <p className="text-3xl font-bold text-white">{summary.byPaymentMethod.card.toFixed(2)}</p>
                     <p className="text-xs text-white/60 mt-1">ريال سعودي</p>
                   </div>
                   <div className="p-4 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 shadow-lg">
-                    <CreditCard className="w-8 h-8 text-white" />
+                    <DollarSign className="w-8 h-8 text-white" />
                   </div>
                 </div>
               </CardContent>
@@ -318,6 +346,77 @@ export default function ReceiptsPage() {
         )}
 
         {/* Filters */}
+        <Card className="bg-white/5 backdrop-blur-md border-white/10 shadow-xl mb-6">
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+              {/* Search */}
+              <div className="md:col-span-2">
+                <div className="relative">
+                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
+                  <Input
+                    placeholder="بحث..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pr-10 bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                  />
+                </div>
+              </div>
+
+              {/* Category Filter */}
+              <div>
+                <select
+                  value={filterCategory}
+                  onChange={(e) => setFilterCategory(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                >
+                  <option value="all">جميع البنود</option>
+                  <option value="room_rent">إيجار شقة</option>
+                  <option value="services">خدمات</option>
+                  <option value="laundry">مغسلة</option>
+                  <option value="restaurant">مطعم</option>
+                  <option value="coffee">كافيه</option>
+                  <option value="other">أخرى</option>
+                </select>
+              </div>
+
+              {/* Payment Method Filter */}
+              <div>
+                <select
+                  value={filterPaymentMethod}
+                  onChange={(e) => setFilterPaymentMethod(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                >
+                  <option value="all">جميع طرق الدفع</option>
+                  <option value="cash">نقدي</option>
+                  <option value="card">بطاقة</option>
+                  <option value="transfer">تحويل بنكي</option>
+                </select>
+              </div>
+
+              {/* Start Date */}
+              <div>
+                <Input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="bg-white/10 border-white/20 text-white"
+                />
+              </div>
+
+              {/* End Date */}
+              <div>
+                <Input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="bg-white/10 border-white/20 text-white"
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Receipts Table */}
         <Card className="bg-white/10 backdrop-blur-md border-white/20 mb-6 shadow-xl">
           <CardContent className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -331,125 +430,124 @@ export default function ReceiptsPage() {
                 />
               </div>
 
-              <select
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-                className="bg-white/10 border-white/30 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all" className="bg-slate-800">جميع الأنواع</option>
-                <option value="room_payment" className="bg-slate-800">دفعات الشقق</option>
-                <option value="service_payment" className="bg-slate-800">دفعات الخدمات</option>
-                <option value="booking_deposit" className="bg-slate-800">عربون حجز</option>
-                <option value="other" className="bg-slate-800">أخرى</option>
-              </select>
 
-              <select
-                value={filterPaymentMethod}
-                onChange={(e) => setFilterPaymentMethod(e.target.value)}
-                className="bg-white/10 border-white/30 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all" className="bg-slate-800">جميع طرق الدفع</option>
-                <option value="cash" className="bg-slate-800">💵 نقدي</option>
-                <option value="card" className="bg-slate-800">💳 بطاقة</option>
-                <option value="transfer" className="bg-slate-800">🏦 تحويل</option>
-              </select>
-
-              <Button
-                onClick={() => {
-                  setSearchTerm('');
-                  setFilterType('all');
-                  setFilterPaymentMethod('all');
-                }}
-                className="bg-white/20 hover:bg-white/30 text-white border-0"
-              >
-                <Filter className="w-4 h-4 ml-2" />
-                مسح الفلاتر
-              </Button>
             </div>
           </CardContent>
         </Card>
 
-        {/* Receipts List */}
+        {/* Receipts Table */}
         <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-xl">
           <CardHeader className="border-b border-white/10">
-            <CardTitle className="text-white flex items-center gap-3 text-2xl">
-              <FileText className="w-7 h-7" />
-              السندات ({filteredReceipts.length})
+            <CardTitle className="text-white flex items-center justify-between">
+              <div className="flex items-center gap-3 text-2xl">
+                <FileText className="w-7 h-7" />
+                سندات القبض ({filteredReceipts.length})
+              </div>
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-0">
             {loading ? (
-              <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-                <div className="text-white text-xl">جاري التحميل...</div>
+              <div className="text-center py-16">
+                <div className="animate-spin rounded-full h-16 w-16 border-4 border-white/20 border-t-white mx-auto mb-4"></div>
+                <div className="text-white/80 text-xl">جاري تحميل السندات...</div>
               </div>
             ) : filteredReceipts.length === 0 ? (
-              <div className="text-center py-12">
-                <FileText className="w-16 h-16 text-white/30 mx-auto mb-4" />
-                <p className="text-white/70 text-xl">لا توجد سندات</p>
+              <div className="text-center py-16">
+                <FileText className="w-20 h-20 text-white/20 mx-auto mb-4" />
+                <p className="text-white/60 text-xl mb-2">لا توجد سندات قبض</p>
+                <p className="text-white/40 text-sm">قم بإضافة سند قبض جديد باستخدام الزر أعلاه</p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {filteredReceipts.map((receipt) => (
-                  <div
-                    key={receipt.id}
-                    className="bg-white/5 rounded-xl p-5 hover:bg-white/10 transition-all border border-white/10 hover:border-white/20 hover:shadow-lg"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-3">
-                          <span className="text-xl font-bold text-white">{receipt.receiptNumber}</span>
-                          <span className="px-3 py-1 rounded-full text-sm font-semibold bg-green-500/30 text-green-200 border border-green-400/30">
-                            {getPaymentMethodLabel(receipt.paymentMethod)}
-                          </span>
-                          <span className="px-3 py-1 rounded-full text-sm font-semibold bg-blue-500/30 text-blue-200 border border-blue-400/30">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-white/5 border-b border-white/10">
+                    <tr>
+                      <th className="text-right py-4 px-6 text-white/90 font-semibold text-sm">رقم السند</th>
+                      <th className="text-right py-4 px-6 text-white/90 font-semibold text-sm">التاريخ</th>
+                      <th className="text-right py-4 px-6 text-white/90 font-semibold text-sm">التصنيف</th>
+                      <th className="text-right py-4 px-6 text-white/90 font-semibold text-sm">الشقة</th>
+                      <th className="text-right py-4 px-6 text-white/90 font-semibold text-sm">اسم النزيل</th>
+                      <th className="text-right py-4 px-6 text-white/90 font-semibold text-sm">التفاصيل</th>
+                      <th className="text-right py-4 px-6 text-white/90 font-semibold text-sm">المستلم من</th>
+                      <th className="text-right py-4 px-6 text-white/90 font-semibold text-sm">طريقة الدفع</th>
+                      <th className="text-right py-4 px-6 text-white/90 font-semibold text-sm">المبلغ</th>
+                      <th className="text-center py-4 px-6 text-white/90 font-semibold text-sm">الإجراءات</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {filteredReceipts.map((receipt) => (
+                      <tr key={receipt.id} className="hover:bg-white/5 transition-colors">
+                        <td className="py-4 px-6">
+                          <span className="text-white font-mono font-semibold">{receipt.receiptNumber}</span>
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="text-white/80 text-sm">
+                            <div>{new Date(receipt.createdAt).toLocaleDateString('ar-SA')}</div>
+                            <div className="text-white/50 text-xs">
+                              {new Date(receipt.createdAt).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-300 border border-blue-400/30">
                             {getCategoryLabel(receipt.category)}
                           </span>
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className="text-white/90">{receipt.roomNumber || '-'}</span>
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className="text-white/90">{receipt.guestName || '-'}</span>
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className="text-white/70 text-sm">{receipt.description}</span>
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className="text-white/90">{receipt.paidBy}</span>
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-500/20 text-green-300 border border-green-400/30">
+                            {getPaymentMethodLabel(receipt.paymentMethod)}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="flex flex-col items-end">
+                            <span className="text-white font-bold text-lg">{Number(receipt.amount).toFixed(2)}</span>
+                            <span className="text-white/50 text-xs">ريال</span>
+                          </div>
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="flex items-center justify-center gap-2">
+                            <Button
+                              size="sm"
+                              onClick={() => printReceipt(receipt)}
+                              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-md"
+                            >
+                              <Printer className="w-4 h-4 ml-1" />
+                              طباعة
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot className="bg-white/5 border-t-2 border-white/20">
+                    <tr>
+                      <td colSpan={8} className="py-4 px-6 text-right">
+                        <span className="text-white font-bold text-lg">الإجمالي:</span>
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="flex flex-col items-end">
+                          <span className="text-white font-bold text-xl">
+                            {filteredReceipts.reduce((sum, r) => sum + Number(r.amount), 0).toFixed(2)}
+                          </span>
+                          <span className="text-white/60 text-sm">ريال سعودي</span>
                         </div>
-                        <div className="text-sm text-white/80 space-y-2">
-                          {receipt.roomNumber && (
-                            <p className="flex items-center gap-2">
-                              <span className="text-white/60">🏠 شقة:</span>
-                              <span className="font-semibold">{receipt.roomNumber}</span>
-                            </p>
-                          )}
-                          {receipt.guestName && (
-                            <p className="flex items-center gap-2">
-                              <span className="text-white/60">👤 النزيل:</span>
-                              <span className="font-semibold">{receipt.guestName}</span>
-                            </p>
-                          )}
-                          <p className="flex items-center gap-2">
-                            <span className="text-white/60">📝 التفاصيل:</span>
-                            <span>{receipt.description}</span>
-                          </p>
-                          <p className="flex items-center gap-2">
-                            <span className="text-white/60">📅 التاريخ:</span>
-                            <span>{new Date(receipt.createdAt).toLocaleDateString('ar-SA')} - {new Date(receipt.createdAt).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</span>
-                          </p>
-                          <p className="flex items-center gap-2">
-                            <span className="text-white/60">👨‍💼 المستلم:</span>
-                            <span className="font-semibold">{receipt.paidBy}</span>
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right flex flex-col items-end gap-4">
-                        <div className="bg-gradient-to-br from-green-500/20 to-emerald-600/20 rounded-xl p-4 border border-green-400/30">
-                          <p className="text-xs text-white/70 mb-1">المبلغ المحصل</p>
-                          <p className="text-3xl font-bold text-white">{receipt.amount}</p>
-                          <p className="text-xs text-white/60 mt-1">ريال سعودي</p>
-                        </div>
-                        <Button
-                          onClick={() => printReceipt(receipt)}
-                          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg w-full"
-                        >
-                          <Printer className="w-4 h-4 ml-2" />
-                          طباعة السند
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                      </td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
+                </table>
               </div>
             )}
           </CardContent>
@@ -459,11 +557,7 @@ export default function ReceiptsPage() {
         <ReceiptDialog
           isOpen={isDialogOpen}
           onClose={() => setIsDialogOpen(false)}
-          onSuccess={() => {
-            setIsDialogOpen(false);
-            loadReceipts();
-            loadSummary();
-          }}
+          onSuccess={handleReceiptCreated}
         />
       </div>
     </ProtectedRoute>
