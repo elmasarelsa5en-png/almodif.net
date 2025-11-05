@@ -26,6 +26,7 @@ interface GuestData {
   address: string;
   notes: string;
   privateNotes: string;
+  shamoosVerified?: boolean; // حالة التحقق من شموس
 }
 
 interface AddGuestDialogProps {
@@ -59,7 +60,8 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
     email: '',
     address: '',
     notes: '',
-    privateNotes: ''
+    privateNotes: '',
+    shamoosVerified: false
   });
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -166,6 +168,7 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
             fullName: data.citizenInfo.name || prev.fullName,
             nationality: data.citizenInfo.nationality || prev.nationality,
             expiryDate: data.citizenInfo.expiryDate || prev.expiryDate,
+            shamoosVerified: true // ✅ تم التحقق بنجاح
           }));
         }
       } else {
@@ -173,6 +176,11 @@ export default function AddGuestDialog({ open, onClose, onSubmit, availableRooms
           success: false,
           message: data.message || 'فشل التحقق من الهوية'
         });
+        // ❌ فشل التحقق
+        setGuestData(prev => ({
+          ...prev,
+          shamoosVerified: false
+        }));
       }
     } catch (error) {
       console.error('خطأ في التحقق من شموس:', error);

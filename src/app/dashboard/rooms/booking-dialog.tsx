@@ -981,10 +981,36 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
             {/* عرض بيانات النزيل الحالي */}
             {selectedGuest && (room.status === 'Occupied' || room.status === 'Reserved') && (
               <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-6 border-2 border-blue-300 shadow-lg">
-                <h3 className="text-lg font-bold text-blue-800 mb-4 flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  بيانات النزيل الحالي
-                </h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-blue-800 flex items-center gap-2">
+                    <User className="h-5 w-5" />
+                    بيانات النزيل الحالي
+                  </h3>
+                  {/* علامة التحقق من شموس */}
+                  {selectedGuest.shamoosVerified !== undefined && (
+                    <div className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm ${
+                      selectedGuest.shamoosVerified 
+                        ? 'bg-green-500 text-white' 
+                        : 'bg-red-500 text-white'
+                    }`}>
+                      {selectedGuest.shamoosVerified ? (
+                        <>
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                          </svg>
+                          مُحقق من شموس
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
+                          </svg>
+                          غير محقق
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-white rounded-lg p-3 shadow-sm">
