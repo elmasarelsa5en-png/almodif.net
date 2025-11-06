@@ -24,9 +24,12 @@ export interface Receipt {
 
 // توليد رقم سند تسلسلي
 export async function generateReceiptNumber(): Promise<string> {
+  const currentYear = new Date().getFullYear();
+  
   try {
-    const currentYear = new Date().getFullYear();
     const receiptsRef = collection(db, 'receipts');
+    
+    // محاولة الحصول على آخر سند بالترتيب
     const q = query(
       receiptsRef,
       where('fiscalYear', '==', currentYear.toString()),
@@ -38,10 +41,32 @@ export async function generateReceiptNumber(): Promise<string> {
     
     // تنسيق: RCP-2025-0001
     return `RCP-${currentYear}-${count.toString().padStart(4, '0')}`;
-  } catch (error) {
-    console.error('Error generating receipt number:', error);
-    const timestamp = Date.now();
-    return `RCP-${new Date().getFullYear()}-${timestamp}`;
+  } catch (indexError: any) {
+    console.warn('⚠️ Firebase Index غير متوفر، المحاولة بطريقة بديلة:', indexError.message);
+    
+    try {
+      // محاولة بديلة: جلب كل السندات وتصفيتها محليًا
+      const receiptsRef = collection(db, 'receipts');
+      const allReceipts = await getDocs(receiptsRef);
+      
+      // تصفية السندات للسنة الحالية
+      const currentYearReceipts = allReceipts.docs.filter(doc => 
+        doc.data().fiscalYear === currentYear.toString()
+      );
+      
+      const count = currentYearReceipts.length + 1;
+      const receiptNumber = `RCP-${currentYear}-${count.toString().padStart(4, '0')}`;
+      console.log('✅ تم توليد رقم السند بدون Index:', receiptNumber);
+      return receiptNumber;
+    } catch (fallbackError) {
+      console.error('❌ فشل التوليد البديل، استخدام رقم مؤقت:', fallbackError);
+      
+      // الحل الأخير: رقم سند مؤقت بناءً على الوقت
+      const timestamp = Date.now().toString().slice(-4);
+      const tempNumber = `RCP-${currentYear}-TEMP-${timestamp}`;
+      console.log('📋 رقم السند المؤقت:', tempNumber);
+      return tempNumber;
+    }
   }
 }
 
