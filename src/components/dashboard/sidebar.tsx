@@ -422,78 +422,6 @@ const navigationItems: NavigationItem[] = [
     ]
   },
   {
-    icon: TrendingUp,
-    labelKey: 'executiveDashboards',
-    descKey: 'executiveDashboardsDesc',
-    href: '/dashboard/executive',
-    permission: 'view_executive_reports',
-    subItems: [
-      {
-        icon: BarChart3,
-        labelKey: 'gmDashboard',
-        descKey: 'gmDashboardDesc',
-        href: '/dashboard/executive/gm',
-        permission: 'view_executive_reports',
-      },
-      {
-        icon: DollarSign,
-        labelKey: 'cfoDashboard',
-        descKey: 'cfoDashboardDesc',
-        href: '/dashboard/executive/cfo',
-        permission: 'view_financial_reports',
-      },
-      {
-        icon: TrendingUp,
-        labelKey: 'salesDashboard',
-        descKey: 'salesDashboardDesc',
-        href: '/dashboard/executive/sales',
-        permission: 'view_reports',
-      },
-      {
-        icon: Brain,
-        labelKey: 'aiForecasting',
-        descKey: 'aiForecastingDesc',
-        href: '/dashboard/ai-forecasting',
-        permission: 'view_reports',
-      },
-      {
-        icon: AlertTriangle,
-        labelKey: 'anomalyDetection',
-        descKey: 'anomalyDetectionDesc',
-        href: '/dashboard/anomaly-detection',
-        permission: 'view_reports',
-      },
-      {
-        icon: Users,
-        labelKey: 'guestSegmentation',
-        descKey: 'guestSegmentationDesc',
-        href: '/dashboard/guest-segmentation',
-        permission: 'view_reports',
-      },
-      {
-        icon: FileText,
-        labelKey: 'reportBuilder',
-        descKey: 'reportBuilderDesc',
-        href: '/dashboard/report-builder',
-        permission: 'view_reports',
-      },
-      {
-        icon: BarChart3,
-        labelKey: 'advancedReports',
-        descKey: 'advancedReportsDesc',
-        href: '/dashboard/advanced-reports',
-        permission: 'view_reports',
-      },
-      {
-        icon: Clock,
-        labelKey: 'scheduledReports',
-        descKey: 'scheduledReportsDesc',
-        href: '/dashboard/scheduled-reports',
-        permission: 'view_reports',
-      }
-    ]
-  },
-  {
     icon: Wrench,
     labelKey: 'maintenance',
     descKey: 'maintenanceDesc',
@@ -521,6 +449,27 @@ const navigationItems: NavigationItem[] = [
     href: '/dashboard/settings',
     permission: 'view_settings',
     subItems: [
+      {
+        icon: BarChart3,
+        labelKey: 'gmDashboard',
+        descKey: 'gmDashboardDesc',
+        href: '/dashboard/executive/gm',
+        permission: 'view_executive_reports',
+      },
+      {
+        icon: DollarSign,
+        labelKey: 'cfoDashboard',
+        descKey: 'cfoDashboardDesc',
+        href: '/dashboard/executive/cfo',
+        permission: 'view_financial_reports',
+      },
+      {
+        icon: TrendingUp,
+        labelKey: 'salesDashboard',
+        descKey: 'salesDashboardDesc',
+        href: '/dashboard/executive/sales',
+        permission: 'view_reports',
+      },
       {
         icon: List,
         labelKey: 'menuItems',
