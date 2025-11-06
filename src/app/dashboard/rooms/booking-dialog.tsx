@@ -5,7 +5,8 @@ import {
   Dialog, 
   DialogContent, 
   DialogHeader, 
-  DialogTitle 
+  DialogTitle,
+  DialogDescription 
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,6 +33,7 @@ import {
 } from 'lucide-react';
 import { Room } from '@/lib/rooms-data';
 import AddGuestDialog from '@/components/AddGuestDialog';
+import ReceiptDialog from '@/components/ReceiptDialog';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
 import { createReceipt } from '@/lib/receipts-system';
@@ -115,6 +117,7 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
   
   // بيانات النزيل
   const [isAddGuestOpen, setIsAddGuestOpen] = useState(false);
+  const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
   const [selectedGuest, setSelectedGuest] = useState<any>(null);
   const [companions, setCompanions] = useState<any[]>([]);
   const [company, setCompany] = useState<any>(null);
@@ -887,6 +890,10 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
     <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="max-w-[98vw] w-full max-h-[98vh] h-full overflow-y-auto bg-gradient-to-br from-gray-50 to-blue-50 text-gray-900 border-0 p-0">
+          <DialogDescription className="sr-only">
+            نموذج تفاصيل وإدارة حجز الغرفة مع معلومات النزيل والدفعات المالية
+          </DialogDescription>
+          
           {/* Header with modern gradient */}
           <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-600 via-blue-700 to-purple-600 px-4 py-3 mb-4 flex items-center justify-between shadow-xl">
             <DialogTitle className="text-xl font-bold text-white drop-shadow-lg">
@@ -1391,11 +1398,11 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setDeposits([...deposits, 0])}
+                    onClick={() => setIsReceiptDialogOpen(true)}
                     className="w-full border-gray-300 text-xs h-7"
                   >
                     <Plus className="h-3 w-3 ml-1" />
-                    إضافة
+                    إضافة سند قبض
                   </Button>
                   <p className="text-xs text-gray-600 font-semibold bg-green-50 px-2 py-1 rounded">
                     الإجمالي: <span className="text-green-600">{totalDeposits} ر.س</span>
@@ -1606,6 +1613,17 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
         }}
         availableRooms={room ? [room.number] : []}
         preselectedRoom={room?.number}
+      />
+
+      {/* حوار إضافة سند قبض */}
+      <ReceiptDialog
+        isOpen={isReceiptDialogOpen}
+        onClose={() => setIsReceiptDialogOpen(false)}
+        onSuccess={() => {
+          setIsReceiptDialogOpen(false);
+          // TODO: تحديث المقبوضات بعد إضافة السند
+          alert('✅ تم إضافة سند القبض بنجاح!');
+        }}
       />
     </>
   );
