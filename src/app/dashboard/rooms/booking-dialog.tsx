@@ -1398,7 +1398,16 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setIsReceiptDialogOpen(true)}
+                    onClick={() => {
+                      console.log('🔵 زر المقبوضات تم الضغط عليه');
+                      console.log('📊 البيانات:', {
+                        roomNumber: room?.number,
+                        guestName: selectedGuest?.fullName || selectedGuest?.name,
+                        totalAmount,
+                        isReceiptDialogOpen
+                      });
+                      setIsReceiptDialogOpen(true);
+                    }}
                     className="w-full border-gray-300 text-xs h-7"
                   >
                     <Plus className="h-3 w-3 ml-1" />
@@ -1618,8 +1627,12 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
       {/* حوار إضافة سند قبض */}
       <ReceiptDialog
         isOpen={isReceiptDialogOpen}
-        onClose={() => setIsReceiptDialogOpen(false)}
+        onClose={() => {
+          console.log('🔴 إغلاق ReceiptDialog');
+          setIsReceiptDialogOpen(false);
+        }}
         onSuccess={() => {
+          console.log('✅ تم حفظ السند بنجاح');
           setIsReceiptDialogOpen(false);
           // إعادة تحميل البيانات بعد إضافة السند
           alert('✅ تم إضافة سند القبض بنجاح! يمكنك الآن رؤيته في صفحة سندات القبض.');

@@ -43,6 +43,7 @@ export default function ReceiptDialog({
   const [balances, setBalances] = useState<CashRegisterBalance | null>(null);
 
   useEffect(() => {
+    console.log('🟢 ReceiptDialog useEffect:', { isOpen, defaultRoomNumber, defaultGuestName, defaultAmount });
     if (isOpen) {
       initializeForm();
       loadBalances();
