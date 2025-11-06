@@ -10,9 +10,21 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  defaultRoomNumber?: string;
+  defaultGuestName?: string;
+  defaultAmount?: number;
+  defaultCategory?: 'room_rent' | 'services' | 'laundry' | 'restaurant' | 'coffee' | 'other';
 }
 
-export default function ReceiptDialog({ isOpen, onClose, onSuccess }: Props) {
+export default function ReceiptDialog({ 
+  isOpen, 
+  onClose, 
+  onSuccess,
+  defaultRoomNumber,
+  defaultGuestName,
+  defaultAmount,
+  defaultCategory = 'room_rent'
+}: Props) {
   const [loading, setLoading] = useState(false);
   const [receiptNumber, setReceiptNumber] = useState('');
   
@@ -34,8 +46,14 @@ export default function ReceiptDialog({ isOpen, onClose, onSuccess }: Props) {
     if (isOpen) {
       initializeForm();
       loadBalances();
+      
+      // تعيين القيم الافتراضية من الحجز
+      if (defaultRoomNumber) setRoomNumber(defaultRoomNumber);
+      if (defaultGuestName) setGuestName(defaultGuestName);
+      if (defaultAmount) setAmount(defaultAmount.toString());
+      if (defaultCategory) setCategory(defaultCategory);
     }
-  }, [isOpen]);
+  }, [isOpen, defaultRoomNumber, defaultGuestName, defaultAmount, defaultCategory]);
 
   const loadBalances = async () => {
     const data = await calculateBalances();

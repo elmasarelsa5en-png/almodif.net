@@ -1621,9 +1621,13 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
         onClose={() => setIsReceiptDialogOpen(false)}
         onSuccess={() => {
           setIsReceiptDialogOpen(false);
-          // TODO: تحديث المقبوضات بعد إضافة السند
-          alert('✅ تم إضافة سند القبض بنجاح!');
+          // إعادة تحميل البيانات بعد إضافة السند
+          alert('✅ تم إضافة سند القبض بنجاح! يمكنك الآن رؤيته في صفحة سندات القبض.');
         }}
+        defaultRoomNumber={room?.number}
+        defaultGuestName={selectedGuest?.fullName || selectedGuest?.name}
+        defaultAmount={totalAmount > 0 ? totalAmount : undefined}
+        defaultCategory="room_rent"
       />
     </>
   );
