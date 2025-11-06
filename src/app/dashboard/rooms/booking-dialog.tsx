@@ -888,21 +888,21 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="max-w-[98vw] w-full max-h-[98vh] h-full overflow-y-auto bg-gradient-to-br from-gray-50 to-blue-50 text-gray-900 border-0 p-0">
           {/* Header with modern gradient */}
-          <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-600 via-blue-700 to-purple-600 px-6 py-5 mb-6 flex items-center justify-between shadow-xl">
-            <DialogTitle className="text-3xl font-bold text-white drop-shadow-lg">
+          <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-600 via-blue-700 to-purple-600 px-4 py-3 mb-4 flex items-center justify-between shadow-xl">
+            <DialogTitle className="text-xl font-bold text-white drop-shadow-lg">
               {room.status === 'Occupied' || room.status === 'Reserved' 
                 ? `تفاصيل الحجز - غرفة ${room.number}` 
                 : `حجز جديد - غرفة ${room.number}`}
             </DialogTitle>
             
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               {/* زر تغيير الحالة */}
               <Button
                 variant="outline"
                 onClick={() => setShowStatusChange(!showStatusChange)}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 border-0 text-white shadow-lg font-bold"
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 border-0 text-white shadow-lg font-bold text-sm h-8 px-3"
               >
-                <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                 </svg>
                 تغيير الحالة
@@ -910,34 +910,34 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
               
               <button
                 onClick={handleClose}
-                className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
+                className="text-white hover:bg-white/20 rounded-full p-1.5 transition-colors"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
           </div>
 
-          <div className="space-y-6 px-6">
+          <div className="space-y-3 px-4">
             {/* قسم تغيير الحالة */}
             {showStatusChange && onStatusChange && (
-              <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-300 shadow-lg">
-                <h3 className="text-lg font-bold text-purple-800 mb-4 flex items-center gap-2">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-300 shadow-lg">
+                <h3 className="text-base font-bold text-purple-800 mb-3 flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                   </svg>
                   تغيير حالة الغرفة
                 </h3>
                 
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-3 gap-2">
                   <Button
                     onClick={() => {
                       onStatusChange(room.id, 'Available');
                       setShowStatusChange(false);
                       handleClose();
                     }}
-                    className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-md"
+                    className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white text-sm h-9"
                   >
                     متاحة
                   </Button>
@@ -947,7 +947,7 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                       setShowStatusChange(false);
                       handleClose();
                     }}
-                    className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white shadow-md"
+                    className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white text-sm h-9"
                   >
                     محجوزة
                   </Button>
@@ -957,7 +957,7 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                       setShowStatusChange(false);
                       handleClose();
                     }}
-                    className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-md"
+                    className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-sm h-9"
                   >
                     صيانة
                   </Button>
@@ -967,7 +967,7 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                       setShowStatusChange(false);
                       handleClose();
                     }}
-                    className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-md"
+                    className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-sm h-9"
                   >
                     تحتاج تنظيف
                   </Button>
@@ -977,14 +977,14 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                       setShowStatusChange(false);
                       handleClose();
                     }}
-                    className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-md"
+                    className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white text-sm h-9"
                   >
                     خروج اليوم
                   </Button>
                   <Button
                     onClick={() => setShowStatusChange(false)}
                     variant="outline"
-                    className="border-2 border-gray-400 text-gray-700 hover:bg-gray-100 shadow-md"
+                    className="border border-gray-400 text-gray-700 hover:bg-gray-100 text-sm h-9"
                   >
                     إلغاء
                   </Button>
@@ -1050,30 +1050,30 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
             )}
 
             {/* معلومات الحجز - Header Section */}
-            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <h3 className="text-lg font-bold text-gray-800 mb-4">معلومات الحجز</h3>
-              <div className="grid grid-cols-4 gap-4">
+            <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+              <h3 className="text-base font-bold text-gray-800 mb-3">معلومات الحجز</h3>
+              <div className="grid grid-cols-4 gap-3">
                 {/* رقم العقد */}
                 <div>
-                  <label className="block text-sm text-gray-600 mb-2">رقم العقد</label>
+                  <label className="block text-xs text-gray-600 mb-1">رقم العقد</label>
                   <input
                     type="text"
                     value={contractNumber}
                     onChange={(e) => setContractNumber(e.target.value)}
                     placeholder="تلقائي"
-                    className="w-full px-3 py-2 border border-gray-300 rounded bg-white text-gray-900"
+                    className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded bg-white text-gray-900"
                   />
                 </div>
                 
                 {/* مصدر الحجز */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    مصدر الحجز <span className="text-red-500 font-bold">*</span>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    مصدر الحجز <span className="text-red-500">*</span>
                   </label>
                   <select 
                     value={bookingSource} 
                     onChange={(e) => setBookingSource(e.target.value)}
-                    className="w-full h-11 px-4 border-2 border-gray-300 rounded-lg bg-white text-gray-900 font-medium hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                    className="w-full h-9 px-2 text-sm border-2 border-gray-300 rounded-lg bg-white text-gray-900 font-medium hover:border-blue-400 focus:border-blue-500 transition-all"
                   >
                     <option value="">اختر المصدر</option>
                     {BOOKING_SOURCES.map(source => (
@@ -1086,11 +1086,11 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
 
                 {/* نوع الإيجار */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">نوع الإيجار</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">نوع الإيجار</label>
                   <select 
                     value={rentalType} 
                     onChange={(e) => setRentalType(e.target.value as 'daily' | 'monthly')}
-                    className="w-full h-11 px-4 border-2 border-gray-300 rounded-lg bg-white text-gray-900 font-medium hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                    className="w-full h-9 px-2 text-sm border-2 border-gray-300 rounded-lg bg-white text-gray-900 font-medium hover:border-blue-400 focus:border-blue-500 transition-all"
                   >
                     <option value="">اختر النوع</option>
                     <option value="daily">📅 يومي</option>
@@ -1100,13 +1100,13 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
 
                 {/* نوع الزيارة */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    نوع الزيارة <span className="text-red-500 font-bold">*</span>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    نوع الزيارة <span className="text-red-500">*</span>
                   </label>
                   <select 
                     value={visitType} 
                     onChange={(e) => setVisitType(e.target.value)}
-                    className="w-full h-11 px-4 border-2 border-gray-300 rounded-lg bg-white text-gray-900 font-medium hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                    className="w-full h-9 px-2 text-sm border-2 border-gray-300 rounded-lg bg-white text-gray-900 font-medium hover:border-blue-400 focus:border-blue-500 transition-all"
                   >
                     <option value="">اختر نوع الزيارة</option>
                     {VISIT_TYPES.map(type => (
@@ -1121,69 +1121,65 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
 
             {/* الفترة - Period Table */}
             <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-              <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                <h3 className="text-lg font-bold text-gray-800">الفترة</h3>
+              <div className="bg-gray-50 px-3 py-2 border-b border-gray-200">
+                <h3 className="text-base font-bold text-gray-800">الفترة</h3>
               </div>
               <table className="w-full">
                 <thead className="bg-gray-100">
                   <tr>
-                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">الأيام</th>
-                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">الوقت</th>
-                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">إلى</th>
-                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">من</th>
+                    <th className="px-3 py-2 text-right text-xs font-semibold text-gray-700">الأيام</th>
+                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-700">الوقت</th>
+                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-700">إلى</th>
+                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-700">من</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr className="border-t border-gray-200">
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-3 py-2 text-center">
                       <input 
                         type="number" 
                         min="1"
                         value={numberOfDays}
                         onChange={(e) => handleDaysChange(parseInt(e.target.value) || 1)}
-                        className="w-20 px-2 py-1 border border-gray-300 rounded text-center font-bold bg-white" 
+                        className="w-16 px-2 py-1 text-sm border border-gray-300 rounded text-center font-bold bg-white" 
                       />
                     </td>
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-3 py-2 text-center">
                       <div className="flex flex-col gap-1">
                         <input 
                           type="time" 
                           value={checkOutTime}
                           onChange={(e) => setCheckOutTime(e.target.value)}
-                          className="px-2 py-1 border border-gray-300 rounded text-sm" 
+                          className="px-2 py-1 border border-gray-300 rounded text-xs" 
                         />
                         <input 
                           type="time" 
                           value={checkInTime}
                           onChange={(e) => setCheckInTime(e.target.value)}
-                          className="px-2 py-1 border border-gray-300 rounded text-sm" 
+                          className="px-2 py-1 border border-gray-300 rounded text-xs" 
                         />
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-3 py-2 text-center">
                       <div className="flex flex-col gap-1">
-                        <span className="text-sm">ميلادي</span>
+                        <span className="text-xs">ميلادي</span>
                         <input 
                           type="date" 
                           value={checkOutDate}
                           onChange={(e) => setCheckOutDate(e.target.value)}
-                          className="px-2 py-1 border border-gray-300 rounded text-sm" 
+                          className="px-2 py-1 border border-gray-300 rounded text-xs" 
                         />
-                        <span className="text-sm text-gray-500">هجري</span>
-                        <input type="date" className="px-2 py-1 border border-gray-300 rounded text-sm" />
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-3 py-2 text-center">
                       <div className="flex flex-col gap-1">
-                        <span className="text-sm">ميلادي</span>
+                        <span className="text-xs">ميلادي</span>
                         <input 
                           type="date" 
                           value={checkInDate}
                           onChange={(e) => setCheckInDate(e.target.value)}
-                          className="px-2 py-1 border border-gray-300 rounded text-sm" 
+                          className="px-2 py-1 border border-gray-300 rounded text-xs" 
                         />
-                        <span className="text-sm text-gray-500">هجري</span>
-                        <input type="date" className="px-2 py-1 border border-gray-300 rounded text-sm" />
                       </div>
                     </td>
                   </tr>
@@ -1192,19 +1188,19 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
             </div>
 
             {/* الشقة والعميل - Two Column Tables */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               {/* الشقة - Left Table */}
               <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                  <h3 className="text-lg font-bold text-gray-800">الشقة</h3>
+                <div className="bg-gray-50 px-3 py-2 border-b border-gray-200">
+                  <h3 className="text-base font-bold text-gray-800">الشقة</h3>
                 </div>
                 <table className="w-full">
                   <tbody>
                     <tr className="border-b border-gray-200">
-                      <td className="px-4 py-3 text-sm font-semibold text-gray-600 w-1/3">رقم الشقة</td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2 text-xs font-semibold text-gray-600 w-1/3">رقم الشقة</td>
+                      <td className="px-3 py-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-gray-900 font-bold">#{room.number}</span>
+                          <span className="text-gray-900 font-bold text-sm">#{room.number}</span>
                           {(room.status === 'Occupied' || room.status === 'Reserved') && onRoomChange && allRooms && (
                             <Button
                               variant="outline"
@@ -1245,39 +1241,39 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                                   }
                                 }
                               }}
-                              className="border-blue-500 text-blue-600 hover:bg-blue-50 font-bold"
+                              className="border-blue-500 text-blue-600 hover:bg-blue-50 font-bold text-xs px-2 py-1"
                             >
-                              🔄 تغيير الغرفة
+                              🔄 تغيير
                             </Button>
                           )}
                         </div>
                       </td>
                     </tr>
                     <tr className="border-b border-gray-200">
-                      <td className="px-4 py-3 text-sm font-semibold text-gray-600">نوع الشقة</td>
-                      <td className="px-4 py-3 text-gray-900">{room.type}</td>
+                      <td className="px-3 py-2 text-xs font-semibold text-gray-600">نوع الشقة</td>
+                      <td className="px-3 py-2 text-sm text-gray-900">{room.type}</td>
                     </tr>
                     <tr className="border-b border-gray-200">
-                      <td className="px-4 py-3 text-sm font-semibold text-gray-600">المرافقون</td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2 text-xs font-semibold text-gray-600">المرافقون</td>
+                      <td className="px-3 py-2">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => setIsAddGuestOpen(true)}
-                          className="border-gray-300 text-gray-700"
+                          className="border-gray-300 text-gray-700 text-xs px-2 py-1 h-7"
                         >
-                          <Users className="h-4 w-4 ml-2" />
+                          <Users className="h-3 w-3 ml-1" />
                           إضافة ({companions.length})
                         </Button>
                       </td>
                     </tr>
                     <tr>
-                      <td className="px-4 py-3 text-sm font-semibold text-gray-600">نوع الزيارة</td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2 text-xs font-semibold text-gray-600">نوع الزيارة</td>
+                      <td className="px-3 py-2">
                         <select 
                           value={visitType} 
                           onChange={(e) => setVisitType(e.target.value)}
-                          className="w-full h-10 px-3 border-2 border-gray-300 rounded-lg bg-white text-gray-900 font-medium hover:border-blue-400 focus:border-blue-500 transition-all"
+                          className="w-full h-8 px-2 text-sm border border-gray-300 rounded-lg bg-white text-gray-900"
                         >
                           <option value="">اختر نوع الزيارة</option>
                           {VISIT_TYPES.map(type => (
@@ -1294,25 +1290,25 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
 
               {/* العميل - Right Table */}
               <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                  <h3 className="text-lg font-bold text-gray-800">العميل</h3>
+                <div className="bg-gray-50 px-3 py-2 border-b border-gray-200">
+                  <h3 className="text-base font-bold text-gray-800">العميل</h3>
                 </div>
                 <table className="w-full">
                   <tbody>
                     <tr className="border-b border-gray-200">
-                      <td className="px-4 py-3 text-sm font-semibold text-gray-600 w-1/3">اسم العميل</td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2 text-xs font-semibold text-gray-600 w-1/3">اسم العميل</td>
+                      <td className="px-3 py-2">
                         {selectedGuest ? (
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="text-gray-900 font-bold">{selectedGuest.name}</p>
+                              <p className="text-gray-900 font-bold text-sm">{selectedGuest.name}</p>
                               <p className="text-gray-500 text-xs">{selectedGuest.phone}</p>
                             </div>
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => setIsAddGuestOpen(true)}
-                              className="border-gray-300"
+                              className="border-gray-300 text-xs px-2 py-1 h-7"
                             >
                               تغيير
                             </Button>
@@ -1320,38 +1316,38 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                         ) : (
                           <Button 
                             onClick={() => setIsAddGuestOpen(true)}
-                            className="w-full bg-gradient-to-r from-blue-600 to-blue-700"
+                            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-sm h-8"
                           >
-                            <User className="h-4 w-4 ml-2" />
+                            <User className="h-3 w-3 ml-1" />
                             اختيار نزيل
                           </Button>
                         )}
                       </td>
                     </tr>
                     <tr className="border-b border-gray-200">
-                      <td className="px-4 py-3 text-sm font-semibold text-gray-600">سعر الوحدة</td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2 text-xs font-semibold text-gray-600">سعر الوحدة</td>
+                      <td className="px-3 py-2">
                         <input 
                           type="number" 
                           min="0"
                           value={dailyRate}
                           onChange={(e) => setDailyRate(parseFloat(e.target.value) || 0)}
-                          className="w-full px-2 py-1 border border-gray-300 rounded" 
+                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded" 
                         />
                       </td>
                     </tr>
                     <tr className="border-b border-gray-200">
-                      <td className="px-4 py-3 text-sm font-semibold text-gray-600">الإيجار</td>
-                      <td className="px-4 py-3">
-                        <span className="font-bold text-blue-600">{totalAmount.toFixed(2)}</span>
-                        <span className="text-sm text-gray-500 mr-2">ر.س</span>
+                      <td className="px-3 py-2 text-xs font-semibold text-gray-600">الإيجار</td>
+                      <td className="px-3 py-2">
+                        <span className="font-bold text-blue-600 text-sm">{totalAmount.toFixed(2)}</span>
+                        <span className="text-xs text-gray-500 mr-2">ر.س</span>
                       </td>
                     </tr>
                     <tr>
-                      <td className="px-4 py-3 text-sm font-semibold text-gray-600">الإجمالي</td>
-                      <td className="px-4 py-3">
-                        <span className="font-bold text-lg text-green-600">{totalAmount.toFixed(2)}</span>
-                        <span className="text-sm text-gray-500 mr-2">ر.س</span>
+                      <td className="px-3 py-2 text-xs font-semibold text-gray-600">الإجمالي</td>
+                      <td className="px-3 py-2">
+                        <span className="font-bold text-base text-green-600">{totalAmount.toFixed(2)}</span>
+                        <span className="text-xs text-gray-500 mr-1">ر.س</span>
                       </td>
                     </tr>
                   </tbody>
@@ -1361,17 +1357,17 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
 
             {/* المالية - Financial Section - Compact 3 Columns */}
             <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-              <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                <h3 className="text-lg font-bold text-gray-800">المالية</h3>
+              <div className="bg-gray-50 px-3 py-2 border-b border-gray-200">
+                <h3 className="text-base font-bold text-gray-800">المالية</h3>
               </div>
               
               {/* Section 1: المقبوضات و بدل الإيجار و الإيجار اليومي - في صف واحد */}
-              <div className="grid grid-cols-3 gap-4 p-4 border-b border-gray-200">
+              <div className="grid grid-cols-3 gap-3 p-3 border-b border-gray-200">
                 {/* المقبوضات */}
                 <div className="space-y-2">
-                  <h4 className="text-sm font-bold text-gray-700 mb-2">المقبوضات</h4>
+                  <h4 className="text-xs font-bold text-gray-700 mb-1">المقبوضات</h4>
                   {deposits.map((amount, index) => (
-                    <div key={index} className="flex gap-2">
+                    <div key={index} className="flex gap-1">
                       <input
                         type="number"
                         value={amount}
@@ -1380,13 +1376,13 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                           newDeposits[index] = parseFloat(e.target.value) || 0;
                           setDeposits(newDeposits);
                         }}
-                        className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                        className="flex-1 px-2 py-1 border border-gray-300 rounded text-xs"
                       />
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => setDeposits(deposits.filter((_, i) => i !== index))}
-                        className="border-red-500 text-red-600 hover:bg-red-50 px-2"
+                        className="border-red-500 text-red-600 hover:bg-red-50 px-1 h-7 w-7"
                       >
                         ×
                       </Button>
@@ -1396,7 +1392,7 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                     variant="outline"
                     size="sm"
                     onClick={() => setDeposits([...deposits, 0])}
-                    className="w-full border-gray-300 text-xs"
+                    className="w-full border-gray-300 text-xs h-7"
                   >
                     <Plus className="h-3 w-3 ml-1" />
                     إضافة
@@ -1408,9 +1404,9 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
 
                 {/* بدل الإيجار */}
                 <div className="space-y-2">
-                  <h4 className="text-sm font-bold text-gray-700 mb-2">بدل الإيجار (من الفندق)</h4>
+                  <h4 className="text-xs font-bold text-gray-700 mb-1">بدل الإيجار (من الفندق)</h4>
                   {advancePayments.map((amount, index) => (
-                    <div key={index} className="flex gap-2">
+                    <div key={index} className="flex gap-1">
                       <input
                         type="number"
                         value={amount}
@@ -1419,13 +1415,13 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                           newAdvance[index] = parseFloat(e.target.value) || 0;
                           setAdvancePayments(newAdvance);
                         }}
-                        className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                        className="flex-1 px-2 py-1 border border-gray-300 rounded text-xs"
                       />
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => setAdvancePayments(advancePayments.filter((_, i) => i !== index))}
-                        className="border-red-500 text-red-600 hover:bg-red-50 px-2"
+                        className="border-red-500 text-red-600 hover:bg-red-50 px-1 h-7 w-7"
                       >
                         ×
                       </Button>
@@ -1435,7 +1431,7 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                     variant="outline"
                     size="sm"
                     onClick={() => setAdvancePayments([...advancePayments, 0])}
-                    className="w-full border-gray-300 text-xs"
+                    className="w-full border-gray-300 text-xs h-7"
                   >
                     <Plus className="h-3 w-3 ml-1" />
                     إضافة
@@ -1446,47 +1442,47 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                 </div>
 
                 {/* الإيجار اليومي و عدد الأيام */}
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {/* السعر الأساسي (ثابت من الكتالوج) */}
                   <div>
-                    <label className="text-sm font-bold text-gray-700 block mb-1">السعر الأساسي (من الكتالوج)</label>
-                    <div className="px-3 py-2 bg-gray-100 rounded text-base font-bold text-gray-900 border-2 border-gray-300">
+                    <label className="text-xs font-bold text-gray-700 block mb-1">السعر الأساسي</label>
+                    <div className="px-2 py-1 bg-gray-100 rounded text-sm font-bold text-gray-900 border border-gray-300">
                       {baseDailyRate.toFixed(2)} ر.س
                     </div>
                   </div>
                   
                   {/* الخصم */}
                   <div>
-                    <label className="text-sm font-bold text-gray-700 block mb-1">الخصم (اختياري)</label>
-                    <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-700 block mb-1">الخصم</label>
+                    <div className="space-y-1">
                       {/* نوع الخصم */}
-                      <div className="flex gap-2">
+                      <div className="flex gap-1">
                         <button
                           type="button"
                           onClick={() => setDiscountType('fixed')}
-                          className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-colors ${
+                          className={`flex-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
                             discountType === 'fixed'
-                              ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md'
-                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                              ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white'
+                              : 'bg-gray-200 text-gray-700'
                           }`}
                         >
-                          مبلغ ثابت
+                          مبلغ
                         </button>
                         <button
                           type="button"
                           onClick={() => setDiscountType('percentage')}
-                          className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-colors ${
+                          className={`flex-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
                             discountType === 'percentage'
-                              ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-md'
-                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                              ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white'
+                              : 'bg-gray-200 text-gray-700'
                           }`}
                         >
-                          نسبة مئوية
+                          نسبة
                         </button>
                       </div>
                       
                       {/* مقدار الخصم */}
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
                         <input
                           type="number"
                           min="0"
@@ -1494,9 +1490,9 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                           value={discount}
                           onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
                           placeholder={discountType === 'percentage' ? '0-100' : '0'}
-                          className="flex-1 px-3 py-2 border-2 border-gray-300 rounded text-sm focus:border-blue-500 focus:outline-none"
+                          className="flex-1 px-2 py-1 border border-gray-300 rounded text-xs"
                         />
-                        <span className="text-sm text-gray-600 font-medium w-8">
+                        <span className="text-xs text-gray-600 w-6">
                           {discountType === 'percentage' ? '%' : 'ر.س'}
                         </span>
                       </div>
@@ -1505,15 +1501,15 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                   
                   {/* السعر بعد الخصم */}
                   <div>
-                    <label className="text-sm font-bold text-green-700 block mb-1">السعر النهائي (بعد الخصم)</label>
-                    <div className="px-3 py-2 bg-gradient-to-r from-green-100 to-green-200 rounded text-base font-bold text-green-900 border-2 border-green-400 shadow-sm">
+                    <label className="text-xs font-bold text-green-700 block mb-1">السعر النهائي</label>
+                    <div className="px-2 py-1 bg-green-100 rounded text-sm font-bold text-green-900 border border-green-400">
                       {dailyRate.toFixed(2)} ر.س
                     </div>
                   </div>
                   
                   <div>
-                    <label className="text-sm font-bold text-gray-700 block mb-1">عدد الأيام</label>
-                    <div className="px-2 py-1 bg-gray-100 rounded text-sm font-bold text-gray-900">
+                    <label className="text-xs font-bold text-gray-700 block mb-1">عدد الأيام</label>
+                    <div className="px-2 py-1 bg-gray-100 rounded text-xs font-bold text-gray-900">
                       {numberOfDays} يوم
                     </div>
                   </div>
@@ -1521,20 +1517,20 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
               </div>
 
               {/* Section 2: الملخص المالي - في صف واحد */}
-              <div className="grid grid-cols-3 gap-4 p-4 bg-gradient-to-r from-blue-50 via-green-50 to-red-50">
-                <div className="text-center p-3 bg-blue-100 rounded-lg border-2 border-blue-300">
-                  <p className="text-xs text-gray-600 mb-1">المبلغ الإجمالي</p>
-                  <p className="text-2xl font-bold text-blue-600">{totalAmount}</p>
+              <div className="grid grid-cols-3 gap-3 p-3 bg-gradient-to-r from-blue-50 via-green-50 to-red-50">
+                <div className="text-center p-2 bg-blue-100 rounded-lg border border-blue-300">
+                  <p className="text-xs text-gray-600 mb-0.5">المبلغ الإجمالي</p>
+                  <p className="text-lg font-bold text-blue-600">{totalAmount}</p>
                   <p className="text-xs text-gray-500">ر.س</p>
                 </div>
-                <div className="text-center p-3 bg-green-100 rounded-lg border-2 border-green-300">
-                  <p className="text-xs text-gray-600 mb-1">المدفوع</p>
-                  <p className="text-2xl font-bold text-green-600">{totalDeposits}</p>
+                <div className="text-center p-2 bg-green-100 rounded-lg border border-green-300">
+                  <p className="text-xs text-gray-600 mb-0.5">المدفوع</p>
+                  <p className="text-lg font-bold text-green-600">{totalDeposits}</p>
                   <p className="text-xs text-gray-500">ر.س</p>
                 </div>
-                <div className="text-center p-3 bg-red-100 rounded-lg border-2 border-red-300">
-                  <p className="text-xs text-gray-600 mb-1">المتبقي</p>
-                  <p className="text-2xl font-bold text-red-600">{remaining}</p>
+                <div className="text-center p-2 bg-red-100 rounded-lg border border-red-300">
+                  <p className="text-xs text-gray-600 mb-0.5">المتبقي</p>
+                  <p className="text-lg font-bold text-red-600">{remaining}</p>
                   <p className="text-xs text-gray-500">ر.س</p>
                 </div>
               </div>
