@@ -1398,6 +1398,7 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                   <Button
                     variant="outline"
                     size="sm"
+                    type="button"
                     onClick={() => {
                       console.log('🔵 زر المقبوضات تم الضغط عليه');
                       console.log('📊 البيانات:', {
