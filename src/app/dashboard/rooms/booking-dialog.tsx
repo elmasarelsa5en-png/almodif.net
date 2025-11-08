@@ -1399,17 +1399,19 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                     variant="outline"
                     size="sm"
                     type="button"
-                    onClick={() => {
-                      console.log('🔵 زر المقبوضات تم الضغط عليه');
-                      console.log('📊 البيانات:', {
-                        roomNumber: room?.number,
-                        guestName: selectedGuest?.fullName || selectedGuest?.name,
-                        totalAmount,
-                        isReceiptDialogOpen
-                      });
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      if (!selectedGuest) {
+                        console.warn('⚠️ يجب إدخال بيانات النزيل أولاً');
+                        alert('يرجى اختيار نزيل أولاً قبل إضافة سند قبض.');
+                        return;
+                      }
+                      console.log('🔵 فتح نافذة سند القبض');
                       setIsReceiptDialogOpen(true);
                     }}
                     className="w-full border-gray-300 text-xs h-7"
+                    disabled={!selectedGuest}
                   >
                     <Plus className="h-3 w-3 ml-1" />
                     إضافة سند قبض
@@ -1632,15 +1634,19 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
           console.log('🔴 إغلاق ReceiptDialog');
           setIsReceiptDialogOpen(false);
         }}
-        onSuccess={() => {
+        onSuccess={(receiptData) => {
           console.log('✅ تم حفظ السند بنجاح');
           setIsReceiptDialogOpen(false);
-          // إعادة تحميل البيانات بعد إضافة السند
+          // تحديث قائمة الدفعات في الحالة المحلية لتعكس الدفعة الجديدة فوراً
+          if (receiptData && receiptData.amount) {
+            setDeposits(prevDeposits => [...prevDeposits, receiptData.amount]);
+          }
           alert('✅ تم إضافة سند القبض بنجاح! يمكنك الآن رؤيته في صفحة سندات القبض.');
         }}
         defaultRoomNumber={room?.number}
         defaultGuestName={selectedGuest?.fullName || selectedGuest?.name}
-        defaultAmount={totalAmount > 0 ? totalAmount : undefined}
+        // تمرير المبلغ المتبقي ليكون هو المبلغ الافتراضي في سند القبض
+        defaultAmount={remaining > 0 ? remaining : undefined}
         defaultCategory="room_rent"
       />
     </>

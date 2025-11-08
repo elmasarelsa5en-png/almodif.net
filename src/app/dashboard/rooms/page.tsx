@@ -21,6 +21,7 @@ import {
   CreditCard,
   Search,
   Banknote,
+  Banknote, // <-- This was already here, just for context
   Smartphone,
   UserPlus,
   Image,
@@ -50,6 +51,7 @@ import {
   PaymentMethod,
   ROOM_STATUS_CONFIG,
   ROOM_TYPE_CONFIG,
+  ROOM_TYPE_CONFIG, // <-- This was already here, just for context
   updateRoomStatus,
   processPayment, 
   getRoomTypesFromStorage,
@@ -66,6 +68,7 @@ import {
 } from '@/lib/firebase-sync';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, getDocs } from 'firebase/firestore'; // <-- Import getDocs
 import AddGuestDialog from '@/components/AddGuestDialog';
 import AddRoomsFromImageDialog from '@/components/AddRoomsFromImageDialog';
 import GuestDataClipboard from '@/components/GuestDataClipboard';
@@ -922,6 +925,22 @@ export default function RoomsPage() {
           'Content-Type': 'application/json',
         },
         cache: 'no-store'
+     try {
+      console.log('🔄 [Rooms Page] Fetching room prices from Firebase...');
+      const roomTypesSnapshot = await getDocs(collection(db, 'room-types'));
+      const prices: Record<string, { pricePerDay: number; pricePerMonth: number }> = {};
+      const types: any[] = [];
+
+      roomTypesSnapshot.forEach(doc => {
+        const data = doc.data();
+        const typeName = data.name || data.nameAr;
+        if (typeName) {
+          prices[typeName] = {
+            pricePerDay: data.pricePerDay || 0,
+            pricePerMonth: data.pricePerMonth || 0,
+          };
+          types.push({ id: doc.id, ...data });
+        }
       });
       
       if (!response.ok) {
@@ -944,9 +963,14 @@ export default function RoomsPage() {
         console.log('تم تحميل أسعار الغرف بنجاح:', prices);
       }
       */
+
+      setRoomPrices(prices);
+      setRoomTypes(types); // تحديث قائمة أنواع الغرف أيضاً
+      console.log('✅ [Rooms Page] Room prices loaded successfully from Firebase:', prices);
     } catch (error) {
       console.error('خطأ في جلب أسعار الغرف:', error);
       // استمر في العمل حتى لو فشل تحميل الأسعار
+      console.error('❌ [Rooms Page] Error fetching room prices from Firebase:', error);
     }
   };
 
