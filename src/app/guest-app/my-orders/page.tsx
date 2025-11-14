@@ -10,6 +10,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
@@ -35,6 +37,8 @@ export default function MyOrdersPage() {
   const [guestSession, setGuestSession] = useState<any>(null);
   const [filter, setFilter] = useState<'all' | 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   useEffect(() => {
     const session = localStorage.getItem('guest_session');
@@ -567,6 +571,10 @@ export default function MyOrdersPage() {
                         <Button
                           size="sm"
                           variant="outline"
+                          onClick={() => {
+                            setSelectedOrder(order);
+                            setIsDetailsOpen(true);
+                          }}
                           className="border-2 border-white/40 text-white font-bold hover:bg-white/20 shadow-xl bg-slate-900/40"
                         >
                           <Eye className="w-5 h-5 mr-2" />
@@ -633,6 +641,122 @@ export default function MyOrdersPage() {
             </Card>
           </motion.div>
         )}
+
+        {/* Order Details Dialog */}
+        <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+          <DialogContent className="max-w-2xl bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 border-2 border-purple-400/50 text-white">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold text-white flex items-center gap-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-xl">
+                  {selectedOrder && getOrderTypeIcon(selectedOrder.type)}
+                </div>
+                تفاصيل الطلب
+              </DialogTitle>
+              <DialogDescription className="text-purple-200">
+                {selectedOrder && `${getOrderTypeName(selectedOrder.type)} - رقم الطلب: #${selectedOrder.id}`}
+              </DialogDescription>
+            </DialogHeader>
+
+            {selectedOrder && (
+              <div className="space-y-6 mt-4">
+                {/* Order Status */}
+                <div className="flex items-center justify-between p-4 bg-slate-800/60 rounded-lg border-2 border-white/20">
+                  <div>
+                    <p className="text-sm text-slate-300 mb-1">حالة الطلب</p>
+                    <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border-2 ${getStatusColor(selectedOrder.status)}`}>
+                      {getStatusIcon(selectedOrder.status)}
+                      <span className="font-bold">{getStatusText(selectedOrder.status)}</span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-slate-300 mb-1">تاريخ الطلب</p>
+                    <p className="text-white font-bold">{formatDate(selectedOrder.orderDate)}</p>
+                  </div>
+                </div>
+
+                {/* Guest Info */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-slate-800/60 rounded-lg border-2 border-white/20">
+                    <p className="text-sm text-slate-300 mb-1">اسم النزيل</p>
+                    <p className="text-white font-bold">{selectedOrder.guestName}</p>
+                  </div>
+                  <div className="p-4 bg-slate-800/60 rounded-lg border-2 border-white/20">
+                    <p className="text-sm text-slate-300 mb-1">رقم الغرفة</p>
+                    <p className="text-white font-bold">{selectedOrder.roomNumber}</p>
+                  </div>
+                </div>
+
+                {/* Order Items */}
+                <div>
+                  <h3 className="text-lg font-bold text-white mb-3">تفاصيل الطلب</h3>
+                  <div className="space-y-2">
+                    {selectedOrder.items.map((item, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-4 bg-slate-800/60 rounded-lg border-2 border-white/20">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center shadow-lg">
+                            <span className="text-white font-bold">{item.quantity}</span>
+                          </div>
+                          <span className="text-white font-bold">{item.name}</span>
+                        </div>
+                        {item.price > 0 && (
+                          <div className="text-right">
+                            <p className="text-sm text-slate-300">السعر</p>
+                            <p className="text-amber-200 font-bold">{item.price} ريال</p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Notes */}
+                {selectedOrder.notes && (
+                  <div className="p-4 bg-slate-800/60 rounded-lg border-2 border-purple-400/50">
+                    <p className="text-sm text-purple-200 font-bold mb-2">ملاحظات:</p>
+                    <p className="text-white font-semibold">{selectedOrder.notes}</p>
+                  </div>
+                )}
+
+                {/* Total */}
+                <div className="p-6 bg-gradient-to-r from-amber-700/40 to-purple-700/40 rounded-lg border-2 border-amber-400/50 shadow-xl">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <DollarSign className="w-10 h-10 text-amber-300" />
+                      <div>
+                        <p className="text-sm text-amber-100 font-bold">المجموع الكلي</p>
+                        <p className="text-4xl font-bold text-white drop-shadow-lg">
+                          {selectedOrder.totalAmount > 0 ? `${selectedOrder.totalAmount} ريال` : 'مجاني'}
+                        </p>
+                      </div>
+                    </div>
+                    {selectedOrder.status === 'delivered' && (
+                      <Button
+                        onClick={() => handleDownloadInvoice(selectedOrder)}
+                        className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold shadow-xl"
+                      >
+                        <Download className="w-5 h-5 mr-2" />
+                        تحميل الفاتورة
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Delivery Time */}
+                {selectedOrder.deliveryTime && (
+                  <div className="p-4 bg-emerald-700/40 rounded-lg border-2 border-emerald-400/60 shadow-xl">
+                    <div className="flex items-center gap-3">
+                      <CheckCircle2 className="w-6 h-6 text-emerald-200" />
+                      <div>
+                        <p className="text-sm text-emerald-200 font-bold">تم التسليم</p>
+                        <p className="text-white font-bold">{formatDate(selectedOrder.deliveryTime)}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
