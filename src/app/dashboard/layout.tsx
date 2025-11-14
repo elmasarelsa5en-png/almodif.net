@@ -9,7 +9,8 @@ import Header from '@/components/dashboard/header';
 import NewsTicker from '@/components/NewsTicker';
 import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
 import SmartAssistant from '@/components/SmartAssistant';
-import { cn } from '@/lib/utils';
+import { startGuestRequestNotifications } from '@/lib/guest-notifications';
+import { startFirebaseNotifications, stopFirebaseNotifications, requestNotificationPermission } from '@/lib/firebase-notifications';
 
 export default function DashboardLayout({
   children,
@@ -23,6 +24,44 @@ export default function DashboardLayout({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // مفتوحة افتراضياً
   const [tickerItems, setTickerItems] = useState<string[]>([]);
   const [isDesktop, setIsDesktop] = useState(false);
+
+  // Initialize Firebase Real-time Notifications
+  useEffect(() => {
+    if (user) {
+      console.log('🔔 Initializing Firebase notifications for user:', user.username);
+      
+      // طلب إذن الإشعارات من المتصفح
+      requestNotificationPermission().then((granted) => {
+        if (granted) {
+          console.log('✅ Notification permission granted');
+        } else {
+          console.warn('⚠️ Notification permission not granted');
+        }
+      });
+
+      // بدء مراقبة الطلبات الجديدة عبر Firebase
+      startFirebaseNotifications();
+      
+      // Cleanup on unmount
+      return () => {
+        console.log('🔕 Stopping Firebase notifications');
+        stopFirebaseNotifications();
+      };
+    }
+  }, [user]);
+
+  // Initialize old notification system (للتوافق مع الكود القديم)
+  useEffect(() => {
+    if (user) {
+      // Start listening for new guest requests (النظام القديم)
+      const unsubscribe = startGuestRequestNotifications();
+      
+      // Cleanup on unmount
+      return () => {
+        unsubscribe();
+      };
+    }
+  }, [user]);
 
   // تحديد نوع الجهاز
   useEffect(() => {
