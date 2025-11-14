@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
 import { collection, addDoc, query, where, getDocs, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { addSmartNotification } from '@/lib/notification-service';
 
 export default function ExtendStayPage() {
   const router = useRouter();
@@ -70,6 +71,20 @@ export default function ExtendStayPage() {
       };
 
       await addDoc(collection(db, 'guest-requests'), extensionRequest);
+
+      // ✅ إنشاء SmartNotification لتشغيل الصوت
+      addSmartNotification({
+        title: '📅 طلب تمديد إقامة جديد',
+        message: `الضيف ${guestData?.name} - غرفة ${guestData?.roomNumber}: يريد تمديد الإقامة لـ ${calculateAdditionalNights()} ليالٍ`,
+        time: new Date().toISOString(),
+        unread: true,
+        type: 'guest_request',
+        priority: 'medium',
+        category: 'guests',
+        actionRequired: true,
+        actionUrl: '/dashboard/requests'
+      });
+
       setSubmitted(true);
     } catch (error) {
       console.error('Error submitting extension:', error);

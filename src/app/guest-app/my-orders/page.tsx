@@ -4,8 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   ArrowRight, ShoppingBag, Clock, CheckCircle2, XCircle,
-  Utensils, Coffee, Shirt, Bell, Calendar, Phone, DollarSign,
-  Package, AlertCircle, Filter, Search, Download, Eye
+  Utensils, Coffee, Shirt, Bell, DollarSign,
+  Package, AlertCircle, Search, Download, Eye
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -46,7 +46,7 @@ export default function MyOrdersPage() {
     const guestData = JSON.parse(session);
     setGuestSession(guestData);
     loadOrders(guestData);
-  }, []);
+  }, [router]);
 
   const loadOrders = async (guestData: any) => {
     setLoading(true);
@@ -57,9 +57,47 @@ export default function MyOrdersPage() {
         return;
       }
 
-      // يمكن تحميل الطلبات من Firebase هنا
-      // للآن نستخدم بيانات تجريبية
-      loadSampleOrders();
+      // 🔥 تحميل الطلبات الفعلية من Firebase
+      const requestsRef = collection(db, 'requests');
+      const q = query(
+        requestsRef,
+        where('room', '==', guestData.roomNumber),
+        orderBy('createdAt', 'desc')
+      );
+      
+      const querySnapshot = await getDocs(q);
+      const loadedOrders: Order[] = [];
+      
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        
+        const order: Order = {
+          id: doc.id,
+          type: data.linkedSection === 'restaurant' ? 'restaurant' :
+                data.linkedSection === 'coffee-shop' ? 'coffee-shop' :
+                data.linkedSection === 'laundry' ? 'laundry' :
+                data.type === 'تنظيف' || data.type === 'صيانة' ? 'room-service' : 'other',
+          items: data.items || [{ name: data.description || data.notes || 'طلب', quantity: 1, price: data.totalAmount || 0 }],
+          totalAmount: data.totalAmount || 0,
+          status: data.status === 'completed' ? 'delivered' :
+                  data.status === 'accepted' ? 'preparing' :
+                  data.status === 'pending' ? 'pending' :
+                  data.status === 'ready' ? 'ready' : 'pending',
+          orderDate: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+          deliveryTime: data.completedAt?.toDate?.()?.toISOString(),
+          notes: data.notes || data.description,
+          roomNumber: data.room || guestData.roomNumber,
+          guestName: data.guest || guestData.name
+        };
+        
+        loadedOrders.push(order);
+      });
+      
+      if (loadedOrders.length > 0) {
+        setOrders(loadedOrders);
+      } else {
+        loadSampleOrders();
+      }
     } catch (error) {
       console.error('Error loading orders:', error);
       loadSampleOrders();
@@ -68,13 +106,10 @@ export default function MyOrdersPage() {
     }
   };
 
-  // دالة تحميل الفاتورة
   const handleDownloadInvoice = (order: Order) => {
-    // حساب الضريبة
-    const amountBeforeTax = order.totalAmount / 1.15; // إزالة الـ 15% VAT
+    const amountBeforeTax = order.totalAmount / 1.15;
     const vatData = calculateVAT(amountBeforeTax);
     
-    // تحديد نوع الطلب بالعربية
     const orderTypeMap = {
       'restaurant': 'مطعم',
       'coffee-shop': 'مقهى',
@@ -83,7 +118,6 @@ export default function MyOrdersPage() {
       'other': 'خدمات أخرى'
     };
     
-    // بناء وصف تفصيلي للطلبات
     const itemsDescription = order.items.map(item => 
       `${item.name} (${item.quantity}×)`
     ).join(', ');
@@ -101,7 +135,7 @@ export default function MyOrdersPage() {
       amountAfterTax: order.totalAmount,
       paymentType: 'مدفوع',
       bookingId: `ORDER-${order.id}`,
-      roomNights: 1, // للطلبات نستخدم 1 كعدد افتراضي
+      roomNights: 1,
       hotelName: 'المضيف سمارت لإدارة الفنادق والمنتجعات',
       hotelAddress: 'أبها، شارع العرين',
       hotelPhone: '+966559902557',
@@ -125,10 +159,10 @@ export default function MyOrdersPage() {
         ],
         totalAmount: 115,
         status: 'delivered',
-        orderDate: '2025-10-31T14:30:00',
-        deliveryTime: '2025-10-31T15:15:00',
+        orderDate: '2025-01-31T14:30:00',
+        deliveryTime: '2025-01-31T15:15:00',
         roomNumber: guestSession?.roomNumber || '101',
-        guestName: guestSession?.name || 'عقرم المضيف',
+        guestName: guestSession?.name || 'ضيف',
         notes: 'بدون خيار'
       },
       {
@@ -140,9 +174,9 @@ export default function MyOrdersPage() {
         ],
         totalAmount: 68,
         status: 'preparing',
-        orderDate: '2025-10-31T09:00:00',
+        orderDate: '2025-01-31T09:00:00',
         roomNumber: guestSession?.roomNumber || '101',
-        guestName: guestSession?.name || 'عقرم المضيف'
+        guestName: guestSession?.name || 'ضيف'
       },
       {
         id: '003',
@@ -153,137 +187,79 @@ export default function MyOrdersPage() {
         ],
         totalAmount: 85,
         status: 'ready',
-        orderDate: '2025-10-30T16:00:00',
+        orderDate: '2025-01-30T16:00:00',
         roomNumber: guestSession?.roomNumber || '101',
-        guestName: guestSession?.name || 'عقرم المضيف',
+        guestName: guestSession?.name || 'ضيف',
         notes: 'كي فقط'
-      },
-      {
-        id: '004',
-        type: 'room-service',
-        items: [
-          { name: 'منشفة إضافية', quantity: 2, price: 0 },
-          { name: 'شامبو', quantity: 1, price: 0 }
-        ],
-        totalAmount: 0,
-        status: 'delivered',
-        orderDate: '2025-10-30T11:00:00',
-        deliveryTime: '2025-10-30T11:20:00',
-        roomNumber: guestSession?.roomNumber || '101',
-        guestName: guestSession?.name || 'عقرم المضيف'
-      },
-      {
-        id: '005',
-        type: 'restaurant',
-        items: [
-          { name: 'ستيك لحم', quantity: 1, price: 95 },
-          { name: 'سلطة خضراء', quantity: 1, price: 25 }
-        ],
-        totalAmount: 120,
-        status: 'pending',
-        orderDate: '2025-10-31T18:00:00',
-        roomNumber: guestSession?.roomNumber || '101',
-        guestName: guestSession?.name || 'عقرم المضيف'
       }
     ];
     setOrders(sampleOrders);
-    setLoading(false);
   };
 
   const getOrderTypeIcon = (type: string) => {
-    switch (type) {
-      case 'restaurant':
-        return <Utensils className="w-5 h-5" />;
-      case 'coffee-shop':
-        return <Coffee className="w-5 h-5" />;
-      case 'laundry':
-        return <Shirt className="w-5 h-5" />;
-      case 'room-service':
-        return <Bell className="w-5 h-5" />;
-      default:
-        return <ShoppingBag className="w-5 h-5" />;
-    }
+    const icons = {
+      'restaurant': <Utensils className="w-5 h-5 text-white" />,
+      'coffee-shop': <Coffee className="w-5 h-5 text-white" />,
+      'laundry': <Shirt className="w-5 h-5 text-white" />,
+      'room-service': <Bell className="w-5 h-5 text-white" />,
+      'other': <ShoppingBag className="w-5 h-5 text-white" />
+    };
+    return icons[type as keyof typeof icons] || icons.other;
   };
 
   const getOrderTypeName = (type: string) => {
-    switch (type) {
-      case 'restaurant':
-        return 'المطعم';
-      case 'coffee-shop':
-        return 'الكوفي شوب';
-      case 'laundry':
-        return 'المغسلة';
-      case 'room-service':
-        return 'خدمة الغرف';
-      default:
-        return 'طلب';
-    }
+    const names = {
+      'restaurant': 'المطعم',
+      'coffee-shop': 'الكوفي شوب',
+      'laundry': 'المغسلة',
+      'room-service': 'خدمة الغرف',
+      'other': 'طلب'
+    };
+    return names[type as keyof typeof names] || names.other;
   };
 
   const getOrderTypeColor = (type: string) => {
-    switch (type) {
-      case 'restaurant':
-        return 'from-orange-500/20 to-amber-500/20 border-orange-400/30';
-      case 'coffee-shop':
-        return 'from-yellow-500/20 to-amber-500/20 border-yellow-400/30';
-      case 'laundry':
-        return 'from-cyan-500/20 to-blue-500/20 border-cyan-400/30';
-      case 'room-service':
-        return 'from-purple-500/20 to-pink-500/20 border-purple-400/30';
-      default:
-        return 'from-slate-500/20 to-slate-600/20 border-slate-400/30';
-    }
+    const colors = {
+      'restaurant': 'from-orange-600/40 to-amber-600/40 border-orange-400/50',
+      'coffee-shop': 'from-amber-600/40 to-yellow-600/40 border-amber-400/50',
+      'laundry': 'from-cyan-600/40 to-blue-600/40 border-cyan-400/50',
+      'room-service': 'from-purple-600/40 to-pink-600/40 border-purple-400/50',
+      'other': 'from-slate-600/40 to-slate-700/40 border-slate-400/50'
+    };
+    return colors[type as keyof typeof colors] || colors.other;
   };
 
   const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return <Clock className="w-5 h-5 text-yellow-400" />;
-      case 'preparing':
-        return <Package className="w-5 h-5 text-blue-400 animate-pulse" />;
-      case 'ready':
-        return <CheckCircle2 className="w-5 h-5 text-green-400" />;
-      case 'delivered':
-        return <CheckCircle2 className="w-5 h-5 text-emerald-400" />;
-      case 'cancelled':
-        return <XCircle className="w-5 h-5 text-red-400" />;
-      default:
-        return <AlertCircle className="w-5 h-5 text-slate-400" />;
-    }
+    const icons = {
+      'pending': <Clock className="w-5 h-5 text-amber-300" />,
+      'preparing': <Package className="w-5 h-5 text-blue-300 animate-pulse" />,
+      'ready': <CheckCircle2 className="w-5 h-5 text-green-300" />,
+      'delivered': <CheckCircle2 className="w-5 h-5 text-emerald-300" />,
+      'cancelled': <XCircle className="w-5 h-5 text-red-300" />
+    };
+    return icons[status as keyof typeof icons] || <AlertCircle className="w-5 h-5 text-slate-300" />;
   };
 
   const getStatusText = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return 'قيد الانتظار';
-      case 'preparing':
-        return 'قيد التحضير';
-      case 'ready':
-        return 'جاهز';
-      case 'delivered':
-        return 'تم التسليم';
-      case 'cancelled':
-        return 'ملغي';
-      default:
-        return 'غير محدد';
-    }
+    const texts = {
+      'pending': 'قيد الانتظار',
+      'preparing': 'قيد التحضير',
+      'ready': 'جاهز',
+      'delivered': 'تم التسليم',
+      'cancelled': 'ملغي'
+    };
+    return texts[status as keyof typeof texts] || 'غير محدد';
   };
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return 'bg-yellow-500/20 text-yellow-300 border-yellow-400/30';
-      case 'preparing':
-        return 'bg-blue-500/20 text-blue-300 border-blue-400/30';
-      case 'ready':
-        return 'bg-green-500/20 text-green-300 border-green-400/30';
-      case 'delivered':
-        return 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30';
-      case 'cancelled':
-        return 'bg-red-500/20 text-red-300 border-red-400/30';
-      default:
-        return 'bg-slate-500/20 text-slate-300 border-slate-400/30';
-    }
+    const colors = {
+      'pending': 'bg-amber-500/30 text-white border-amber-400/50',
+      'preparing': 'bg-blue-500/30 text-white border-blue-400/50',
+      'ready': 'bg-green-500/30 text-white border-green-400/50',
+      'delivered': 'bg-emerald-500/30 text-white border-emerald-400/50',
+      'cancelled': 'bg-red-500/30 text-white border-red-400/50'
+    };
+    return colors[status as keyof typeof colors] || 'bg-slate-500/30 text-white border-slate-400/50';
   };
 
   const formatDate = (dateString: string) => {
@@ -315,14 +291,14 @@ export default function MyOrdersPage() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" dir="rtl">
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950" dir="rtl">
       {/* Animated Background */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
-          className="absolute top-0 left-0 w-full h-full opacity-20"
+          className="absolute top-0 left-0 w-full h-full opacity-30"
           style={{
-            backgroundImage: `radial-gradient(circle at 20% 50%, rgba(217, 179, 69, 0.15) 0%, transparent 50%),
-                             radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 50%)`,
+            backgroundImage: `radial-gradient(circle at 20% 50%, rgba(168, 85, 247, 0.25) 0%, transparent 50%),
+                             radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.25) 0%, transparent 50%)`,
             backgroundSize: '400% 400%',
           }}
           animate={{
@@ -340,7 +316,7 @@ export default function MyOrdersPage() {
       <motion.header
         initial={{ opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative z-10 bg-gradient-to-r from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl border-b border-purple-500/30 shadow-xl"
+        className="relative z-10 bg-gradient-to-r from-purple-900/95 via-purple-800/95 to-pink-900/95 backdrop-blur-xl border-b border-purple-400/50 shadow-2xl"
       >
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -349,28 +325,28 @@ export default function MyOrdersPage() {
                 onClick={() => router.back()}
                 variant="ghost"
                 size="sm"
-                className="text-purple-200 hover:text-purple-100 hover:bg-purple-500/20"
+                className="text-white hover:text-white hover:bg-white/20"
               >
                 <ArrowRight className="w-5 h-5" />
               </Button>
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-200 to-pink-200">
+                <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-lg">
                   طلباتي
                 </h1>
-                <p className="text-sm text-slate-400 mt-1">جميع طلباتك في مكان واحد</p>
+                <p className="text-sm text-purple-200 mt-1 font-medium">جميع طلباتك في مكان واحد</p>
               </div>
             </div>
             
             {guestSession && (
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center">
+                <div className="w-10 h-10 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center shadow-lg ring-2 ring-white/30">
                   <span className="text-white font-bold text-sm">
                     {guestSession.name?.charAt(0)}
                   </span>
                 </div>
                 <div className="hidden md:block">
-                  <p className="text-sm text-purple-100 font-medium">{guestSession.name}</p>
-                  <p className="text-xs text-slate-400">غرفة {guestSession.roomNumber}</p>
+                  <p className="text-sm text-white font-bold">{guestSession.name}</p>
+                  <p className="text-xs text-purple-200">غرفة {guestSession.roomNumber}</p>
                 </div>
               </div>
             )}
@@ -382,73 +358,57 @@ export default function MyOrdersPage() {
       <div className="relative z-10 container mx-auto px-4 py-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <Card className="bg-gradient-to-br from-purple-500/20 to-purple-600/20 border-purple-400/30">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+            <Card className="bg-gradient-to-br from-purple-600/40 to-purple-700/40 border-purple-400/50 shadow-xl">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-slate-400">إجمالي الطلبات</p>
-                    <p className="text-2xl font-bold text-white">{stats.total}</p>
+                    <p className="text-xs text-purple-200 font-semibold">إجمالي الطلبات</p>
+                    <p className="text-3xl font-bold text-white drop-shadow-lg">{stats.total}</p>
                   </div>
-                  <ShoppingBag className="w-8 h-8 text-purple-400" />
+                  <ShoppingBag className="w-10 h-10 text-purple-300" />
                 </div>
               </CardContent>
             </Card>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-          >
-            <Card className="bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border-yellow-400/30">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+            <Card className="bg-gradient-to-br from-amber-600/40 to-orange-600/40 border-amber-400/50 shadow-xl">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-slate-400">قيد الانتظار</p>
-                    <p className="text-2xl font-bold text-white">{stats.pending}</p>
+                    <p className="text-xs text-amber-200 font-semibold">قيد الانتظار</p>
+                    <p className="text-3xl font-bold text-white drop-shadow-lg">{stats.pending}</p>
                   </div>
-                  <Clock className="w-8 h-8 text-yellow-400" />
+                  <Clock className="w-10 h-10 text-amber-300" />
                 </div>
               </CardContent>
             </Card>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <Card className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border-blue-400/30">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+            <Card className="bg-gradient-to-br from-blue-600/40 to-cyan-600/40 border-blue-400/50 shadow-xl">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-slate-400">قيد التحضير</p>
-                    <p className="text-2xl font-bold text-white">{stats.preparing}</p>
+                    <p className="text-xs text-blue-200 font-semibold">قيد التحضير</p>
+                    <p className="text-3xl font-bold text-white drop-shadow-lg">{stats.preparing}</p>
                   </div>
-                  <Package className="w-8 h-8 text-blue-400" />
+                  <Package className="w-10 h-10 text-blue-300 animate-pulse" />
                 </div>
               </CardContent>
             </Card>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
-          >
-            <Card className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 border-green-400/30">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+            <Card className="bg-gradient-to-br from-emerald-600/40 to-green-600/40 border-emerald-400/50 shadow-xl">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-slate-400">تم التسليم</p>
-                    <p className="text-2xl font-bold text-white">{stats.delivered}</p>
+                    <p className="text-xs text-emerald-200 font-semibold">تم التسليم</p>
+                    <p className="text-3xl font-bold text-white drop-shadow-lg">{stats.delivered}</p>
                   </div>
-                  <CheckCircle2 className="w-8 h-8 text-green-400" />
+                  <CheckCircle2 className="w-10 h-10 text-emerald-300" />
                 </div>
               </CardContent>
             </Card>
@@ -457,7 +417,6 @@ export default function MyOrdersPage() {
 
         {/* Filters and Search */}
         <div className="flex flex-col md:flex-row gap-4 mb-8">
-          {/* Filter Tabs */}
           <div className="flex gap-2 flex-wrap flex-1">
             {[
               { key: 'all', label: 'الكل', count: stats.total },
@@ -474,10 +433,10 @@ export default function MyOrdersPage() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setFilter(tab.key as any)}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+                className={`px-4 py-2 rounded-lg font-bold transition-all duration-300 shadow-lg ${
                   filter === tab.key
-                    ? 'bg-purple-500/30 text-purple-100 border-2 border-purple-400/50'
-                    : 'bg-slate-800/50 text-slate-400 border border-slate-700/50 hover:bg-slate-800/80'
+                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white border-2 border-purple-300/50 scale-105'
+                    : 'bg-slate-800/70 text-slate-300 border border-slate-600/50 hover:bg-slate-700/80 hover:text-white'
                 }`}
               >
                 {tab.label} ({tab.count})
@@ -485,7 +444,6 @@ export default function MyOrdersPage() {
             ))}
           </div>
 
-          {/* Search */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -497,7 +455,7 @@ export default function MyOrdersPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="ابحث عن طلب..."
-              className="pr-10 bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 focus:border-purple-400"
+              className="pr-10 bg-slate-800/70 border-slate-600 text-white placeholder:text-slate-400 focus:border-purple-400 focus:ring-2 focus:ring-purple-400/50 font-medium"
             />
           </motion.div>
         </div>
@@ -522,7 +480,7 @@ export default function MyOrdersPage() {
             <p className="text-slate-500 mb-6">ابدأ بطلب شيء من خدماتنا</p>
             <Button
               onClick={() => router.push('/guest-app')}
-              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold"
             >
               اطلب الآن
             </Button>
@@ -536,7 +494,7 @@ export default function MyOrdersPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
               >
-                <Card className={`relative bg-gradient-to-br ${getOrderTypeColor(order.type)} backdrop-blur-xl border overflow-hidden group hover:shadow-2xl transition-all duration-300`}>
+                <Card className={`relative bg-gradient-to-br ${getOrderTypeColor(order.type)} backdrop-blur-xl border-2 overflow-hidden group hover:shadow-2xl hover:scale-[1.02] transition-all duration-300`}>
                   <motion.div
                     className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"
                     initial={{ x: '-100%' }}
@@ -545,44 +503,41 @@ export default function MyOrdersPage() {
                   />
                   
                   <CardContent className="p-6 relative z-10">
-                    {/* Order Header */}
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-start gap-4">
                         <motion.div
-                          className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center shadow-lg"
-                          whileHover={{ rotate: 360, scale: 1.1 }}
+                          className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-xl ring-2 ring-white/20"
+                          whileHover={{ rotate: 360, scale: 1.15 }}
                           transition={{ duration: 0.6 }}
                         >
                           {getOrderTypeIcon(order.type)}
                         </motion.div>
                         <div>
-                          <h3 className="text-lg font-bold text-white mb-1">
+                          <h3 className="text-xl font-bold text-white mb-1 drop-shadow-lg">
                             {getOrderTypeName(order.type)}
                           </h3>
-                          <p className="text-sm text-slate-400">رقم الطلب: #{order.id}</p>
-                          <p className="text-xs text-slate-500 mt-1">{formatDate(order.orderDate)}</p>
+                          <p className="text-sm text-purple-200 font-semibold">رقم الطلب: #{order.id}</p>
+                          <p className="text-xs text-slate-300 mt-1">{formatDate(order.orderDate)}</p>
                         </div>
                       </div>
 
-                      {/* Status Badge */}
-                      <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border ${getStatusColor(order.status)}`}>
+                      <div className={`flex items-center gap-2 px-4 py-2 rounded-full border-2 shadow-lg ${getStatusColor(order.status)}`}>
                         {getStatusIcon(order.status)}
-                        <span className="text-sm font-medium">{getStatusText(order.status)}</span>
+                        <span className="text-sm font-bold">{getStatusText(order.status)}</span>
                       </div>
                     </div>
 
-                    {/* Order Items */}
                     <div className="space-y-2 mb-4">
                       {order.items.map((item, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                        <div key={idx} className="flex items-center justify-between p-3 bg-white/10 rounded-lg border border-white/10">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                              <span className="text-sm font-bold text-purple-300">{item.quantity}</span>
+                            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
+                              <span className="text-sm font-bold text-white">{item.quantity}</span>
                             </div>
-                            <span className="text-sm text-slate-300">{item.name}</span>
+                            <span className="text-sm font-semibold text-white">{item.name}</span>
                           </div>
                           {item.price > 0 && (
-                            <span className="text-sm font-medium text-amber-300">
+                            <span className="text-sm font-bold text-amber-300">
                               {item.price} ريال
                             </span>
                           )}
@@ -590,21 +545,19 @@ export default function MyOrdersPage() {
                       ))}
                     </div>
 
-                    {/* Notes */}
                     {order.notes && (
-                      <div className="p-3 bg-white/5 rounded-lg border border-slate-700/50 mb-4">
-                        <p className="text-xs text-slate-400 mb-1">ملاحظات:</p>
-                        <p className="text-sm text-slate-300">{order.notes}</p>
+                      <div className="p-3 bg-white/10 rounded-lg border border-purple-400/30 mb-4">
+                        <p className="text-xs text-purple-300 font-bold mb-1">ملاحظات:</p>
+                        <p className="text-sm text-white font-medium">{order.notes}</p>
                       </div>
                     )}
 
-                    {/* Total and Actions */}
                     <div className="flex items-center justify-between pt-4 border-t border-slate-700/50">
-                      <div className="flex items-center gap-2">
-                        <DollarSign className="w-5 h-5 text-amber-400" />
+                      <div className="flex items-center gap-3">
+                        <DollarSign className="w-6 h-6 text-amber-400" />
                         <div>
-                          <p className="text-xs text-slate-400">المجموع</p>
-                          <p className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-100">
+                          <p className="text-xs text-amber-200 font-bold">المجموع</p>
+                          <p className="text-2xl font-bold text-white drop-shadow-lg">
                             {order.totalAmount > 0 ? `${order.totalAmount} ريال` : 'مجاني'}
                           </p>
                         </div>
@@ -614,7 +567,7 @@ export default function MyOrdersPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="border-purple-400/30 text-purple-300 hover:bg-purple-500/20"
+                          className="border-2 border-purple-400/50 text-white font-bold hover:bg-purple-500/30 shadow-lg"
                         >
                           <Eye className="w-4 h-4 mr-2" />
                           التفاصيل
@@ -623,7 +576,7 @@ export default function MyOrdersPage() {
                           <Button
                             size="sm"
                             onClick={() => handleDownloadInvoice(order)}
-                            className="bg-gradient-to-r from-amber-500 to-purple-500 hover:from-amber-600 hover:to-purple-600 text-white"
+                            className="bg-gradient-to-r from-amber-500 to-purple-600 hover:from-amber-600 hover:to-purple-700 text-white font-bold shadow-xl"
                           >
                             <Download className="w-4 h-4 mr-2" />
                             الفاتورة
@@ -632,11 +585,10 @@ export default function MyOrdersPage() {
                       </div>
                     </div>
 
-                    {/* Delivery Time */}
                     {order.deliveryTime && (
-                      <div className="mt-4 p-3 bg-green-500/10 rounded-lg border border-green-400/30">
-                        <div className="flex items-center gap-2 text-sm text-green-300">
-                          <CheckCircle2 className="w-4 h-4" />
+                      <div className="mt-4 p-3 bg-emerald-500/20 rounded-lg border-2 border-emerald-400/50 shadow-lg">
+                        <div className="flex items-center gap-2 text-sm text-white font-bold">
+                          <CheckCircle2 className="w-5 h-5 text-emerald-300" />
                           <span>تم التسليم في: {formatDate(order.deliveryTime)}</span>
                         </div>
                       </div>
@@ -656,22 +608,22 @@ export default function MyOrdersPage() {
             transition={{ delay: 0.5 }}
             className="mt-8"
           >
-            <Card className="bg-gradient-to-r from-amber-500/20 via-purple-500/20 to-pink-500/20 border-amber-400/30">
+            <Card className="bg-gradient-to-r from-amber-600/40 via-purple-600/40 to-pink-600/40 border-2 border-amber-400/50 shadow-2xl">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-gradient-to-br from-amber-400 to-purple-500 rounded-2xl flex items-center justify-center shadow-xl">
-                      <DollarSign className="w-8 h-8 text-white" />
+                    <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-2xl ring-2 ring-white/30">
+                      <DollarSign className="w-10 h-10 text-white" />
                     </div>
                     <div>
-                      <p className="text-sm text-slate-400">إجمالي المصروفات</p>
-                      <p className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-purple-200">
+                      <p className="text-sm text-amber-200 font-bold">إجمالي المصروفات</p>
+                      <p className="text-4xl font-bold text-white drop-shadow-lg">
                         {stats.totalSpent.toLocaleString()} ريال
                       </p>
                     </div>
                   </div>
                   <Button
-                    className="bg-white/10 hover:bg-white/20 text-white border border-white/20"
+                    className="bg-white/20 hover:bg-white/30 text-white border-2 border-white/30 font-bold shadow-xl"
                   >
                     <Download className="w-4 h-4 mr-2" />
                     تحميل كشف حساب

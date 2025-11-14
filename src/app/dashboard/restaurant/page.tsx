@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation';
 import { RatingDialog } from '@/components/RatingDialog';
 import { getMenuItemsByCategory, subscribeToMenuItems, type MenuItem } from '@/lib/firebase-data';
 import { playNotificationSound } from '@/lib/notification-sounds';
+import { addSmartNotification } from '@/lib/notification-service';
 
 // Professional TypeScript interfaces
 interface RestaurantItem {
@@ -262,6 +263,19 @@ export default function RestaurantPage() {
         notes: `طلب من المطعم - تم إدخاله بواسطة الموظف`,
         createdAt: new Date().toISOString()
       } as any);
+
+      // ✅ إنشاء SmartNotification لتشغيل الصوت في جميع الأجهزة
+      addSmartNotification({
+        title: '🍽️ طلب جديد من المطعم',
+        message: `غرفة ${roomNumber}: ${itemsDescription.split('\n')[0]} - الإجمالي: ${cartTotal} ر.س`,
+        time: new Date().toISOString(),
+        unread: true,
+        type: 'guest_request',
+        priority: 'high',
+        category: 'guests',
+        actionRequired: true,
+        actionUrl: '/dashboard/requests'
+      });
 
       alert('✅ تم إرسال الطلب بنجاح!');
       playNotificationSound('new-request');

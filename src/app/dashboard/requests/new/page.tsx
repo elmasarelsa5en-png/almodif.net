@@ -19,6 +19,7 @@ import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { getRequestTypes, type RequestType } from '@/lib/requests-management';
 import { playNotificationSound } from '@/lib/notification-sounds';
+import { addSmartNotification } from '@/lib/notification-service';
 import { logAction } from '@/lib/audit-log';
 import { addRequest, getEmployees, sendNotificationToEmployee } from '@/lib/firebase-data';
 import { useLanguage } from '@/contexts/language-context';
@@ -398,6 +399,23 @@ export default function NewRequestPage() {
       if (!docId) {
         throw new Error('فشل حفظ الطلب في Firebase');
       }
+
+      // ✅ إنشاء SmartNotification لتشغيل الصوت في جميع الأجهزة
+      addSmartNotification({
+        title: '📋 طلب جديد',
+        message: `غرفة ${formData.room}: ${formData.type} - ${formData.guest}`,
+        time: new Date().toISOString(),
+        unread: true,
+        type: 'guest_request',
+        priority: formData.priority === 'high' ? 'high' : 'medium',
+        category: 'guests',
+        requestId: docId,
+        actionRequired: true,
+        actionUrl: `/dashboard/requests`
+      });
+
+      // تشغيل الصوت محلياً أيضاً
+      playNotificationSound('new-request');
 
       // إضافة المبلغ لدين الشقة إذا اختار المستخدم ذلك
       if (formData.paymentMethod === 'debt' && formData.totalAmount > 0 && formData.room) {

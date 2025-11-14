@@ -13,6 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { db } from '@/lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
+import { addSmartNotification } from '@/lib/notification-service';
 
 interface GuestSession {
   id?: string;
@@ -70,6 +71,19 @@ export default function GuestReviewPage() {
         comment,
         createdAt: new Date().toISOString(),
         status: 'pending', // pending, reviewed, responded
+      });
+
+      // ✅ إنشاء SmartNotification لتشغيل الصوت
+      addSmartNotification({
+        title: '⭐ تقييم جديد من نزيل',
+        message: `الضيف ${guestSession?.name} (غرفة ${guestSession?.roomNumber}): تقييم ${rating} نجوم - ${comment.substring(0, 50)}...`,
+        time: new Date().toISOString(),
+        unread: true,
+        type: 'guest_request',
+        priority: 'medium',
+        category: 'guests',
+        actionRequired: false,
+        actionUrl: '/dashboard/guest-reviews'
       });
 
       setSubmitted(true);

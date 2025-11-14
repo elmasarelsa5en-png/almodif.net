@@ -55,3 +55,4 @@ build/
 # Package manager lock files (uncomment the one you don't use)
 # package-lock.json
 # yarn.lock
+.vercel

@@ -35,6 +35,7 @@ import { Room } from '@/lib/rooms-data';
 import AddGuestDialog from '@/components/AddGuestDialog';
 import ReceiptDialog from '@/components/ReceiptDialog';
 import { db } from '@/lib/firebase';
+import { BOOKING_SOURCES, VISIT_TYPES, RENTAL_TYPES } from '@/lib/constants';
 import { collection, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
 import { createReceipt } from '@/lib/receipts-system';
 
@@ -47,27 +48,6 @@ interface BookingDialogProps {
   onRoomChange?: (oldRoomId: string, newRoomNumber: string) => Promise<boolean>;
   allRooms?: Room[]; // قائمة كل الغرف للتحقق من التوفر
 }
-
-// مصادر الحجز
-const BOOKING_SOURCES = [
-  { value: 'reception', label: 'استقبال', icon: '🏨' },
-  { value: 'booking', label: 'بوكينج دوت كوم', icon: '🌐' },
-  { value: 'almosafer', label: 'المسافر', icon: '✈️' },
-  { value: 'airport', label: 'المطار', icon: '🛫' },
-  { value: 'agoda', label: 'أجودا', icon: '🏷️' },
-  { value: 'expedia', label: 'إكسبيديا', icon: '🌍' },
-  { value: 'airbnb', label: 'إير بي إن بي', icon: '🏠' },
-  { value: 'trivago', label: 'تريفاجو', icon: '🔍' },
-  { value: 'direct', label: 'حجز مباشر', icon: '📞' },
-  { value: 'company', label: 'شركة', icon: '🏢' },
-  { value: 'other', label: 'أخرى', icon: '📋' }
-];
-
-// أنواع الزيارة
-const VISIT_TYPES = [
-  { value: 'tourism', label: 'سياحة', icon: '🏖️' },
-  { value: 'business', label: 'عمل', icon: '💼' }
-];
 export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusChange, onRoomChange, allRooms }: BookingDialogProps) {
   // حالة زر تغيير الحالة
   const [showStatusChange, setShowStatusChange] = useState(false);
@@ -1099,9 +1079,12 @@ export default function BookingDialog({ room, isOpen, onClose, onSave, onStatusC
                     onChange={(e) => setRentalType(e.target.value as 'daily' | 'monthly')}
                     className="w-full h-9 px-2 text-sm border-2 border-gray-300 rounded-lg bg-white text-gray-900 font-medium hover:border-blue-400 focus:border-blue-500 transition-all"
                   >
-                    <option value="">اختر النوع</option>
-                    <option value="daily">📅 يومي</option>
-                    <option value="monthly">📆 شهري</option>
+                    <option value="">اختر نوع الإيجار</option>
+                    {RENTAL_TYPES.map(type => (
+                      <option key={type.value} value={type.value}>
+                        {type.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
 

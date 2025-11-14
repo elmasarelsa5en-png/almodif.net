@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '@/contexts/auth-context';
 import { useLanguage } from '@/contexts/language-context';
@@ -21,10 +21,9 @@ import {
   CreditCard,
   Search,
   Banknote,
-  Banknote, // <-- This was already here, just for context
   Smartphone,
   UserPlus,
-  Image,
+  Image as ImageIcon,
   X,
   FileText,
   LayoutGrid,
@@ -50,7 +49,6 @@ import {
   RoomStatus,
   PaymentMethod,
   ROOM_STATUS_CONFIG,
-  ROOM_TYPE_CONFIG,
   ROOM_TYPE_CONFIG, // <-- This was already here, just for context
   updateRoomStatus,
   processPayment, 
@@ -67,7 +65,6 @@ import {
   subscribeToRooms
 } from '@/lib/firebase-sync';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { collection, addDoc, serverTimestamp, getDocs } from 'firebase/firestore'; // <-- Import getDocs
 import AddGuestDialog from '@/components/AddGuestDialog';
 import AddRoomsFromImageDialog from '@/components/AddRoomsFromImageDialog';
@@ -888,7 +885,7 @@ export default function RoomsPage() {
     }
   }, [contextMenu]);
   
-  const loadRoomsData = async () => {
+  const loadRoomsData = useCallback(async () => {
     try {
       const roomsData = await getRoomsFromFirebase();
       setRooms(roomsData);
@@ -896,35 +893,10 @@ export default function RoomsPage() {
     } catch (error) {
       console.error('خطأ في تحميل الغرف:', error);
     }
-  };
+  }, []);
 
   // جلب أسعار الغرف من API (معطل مؤقتاً - يمكن تفعيله عند توفر API)
   const fetchRoomPrices = async () => {
-    try {
-      // تم تعطيل استدعاء API لتجنب خطأ 404
-      // يمكن جلب الأسعار من localStorage بدلاً من API
-      const roomTypesData = getRoomTypesFromStorage();
-      if (roomTypesData && roomTypesData.length > 0) {
-        const prices: Record<string, { pricePerDay: number; pricePerMonth: number }> = {};
-        roomTypesData.forEach((roomType: any) => {
-          if (roomType.name) {
-            prices[roomType.name] = {
-              pricePerDay: roomType.pricePerDay || 0,
-              pricePerMonth: roomType.pricePerMonth || 0
-            };
-          }
-        });
-        setRoomPrices(prices);
-        console.log('تم تحميل أسعار الغرف من localStorage:', prices);
-      }
-      
-      /* API معطل مؤقتاً
-      const response = await fetch('/api/rooms-catalog', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        cache: 'no-store'
      try {
       console.log('🔄 [Rooms Page] Fetching room prices from Firebase...');
       const roomTypesSnapshot = await getDocs(collection(db, 'room-types'));
@@ -942,34 +914,11 @@ export default function RoomsPage() {
           types.push({ id: doc.id, ...data });
         }
       });
-      
-      if (!response.ok) {
-        console.error('API response not ok:', response.status);
-        return;
-      }
-      
-      const data = await response.json();
-      if (data.success && data.data) {
-        const prices: Record<string, { pricePerDay: number; pricePerMonth: number }> = {};
-        data.data.forEach((roomType: any) => {
-          if (roomType.name) {
-            prices[roomType.name] = {
-              pricePerDay: roomType.pricePerDay || 0,
-              pricePerMonth: roomType.pricePerMonth || 0
-            };
-          }
-        });
-        setRoomPrices(prices);
-        console.log('تم تحميل أسعار الغرف بنجاح:', prices);
-      }
-      */
 
       setRoomPrices(prices);
       setRoomTypes(types); // تحديث قائمة أنواع الغرف أيضاً
       console.log('✅ [Rooms Page] Room prices loaded successfully from Firebase:', prices);
     } catch (error) {
-      console.error('خطأ في جلب أسعار الغرف:', error);
-      // استمر في العمل حتى لو فشل تحميل الأسعار
       console.error('❌ [Rooms Page] Error fetching room prices from Firebase:', error);
     }
   };
@@ -1224,7 +1173,7 @@ export default function RoomsPage() {
   };
 
   // فتح تفاصيل الوحدة - دائماً نافذة الحجز
-  const openRoomDetails = (room: Room) => {
+  const openRoomDetails = useCallback((room: Room) => {
     setSelectedRoom(room);
     setNewStatus(room.status);
     setGuestName(room.guestName || '');
@@ -1232,10 +1181,10 @@ export default function RoomsPage() {
     
     // فتح نافذة الحجز مباشرة (سواء فارغة أو مشغولة)
     setIsBookingDialogOpen(true);
-  };
+  }, []);
 
   // معالج إضافة نزيل جديد
-  const handleAddGuest = async (guestData: {
+  const handleAddGuest = useCallback(async (guestData: {
     fullName: string;
     nationality: string;
     idType: string;
@@ -1331,10 +1280,10 @@ export default function RoomsPage() {
       console.error('❌ خطأ في تسجيل دخول النزيل:', error);
       alert('حدث خطأ أثناء تسجيل دخول النزيل');
     }
-  };
+  }, [rooms, user]);
 
   // معالج اكتمال الحجز
-  const handleBookingComplete = async (bookingData: any) => {
+  const handleBookingComplete = useCallback(async (bookingData: any) => {
     if (!selectedRoom || !user) return;
     
     try {
@@ -1425,10 +1374,10 @@ export default function RoomsPage() {
       console.error('خطأ في حفظ الحجز:', error);
       alert('حدث خطأ أثناء حفظ الحجز');
     }
-  };
+  }, [selectedRoom, user, rooms]);
 
   // معالج إضافة غرف من صورة
-  const handleAddRoomsFromImage = async (newRooms: Partial<Room>[]) => {
+  const handleAddRoomsFromImage = useCallback(async (newRooms: Partial<Room>[]) => {
     if (!user) return;
     
     // التحقق من عدم وجود غرف مكررة
@@ -1481,7 +1430,7 @@ export default function RoomsPage() {
     }
     
     setIsAddRoomsFromImageOpen(false);
-  };
+  }, [rooms, user]);
 
   // التحقق من الصلاحيات
   const canChangeStatus = (fromStatus: RoomStatus, toStatus: RoomStatus): boolean => {
@@ -1515,7 +1464,7 @@ export default function RoomsPage() {
   };
 
   // ✨ معالج التمديد
-  const handleExtendStay = async () => {
+  const handleExtendStay = useCallback(async () => {
     if (!contextMenu || !user) return;
     
     const room = contextMenu.room;
@@ -1574,10 +1523,10 @@ export default function RoomsPage() {
       console.error('خطأ في تمديد الإقامة:', error);
       alert('حدث خطأ في تمديد الإقامة');
     }
-  };
+  }, [contextMenu, user, extendDays, extendNotes]);
 
   // ✨ جلب سجل الخدمات للغرفة
-  const getRoomServicesHistory = async (room: Room) => {
+  const getRoomServicesHistory = useCallback(async (room: Room) => {
     try {
       const { db } = await import('@/lib/firebase');
       const { collection, query, where, getDocs } = await import('firebase/firestore');
@@ -1612,7 +1561,7 @@ export default function RoomsPage() {
       console.error('خطأ في جلب سجل الخدمات:', error);
       return { services: [], totalAmount: 0 };
     }
-  };
+  }, []);
 
   // مكون بطاقة الوحدة
   const RoomCard = ({ room }: { room: Room }) => {
