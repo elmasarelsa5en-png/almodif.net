@@ -220,11 +220,11 @@ export default function MyOrdersPage() {
 
   const getOrderTypeColor = (type: string) => {
     const colors = {
-      'restaurant': 'from-orange-600/40 to-amber-600/40 border-orange-400/50',
-      'coffee-shop': 'from-amber-600/40 to-yellow-600/40 border-amber-400/50',
-      'laundry': 'from-cyan-600/40 to-blue-600/40 border-cyan-400/50',
-      'room-service': 'from-purple-600/40 to-pink-600/40 border-purple-400/50',
-      'other': 'from-slate-600/40 to-slate-700/40 border-slate-400/50'
+      'restaurant': 'from-orange-700/60 to-red-800/60 border-orange-500/70',
+      'coffee-shop': 'from-amber-700/60 to-orange-800/60 border-amber-500/70',
+      'laundry': 'from-cyan-700/60 to-blue-800/60 border-cyan-500/70',
+      'room-service': 'from-purple-700/60 to-pink-800/60 border-purple-500/70',
+      'other': 'from-slate-700/60 to-slate-800/60 border-slate-500/70'
     };
     return colors[type as keyof typeof colors] || colors.other;
   };
@@ -529,15 +529,15 @@ export default function MyOrdersPage() {
 
                     <div className="space-y-2 mb-4">
                       {order.items.map((item, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-3 bg-white/10 rounded-lg border border-white/10">
+                        <div key={idx} className="flex items-center justify-between p-4 bg-slate-900/60 rounded-lg border-2 border-white/20 shadow-lg">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
-                              <span className="text-sm font-bold text-white">{item.quantity}</span>
+                            <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center shadow-xl ring-2 ring-white/30">
+                              <span className="text-base font-bold text-white drop-shadow-lg">{item.quantity}</span>
                             </div>
-                            <span className="text-sm font-semibold text-white">{item.name}</span>
+                            <span className="text-base font-bold text-white drop-shadow-md">{item.name}</span>
                           </div>
                           {item.price > 0 && (
-                            <span className="text-sm font-bold text-amber-300">
+                            <span className="text-base font-bold text-amber-200 drop-shadow-md">
                               {item.price} ريال
                             </span>
                           )}
@@ -546,39 +546,39 @@ export default function MyOrdersPage() {
                     </div>
 
                     {order.notes && (
-                      <div className="p-3 bg-white/10 rounded-lg border border-purple-400/30 mb-4">
-                        <p className="text-xs text-purple-300 font-bold mb-1">ملاحظات:</p>
-                        <p className="text-sm text-white font-medium">{order.notes}</p>
+                      <div className="p-4 bg-slate-900/60 rounded-lg border-2 border-purple-400/50 mb-4 shadow-lg">
+                        <p className="text-sm text-purple-200 font-bold mb-2">ملاحظات:</p>
+                        <p className="text-base text-white font-semibold">{order.notes}</p>
                       </div>
                     )}
 
-                    <div className="flex items-center justify-between pt-4 border-t border-slate-700/50">
+                    <div className="flex items-center justify-between pt-4 border-t-2 border-white/20">
                       <div className="flex items-center gap-3">
-                        <DollarSign className="w-6 h-6 text-amber-400" />
+                        <DollarSign className="w-8 h-8 text-amber-300" />
                         <div>
-                          <p className="text-xs text-amber-200 font-bold">المجموع</p>
-                          <p className="text-2xl font-bold text-white drop-shadow-lg">
+                          <p className="text-sm text-amber-100 font-bold">المجموع</p>
+                          <p className="text-3xl font-bold text-white drop-shadow-lg">
                             {order.totalAmount > 0 ? `${order.totalAmount} ريال` : 'مجاني'}
                           </p>
                         </div>
                       </div>
 
-                      <div className="flex gap-2">
+                      <div className="flex gap-3">
                         <Button
                           size="sm"
                           variant="outline"
-                          className="border-2 border-purple-400/50 text-white font-bold hover:bg-purple-500/30 shadow-lg"
+                          className="border-2 border-white/40 text-white font-bold hover:bg-white/20 shadow-xl bg-slate-900/40"
                         >
-                          <Eye className="w-4 h-4 mr-2" />
+                          <Eye className="w-5 h-5 mr-2" />
                           التفاصيل
                         </Button>
                         {order.status === 'delivered' && (
                           <Button
                             size="sm"
                             onClick={() => handleDownloadInvoice(order)}
-                            className="bg-gradient-to-r from-amber-500 to-purple-600 hover:from-amber-600 hover:to-purple-700 text-white font-bold shadow-xl"
+                            className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold shadow-xl"
                           >
-                            <Download className="w-4 h-4 mr-2" />
+                            <Download className="w-5 h-5 mr-2" />
                             الفاتورة
                           </Button>
                         )}
@@ -586,9 +586,9 @@ export default function MyOrdersPage() {
                     </div>
 
                     {order.deliveryTime && (
-                      <div className="mt-4 p-3 bg-emerald-500/20 rounded-lg border-2 border-emerald-400/50 shadow-lg">
-                        <div className="flex items-center gap-2 text-sm text-white font-bold">
-                          <CheckCircle2 className="w-5 h-5 text-emerald-300" />
+                      <div className="mt-4 p-4 bg-emerald-700/40 rounded-lg border-2 border-emerald-400/60 shadow-xl">
+                        <div className="flex items-center gap-3 text-base text-white font-bold drop-shadow-md">
+                          <CheckCircle2 className="w-6 h-6 text-emerald-200" />
                           <span>تم التسليم في: {formatDate(order.deliveryTime)}</span>
                         </div>
                       </div>
