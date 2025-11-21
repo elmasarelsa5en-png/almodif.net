@@ -69,16 +69,6 @@ export default function NewRequestPage() {
   const [selectedType, setSelectedType] = useState<RequestType | null>(null);
   const [selectedSubItems, setSelectedSubItems] = useState<string[]>([]);
   const [user, setUser] = useState<any>(null);
-  
-  // حالات جديدة لأقسام المنيو
-  const [menuCategories] = useState([
-    { value: 'coffee', label: t('coffeeShop'), icon: '☕' },
-    { value: 'restaurant', label: t('restaurant'), icon: '🍽️' },
-    { value: 'laundry', label: t('laundry'), icon: '👔' },
-    { value: 'room-services', label: t('roomServices'), icon: '🛏️' },
-    { value: 'reception', label: t('receptionServices'), icon: '🔔' },
-  ]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [menuItems, setMenuItems] = useState<any[]>([]);
   
   const [formData, setFormData] = useState({
@@ -111,14 +101,14 @@ export default function NewRequestPage() {
     }
   }, []);
 
-  // تحميل أصناف المنيو عند اختيار قسم
+  // تحميل أصناف المنيو عند اختيار نوع طلب
   useEffect(() => {
-    if (selectedCategory) {
-      loadMenuItems(selectedCategory);
+    if (selectedType?.linkedSection) {
+      loadMenuItems(selectedType.linkedSection);
     } else {
       setMenuItems([]);
     }
-  }, [selectedCategory]);
+  }, [selectedType]);
 
   // حساب المبلغ الإجمالي عند تغيير الأصناف المختارة
   useEffect(() => {
@@ -168,87 +158,6 @@ export default function NewRequestPage() {
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
-
-  // تحميل الأصناف الفرعية من الأقسام المرتبطة
-  useEffect(() => {
-    if (selectedType?.linkedSection) {
-      loadLinkedSectionItems(selectedType.linkedSection);
-    }
-  }, [selectedType]);
-
-  const loadLinkedSectionItems = (section: 'coffee' | 'restaurant' | 'laundry') => {
-    try {
-      if (section === 'coffee') {
-        // تحميل منتجات الكوفي
-        const coffeeMenu = JSON.parse(localStorage.getItem('coffee_menu') || '[]');
-        const subItems = coffeeMenu
-          .filter((item: any) => item.available)
-          .map((item: any) => ({
-            id: item.id,
-            name: item.nameAr || item.name,
-            available: item.available,
-            icon: '☕',
-          }));
-        
-        if (selectedType && subItems.length > 0) {
-          setRequestTypes(prev =>
-            prev.map(type =>
-              type.id === selectedType.id
-                ? { ...type, subItems }
-                : type
-            )
-          );
-          setSelectedType(prev => prev ? { ...prev, subItems } : null);
-        }
-      } else if (section === 'restaurant') {
-        // تحميل أطباق المطعم
-        const restaurantMenu = JSON.parse(localStorage.getItem('restaurant_menu') || '[]');
-        const subItems = restaurantMenu
-          .filter((item: any) => item.available)
-          .map((item: any) => ({
-            id: item.id,
-            name: item.nameAr || item.name,
-            available: item.available,
-            icon: '🍽️',
-          }));
-        
-        if (selectedType && subItems.length > 0) {
-          setRequestTypes(prev =>
-            prev.map(type =>
-              type.id === selectedType.id
-                ? { ...type, subItems }
-                : type
-            )
-          );
-          setSelectedType(prev => prev ? { ...prev, subItems } : null);
-        }
-      } else if (section === 'laundry') {
-        // تحميل خدمات المغسلة
-        const laundryServices = JSON.parse(localStorage.getItem('laundry_services') || '[]');
-        const subItems = laundryServices
-          .filter((item: any) => item.available)
-          .map((item: any) => ({
-            id: item.id,
-            name: item.nameAr || item.name,
-            available: item.available,
-            icon: '👔',
-          }));
-        
-        if (selectedType && subItems.length > 0) {
-          setRequestTypes(prev =>
-            prev.map(type =>
-              type.id === selectedType.id
-                ? { ...type, subItems }
-                : type
-            )
-          );
-          setSelectedType(prev => prev ? { ...prev, subItems } : null);
-        }
-      }
-    } catch (error) {
-      console.error('Error loading linked section items:', error);
-    }
-  };
 
   const loadRoomsAndEmployees = async () => {
     try {
@@ -329,8 +238,8 @@ export default function NewRequestPage() {
     if (!formData.guest.trim()) newErrors.guest = 'اسم النزيل مطلوب';
     if (!formData.type) newErrors.type = 'نوع الطلب مطلوب';
     
-    // التحقق من اختيار صنف واحد على الأقل إذا كان هناك قسم محدد
-    if (selectedCategory && menuItems.length > 0 && selectedSubItems.length === 0) {
+    // التحقق من اختيار صنف واحد على الأقل إذا كان النوع له linkedSection وفيه أصناف متاحة
+    if (selectedType?.linkedSection && menuItems.length > 0 && selectedSubItems.length === 0) {
       newErrors.subItems = 'يجب اختيار صنف واحد على الأقل';
     }
     
@@ -352,7 +261,7 @@ export default function NewRequestPage() {
       let fullDescription = formData.notes;
       
       // إذا كان هناك أصناف محددة من المنيو
-      if (selectedCategory && selectedSubItems.length > 0) {
+      if (selectedType?.linkedSection && selectedSubItems.length > 0) {
         const subItemNames = selectedSubItems
           .map(itemId => {
             const item = menuItems.find(mi => mi.id === itemId);
@@ -360,7 +269,7 @@ export default function NewRequestPage() {
           })
           .join(' + ');
         fullDescription = `${formData.type}: ${subItemNames}${formData.notes ? '\n' + formData.notes : ''}`;
-      } else if (selectedType?.hasSubItems && selectedSubItems.length > 0) {
+      } else if (selectedType?.hasSubItems && selectedSubItems.length > 0 && selectedType.subItems) {
         const subItemNames = selectedSubItems
           .map(itemId => {
             const item = selectedType.subItems?.find(si => si.id === itemId);
@@ -389,8 +298,7 @@ export default function NewRequestPage() {
         assignedEmployeeId: formData.assignedEmployee, // حفظ الـ ID للرجوع إليه
         employeeApprovalStatus: 'pending',
         selectedSubItems: selectedSubItems.length > 0 ? selectedSubItems : undefined,
-        linkedSection: selectedCategory || selectedType?.linkedSection,
-        menuCategory: selectedCategory || undefined,
+        linkedSection: selectedType?.linkedSection,
       };
 
       // Save to Firebase
@@ -528,9 +436,6 @@ export default function NewRequestPage() {
       const type = requestTypes.find(t => t.name === value);
       setSelectedType(type || null);
       setSelectedSubItems([]);
-      
-      // إذا كان القسم يجب تحديده من القائمة المنسدلة الجديدة
-      setSelectedCategory('');
     }
     
     setFormData((prev) => ({
@@ -546,14 +451,13 @@ export default function NewRequestPage() {
     }
   };
 
-  // معالجة تغيير القسم
-  const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category);
+  // معالجة تغيير نوع الطلب
+  const handleTypeSelect = (type: RequestType) => {
+    setSelectedType(type);
     setFormData((prev) => ({
       ...prev,
-      type: menuCategories.find(c => c.value === category)?.label || '',
+      type: type.name,
     }));
-    setSelectedType(null);
     setSelectedSubItems([]);
     if (errors.type) {
       setErrors((prev) => ({ ...prev, type: '' }));
@@ -781,62 +685,36 @@ export default function NewRequestPage() {
                     />
                   </div>
 
-                  {/* Request Type - Menu Categories */}
+                  {/* Request Type - من الأنواع المحددة في الإعدادات */}
                   <div className="space-y-2 md:col-span-2">
                     <label className="text-white/80 text-sm font-semibold flex items-center gap-2">
                       <FileText className="w-4 h-4 text-indigo-400" />
-                      {t('requestTypeLabel')}
+                      نوع الطلب
                       <span className="text-red-400">*</span>
                     </label>
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                      {menuCategories.map((category) => (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {requestTypes.map((type) => (
                         <button
-                          key={category.value}
+                          key={type.id}
                           type="button"
-                          onClick={() => handleCategoryChange(category.value)}
+                          onClick={() => handleTypeSelect(type)}
                           className={`p-4 rounded-lg border-2 transition-all text-sm font-semibold flex flex-col items-center gap-2 ${
-                            selectedCategory === category.value
+                            selectedType?.id === type.id
                               ? 'bg-purple-500/30 border-purple-400 text-purple-200 shadow-lg scale-105'
                               : 'bg-white/10 border-white/20 text-white/70 hover:bg-white/20 hover:border-white/30'
                           }`}
                         >
-                          <span className="text-3xl">{category.icon}</span>
-                          <span>{category.label}</span>
-                          {selectedCategory === category.value && <span className="text-xs">✓ محدد</span>}
+                          <span className="text-3xl">{type.icon || '📋'}</span>
+                          <span className="text-center">{type.name}</span>
+                          {selectedType?.id === type.id && <span className="text-xs">✓ محدد</span>}
                         </button>
                       ))}
                     </div>
                     {errors.type && <p className="text-red-400 text-xs">{errors.type}</p>}
-                    
-                    {/* إظهار الأنواع التقليدية إذا لم يتم اختيار قسم */}
-                    {!selectedCategory && (
-                      <div className="mt-3">
-                        <p className="text-white/60 text-xs mb-2">أو اختر من الأنواع التقليدية:</p>
-                        <select
-                          name="type"
-                          value={formData.type}
-                          onChange={handleInputChange}
-                          className="w-full bg-white/10 border-2 border-white/20 focus:border-green-500 text-white p-2 rounded-lg appearance-none cursor-pointer"
-                          style={{
-                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E")`,
-                            backgroundRepeat: 'no-repeat',
-                            backgroundPosition: 'left 8px center',
-                            paddingLeft: '28px',
-                          }}
-                        >
-                          <option value="" className="bg-slate-900">-- اختر نوع الطلب --</option>
-                          {requestTypes.map((type) => (
-                            <option key={type.id} value={type.name} className="bg-slate-900">
-                              {type.icon && `${type.icon} `}{type.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
                   </div>
 
-                  {/* Menu Items Selection - Shows if category selected */}
-                  {selectedCategory && (menuItems.length > 0 ? (
+                  {/* Menu Items Selection - Shows if type has linked section */}
+                  {selectedType?.linkedSection && (menuItems.length > 0 ? (
                     <div className="space-y-2 md:col-span-2">
                       <label className="text-white/80 text-sm font-semibold flex items-center gap-2">
                         <FileText className="w-4 h-4 text-cyan-400" />
@@ -893,7 +771,7 @@ export default function NewRequestPage() {
                   ) : (
                     <div className="md:col-span-2 bg-yellow-500/20 border-2 border-yellow-400/50 rounded-lg p-6 text-center">
                       <p className="text-yellow-200 text-lg font-bold mb-2">⚠️ لا توجد أصناف متاحة</p>
-                      <p className="text-yellow-200/80 text-sm">لم يتم العثور على أصناف في قسم {menuCategories.find(c => c.value === selectedCategory)?.label}</p>
+                      <p className="text-yellow-200/80 text-sm">لم يتم العثور على أصناف في قسم {selectedType?.name}</p>
                       <p className="text-yellow-200/60 text-xs mt-2">يرجى التأكد من إضافة الأصناف إلى Firebase أولاً</p>
                     </div>
                   ))}
