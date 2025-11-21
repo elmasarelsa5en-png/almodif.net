@@ -145,6 +145,7 @@ export default function NewRequestPage() {
       );
       
       console.log(`📦 Loaded ${categoryItems.length} items for category: ${category}`);
+      console.log('📸 Sample item with image field:', categoryItems[0]);
       setMenuItems(categoryItems);
       
       // مسح الأصناف المختارة عند تغيير القسم
@@ -835,7 +836,7 @@ export default function NewRequestPage() {
                   </div>
 
                   {/* Menu Items Selection - Shows if category selected */}
-                  {selectedCategory && menuItems.length > 0 && (
+                  {selectedCategory && (menuItems.length > 0 ? (
                     <div className="space-y-2 md:col-span-2">
                       <label className="text-white/80 text-sm font-semibold flex items-center gap-2">
                         <FileText className="w-4 h-4 text-cyan-400" />
@@ -855,7 +856,7 @@ export default function NewRequestPage() {
                             }`}
                           >
                             <div className="flex items-center gap-2 w-full">
-                              {item.image && <span className="text-2xl">{item.image}</span>}
+                              <span className="text-2xl">{item.image || '📦'}</span>
                               <span className="flex-1 text-right">{item.nameAr || item.name}</span>
                               {selectedSubItems.includes(item.id) && <span className="text-green-400">✓</span>}
                             </div>
@@ -881,7 +882,7 @@ export default function NewRequestPage() {
                               const item = menuItems.find(mi => mi.id === id);
                               return item ? (
                                 <span key={id} className="bg-green-500/30 px-2 py-1 rounded text-xs">
-                                  {item.image} {item.nameAr || item.name}
+                                  {item.image || '📦'} {item.nameAr || item.name}
                                 </span>
                               ) : null;
                             })}
@@ -889,7 +890,13 @@ export default function NewRequestPage() {
                         </div>
                       )}
                     </div>
-                  )}
+                  ) : (
+                    <div className="md:col-span-2 bg-yellow-500/20 border-2 border-yellow-400/50 rounded-lg p-6 text-center">
+                      <p className="text-yellow-200 text-lg font-bold mb-2">⚠️ لا توجد أصناف متاحة</p>
+                      <p className="text-yellow-200/80 text-sm">لم يتم العثور على أصناف في قسم {menuCategories.find(c => c.value === selectedCategory)?.label}</p>
+                      <p className="text-yellow-200/60 text-xs mt-2">يرجى التأكد من إضافة الأصناف إلى Firebase أولاً</p>
+                    </div>
+                  ))}
 
                   {/* Old Sub-Items Selection - Shows if type has sub-items */}
                   {selectedType?.hasSubItems && selectedType.subItems && selectedType.subItems.length > 0 && (
