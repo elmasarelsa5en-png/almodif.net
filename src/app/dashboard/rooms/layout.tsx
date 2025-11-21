@@ -1,7 +1,13 @@
-export default function Layout({
-  children,
+'use client';
+
+import { RoomsProvider } from '@/contexts/rooms-context';
+
+export default function RoomsLayout({
+    children,
 }: {
-  children: React.ReactNode;
+    children: React.ReactNode;
 }) {
-  return children;
+    return (
+        <RoomsProvider>{children}</RoomsProvider>
+    );
 }

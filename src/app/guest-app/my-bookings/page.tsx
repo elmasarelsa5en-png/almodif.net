@@ -224,21 +224,22 @@ export default function MyBookingsPage() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" dir="rtl">
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950" dir="rtl">
       {/* Animated Background */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
-          className="absolute top-0 left-0 w-full h-full opacity-30"
+          className="absolute top-0 left-0 w-full h-full opacity-40"
           style={{
-            backgroundImage: `radial-gradient(circle at 20% 50%, rgba(217, 179, 69, 0.15) 0%, transparent 50%),
-                             radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 50%)`,
+            backgroundImage: `radial-gradient(circle at 20% 50%, rgba(249, 115, 22, 0.12) 0%, transparent 50%),
+                             radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.12) 0%, transparent 50%),
+                             radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.08) 0%, transparent 60%)`,
             backgroundSize: '400% 400%',
           }}
           animate={{
-            backgroundPosition: ['0% 0%', '100% 100%'],
+            backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'],
           }}
           transition={{
-            duration: 20,
+            duration: 25,
             repeat: Infinity,
             ease: "linear",
           }}
@@ -249,7 +250,7 @@ export default function MyBookingsPage() {
       <motion.header
         initial={{ opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative z-10 bg-gradient-to-r from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl border-b border-amber-500/30 shadow-xl"
+        className="relative z-10 bg-gradient-to-r from-slate-950/98 via-slate-900/98 to-slate-950/98 backdrop-blur-xl border-b border-orange-500/40 shadow-2xl"
       >
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -258,27 +259,27 @@ export default function MyBookingsPage() {
                 onClick={() => router.back()}
                 variant="ghost"
                 size="sm"
-                className="text-amber-200 hover:text-amber-100 hover:bg-amber-500/20"
+                className="text-orange-200 hover:text-orange-100 hover:bg-orange-500/20"
               >
                 <ArrowRight className="w-5 h-5" />
               </Button>
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-purple-200">
+                <h1 className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-300 via-yellow-200 to-orange-200">
                   حجوزاتي
                 </h1>
-                <p className="text-sm text-slate-400 mt-1">إدارة جميع حجوزاتك</p>
+                <p className="text-sm text-slate-400 mt-1">إدارة جميع حجوزاتك بسهولة</p>
               </div>
             </div>
             
             {guestSession && (
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center">
+                <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center">
                   <span className="text-white font-bold text-sm">
                     {guestSession.name?.charAt(0)}
                   </span>
                 </div>
                 <div className="hidden md:block">
-                  <p className="text-sm text-amber-100 font-medium">{guestSession.name}</p>
+                  <p className="text-sm text-orange-100 font-medium">{guestSession.name}</p>
                   <p className="text-xs text-slate-400">غرفة {guestSession.roomNumber}</p>
                 </div>
               </div>
@@ -297,7 +298,7 @@ export default function MyBookingsPage() {
           className="flex gap-2 mb-8 flex-wrap"
         >
           {[
-            { key: 'all', label: 'الكل', color: 'amber' },
+            { key: 'all', label: 'الكل', color: 'orange' },
             { key: 'active', label: 'النشطة', color: 'green' },
             { key: 'completed', label: 'المكتملة', color: 'blue' },
             { key: 'cancelled', label: 'الملغية', color: 'red' }
@@ -362,7 +363,7 @@ export default function MyBookingsPage() {
             <p className="text-slate-500 mb-6">لم يتم العثور على حجوزات {filter !== 'all' && getStatusText(filter)}</p>
             <Button
               onClick={() => router.push('/guest-app/booking')}
-              className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white"
+              className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white"
             >
               احجز الآن
             </Button>
@@ -390,7 +391,7 @@ export default function MyBookingsPage() {
                       {/* Booking Header */}
                       <div className="flex items-start gap-4">
                         <motion.div
-                          className="w-14 h-14 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl flex items-center justify-center shadow-xl"
+                          className="w-14 h-14 bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl flex items-center justify-center shadow-xl"
                           whileHover={{ rotate: 360, scale: 1.1 }}
                           transition={{ duration: 0.6 }}
                         >
@@ -409,7 +410,7 @@ export default function MyBookingsPage() {
                       {/* Booking ID */}
                       <div className="text-left">
                         <p className="text-xs text-slate-400">رقم الحجز</p>
-                        <p className="text-sm font-mono text-amber-300">#{booking.id}</p>
+                        <p className="text-sm font-mono text-orange-300">#{booking.id}</p>
                       </div>
                     </div>
 
@@ -461,12 +462,12 @@ export default function MyBookingsPage() {
                     </div>
 
                     {/* Payment Status */}
-                    <div className="p-4 bg-gradient-to-r from-amber-500/10 to-purple-500/10 rounded-xl border border-amber-400/20 mb-6">
+                    <div className="p-4 bg-gradient-to-r from-orange-500/10 to-purple-500/10 rounded-xl border border-orange-400/20 mb-6">
                       {booking.paid >= booking.totalAmount ? (
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-xs text-slate-400 mb-1">المبلغ الإجمالي</p>
-                            <p className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-purple-300">
+                            <p className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-300 to-purple-300">
                               {booking.totalAmount.toLocaleString()} ريال
                             </p>
                           </div>
@@ -479,7 +480,7 @@ export default function MyBookingsPage() {
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-xs text-slate-400 mb-1">المبلغ الإجمالي</p>
-                            <p className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-purple-300">
+                            <p className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-300 to-purple-300">
                               {booking.totalAmount.toLocaleString()} ريال
                             </p>
                           </div>
@@ -505,7 +506,7 @@ export default function MyBookingsPage() {
                     <div className="flex gap-3">
                       <Button
                         onClick={() => handleDownloadInvoice(booking)}
-                        className="flex-1 bg-gradient-to-r from-amber-500 to-purple-500 hover:from-amber-600 hover:to-purple-600 text-white"
+                        className="flex-1 bg-gradient-to-r from-orange-500 to-purple-500 hover:from-orange-600 hover:to-purple-600 text-white"
                       >
                         <Download className="w-4 h-4 mr-2" />
                         تحميل الفاتورة
@@ -514,7 +515,7 @@ export default function MyBookingsPage() {
                         <Button
                           onClick={() => router.push('/guest-app/extend-stay')}
                           variant="outline"
-                          className="border-amber-400/30 text-amber-300 hover:bg-amber-500/20"
+                          className="border-orange-400/30 text-orange-300 hover:bg-orange-500/20"
                         >
                           تمديد الإقامة
                         </Button>

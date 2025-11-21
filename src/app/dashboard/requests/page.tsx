@@ -727,12 +727,10 @@ export default function RequestsPage() {
                       className="w-full flex items-center justify-center gap-2 text-white/60 hover:text-white transition-colors py-2 border-t border-white/10"
                     >
                       <span className="text-sm">
-                        {expandedId === request.id ? t('hideDetails') : t('showFullDetails')}
+                        {expandedId === request.id ? 'إخفاء التفاصيل' : 'عرض التفاصيل الكاملة'}
                       </span>
                       <ChevronDown
-                        className={`w-4 h-4 transition-transform ${
-                          expandedId === request.id ? 'rotate-180' : ''
-                        }`}
+                        className={`w-4 h-4 transition-transform ${expandedId === request.id ? 'rotate-180' : ''}`}
                       />
                     </button>
 
