@@ -627,16 +627,21 @@ export default function RequestsPage() {
                           <div className="flex-1">
                             <div className="flex items-center gap-2 md:gap-3 mb-1 flex-wrap">
                               <span className="text-lg md:text-xl font-bold text-white">{t('room')} {request.room}</span>
-                              <Badge className={`${STATUS_CONFIG[request.status as keyof typeof STATUS_CONFIG]?.color || 'bg-gray-500/20 text-gray-300'} border-0 px-1.5 md:px-2 py-0.5 text-xs`}>
-                                {STATUS_CONFIG[request.status as keyof typeof STATUS_CONFIG]?.icon || '📋'} {STATUS_CONFIG[request.status as keyof typeof STATUS_CONFIG]?.label || request.status}
-                              </Badge>
                               {request.priority && PRIORITY_CONFIG[request.priority as keyof typeof PRIORITY_CONFIG] && (
                                 <Badge className={`${PRIORITY_CONFIG[request.priority as keyof typeof PRIORITY_CONFIG].color} bg-transparent border text-xs px-1.5 md:px-2 py-0.5`}>
                                   {PRIORITY_CONFIG[request.priority as keyof typeof PRIORITY_CONFIG].label}
                                 </Badge>
                               )}
                             </div>
-                            <p className="text-white/90 font-semibold text-sm md:text-base mb-1">{request.type}</p>
+                            <p className="text-white/90 font-semibold text-sm md:text-base mb-2">{request.type}</p>
+                            
+                            {/* ✨ عرض الحالة بشكل بارز */}
+                            <div className="mb-2">
+                              <Badge className={`${STATUS_CONFIG[request.status as keyof typeof STATUS_CONFIG]?.color || 'bg-gray-500/20 text-gray-300'} border-0 px-3 py-1.5 text-sm font-semibold shadow-lg`}>
+                                {STATUS_CONFIG[request.status as keyof typeof STATUS_CONFIG]?.icon || '📋'} {STATUS_CONFIG[request.status as keyof typeof STATUS_CONFIG]?.label || request.status}
+                              </Badge>
+                            </div>
+
                             <div className="flex items-center gap-3 md:gap-4 text-xs md:text-sm text-white/60 flex-wrap">
                               <span className="flex items-center gap-1">
                                 <User className="w-3 h-3" />
