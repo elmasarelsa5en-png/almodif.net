@@ -46,7 +46,7 @@ const reportCards: ReportCard[] = [
     color: 'text-blue-400',
     gradient: 'from-blue-600/30 to-indigo-600/30',
     category: 'financial',
-    implemented: false
+    implemented: true
   },
   {
     icon: DollarSign,
@@ -56,7 +56,7 @@ const reportCards: ReportCard[] = [
     color: 'text-amber-400',
     gradient: 'from-amber-600/30 to-yellow-600/30',
     category: 'financial',
-    implemented: false
+    implemented: true
   },
   {
     icon: Package,
@@ -118,7 +118,7 @@ const reportCards: ReportCard[] = [
     color: 'text-purple-400',
     gradient: 'from-purple-600/30 to-fuchsia-600/30',
     category: 'operations',
-    implemented: false
+    implemented: true
   },
   {
     icon: TrendingDown,
@@ -128,7 +128,7 @@ const reportCards: ReportCard[] = [
     color: 'text-orange-400',
     gradient: 'from-orange-600/30 to-red-600/30',
     category: 'operations',
-    implemented: false
+    implemented: true
   },
   {
     icon: Lock,
