@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
@@ -199,7 +199,7 @@ export default function DailyMovementReport() {
                 onClick={() => router.back()}
                 variant="ghost"
                 size="sm"
-                className="text-orange-300 hover:bg-orange-500/20"
+                className="text-orange-100 font-semibold hover:bg-orange-500/20"
               >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
@@ -215,7 +215,7 @@ export default function DailyMovementReport() {
               <Button
                 onClick={handleExport}
                 variant="outline"
-                className="bg-green-500/20 border-green-400/30 text-green-300 hover:bg-green-500/30"
+                className="bg-green-600 border-green-700 text-white font-bold hover:bg-green-700 shadow-lg"
               >
                 <Download className="w-4 h-4 ml-2" />
                 تصدير
@@ -223,7 +223,7 @@ export default function DailyMovementReport() {
               <Button
                 onClick={handlePrint}
                 variant="outline"
-                className="bg-blue-500/20 border-blue-400/30 text-blue-300 hover:bg-blue-500/30"
+                className="bg-blue-600 border-blue-700 text-white font-bold hover:bg-blue-700 shadow-lg"
               >
                 <Printer className="w-4 h-4 ml-2" />
                 طباعة
@@ -272,7 +272,7 @@ export default function DailyMovementReport() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-green-300 text-sm mb-1">إجمالي الدخول</p>
+                    <p className="text-green-100 font-semibold text-sm mb-1">إجمالي الدخول</p>
                     <p className="text-3xl font-bold text-white">{summary.totalCheckIns}</p>
                   </div>
                   <CheckCircle className="w-12 h-12 text-green-400 opacity-50" />
@@ -286,7 +286,7 @@ export default function DailyMovementReport() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-red-300 text-sm mb-1">إجمالي الخروج</p>
+                    <p className="text-red-100 font-semibold text-sm mb-1">إجمالي الخروج</p>
                     <p className="text-3xl font-bold text-white">{summary.totalCheckOuts}</p>
                   </div>
                   <XCircle className="w-12 h-12 text-red-400 opacity-50" />
@@ -300,7 +300,7 @@ export default function DailyMovementReport() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-blue-300 text-sm mb-1">إجمالي الإيرادات</p>
+                    <p className="text-blue-100 font-semibold text-sm mb-1">إجمالي الإيرادات</p>
                     <p className="text-2xl font-bold text-white">{summary.totalRevenue.toFixed(0)} ر.س</p>
                   </div>
                   <DollarSign className="w-12 h-12 text-blue-400 opacity-50" />
@@ -314,7 +314,7 @@ export default function DailyMovementReport() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-purple-300 text-sm mb-1">إجمالي الضيوف</p>
+                    <p className="text-purple-100 font-semibold text-sm mb-1">إجمالي الضيوف</p>
                     <p className="text-3xl font-bold text-white">{summary.totalGuests}</p>
                   </div>
                   <Users className="w-12 h-12 text-purple-400 opacity-50" />
@@ -328,7 +328,7 @@ export default function DailyMovementReport() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-orange-300 text-sm mb-1">إجمالي الطلبات</p>
+                    <p className="text-orange-100 font-semibold text-sm mb-1">إجمالي الطلبات</p>
                     <p className="text-3xl font-bold text-white">{summary.totalRequests}</p>
                   </div>
                   <Clock className="w-12 h-12 text-orange-400 opacity-50" />
@@ -342,7 +342,7 @@ export default function DailyMovementReport() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-teal-300 text-sm mb-1">متوسط الغرف المشغولة</p>
+                    <p className="text-teal-100 font-semibold text-sm mb-1">متوسط الغرف المشغولة</p>
                     <p className="text-3xl font-bold text-white">{summary.averageOccupancy.toFixed(1)}</p>
                   </div>
                   <TrendingUp className="w-12 h-12 text-teal-400 opacity-50" />
@@ -445,3 +445,5 @@ export default function DailyMovementReport() {
     </div>
   );
 }
+
+

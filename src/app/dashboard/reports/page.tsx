@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
@@ -329,10 +329,10 @@ export default function ReportsPage() {
 
           {/* Stats Badge */}
           <div className="flex items-center gap-3">
-            <Badge className="bg-green-500/20 text-green-300 border-green-400/30 px-4 py-2 text-sm">
+            <Badge className="bg-green-600 text-white font-bold border-green-700 px-4 py-2 text-sm shadow-lg">
               ✅ {implementedCount} {locale === 'ar' ? 'مُفعّل' : 'Active'}
             </Badge>
-            <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-400/30 px-4 py-2 text-sm">
+            <Badge className="bg-yellow-500 text-white font-bold border-yellow-600 px-4 py-2 text-sm shadow-lg">
               🔄 {totalCount - implementedCount} {locale === 'ar' ? 'قريباً' : 'Coming Soon'}
             </Badge>
           </div>
@@ -451,12 +451,12 @@ export default function ReportsPage() {
                 {/* Implementation Badge */}
                 <div className="absolute top-3 left-3 z-10">
                   {report.implemented ? (
-                    <Badge className="bg-green-500/20 text-green-300 border-green-400/30 text-xs">
+                    <Badge className="bg-green-600 text-white font-bold border-green-700 text-xs shadow-lg">
                       <CheckCircle2 className="w-3 h-3 ml-1" />
                       {locale === 'ar' ? 'مُفعّل' : 'Active'}
                     </Badge>
                   ) : (
-                    <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-400/30 text-xs">
+                    <Badge className="bg-yellow-500 text-white font-bold border-yellow-600 text-xs shadow-lg">
                       <AlertCircle className="w-3 h-3 ml-1" />
                       {locale === 'ar' ? 'قريباً' : 'Soon'}
                     </Badge>
@@ -469,7 +469,7 @@ export default function ReportsPage() {
                   </div>
                   
                   <div className={viewMode === 'list' ? 'flex-1' : ''}>
-                    <h3 className={`${viewMode === 'grid' ? 'text-xl mb-2' : 'text-lg mb-1'} font-bold text-white ${report.implemented ? 'group-hover:text-orange-300' : ''} transition-colors`}>
+                    <h3 className={`${viewMode === 'grid' ? 'text-xl mb-2' : 'text-lg mb-1'} font-bold text-white ${report.implemented ? 'group-hover:text-orange-100 font-semibold' : ''} transition-colors`}>
                       {t(report.titleKey as any)}
                     </h3>
                     
@@ -486,3 +486,5 @@ export default function ReportsPage() {
     </div>
   );
 }
+
+

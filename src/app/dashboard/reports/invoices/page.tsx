@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
@@ -204,7 +204,7 @@ export default function InvoicesReport() {
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
-              <Button onClick={() => router.back()} variant="ghost" size="sm" className="text-orange-300 hover:bg-orange-500/20">
+              <Button onClick={() => router.back()} variant="ghost" size="sm" className="text-orange-100 font-semibold hover:bg-orange-500/20">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>
@@ -216,11 +216,11 @@ export default function InvoicesReport() {
             </div>
 
             <div className="flex gap-2 print:hidden">
-              <Button onClick={handleExport} variant="outline" className="bg-green-500/20 border-green-400/30 text-green-300 hover:bg-green-500/30">
+              <Button onClick={handleExport} variant="outline" className="bg-green-600 border-green-700 text-white font-bold shadow-lg hover:bg-green-500/30">
                 <Download className="w-4 h-4 ml-2" />
                 تصدير
               </Button>
-              <Button onClick={handlePrint} variant="outline" className="bg-blue-500/20 border-blue-400/30 text-blue-300 hover:bg-blue-500/30">
+              <Button onClick={handlePrint} variant="outline" className="bg-blue-600 border-blue-700 text-white font-bold shadow-lg hover:bg-blue-500/30">
                 <Printer className="w-4 h-4 ml-2" />
                 طباعة
               </Button>
@@ -264,7 +264,7 @@ export default function InvoicesReport() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-purple-300 text-sm mb-1">إجمالي الفواتير</p>
+                    <p className="text-purple-100 font-semibold text-sm mb-1">إجمالي الفواتير</p>
                     <p className="text-2xl font-bold text-white">{summary.totalAmount.toFixed(0)} ر.س</p>
                   </div>
                   <FileText className="w-12 h-12 text-purple-400 opacity-50" />
@@ -278,7 +278,7 @@ export default function InvoicesReport() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-blue-300 text-sm mb-1">الضريبة المضافة</p>
+                    <p className="text-blue-100 font-semibold text-sm mb-1">الضريبة المضافة</p>
                     <p className="text-2xl font-bold text-white">{summary.totalTax.toFixed(0)} ر.س</p>
                   </div>
                   <Calculator className="w-12 h-12 text-blue-400 opacity-50" />
@@ -292,7 +292,7 @@ export default function InvoicesReport() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-green-300 text-sm mb-1">المدفوع</p>
+                    <p className="text-green-100 font-semibold text-sm mb-1">المدفوع</p>
                     <p className="text-2xl font-bold text-white">{summary.totalPaid.toFixed(0)} ر.س</p>
                   </div>
                   <CheckCircle className="w-12 h-12 text-green-400 opacity-50" />
@@ -306,7 +306,7 @@ export default function InvoicesReport() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-red-300 text-sm mb-1">المتبقي</p>
+                    <p className="text-red-100 font-semibold text-sm mb-1">المتبقي</p>
                     <p className="text-2xl font-bold text-white">{summary.totalRemaining.toFixed(0)} ر.س</p>
                   </div>
                   <DollarSign className="w-12 h-12 text-red-400 opacity-50" />
@@ -447,10 +447,10 @@ export default function InvoicesReport() {
                         <td className="p-3 text-center">
                           <span className={`px-2 py-1 rounded text-xs font-semibold ${
                             invoice.status === 'paid' 
-                              ? 'bg-green-500/20 text-green-300'
+                              ? 'bg-green-500/20 text-green-100 font-semibold'
                               : invoice.status === 'partial'
-                              ? 'bg-yellow-500/20 text-yellow-300'
-                              : 'bg-red-500/20 text-red-300'
+                              ? 'bg-yellow-500/20 text-yellow-100 font-semibold'
+                              : 'bg-red-500/20 text-red-100 font-semibold'
                           }`}>
                             {invoice.status === 'paid' ? 'مدفوع' : invoice.status === 'partial' ? 'جزئي' : 'غير مدفوع'}
                           </span>
@@ -467,3 +467,5 @@ export default function InvoicesReport() {
     </div>
   );
 }
+
+

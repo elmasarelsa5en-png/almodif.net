@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -437,10 +437,10 @@ export default function CashMovementReport() {
                 
                 <tr className="bg-blue-500/20">
                   <td className="px-3 py-3 font-bold border border-white/20">إجمالي القبض</td>
-                  <td className="px-3 py-3 text-right font-bold text-lg text-green-300 border border-white/20">{formatCurrency(totals.totalReceipts)}</td>
+                  <td className="px-3 py-3 text-right font-bold text-lg text-green-100 font-semibold border border-white/20">{formatCurrency(totals.totalReceipts)}</td>
                   <td className="px-3 py-3 border border-white/20" colSpan={2}></td>
                   <td className="px-3 py-3 font-bold border border-white/20">إجمالي الصرف</td>
-                  <td className="px-3 py-3 text-right font-bold text-lg text-red-300 border border-white/20">{formatCurrency(totals.totalVouchers)}</td>
+                  <td className="px-3 py-3 text-right font-bold text-lg text-red-100 font-semibold border border-white/20">{formatCurrency(totals.totalVouchers)}</td>
                   <td className="px-3 py-3 border border-white/20"></td>
                 </tr>
                 
@@ -452,7 +452,7 @@ export default function CashMovementReport() {
                   <td className="px-3 py-3 font-bold border border-white/20">المبالغ المحولة إلى البنك :</td>
                   <td className="px-3 py-3 text-right font-bold border border-white/20">{formatCurrency(totals.netBank)}</td>
                   <td className="px-3 py-3 font-semibold border border-white/20">إجمالي الصندوق :</td>
-                  <td className="px-3 py-3 text-right font-bold text-green-300 bg-green-100 border border-white/20">{formatCurrency(totals.netCash)}</td>
+                  <td className="px-3 py-3 text-right font-bold text-green-100 font-semibold bg-green-100 border border-white/20">{formatCurrency(totals.netCash)}</td>
                   <td className="px-3 py-3 border border-white/20">إجمالي المصندوق :</td>
                   <td className="px-3 py-3 text-right border border-white/20">0.00</td>
                   <td className="px-3 py-3 border border-white/20"></td>
@@ -460,7 +460,7 @@ export default function CashMovementReport() {
                 
                 <tr className="bg-green-100">
                   <td className="px-3 py-4 font-bold border border-white/20">رصيد البنك ( للفترة المحددة):</td>
-                  <td className="px-3 py-4 text-right font-bold text-xl text-green-300 border border-white/20">{formatCurrency(totals.netBank)}</td>
+                  <td className="px-3 py-4 text-right font-bold text-xl text-green-100 font-semibold border border-white/20">{formatCurrency(totals.netBank)}</td>
                   <td className="px-3 py-4 border border-white/20" colSpan={5}></td>
                 </tr>
               </tbody>
@@ -559,3 +559,5 @@ export default function CashMovementReport() {
     </div>
   );
 }
+
+

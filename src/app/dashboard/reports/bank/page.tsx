@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
@@ -212,7 +212,7 @@ export default function BankReport() {
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
-              <Button onClick={() => router.back()} variant="ghost" size="sm" className="text-orange-300 hover:bg-orange-500/20">
+              <Button onClick={() => router.back()} variant="ghost" size="sm" className="text-orange-100 font-semibold hover:bg-orange-500/20">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>
@@ -224,11 +224,11 @@ export default function BankReport() {
             </div>
 
             <div className="flex gap-2 print:hidden">
-              <Button onClick={handleExport} variant="outline" className="bg-green-500/20 border-green-400/30 text-green-300 hover:bg-green-500/30">
+              <Button onClick={handleExport} variant="outline" className="bg-green-600 border-green-700 text-white font-bold shadow-lg hover:bg-green-500/30">
                 <Download className="w-4 h-4 ml-2" />
                 تصدير
               </Button>
-              <Button onClick={handlePrint} variant="outline" className="bg-blue-500/20 border-blue-400/30 text-blue-300 hover:bg-blue-500/30">
+              <Button onClick={handlePrint} variant="outline" className="bg-blue-600 border-blue-700 text-white font-bold shadow-lg hover:bg-blue-500/30">
                 <Printer className="w-4 h-4 ml-2" />
                 طباعة
               </Button>
@@ -272,7 +272,7 @@ export default function BankReport() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-green-300 text-sm mb-1">إجمالي الإيداعات</p>
+                    <p className="text-green-100 font-semibold text-sm mb-1">إجمالي الإيداعات</p>
                     <p className="text-2xl font-bold text-white">{summary.totalDeposits.toFixed(0)} ر.س</p>
                     <p className="text-xs text-green-400 mt-1">{summary.depositCount} عملية</p>
                   </div>
@@ -287,7 +287,7 @@ export default function BankReport() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-red-300 text-sm mb-1">إجمالي السحوبات</p>
+                    <p className="text-red-100 font-semibold text-sm mb-1">إجمالي السحوبات</p>
                     <p className="text-2xl font-bold text-white">{summary.totalWithdrawals.toFixed(0)} ر.س</p>
                     <p className="text-xs text-red-400 mt-1">{summary.withdrawalCount} عملية</p>
                   </div>
@@ -302,7 +302,7 @@ export default function BankReport() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className={`${summary.netChange >= 0 ? 'text-blue-300' : 'text-orange-300'} text-sm mb-1`}>صافي الحركة</p>
+                    <p className={`${summary.netChange >= 0 ? 'text-blue-100 font-semibold' : 'text-orange-100 font-semibold'} text-sm mb-1`}>صافي الحركة</p>
                     <p className="text-2xl font-bold text-white">{summary.netChange.toFixed(0)} ر.س</p>
                   </div>
                   {summary.netChange >= 0 ? (
@@ -320,7 +320,7 @@ export default function BankReport() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-purple-300 text-sm mb-1">الرصيد الحالي</p>
+                    <p className="text-purple-100 font-semibold text-sm mb-1">الرصيد الحالي</p>
                     <p className="text-2xl font-bold text-white">{summary.currentBalance.toFixed(0)} ر.س</p>
                   </div>
                   <Building2 className="w-12 h-12 text-purple-400 opacity-50" />
@@ -437,3 +437,5 @@ export default function BankReport() {
     </div>
   );
 }
+
+

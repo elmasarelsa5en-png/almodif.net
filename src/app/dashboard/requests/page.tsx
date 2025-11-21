@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -48,18 +48,18 @@ export default function RequestsPage() {
   const { t } = useLanguage();
   
   const STATUS_CONFIG = {
-    pending: { label: t('statusPending'), color: 'bg-yellow-500/20 text-yellow-300', icon: '⏳' },
-    'in-progress': { label: t('statusInProgress'), color: 'bg-blue-500/20 text-blue-300', icon: '⚙️' },
-    approved: { label: t('statusApproved'), color: 'bg-green-500/20 text-green-300', icon: '✅' },
-    completed: { label: t('statusCompleted'), color: 'bg-green-500/20 text-green-300', icon: '✅' },
-    rejected: { label: t('statusRejected'), color: 'bg-red-500/20 text-red-300', icon: '❌' },
-    'awaiting_employee_approval': { label: t('statusAwaitingEmployeeApproval'), color: 'bg-purple-500/20 text-purple-300', icon: '⏱️' },
+    pending: { label: t('statusPending'), color: 'bg-yellow-500 text-white font-bold', icon: '⏳' },
+    'in-progress': { label: t('statusInProgress'), color: 'bg-blue-600 text-white font-bold', icon: '⚙️' },
+    approved: { label: t('statusApproved'), color: 'bg-green-600 text-white font-bold', icon: '✅' },
+    completed: { label: t('statusCompleted'), color: 'bg-green-600 text-white font-bold', icon: '✅' },
+    rejected: { label: t('statusRejected'), color: 'bg-red-600 text-white font-bold', icon: '❌' },
+    'awaiting_employee_approval': { label: t('statusAwaitingEmployeeApproval'), color: 'bg-purple-600 text-white font-bold', icon: '⏱️' },
   } as const;
 
   const PRIORITY_CONFIG = {
-    low: { label: t('priorityLow'), color: 'text-blue-400' },
-    medium: { label: t('priorityMedium'), color: 'text-yellow-400' },
-    high: { label: t('priorityHigh'), color: 'text-red-400' },
+    low: { label: t('priorityLow'), color: 'bg-blue-500 text-white border-blue-600' },
+    medium: { label: t('priorityMedium'), color: 'bg-yellow-500 text-white border-yellow-600' },
+    high: { label: t('priorityHigh'), color: 'bg-red-500 text-white border-red-600' },
   };
   
   const [requests, setRequests] = useState<GuestRequest[]>([]);
@@ -937,3 +937,4 @@ export default function RequestsPage() {
     </ProtectedRoute>
   );
 }
+

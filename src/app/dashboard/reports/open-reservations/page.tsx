@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
@@ -151,7 +151,7 @@ export default function OpenReservationsReport() {
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
-              <Button onClick={() => router.back()} variant="ghost" size="sm" className="text-orange-300 hover:bg-orange-500/20">
+              <Button onClick={() => router.back()} variant="ghost" size="sm" className="text-orange-100 font-semibold hover:bg-orange-500/20">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>
@@ -163,15 +163,15 @@ export default function OpenReservationsReport() {
             </div>
 
             <div className="flex gap-2 print:hidden">
-              <Button onClick={handleExport} variant="outline" className="bg-green-500/20 border-green-400/30 text-green-300 hover:bg-green-500/30">
+              <Button onClick={handleExport} variant="outline" className="bg-green-600 border-green-700 text-white font-bold shadow-lg hover:bg-green-500/30">
                 <Download className="w-4 h-4 ml-2" />
                 تصدير
               </Button>
-              <Button onClick={handlePrint} variant="outline" className="bg-blue-500/20 border-blue-400/30 text-blue-300 hover:bg-blue-500/30">
+              <Button onClick={handlePrint} variant="outline" className="bg-blue-600 border-blue-700 text-white font-bold shadow-lg hover:bg-blue-500/30">
                 <Printer className="w-4 h-4 ml-2" />
                 طباعة
               </Button>
-              <Button onClick={loadOpenBookings} variant="outline" className="bg-purple-500/20 border-purple-400/30 text-purple-300 hover:bg-purple-500/30">
+              <Button onClick={loadOpenBookings} variant="outline" className="bg-purple-500/20 border-purple-400/30 text-purple-100 font-semibold hover:bg-purple-500/30">
                 <Clock className="w-4 h-4 ml-2" />
                 تحديث
               </Button>
@@ -186,7 +186,7 @@ export default function OpenReservationsReport() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-blue-300 text-sm mb-1">ضيوف حاليون</p>
+                    <p className="text-blue-100 font-semibold text-sm mb-1">ضيوف حاليون</p>
                     <p className="text-3xl font-bold text-white">{summary.currentGuests}</p>
                   </div>
                   <Users className="w-12 h-12 text-blue-400 opacity-50" />
@@ -200,7 +200,7 @@ export default function OpenReservationsReport() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-amber-300 text-sm mb-1">حجوزات قادمة</p>
+                    <p className="text-amber-100 font-semibold text-sm mb-1">حجوزات قادمة</p>
                     <p className="text-3xl font-bold text-white">{summary.upcomingGuests}</p>
                   </div>
                   <Calendar className="w-12 h-12 text-amber-400 opacity-50" />
@@ -214,7 +214,7 @@ export default function OpenReservationsReport() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-green-300 text-sm mb-1">إجمالي الحجوزات</p>
+                    <p className="text-green-100 font-semibold text-sm mb-1">إجمالي الحجوزات</p>
                     <p className="text-3xl font-bold text-white">{summary.totalBookings}</p>
                   </div>
                   <Lock className="w-12 h-12 text-green-400 opacity-50" />
@@ -293,7 +293,7 @@ export default function OpenReservationsReport() {
                             </div>
                           </td>
                           <td className="p-3 text-center">
-                            <span className="px-3 py-1 rounded bg-blue-500/20 text-blue-300 font-bold">
+                            <span className="px-3 py-1 rounded bg-blue-500/20 text-blue-100 font-semibold font-bold">
                               {booking.roomNumber}
                             </span>
                           </td>
@@ -307,7 +307,7 @@ export default function OpenReservationsReport() {
                           <td className="p-3 text-center">
                             <span className={`px-2 py-1 rounded text-xs font-semibold ${
                               booking.status === 'current' 
-                                ? 'bg-green-500/20 text-green-300'
+                                ? 'bg-green-500/20 text-green-100 font-semibold'
                                 : 'bg-amber-500/20 text-amber-300'
                             }`}>
                               {booking.status === 'current' ? 'حالي' : 'قادم'}
@@ -326,3 +326,5 @@ export default function OpenReservationsReport() {
     </div>
   );
 }
+
+

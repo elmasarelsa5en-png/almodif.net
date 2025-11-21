@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
@@ -136,7 +136,7 @@ export default function RoomStatusByTypeReport() {
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
-              <Button onClick={() => router.back()} variant="ghost" size="sm" className="text-orange-300 hover:bg-orange-500/20">
+              <Button onClick={() => router.back()} variant="ghost" size="sm" className="text-orange-100 font-semibold hover:bg-orange-500/20">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>
@@ -148,15 +148,15 @@ export default function RoomStatusByTypeReport() {
             </div>
 
             <div className="flex gap-2 print:hidden">
-              <Button onClick={handleExport} variant="outline" className="bg-green-500/20 border-green-400/30 text-green-300 hover:bg-green-500/30">
+              <Button onClick={handleExport} variant="outline" className="bg-green-600 border-green-700 text-white font-bold shadow-lg hover:bg-green-500/30">
                 <Download className="w-4 h-4 ml-2" />
                 تصدير
               </Button>
-              <Button onClick={handlePrint} variant="outline" className="bg-blue-500/20 border-blue-400/30 text-blue-300 hover:bg-blue-500/30">
+              <Button onClick={handlePrint} variant="outline" className="bg-blue-600 border-blue-700 text-white font-bold shadow-lg hover:bg-blue-500/30">
                 <Printer className="w-4 h-4 ml-2" />
                 طباعة
               </Button>
-              <Button onClick={loadRoomStatus} variant="outline" className="bg-purple-500/20 border-purple-400/30 text-purple-300 hover:bg-purple-500/30">
+              <Button onClick={loadRoomStatus} variant="outline" className="bg-purple-500/20 border-purple-400/30 text-purple-100 font-semibold hover:bg-purple-500/30">
                 <RefreshCw className="w-4 h-4 ml-2" />
                 تحديث
               </Button>
@@ -185,7 +185,7 @@ export default function RoomStatusByTypeReport() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-green-300 text-sm mb-1">غرف متاحة</p>
+                    <p className="text-green-100 font-semibold text-sm mb-1">غرف متاحة</p>
                     <p className="text-3xl font-bold text-white">{summary.availableRooms}</p>
                   </div>
                   <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center">
@@ -201,7 +201,7 @@ export default function RoomStatusByTypeReport() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-red-300 text-sm mb-1">غرف مشغولة</p>
+                    <p className="text-red-100 font-semibold text-sm mb-1">غرف مشغولة</p>
                     <p className="text-3xl font-bold text-white">{summary.occupiedRooms}</p>
                   </div>
                   <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center">
@@ -217,7 +217,7 @@ export default function RoomStatusByTypeReport() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-amber-300 text-sm mb-1">قيد الصيانة</p>
+                    <p className="text-amber-100 font-semibold text-sm mb-1">قيد الصيانة</p>
                     <p className="text-3xl font-bold text-white">{summary.maintenanceRooms}</p>
                   </div>
                   <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center">
@@ -359,12 +359,12 @@ export default function RoomStatusByTypeReport() {
                           <tr key={index} className="border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors">
                             <td className="p-3 font-semibold">{status.type}</td>
                             <td className="p-3 text-center">
-                              <span className="px-3 py-1 rounded bg-green-500/20 text-green-300 font-bold">
+                              <span className="px-3 py-1 rounded bg-green-500/20 text-green-100 font-semibold font-bold">
                                 {status.available}
                               </span>
                             </td>
                             <td className="p-3 text-center">
-                              <span className="px-3 py-1 rounded bg-red-500/20 text-red-300 font-bold">
+                              <span className="px-3 py-1 rounded bg-red-500/20 text-red-100 font-semibold font-bold">
                                 {status.occupied}
                               </span>
                             </td>
@@ -377,10 +377,10 @@ export default function RoomStatusByTypeReport() {
                             <td className="p-3 text-center">
                               <span className={`px-2 py-1 rounded text-sm font-semibold ${
                                 occupancyRate >= 80 
-                                  ? 'bg-red-500/20 text-red-300'
+                                  ? 'bg-red-500/20 text-red-100 font-semibold'
                                   : occupancyRate >= 60
-                                  ? 'bg-yellow-500/20 text-yellow-300'
-                                  : 'bg-green-500/20 text-green-300'
+                                  ? 'bg-yellow-500/20 text-yellow-100 font-semibold'
+                                  : 'bg-green-500/20 text-green-100 font-semibold'
                               }`}>
                                 {occupancyRate.toFixed(1)}%
                               </span>
@@ -399,3 +399,5 @@ export default function RoomStatusByTypeReport() {
     </div>
   );
 }
+
+
