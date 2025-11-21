@@ -196,6 +196,10 @@ export default function RequestsPage() {
     
     let filtered = requests;
 
+    // إخفاء الطلبات المكتملة تلقائياً (لأنها انتقلت للأرشيف)
+    // ملاحظة: الطلبات المكتملة يتم حذفها من Firebase مباشرة، لكن هذا احتياط إضافي
+    filtered = filtered.filter((r) => r.status !== 'completed');
+
     if (statusFilter !== 'all') {
       filtered = filtered.filter((r) => r.status === statusFilter);
     }
@@ -241,7 +245,7 @@ export default function RequestsPage() {
       const request = requests.find(r => r.id === id);
       if (!request) return;
 
-      // إذا كان الطلب مكتمل، نضيف المبلغ للغرفة ونحذف الطلب
+      // إذا كان الطلب مكتمل، نضيف المبلغ للغرفة ونحفظه في التقارير ونحذفه من الطلبات
       if (newStatus === 'completed') {
         // جلب الطلب من guest_orders للحصول على المبلغ
         const guestOrders = JSON.parse(localStorage.getItem('guest_orders') || '[]');
@@ -251,8 +255,24 @@ export default function RequestsPage() {
         );
 
         const orderAmount = matchingOrder?.total || 0;
+        const completedAt = new Date().toISOString();
 
-        // تحديث بيانات الغرفة في Firebase
+        // 1. حفظ الطلب المكتمل في مجموعة completed_requests للتقارير
+        const { db } = await import('@/lib/firebase');
+        const { collection, addDoc } = await import('firebase/firestore');
+        
+        const completedRequest = {
+          ...request,
+          status: 'completed',
+          completedAt: completedAt,
+          completedBy: user?.name || user?.email || 'الإدارة',
+          amount: orderAmount,
+          archivedAt: completedAt
+        };
+        
+        await addDoc(collection(db, 'completed_requests'), completedRequest);
+
+        // 2. تحديث بيانات الغرفة في Firebase
         const { getRoomsFromFirebase, saveRoomToFirebase } = await import('@/lib/firebase-sync');
         const rooms = await getRoomsFromFirebase();
         const room = rooms.find((r: any) => r.number === request.room);
@@ -261,13 +281,21 @@ export default function RequestsPage() {
           // إضافة المبلغ للرصيد
           room.balance = (room.balance || 0) + orderAmount;
           
-          // إضافة حدث في السجل
+          // إضافة حدث في السجل (سيظهر في صفحة النزيل)
           const newEvent = {
             id: Date.now().toString(),
             type: 'service_request' as const,
-            description: `طلب مكتمل: ${request.type}${orderAmount > 0 ? ` - المبلغ: ${orderAmount} ر.س` : ''}`,
-            timestamp: new Date().toISOString(),
-            user: 'النظام',
+            description: `✅ طلب مكتمل: ${request.type}${orderAmount > 0 ? ` - المبلغ: ${orderAmount} ر.س` : ''}`,
+            timestamp: completedAt,
+            user: user?.name || user?.email || 'النظام',
+            details: {
+              requestType: request.type,
+              amount: orderAmount,
+              guest: request.guest,
+              description: request.description || '',
+              priority: request.priority || 'medium',
+              completedBy: user?.name || user?.email || 'الإدارة'
+            },
             newValue: `رصيد جديد: ${room.balance} ر.س`,
             oldValue: `رصيد سابق: ${(room.balance || 0) - orderAmount} ر.س`
           };
@@ -276,17 +304,19 @@ export default function RequestsPage() {
             room.events = [];
           }
           room.events.push(newEvent);
-          room.lastUpdated = new Date().toISOString();
+          room.lastUpdated = completedAt;
           
           // حفظ التحديثات في Firebase
           await saveRoomToFirebase(room);
         }
 
-        // حذف الطلب من Firebase
+        // 3. حذف الطلب من قائمة الطلبات النشطة
         await deleteRequestFromFirebase(id);
+        
+        // إشعار نجاح
         const successMsg = orderAmount > 0 
-          ? `${t('requestCompletedSuccess')}\n${t('amountAddedToRoom', { amount: orderAmount, roomNumber: request.room })}`
-          : t('requestCompletedSuccess');
+          ? `✅ تم إكمال الطلب بنجاح!\n📊 تم إضافة ${orderAmount} ر.س للغرفة ${request.room}\n📝 تم تسجيل الطلب في سجل النزيل والتقارير`
+          : `✅ تم إكمال الطلب بنجاح!\n📝 تم تسجيل الطلب في سجل النزيل والتقارير`;
         alert(successMsg);
       } else {
         // تحديث الحالة فقط للحالات الأخرى
@@ -558,15 +588,21 @@ export default function RequestsPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-green-600 to-emerald-700 backdrop-blur-md border-green-400 shadow-2xl hover:scale-105 transition-transform">
+            <Card className="bg-gradient-to-br from-teal-600 to-cyan-700 backdrop-blur-md border-teal-400 shadow-2xl hover:scale-105 transition-transform">
               <CardContent className="p-3 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white text-xs md:text-sm font-bold mb-1">مكتمل</p>
-                    <p className="text-3xl md:text-4xl font-black text-white">{stats.completed}</p>
+                    <p className="text-white text-xs md:text-sm font-bold mb-1">طلبات اليوم</p>
+                    <p className="text-3xl md:text-4xl font-black text-white">
+                      {requests.filter(r => {
+                        const today = new Date().toDateString();
+                        const reqDate = new Date(r.createdAt).toDateString();
+                        return today === reqDate;
+                      }).length}
+                    </p>
                   </div>
                   <div className="bg-white/20 p-3 rounded-xl">
-                    <CheckCircle className="w-6 h-6 md:w-8 md:h-8 text-white" />
+                    <Calendar className="w-6 h-6 md:w-8 md:h-8 text-white" />
                   </div>
                 </div>
               </CardContent>
@@ -687,7 +723,6 @@ export default function RequestsPage() {
                     <option value="all" className="bg-slate-900">الكل ({stats.total})</option>
                     <option value="awaiting_employee_approval" className="bg-slate-900">🔔 بانتظار الموافقة ({stats.awaitingApproval})</option>
                     <option value="in-progress" className="bg-slate-900">⚙️ قيد التنفيذ ({stats.inProgress})</option>
-                    <option value="completed" className="bg-slate-900">✅ مكتمل ({stats.completed})</option>
                     <option value="rejected" className="bg-slate-900">❌ مرفوض ({stats.rejected})</option>
                   </select>
                 </div>
