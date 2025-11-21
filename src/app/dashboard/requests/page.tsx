@@ -23,6 +23,8 @@ import {
   Star,
   UserCheck,
   Check,
+  ArrowUpDown,
+  TrendingUp,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -73,6 +75,8 @@ export default function RequestsPage() {
   const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
   const [selectedRequestForRating, setSelectedRequestForRating] = useState<GuestRequest | null>(null);
   const [acceptingRequestId, setAcceptingRequestId] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<'date' | 'priority' | 'status'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   // ✨ وظيفة حساب الوقت منذ إنشاء الطلب
   const getTimeAgo = (dateString: string) => {
@@ -210,8 +214,27 @@ export default function RequestsPage() {
       );
     }
 
+    // ترتيب النتائج
+    const priorityOrder = { high: 3, medium: 2, low: 1 };
+    filtered.sort((a, b) => {
+      if (sortBy === 'date') {
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+      } else if (sortBy === 'priority') {
+        const priorityA = priorityOrder[a.priority || 'medium'];
+        const priorityB = priorityOrder[b.priority || 'medium'];
+        return sortOrder === 'asc' ? priorityA - priorityB : priorityB - priorityA;
+      } else if (sortBy === 'status') {
+        return sortOrder === 'asc' 
+          ? a.status.localeCompare(b.status)
+          : b.status.localeCompare(a.status);
+      }
+      return 0;
+    });
+
     setFilteredRequests(filtered);
-  }, [requests, statusFilter, priorityFilter, searchTerm]);
+  }, [requests, statusFilter, priorityFilter, searchTerm, sortBy, sortOrder]);
 
   const updateRequestStatus = async (id: string, newStatus: GuestRequest['status']) => {
     try {
@@ -357,7 +380,9 @@ export default function RequestsPage() {
     pending: requests.filter((r) => r.status === 'awaiting_employee_approval').length,
     inProgress: requests.filter((r) => r.status === 'in-progress').length,
     completed: requests.filter((r) => r.status === 'completed').length,
+    rejected: requests.filter((r) => r.status === 'rejected').length,
     awaitingApproval: requests.filter((r) => r.status === 'awaiting_employee_approval').length,
+    highPriority: requests.filter((r) => r.priority === 'high').length,
     total: requests.length,
   });
 
@@ -399,12 +424,25 @@ export default function RequestsPage() {
 
   return (
     <ProtectedRoute>
+      <style jsx global>{`
+        @keyframes pulse-slow {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.8; }
+        }
+        .animate-pulse-slow {
+          animation: pulse-slow 3s ease-in-out infinite;
+        }
+        .hover\:shadow-3xl:hover {
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+      `}</style>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900 p-3 md:p-6 relative overflow-hidden" dir="rtl">
-        {/* خلفية تزيينية */}
+        {/* خلفية تزيينية محسّنة */}
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-20 w-32 h-32 bg-purple-500/20 rounded-full blur-xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-20 w-40 h-40 bg-indigo-500/20 rounded-full blur-2xl animate-pulse delay-1000"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-pink-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
+          <div className="absolute top-20 left-20 w-32 h-32 bg-purple-500/30 rounded-full blur-xl animate-pulse"></div>
+          <div className="absolute bottom-20 right-20 w-40 h-40 bg-indigo-500/30 rounded-full blur-2xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-pink-500/20 rounded-full blur-3xl animate-pulse delay-2000"></div>
+          <div className="absolute top-40 right-1/4 w-24 h-24 bg-cyan-500/20 rounded-full blur-xl animate-pulse delay-500"></div>
         </div>
 
         <div className="relative z-10 space-y-4 md:space-y-6">
@@ -469,60 +507,151 @@ export default function RequestsPage() {
             </div>
           </div>
 
-          {/* Stats Cards - مبسطة على الموبايل */}
-          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
-            <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-2xl">
+          {/* Stats Cards - محسّنة */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+            <Card className="bg-gradient-to-br from-purple-500/20 to-indigo-500/20 backdrop-blur-md border-purple-400/30 shadow-2xl hover:scale-105 transition-transform">
               <CardContent className="p-3 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white/70 text-xs md:text-sm">{t('totalRequests')}</p>
+                    <p className="text-white/80 text-xs md:text-sm font-semibold">إجمالي الطلبات</p>
                     <p className="text-2xl md:text-3xl font-bold text-white">{stats.total}</p>
                   </div>
-                  <Inbox className="w-6 h-6 md:w-8 md:h-8 text-purple-400" />
+                  <div className="bg-purple-500/30 p-2 rounded-lg">
+                    <Inbox className="w-5 h-5 md:w-6 md:h-6 text-purple-200" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* ✨ كارد جديد: بانتظار الموافقة */}
-            <Card className={`bg-white/10 backdrop-blur-md border-white/20 shadow-2xl ${stats.awaitingApproval > 0 ? 'ring-2 ring-purple-500/50 animate-pulse' : ''}`}>
+            <Card className={`bg-gradient-to-br from-yellow-500/20 to-amber-500/20 backdrop-blur-md border-yellow-400/30 shadow-2xl hover:scale-105 transition-transform ${stats.awaitingApproval > 0 ? 'ring-2 ring-yellow-500/50 animate-pulse' : ''}`}>
               <CardContent className="p-3 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white/70 text-xs md:text-sm">بانتظار الموافقة</p>
-                    <p className="text-2xl md:text-3xl font-bold text-purple-300">{stats.awaitingApproval}</p>
+                    <p className="text-white/80 text-xs md:text-sm font-semibold">بانتظار الموافقة</p>
+                    <p className="text-2xl md:text-3xl font-bold text-white">{stats.awaitingApproval}</p>
                   </div>
-                  <UserCheck className="w-6 h-6 md:w-8 md:h-8 text-purple-400" />
+                  <div className="bg-yellow-500/30 p-2 rounded-lg">
+                    <UserCheck className="w-5 h-5 md:w-6 md:h-6 text-yellow-200" />
+                  </div>
                 </div>
                 {stats.awaitingApproval > 0 && (
-                  <div className="mt-2 hidden md:block">
-                    <Badge className="bg-purple-500/30 text-purple-200 text-xs">
-                      🔔 طلبات جديدة
+                  <div className="mt-2">
+                    <Badge className="bg-yellow-600 text-white text-xs font-bold shadow-lg">
+                      🔔 جديد
                     </Badge>
                   </div>
                 )}
               </CardContent>
             </Card>
 
-            <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-2xl">
+            <Card className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 backdrop-blur-md border-blue-400/30 shadow-2xl hover:scale-105 transition-transform">
               <CardContent className="p-3 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white/70 text-xs md:text-sm">{t('inProgressRequests')}</p>
-                    <p className="text-2xl md:text-3xl font-bold text-blue-300">{stats.inProgress}</p>
+                    <p className="text-white/80 text-xs md:text-sm font-semibold">قيد التنفيذ</p>
+                    <p className="text-2xl md:text-3xl font-bold text-white">{stats.inProgress}</p>
                   </div>
-                  <AlertCircle className="w-6 h-6 md:w-8 md:h-8 text-blue-400" />
+                  <div className="bg-blue-500/30 p-2 rounded-lg">
+                    <Clock className="w-5 h-5 md:w-6 md:h-6 text-blue-200" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-2xl">
+            <Card className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-md border-green-400/30 shadow-2xl hover:scale-105 transition-transform">
               <CardContent className="p-3 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white/70 text-xs md:text-sm">{t('completedRequests')}</p>
-                    <p className="text-2xl md:text-3xl font-bold text-green-300">{stats.completed}</p>
+                    <p className="text-white/80 text-xs md:text-sm font-semibold">مكتمل</p>
+                    <p className="text-2xl md:text-3xl font-bold text-white">{stats.completed}</p>
                   </div>
-                  <CheckCircle className="w-6 h-6 md:w-8 md:h-8 text-green-400" />
+                  <div className="bg-green-500/30 p-2 rounded-lg">
+                    <CheckCircle className="w-5 h-5 md:w-6 md:h-6 text-green-200" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-red-500/20 to-rose-500/20 backdrop-blur-md border-red-400/30 shadow-2xl hover:scale-105 transition-transform">
+              <CardContent className="p-3 md:p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-white/80 text-xs md:text-sm font-semibold">مرفوض</p>
+                    <p className="text-2xl md:text-3xl font-bold text-white">{stats.rejected}</p>
+                  </div>
+                  <div className="bg-red-500/30 p-2 rounded-lg">
+                    <AlertCircle className="w-5 h-5 md:w-6 md:h-6 text-red-200" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className={`bg-gradient-to-br from-orange-500/20 to-red-500/20 backdrop-blur-md border-orange-400/30 shadow-2xl hover:scale-105 transition-transform ${stats.highPriority > 0 ? 'ring-2 ring-orange-500/50' : ''}`}>
+              <CardContent className="p-3 md:p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-white/80 text-xs md:text-sm font-semibold">أولوية عالية</p>
+                    <p className="text-2xl md:text-3xl font-bold text-white">{stats.highPriority}</p>
+                  </div>
+                  <div className="bg-orange-500/30 p-2 rounded-lg">
+                    <AlertCircle className="w-5 h-5 md:w-6 md:h-6 text-orange-200" />
+                  </div>
+                </div>
+                {stats.highPriority > 0 && (
+                  <div className="mt-2">
+                    <Badge className="bg-orange-600 text-white text-xs font-bold shadow-lg">
+                      ⚠️ عاجل
+                    </Badge>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Quick Actions & Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-xl hover:shadow-2xl transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="bg-blue-500/20 p-3 rounded-xl">
+                    <TrendingUp className="w-6 h-6 text-blue-300" />
+                  </div>
+                  <div>
+                    <p className="text-white/70 text-xs">معدل الإنجاز</p>
+                    <p className="text-xl font-bold text-white">
+                      {stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0}%
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-xl hover:shadow-2xl transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="bg-green-500/20 p-3 rounded-xl">
+                    <CheckCircle className="w-6 h-6 text-green-300" />
+                  </div>
+                  <div>
+                    <p className="text-white/70 text-xs">قيد المعالجة</p>
+                    <p className="text-xl font-bold text-white">
+                      {stats.awaitingApproval + stats.inProgress} طلب
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-xl hover:shadow-2xl transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="bg-purple-500/20 p-3 rounded-xl">
+                    <Clock className="w-6 h-6 text-purple-300" />
+                  </div>
+                  <div>
+                    <p className="text-white/70 text-xs">متوسط وقت الاستجابة</p>
+                    <p className="text-xl font-bold text-white">~15 دقيقة</p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -533,47 +662,80 @@ export default function RequestsPage() {
             <RegistrationRequestsSection />
           </div>
 
-          {/* Search and Filter - مبسط على الموبايل */}
+          {/* Search and Filter - محسّن */}
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 md:p-6 shadow-2xl border border-white/20">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-              <div className="relative">
-                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 w-4 h-4 md:w-5 md:h-5" />
-                <Input
-                  placeholder={t('searchRequests')}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="bg-white/10 border-white/20 text-white placeholder:text-white/50 pr-9 md:pr-10 text-sm md:text-base"
-                />
+            <div className="space-y-3 md:space-y-4">
+              {/* الصف الأول: البحث والفلاتر */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+                <div className="relative">
+                  <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 w-4 h-4 md:w-5 md:h-5" />
+                  <Input
+                    placeholder={t('searchRequests')}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50 pr-9 md:pr-10 text-sm md:text-base"
+                  />
+                </div>
+
+                <div className="relative">
+                  <Filter className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 w-4 h-4 md:w-5 md:h-5" />
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="w-full bg-white/10 border border-white/20 text-white pr-9 md:pr-10 pl-3 md:pl-4 py-2 rounded-lg appearance-none cursor-pointer text-sm md:text-base"
+                  >
+                    <option value="all" className="bg-slate-900">الكل ({stats.total})</option>
+                    <option value="awaiting_employee_approval" className="bg-slate-900">🔔 بانتظار الموافقة ({stats.awaitingApproval})</option>
+                    <option value="in-progress" className="bg-slate-900">⚙️ قيد التنفيذ ({stats.inProgress})</option>
+                    <option value="completed" className="bg-slate-900">✅ مكتمل ({stats.completed})</option>
+                    <option value="rejected" className="bg-slate-900">❌ مرفوض ({stats.rejected})</option>
+                  </select>
+                </div>
+
+                <div className="relative">
+                  <AlertCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 w-4 h-4 md:w-5 md:h-5" />
+                  <select
+                    value={priorityFilter}
+                    onChange={(e) => setPriorityFilter(e.target.value)}
+                    className="w-full bg-white/10 border border-white/20 text-white pr-9 md:pr-10 pl-3 md:pl-4 py-2 rounded-lg appearance-none cursor-pointer text-sm md:text-base"
+                  >
+                    <option value="all" className="bg-slate-900">كل الأولويات</option>
+                    <option value="high" className="bg-slate-900">⚠️ عالية ({stats.highPriority})</option>
+                    <option value="medium" className="bg-slate-900">⚡ متوسطة</option>
+                    <option value="low" className="bg-slate-900">🔵 منخفضة</option>
+                  </select>
+                </div>
               </div>
 
-              <div className="relative">
-                <Filter className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 w-4 h-4 md:w-5 md:h-5" />
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full bg-white/10 border border-white/20 text-white pr-9 md:pr-10 pl-3 md:pl-4 py-2 rounded-lg appearance-none cursor-pointer text-sm md:text-base"
-                >
-                  <option value="all" className="bg-slate-900">الكل</option>
-                  <option value="awaiting_employee_approval" className="bg-slate-900">بانتظار الموافقة</option>
-                  <option value="in-progress" className="bg-slate-900">قيد التنفيذ</option>
-                  <option value="completed" className="bg-slate-900">مكتمل</option>
-                  <option value="rejected" className="bg-slate-900">مرفوض</option>
-                </select>
-              </div>
+              {/* الصف الثاني: الترتيب والإحصائيات السريعة */}
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-white/70 text-sm">ترتيب حسب:</span>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as 'date' | 'priority' | 'status')}
+                    className="bg-white/10 border border-white/20 text-white px-3 py-1.5 rounded-lg text-sm"
+                  >
+                    <option value="date" className="bg-slate-900">📅 التاريخ</option>
+                    <option value="priority" className="bg-slate-900">⚡ الأولوية</option>
+                    <option value="status" className="bg-slate-900">📊 الحالة</option>
+                  </select>
+                  <Button
+                    onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                    variant="outline"
+                    size="sm"
+                    className="border-white/20 bg-white/10 text-white hover:bg-white/20"
+                  >
+                    {sortOrder === 'asc' ? '🔼' : '🔽'}
+                  </Button>
+                </div>
 
-              {/* ✨ فلتر الأولوية - مخفي على الموبايل الصغير */}
-              <div className="relative hidden sm:block">
-                <AlertCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 w-4 h-4 md:w-5 md:h-5" />
-                <select
-                  value={priorityFilter}
-                  onChange={(e) => setPriorityFilter(e.target.value)}
-                  className="w-full bg-white/10 border border-white/20 text-white pr-9 md:pr-10 pl-3 md:pl-4 py-2 rounded-lg appearance-none cursor-pointer text-sm md:text-base"
-                >
-                  <option value="all" className="bg-slate-900">كل الأولويات</option>
-                  <option value="high" className="bg-slate-900">⚠️ عالية</option>
-                  <option value="medium" className="bg-slate-900">⚡ متوسطة</option>
-                  <option value="low" className="bg-slate-900">🔵 منخفضة</option>
-                </select>
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-white/70">عرض:</span>
+                  <Badge className="bg-blue-600 text-white font-bold border-blue-700">
+                    {filteredRequests.length} من {stats.total} طلب
+                  </Badge>
+                </div>
               </div>
             </div>
           </div>
@@ -601,16 +763,16 @@ export default function RequestsPage() {
               filteredRequests.map((request) => (
                 <Card
                   key={request.id}
-                  className={`bg-white/10 backdrop-blur-md border-white/20 shadow-2xl hover:bg-white/15 transition-all duration-300 ${
+                  className={`bg-white/10 backdrop-blur-md border-white/20 shadow-2xl hover:bg-white/15 hover:shadow-3xl transition-all duration-300 group ${
                     request.status === 'awaiting_employee_approval' && !request.assignedEmployee 
-                      ? 'ring-2 ring-purple-500/50 ring-offset-2 ring-offset-gray-900' 
+                      ? 'ring-2 ring-purple-500/50 ring-offset-2 ring-offset-gray-900 animate-pulse-slow' 
                       : ''
                   } ${
                     request.priority === 'high' 
-                      ? 'border-r-4 border-red-500' 
+                      ? 'border-r-4 border-red-500 shadow-red-500/20' 
                       : request.priority === 'medium' 
-                        ? 'border-r-4 border-yellow-500' 
-                        : ''
+                        ? 'border-r-4 border-yellow-500 shadow-yellow-500/20' 
+                        : 'border-r-4 border-blue-500/30'
                   }`}
                 >
                   <div className="p-4 md:p-6">
