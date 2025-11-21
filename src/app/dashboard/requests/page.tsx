@@ -507,36 +507,36 @@ export default function RequestsPage() {
             </div>
           </div>
 
-          {/* Stats Cards - محسّنة */}
+          {/* Stats Cards - ألوان واضحة */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
-            <Card className="bg-gradient-to-br from-purple-500/20 to-indigo-500/20 backdrop-blur-md border-purple-400/30 shadow-2xl hover:scale-105 transition-transform">
+            <Card className="bg-gradient-to-br from-purple-600 to-indigo-700 backdrop-blur-md border-purple-400 shadow-2xl hover:scale-105 transition-transform">
               <CardContent className="p-3 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white/80 text-xs md:text-sm font-semibold">إجمالي الطلبات</p>
-                    <p className="text-2xl md:text-3xl font-bold text-white">{stats.total}</p>
+                    <p className="text-white text-xs md:text-sm font-bold mb-1">إجمالي الطلبات</p>
+                    <p className="text-3xl md:text-4xl font-black text-white">{stats.total}</p>
                   </div>
-                  <div className="bg-purple-500/30 p-2 rounded-lg">
-                    <Inbox className="w-5 h-5 md:w-6 md:h-6 text-purple-200" />
+                  <div className="bg-white/20 p-3 rounded-xl">
+                    <Inbox className="w-6 h-6 md:w-8 md:h-8 text-white" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className={`bg-gradient-to-br from-yellow-500/20 to-amber-500/20 backdrop-blur-md border-yellow-400/30 shadow-2xl hover:scale-105 transition-transform ${stats.awaitingApproval > 0 ? 'ring-2 ring-yellow-500/50 animate-pulse' : ''}`}>
+            <Card className={`bg-gradient-to-br from-yellow-500 to-amber-600 backdrop-blur-md border-yellow-400 shadow-2xl hover:scale-105 transition-transform ${stats.awaitingApproval > 0 ? 'ring-4 ring-yellow-300 animate-pulse' : ''}`}>
               <CardContent className="p-3 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white/80 text-xs md:text-sm font-semibold">بانتظار الموافقة</p>
-                    <p className="text-2xl md:text-3xl font-bold text-white">{stats.awaitingApproval}</p>
+                    <p className="text-white text-xs md:text-sm font-bold mb-1">بانتظار الموافقة</p>
+                    <p className="text-3xl md:text-4xl font-black text-white">{stats.awaitingApproval}</p>
                   </div>
-                  <div className="bg-yellow-500/30 p-2 rounded-lg">
-                    <UserCheck className="w-5 h-5 md:w-6 md:h-6 text-yellow-200" />
+                  <div className="bg-white/20 p-3 rounded-xl">
+                    <UserCheck className="w-6 h-6 md:w-8 md:h-8 text-white" />
                   </div>
                 </div>
                 {stats.awaitingApproval > 0 && (
                   <div className="mt-2">
-                    <Badge className="bg-yellow-600 text-white text-xs font-bold shadow-lg">
+                    <Badge className="bg-white text-yellow-900 text-xs font-black shadow-lg px-3 py-1">
                       🔔 جديد
                     </Badge>
                   </div>
@@ -544,62 +544,62 @@ export default function RequestsPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 backdrop-blur-md border-blue-400/30 shadow-2xl hover:scale-105 transition-transform">
+            <Card className="bg-gradient-to-br from-blue-600 to-cyan-700 backdrop-blur-md border-blue-400 shadow-2xl hover:scale-105 transition-transform">
               <CardContent className="p-3 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white/80 text-xs md:text-sm font-semibold">قيد التنفيذ</p>
-                    <p className="text-2xl md:text-3xl font-bold text-white">{stats.inProgress}</p>
+                    <p className="text-white text-xs md:text-sm font-bold mb-1">قيد التنفيذ</p>
+                    <p className="text-3xl md:text-4xl font-black text-white">{stats.inProgress}</p>
                   </div>
-                  <div className="bg-blue-500/30 p-2 rounded-lg">
-                    <Clock className="w-5 h-5 md:w-6 md:h-6 text-blue-200" />
+                  <div className="bg-white/20 p-3 rounded-xl">
+                    <Clock className="w-6 h-6 md:w-8 md:h-8 text-white" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-md border-green-400/30 shadow-2xl hover:scale-105 transition-transform">
+            <Card className="bg-gradient-to-br from-green-600 to-emerald-700 backdrop-blur-md border-green-400 shadow-2xl hover:scale-105 transition-transform">
               <CardContent className="p-3 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white/80 text-xs md:text-sm font-semibold">مكتمل</p>
-                    <p className="text-2xl md:text-3xl font-bold text-white">{stats.completed}</p>
+                    <p className="text-white text-xs md:text-sm font-bold mb-1">مكتمل</p>
+                    <p className="text-3xl md:text-4xl font-black text-white">{stats.completed}</p>
                   </div>
-                  <div className="bg-green-500/30 p-2 rounded-lg">
-                    <CheckCircle className="w-5 h-5 md:w-6 md:h-6 text-green-200" />
+                  <div className="bg-white/20 p-3 rounded-xl">
+                    <CheckCircle className="w-6 h-6 md:w-8 md:h-8 text-white" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-red-500/20 to-rose-500/20 backdrop-blur-md border-red-400/30 shadow-2xl hover:scale-105 transition-transform">
+            <Card className="bg-gradient-to-br from-red-600 to-rose-700 backdrop-blur-md border-red-400 shadow-2xl hover:scale-105 transition-transform">
               <CardContent className="p-3 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white/80 text-xs md:text-sm font-semibold">مرفوض</p>
-                    <p className="text-2xl md:text-3xl font-bold text-white">{stats.rejected}</p>
+                    <p className="text-white text-xs md:text-sm font-bold mb-1">مرفوض</p>
+                    <p className="text-3xl md:text-4xl font-black text-white">{stats.rejected}</p>
                   </div>
-                  <div className="bg-red-500/30 p-2 rounded-lg">
-                    <AlertCircle className="w-5 h-5 md:w-6 md:h-6 text-red-200" />
+                  <div className="bg-white/20 p-3 rounded-xl">
+                    <AlertCircle className="w-6 h-6 md:w-8 md:h-8 text-white" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className={`bg-gradient-to-br from-orange-500/20 to-red-500/20 backdrop-blur-md border-orange-400/30 shadow-2xl hover:scale-105 transition-transform ${stats.highPriority > 0 ? 'ring-2 ring-orange-500/50' : ''}`}>
+            <Card className={`bg-gradient-to-br from-orange-600 to-red-700 backdrop-blur-md border-orange-400 shadow-2xl hover:scale-105 transition-transform ${stats.highPriority > 0 ? 'ring-4 ring-orange-300' : ''}`}>
               <CardContent className="p-3 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white/80 text-xs md:text-sm font-semibold">أولوية عالية</p>
-                    <p className="text-2xl md:text-3xl font-bold text-white">{stats.highPriority}</p>
+                    <p className="text-white text-xs md:text-sm font-bold mb-1">أولوية عالية</p>
+                    <p className="text-3xl md:text-4xl font-black text-white">{stats.highPriority}</p>
                   </div>
-                  <div className="bg-orange-500/30 p-2 rounded-lg">
-                    <AlertCircle className="w-5 h-5 md:w-6 md:h-6 text-orange-200" />
+                  <div className="bg-white/20 p-3 rounded-xl">
+                    <AlertCircle className="w-6 h-6 md:w-8 md:h-8 text-white" />
                   </div>
                 </div>
                 {stats.highPriority > 0 && (
                   <div className="mt-2">
-                    <Badge className="bg-orange-600 text-white text-xs font-bold shadow-lg">
+                    <Badge className="bg-white text-orange-900 text-xs font-black shadow-lg px-3 py-1">
                       ⚠️ عاجل
                     </Badge>
                   </div>
@@ -610,15 +610,15 @@ export default function RequestsPage() {
 
           {/* Quick Actions & Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-            <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-xl hover:shadow-2xl transition-shadow">
+            <Card className="bg-gradient-to-br from-blue-600 to-blue-800 backdrop-blur-md border-blue-400 shadow-xl hover:shadow-2xl transition-all hover:scale-105">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="bg-blue-500/20 p-3 rounded-xl">
-                    <TrendingUp className="w-6 h-6 text-blue-300" />
+                  <div className="bg-white/20 p-3 rounded-xl">
+                    <TrendingUp className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <p className="text-white/70 text-xs">معدل الإنجاز</p>
-                    <p className="text-xl font-bold text-white">
+                    <p className="text-white text-sm font-bold">معدل الإنجاز</p>
+                    <p className="text-2xl font-black text-white">
                       {stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0}%
                     </p>
                   </div>
@@ -626,15 +626,15 @@ export default function RequestsPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-xl hover:shadow-2xl transition-shadow">
+            <Card className="bg-gradient-to-br from-green-600 to-green-800 backdrop-blur-md border-green-400 shadow-xl hover:shadow-2xl transition-all hover:scale-105">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="bg-green-500/20 p-3 rounded-xl">
-                    <CheckCircle className="w-6 h-6 text-green-300" />
+                  <div className="bg-white/20 p-3 rounded-xl">
+                    <CheckCircle className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <p className="text-white/70 text-xs">قيد المعالجة</p>
-                    <p className="text-xl font-bold text-white">
+                    <p className="text-white text-sm font-bold">قيد المعالجة</p>
+                    <p className="text-2xl font-black text-white">
                       {stats.awaitingApproval + stats.inProgress} طلب
                     </p>
                   </div>
@@ -642,15 +642,15 @@ export default function RequestsPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-xl hover:shadow-2xl transition-shadow">
+            <Card className="bg-gradient-to-br from-purple-600 to-purple-800 backdrop-blur-md border-purple-400 shadow-xl hover:shadow-2xl transition-all hover:scale-105">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="bg-purple-500/20 p-3 rounded-xl">
-                    <Clock className="w-6 h-6 text-purple-300" />
+                  <div className="bg-white/20 p-3 rounded-xl">
+                    <Clock className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <p className="text-white/70 text-xs">متوسط وقت الاستجابة</p>
-                    <p className="text-xl font-bold text-white">~15 دقيقة</p>
+                    <p className="text-white text-sm font-bold">متوسط وقت الاستجابة</p>
+                    <p className="text-2xl font-black text-white">~15 دقيقة</p>
                   </div>
                 </div>
               </CardContent>
@@ -710,11 +710,11 @@ export default function RequestsPage() {
               {/* الصف الثاني: الترتيب والإحصائيات السريعة */}
               <div className="flex items-center justify-between flex-wrap gap-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-white/70 text-sm">ترتيب حسب:</span>
+                  <span className="text-white text-sm font-bold">ترتيب حسب:</span>
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as 'date' | 'priority' | 'status')}
-                    className="bg-white/10 border border-white/20 text-white px-3 py-1.5 rounded-lg text-sm"
+                    className="bg-gradient-to-r from-indigo-600 to-purple-600 border-2 border-indigo-400 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-lg"
                   >
                     <option value="date" className="bg-slate-900">📅 التاريخ</option>
                     <option value="priority" className="bg-slate-900">⚡ الأولوية</option>
@@ -722,17 +722,16 @@ export default function RequestsPage() {
                   </select>
                   <Button
                     onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                    variant="outline"
+                    className="bg-gradient-to-r from-blue-600 to-cyan-600 border-2 border-blue-400 text-white hover:from-blue-700 hover:to-cyan-700 font-bold shadow-lg"
                     size="sm"
-                    className="border-white/20 bg-white/10 text-white hover:bg-white/20"
                   >
                     {sortOrder === 'asc' ? '🔼' : '🔽'}
                   </Button>
                 </div>
 
                 <div className="flex items-center gap-2 text-sm">
-                  <span className="text-white/70">عرض:</span>
-                  <Badge className="bg-blue-600 text-white font-bold border-blue-700">
+                  <span className="text-white font-bold">عرض:</span>
+                  <Badge className="bg-gradient-to-r from-cyan-600 to-blue-700 text-white font-black border-2 border-cyan-400 px-4 py-2 text-base shadow-lg">
                     {filteredRequests.length} من {stats.total} طلب
                   </Badge>
                 </div>
@@ -787,36 +786,36 @@ export default function RequestsPage() {
                             <FileText className="w-5 h-5 md:w-6 md:h-6 text-purple-400" />
                           </div>
                           <div className="flex-1">
-                            <div className="flex items-center gap-2 md:gap-3 mb-1 flex-wrap">
-                              <span className="text-lg md:text-xl font-bold text-white">{t('room')} {request.room}</span>
+                            <div className="flex items-center gap-2 md:gap-3 mb-2 flex-wrap">
+                              <span className="text-xl md:text-2xl font-black text-white">{t('room')} {request.room}</span>
                               {request.priority && PRIORITY_CONFIG[request.priority as keyof typeof PRIORITY_CONFIG] && (
-                                <Badge className={`${PRIORITY_CONFIG[request.priority as keyof typeof PRIORITY_CONFIG].color} bg-transparent border text-xs px-1.5 md:px-2 py-0.5`}>
+                                <Badge className={`${PRIORITY_CONFIG[request.priority as keyof typeof PRIORITY_CONFIG].color} font-black text-sm px-3 py-1.5 shadow-lg`}>
                                   {PRIORITY_CONFIG[request.priority as keyof typeof PRIORITY_CONFIG].label}
                                 </Badge>
                               )}
                             </div>
-                            <p className="text-white/90 font-semibold text-sm md:text-base mb-2">{request.type}</p>
+                            <p className="text-white font-bold text-base md:text-lg mb-3">{request.type}</p>
                             
                             {/* ✨ عرض الحالة بشكل بارز */}
-                            <div className="mb-2">
-                              <Badge className={`${STATUS_CONFIG[request.status as keyof typeof STATUS_CONFIG]?.color || 'bg-gray-500/20 text-gray-300'} border-0 px-3 py-1.5 text-sm font-semibold shadow-lg`}>
+                            <div className="mb-3">
+                              <Badge className={`${STATUS_CONFIG[request.status as keyof typeof STATUS_CONFIG]?.color || 'bg-gray-600 text-white'} border-0 px-4 py-2 text-base font-black shadow-xl`}>
                                 {STATUS_CONFIG[request.status as keyof typeof STATUS_CONFIG]?.icon || '📋'} {STATUS_CONFIG[request.status as keyof typeof STATUS_CONFIG]?.label || request.status}
                               </Badge>
                             </div>
 
-                            <div className="flex items-center gap-3 md:gap-4 text-xs md:text-sm text-white/60 flex-wrap">
-                              <span className="flex items-center gap-1">
-                                <User className="w-3 h-3" />
+                            <div className="flex items-center gap-3 md:gap-4 text-sm md:text-base text-white flex-wrap">
+                              <span className="flex items-center gap-2 font-bold">
+                                <User className="w-4 h-4" />
                                 {request.guest}
                               </span>
                               {/* التاريخ - مخفي على الموبايل الصغير */}
-                              <span className="hidden sm:flex items-center gap-1">
-                                <Calendar className="w-3 h-3" />
+                              <span className="hidden sm:flex items-center gap-2 font-semibold">
+                                <Calendar className="w-4 h-4" />
                                 {formatDate(request.createdAt)}
                               </span>
                               {/* ✨ مؤشر الوقت منذ الإنشاء */}
-                              <span className="flex items-center gap-1 text-yellow-400">
-                                <Clock className="w-3 h-3" />
+                              <span className="flex items-center gap-2 text-yellow-300 font-bold">
+                                <Clock className="w-4 h-4" />
                                 {getTimeAgo(request.createdAt)}
                               </span>
                               {/* ✨ زر الاتصال السريع */}
@@ -824,9 +823,9 @@ export default function RequestsPage() {
                                 <a
                                   href={`tel:${request.phone}`}
                                   onClick={(e) => e.stopPropagation()}
-                                  className="flex items-center gap-1 text-green-400 hover:text-green-300 transition-colors"
+                                  className="flex items-center gap-2 bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 transition-colors font-bold shadow-lg"
                                 >
-                                  <Phone className="w-3 h-3" />
+                                  <Phone className="w-4 h-4" />
                                   <span className="hidden sm:inline">اتصال</span>
                                   <span className="sm:hidden">📞</span>
                                 </a>
@@ -875,16 +874,24 @@ export default function RequestsPage() {
                     </div>
 
                     {/* معلومات المرسل والموظف المكلف */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 p-3 bg-white/5 rounded-lg border border-white/10">
-                      <div className="flex items-center gap-2 text-sm">
-                        <User className="w-4 h-4 text-blue-400" />
-                        <span className="text-white/60">{t('requestedBy')}:</span>
-                        <span className="text-white font-semibold">{request.createdBy || user?.name || 'الإدارة'}</span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 p-4 bg-gradient-to-r from-slate-700 to-slate-800 rounded-xl border-2 border-slate-600 shadow-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-blue-600 p-2 rounded-lg">
+                          <User className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <span className="text-blue-300 text-xs font-bold block">{t('requestedBy')}</span>
+                          <span className="text-white font-black text-base">{request.createdBy || user?.name || 'الإدارة'}</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <UserCheck className="w-4 h-4 text-green-400" />
-                        <span className="text-white/60">{t('assignedEmployee')}:</span>
-                        <span className="text-white font-semibold">{request.assignedEmployee || t('notAssignedYet')}</span>
+                      <div className="flex items-center gap-3">
+                        <div className="bg-green-600 p-2 rounded-lg">
+                          <UserCheck className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <span className="text-green-300 text-xs font-bold block">{t('assignedEmployee')}</span>
+                          <span className="text-white font-black text-base">{request.assignedEmployee || t('notAssignedYet')}</span>
+                        </div>
                       </div>
                     </div>
 
