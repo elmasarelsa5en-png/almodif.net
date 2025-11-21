@@ -66,7 +66,7 @@ const reportCards: ReportCard[] = [
     color: 'text-indigo-400',
     gradient: 'from-indigo-600/30 to-violet-600/30',
     category: 'financial',
-    implemented: false
+    implemented: true
   },
   {
     icon: Receipt,
@@ -76,7 +76,7 @@ const reportCards: ReportCard[] = [
     color: 'text-rose-400',
     gradient: 'from-rose-600/30 to-pink-600/30',
     category: 'financial',
-    implemented: false
+    implemented: true
   },
   {
     icon: Receipt,
@@ -86,7 +86,7 @@ const reportCards: ReportCard[] = [
     color: 'text-purple-400',
     gradient: 'from-purple-600/30 to-pink-600/30',
     category: 'financial',
-    implemented: false
+    implemented: true
   },
   {
     icon: PieChart,
@@ -106,7 +106,7 @@ const reportCards: ReportCard[] = [
     color: 'text-green-400',
     gradient: 'from-green-600/30 to-emerald-600/30',
     category: 'financial',
-    implemented: false
+    implemented: true
   },
 
   // Operations Reports
@@ -138,7 +138,7 @@ const reportCards: ReportCard[] = [
     color: 'text-red-400',
     gradient: 'from-red-600/30 to-orange-600/30',
     category: 'operations',
-    implemented: false
+    implemented: true
   },
   {
     icon: Building,
@@ -148,7 +148,7 @@ const reportCards: ReportCard[] = [
     color: 'text-slate-400',
     gradient: 'from-slate-600/30 to-gray-600/30',
     category: 'operations',
-    implemented: false
+    implemented: true
   },
   {
     icon: X,
