@@ -193,19 +193,19 @@ export default function RequestDetailPage() {
 
   const getStatusColor = (status: string) => {
     const colors: { [key: string]: string } = {
-      'pending': 'bg-yellow-500/20 text-yellow-300 border-yellow-400/30',
-      'in-progress': 'bg-blue-500/20 text-blue-300 border-blue-400/30',
-      'completed': 'bg-green-500/20 text-green-300 border-green-400/30',
-      'rejected': 'bg-red-500/20 text-red-300 border-red-400/30'
+      'pending': 'bg-gradient-to-r from-yellow-500/20 to-yellow-600/20 text-yellow-200 border-yellow-400/40',
+      'in-progress': 'bg-gradient-to-r from-blue-500/20 to-blue-600/20 text-blue-200 border-blue-400/40',
+      'completed': 'bg-gradient-to-r from-green-500/20 to-green-600/20 text-green-200 border-green-400/40',
+      'rejected': 'bg-gradient-to-r from-red-500/20 to-red-600/20 text-red-200 border-red-400/40'
     };
     return colors[status] || 'bg-slate-500/20 text-slate-300';
   };
 
   const getPriorityColor = (priority: string) => {
     const colors: { [key: string]: string } = {
-      'low': 'bg-blue-500/20 text-blue-300',
-      'medium': 'bg-yellow-500/20 text-yellow-300',
-      'high': 'bg-red-500/20 text-red-300'
+      'low': 'bg-gradient-to-r from-blue-500/20 to-blue-600/20 text-blue-200 border-blue-400/30',
+      'medium': 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 text-yellow-200 border-yellow-400/30',
+      'high': 'bg-gradient-to-r from-red-500/20 to-red-600/20 text-red-200 border-red-400/30'
     };
     return colors[priority] || 'bg-slate-500/20 text-slate-300';
   };
@@ -251,7 +251,7 @@ export default function RequestDetailPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8" dir="rtl">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 sm:p-6 lg:p-8" dir="rtl">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -294,33 +294,35 @@ export default function RequestDetailPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
             >
-              <Card className="bg-slate-800/50 border-slate-700/50 backdrop-blur-xl">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-orange-300">
-                    <User className="w-5 h-5" />
-                    معلومات النزيل
+              <Card className="bg-gradient-to-br from-slate-800/60 to-slate-800/40 border-slate-700/50 backdrop-blur-xl shadow-xl">
+                <CardHeader className="border-b border-slate-700/30 pb-4">
+                  <CardTitle className="flex items-center gap-3 text-xl">
+                    <div className="p-2 bg-orange-500/20 rounded-lg">
+                      <User className="w-5 h-5 text-orange-300" />
+                    </div>
+                    <span className="text-white font-bold">معلومات النزيل</span>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-xs text-slate-400 mb-1">الاسم</p>
-                      <p className="text-lg font-semibold text-white">{request.guestName}</p>
+                <CardContent className="space-y-4 pt-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="bg-slate-900/40 p-4 rounded-lg border border-slate-700/30">
+                      <p className="text-xs text-slate-400 mb-2 font-medium">الاسم</p>
+                      <p className="text-lg font-bold text-white">{request.guestName}</p>
                     </div>
-                    <div>
-                      <p className="text-xs text-slate-400 mb-1">رقم الغرفة</p>
-                      <p className="text-lg font-semibold text-white">{request.roomNumber}</p>
+                    <div className="bg-slate-900/40 p-4 rounded-lg border border-slate-700/30">
+                      <p className="text-xs text-slate-400 mb-2 font-medium">رقم الغرفة</p>
+                      <p className="text-lg font-bold text-orange-300">{request.roomNumber}</p>
                     </div>
-                    <div>
-                      <p className="text-xs text-slate-400 mb-1">رقم الهاتف</p>
+                    <div className="bg-slate-900/40 p-4 rounded-lg border border-slate-700/30">
+                      <p className="text-xs text-slate-400 mb-2 font-medium">رقم الهاتف</p>
                       <div className="flex items-center gap-2">
                         <Phone className="w-4 h-4 text-orange-400" />
-                        <p className="text-sm text-white">{request.guestPhone}</p>
+                        <p className="text-base font-semibold text-white">{request.guestPhone}</p>
                       </div>
                     </div>
-                    <div>
-                      <p className="text-xs text-slate-400 mb-1">نوع الطلب</p>
-                      <p className="text-sm text-orange-300">{request.requestType}</p>
+                    <div className="bg-slate-900/40 p-4 rounded-lg border border-slate-700/30">
+                      <p className="text-xs text-slate-400 mb-2 font-medium">نوع الطلب</p>
+                      <p className="text-base font-semibold text-orange-300">{request.requestType}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -333,39 +335,41 @@ export default function RequestDetailPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <Card className="bg-slate-800/50 border-slate-700/50 backdrop-blur-xl">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-orange-300">
-                    <FileText className="w-5 h-5" />
-                    تفاصيل الطلب
+              <Card className="bg-gradient-to-br from-slate-800/60 to-slate-800/40 border-slate-700/50 backdrop-blur-xl shadow-xl">
+                <CardHeader className="border-b border-slate-700/30 pb-4">
+                  <CardTitle className="flex items-center gap-3 text-xl">
+                    <div className="p-2 bg-blue-500/20 rounded-lg">
+                      <FileText className="w-5 h-5 text-blue-300" />
+                    </div>
+                    <span className="text-white font-bold">تفاصيل الطلب</span>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 pt-6">
                   <div>
-                    <p className="text-xs text-slate-400 mb-2">الوصف</p>
-                    <p className="text-white bg-slate-900/50 p-3 rounded-lg">{request.description}</p>
+                    <p className="text-sm text-slate-400 mb-2 font-medium">📝 الوصف</p>
+                    <p className="text-white bg-slate-900/50 p-4 rounded-lg border border-slate-700/30 leading-relaxed">{request.description}</p>
                   </div>
                   {request.notes && (
                     <div>
-                      <p className="text-xs text-slate-400 mb-2">ملاحظات</p>
-                      <p className="text-slate-300 bg-slate-900/50 p-3 rounded-lg">{request.notes}</p>
+                      <p className="text-sm text-slate-400 mb-2 font-medium">📌 ملاحظات</p>
+                      <p className="text-slate-200 bg-slate-900/50 p-4 rounded-lg border border-slate-700/30 leading-relaxed">{request.notes}</p>
                     </div>
                   )}
-                  <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-700/30">
-                    <div>
-                      <p className="text-xs text-slate-400 mb-1">تاريخ الإنشاء</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-slate-700/30">
+                    <div className="bg-slate-900/40 p-3 rounded-lg">
+                      <p className="text-xs text-slate-400 mb-2 font-medium">تاريخ الإنشاء</p>
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-orange-400" />
-                        <p className="text-sm text-white">
+                        <p className="text-sm text-white font-semibold">
                           {new Date(request.createdAt).toLocaleDateString('ar-SA')}
                         </p>
                       </div>
                     </div>
-                    <div>
-                      <p className="text-xs text-slate-400 mb-1">آخر تحديث</p>
+                    <div className="bg-slate-900/40 p-3 rounded-lg">
+                      <p className="text-xs text-slate-400 mb-2 font-medium">آخر تحديث</p>
                       <div className="flex items-center gap-2">
                         <Clock className="w-4 h-4 text-blue-400" />
-                        <p className="text-sm text-white">
+                        <p className="text-sm text-white font-semibold">
                           {new Date(request.updatedAt).toLocaleTimeString('ar-SA')}
                         </p>
                       </div>
@@ -381,27 +385,29 @@ export default function RequestDetailPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <Card className="bg-slate-800/50 border-slate-700/50 backdrop-blur-xl">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-orange-300">
-                    <MessageCircle className="w-5 h-5" />
-                    التعليقات ({comments.length})
+              <Card className="bg-gradient-to-br from-slate-800/60 to-slate-800/40 border-slate-700/50 backdrop-blur-xl shadow-xl">
+                <CardHeader className="border-b border-slate-700/30 pb-4">
+                  <CardTitle className="flex items-center gap-3 text-xl">
+                    <div className="p-2 bg-purple-500/20 rounded-lg">
+                      <MessageCircle className="w-5 h-5 text-purple-300" />
+                    </div>
+                    <span className="text-white font-bold">💬 التعليقات ({comments.length})</span>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 pt-6">
                   {/* Add Comment */}
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <textarea
                       value={newComment}
                       onChange={(e) => setNewComment(e.target.value)}
-                      placeholder="أضف تعليقاً..."
-                      className="w-full bg-slate-900/50 border border-slate-700/50 rounded-lg p-3 text-white placeholder-slate-500 resize-none focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      placeholder="✍️ أضف تعليقاً..."
+                      className="w-full bg-slate-900/50 border border-slate-700/50 rounded-lg p-4 text-white placeholder-slate-400 resize-none focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 transition-all"
                       rows={3}
                     />
                     <Button
                       onClick={handleAddComment}
                       disabled={!newComment.trim() || saving}
-                      className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+                      className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold shadow-lg shadow-orange-500/20 transition-all"
                     >
                       {saving ? (
                         <>
@@ -418,19 +424,27 @@ export default function RequestDetailPage() {
                   </div>
 
                   {/* Comments List */}
-                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                  <div className="space-y-3 max-h-96 overflow-y-auto custom-scrollbar">
                     {comments.length === 0 ? (
-                      <p className="text-center text-slate-400 py-4">لا توجد تعليقات حتى الآن</p>
+                      <div className="text-center py-8 bg-slate-900/30 rounded-lg border border-slate-700/30">
+                        <MessageCircle className="w-12 h-12 mx-auto text-slate-600 mb-2" />
+                        <p className="text-slate-400">لا توجد تعليقات حتى الآن</p>
+                      </div>
                     ) : (
                       comments.map((comment) => (
-                        <div key={comment.id} className="bg-slate-900/30 p-3 rounded-lg border border-slate-700/30">
+                        <div key={comment.id} className="bg-gradient-to-r from-slate-900/40 to-slate-900/30 p-4 rounded-lg border border-slate-700/30 hover:border-slate-600/50 transition-all">
                           <div className="flex items-center justify-between mb-2">
-                            <p className="font-semibold text-orange-300">{comment.author}</p>
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-orange-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
+                                {comment.author.charAt(0).toUpperCase()}
+                              </div>
+                              <p className="font-semibold text-orange-300">{comment.author}</p>
+                            </div>
                             <p className="text-xs text-slate-400">
                               {new Date(comment.timestamp).toLocaleDateString('ar-SA')}
                             </p>
                           </div>
-                          <p className="text-slate-300 text-sm">{comment.text}</p>
+                          <p className="text-slate-200 text-sm leading-relaxed mr-10">{comment.text}</p>
                         </div>
                       ))
                     )}
@@ -448,27 +462,30 @@ export default function RequestDetailPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <Card className="bg-slate-800/50 border-slate-700/50 backdrop-blur-xl">
-                <CardHeader>
-                  <CardTitle className="text-orange-300">الحالة</CardTitle>
+              <Card className="bg-gradient-to-br from-slate-800/60 to-slate-800/40 border-slate-700/50 backdrop-blur-xl shadow-xl">
+                <CardHeader className="border-b border-slate-700/30 pb-4">
+                  <CardTitle className="flex items-center gap-2 text-white font-bold">
+                    <CheckCircle className="w-5 h-5 text-orange-400" />
+                    الحالة
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2">
+                <CardContent className="space-y-2 pt-4">
                   {['pending', 'in-progress', 'completed', 'rejected'].map((status) => (
                     <Button
                       key={status}
                       onClick={() => handleStatusUpdate(status)}
                       disabled={saving}
                       variant={editStatus === status ? 'default' : 'outline'}
-                      className={`w-full justify-start ${
+                      className={`w-full justify-start text-base font-semibold transition-all ${
                         editStatus === status
-                          ? 'bg-orange-500 hover:bg-orange-600'
-                          : 'border-slate-700/50 text-slate-300 hover:bg-slate-700/50'
+                          ? 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg shadow-orange-500/20'
+                          : 'border-slate-700/50 text-slate-300 hover:bg-slate-700/50 hover:text-white'
                       }`}
                     >
-                      {status === 'pending' && 'قيد الانتظار'}
-                      {status === 'in-progress' && 'قيد المعالجة'}
-                      {status === 'completed' && 'مكتمل'}
-                      {status === 'rejected' && 'مرفوض'}
+                      {status === 'pending' && '⏳ قيد الانتظار'}
+                      {status === 'in-progress' && '🔄 قيد المعالجة'}
+                      {status === 'completed' && '✅ مكتمل'}
+                      {status === 'rejected' && '❌ مرفوض'}
                     </Button>
                   ))}
                 </CardContent>
@@ -481,29 +498,33 @@ export default function RequestDetailPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <Card className="bg-slate-800/50 border-slate-700/50 backdrop-blur-xl">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-orange-300">
-                    <Zap className="w-5 h-5" />
+              <Card className="bg-gradient-to-br from-slate-800/60 to-slate-800/40 border-slate-700/50 backdrop-blur-xl shadow-xl">
+                <CardHeader className="border-b border-slate-700/30 pb-4">
+                  <CardTitle className="flex items-center gap-2 text-white font-bold">
+                    <Zap className="w-5 h-5 text-yellow-400" />
                     الأولوية
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2">
+                <CardContent className="space-y-2 pt-4">
                   {['low', 'medium', 'high'].map((priority) => (
                     <Button
                       key={priority}
                       onClick={() => handlePriorityUpdate(priority)}
                       disabled={saving}
                       variant={editPriority === priority ? 'default' : 'outline'}
-                      className={`w-full justify-start ${
+                      className={`w-full justify-start text-base font-semibold transition-all ${
                         editPriority === priority
-                          ? 'bg-orange-500 hover:bg-orange-600'
-                          : 'border-slate-700/50 text-slate-300 hover:bg-slate-700/50'
+                          ? priority === 'low' 
+                            ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg shadow-blue-500/20'
+                            : priority === 'medium'
+                            ? 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white shadow-lg shadow-yellow-500/20'
+                            : 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg shadow-red-500/20'
+                          : 'border-slate-700/50 text-slate-300 hover:bg-slate-700/50 hover:text-white'
                       }`}
                     >
-                      {priority === 'low' && '⬇️ منخفضة'}
-                      {priority === 'medium' && '⬅️ متوسطة'}
-                      {priority === 'high' && '⬆️ عالية'}
+                      {priority === 'low' && '🔵 منخفضة'}
+                      {priority === 'medium' && '🟡 متوسطة'}
+                      {priority === 'high' && '🔴 عالية'}
                     </Button>
                   ))}
                 </CardContent>
@@ -516,21 +537,21 @@ export default function RequestDetailPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
             >
-              <Card className="bg-slate-800/50 border-slate-700/50 backdrop-blur-xl">
-                <CardHeader>
-                  <CardTitle className="text-sm text-slate-400">معلومات إضافية</CardTitle>
+              <Card className="bg-gradient-to-br from-slate-800/60 to-slate-800/40 border-slate-700/50 backdrop-blur-xl shadow-xl">
+                <CardHeader className="border-b border-slate-700/30 pb-4">
+                  <CardTitle className="text-base text-white font-bold">📊 معلومات إضافية</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3 text-sm">
-                  <div>
-                    <p className="text-slate-400 mb-1">الفئة</p>
-                    <Badge className="bg-purple-500/20 text-purple-300">
+                <CardContent className="space-y-4 text-sm pt-4">
+                  <div className="bg-slate-900/40 p-3 rounded-lg border border-slate-700/30">
+                    <p className="text-slate-400 mb-2 text-xs font-medium">الفئة</p>
+                    <Badge className="bg-gradient-to-r from-purple-500/30 to-purple-600/30 text-purple-200 border border-purple-400/30 font-semibold px-3 py-1">
                       {request.category}
                     </Badge>
                   </div>
                   {request.assignedTo && (
-                    <div>
-                      <p className="text-slate-400 mb-1">مسند إلى</p>
-                      <p className="text-white">{request.assignedTo}</p>
+                    <div className="bg-slate-900/40 p-3 rounded-lg border border-slate-700/30">
+                      <p className="text-slate-400 mb-2 text-xs font-medium">مسند إلى</p>
+                      <p className="text-white font-semibold">{request.assignedTo}</p>
                     </div>
                   )}
                 </CardContent>
@@ -539,6 +560,27 @@ export default function RequestDetailPage() {
           </div>
         </div>
       </div>
+      
+      {/* Custom Scrollbar Styles */}
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 8px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(15, 23, 42, 0.3);
+          border-radius: 4px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(249, 115, 22, 0.3);
+          border-radius: 4px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(249, 115, 22, 0.5);
+        }
+      `}</style>
     </ProtectedRoute>
   );
 }
