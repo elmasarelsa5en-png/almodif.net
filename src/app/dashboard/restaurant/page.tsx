@@ -340,19 +340,35 @@ export default function RestaurantPage() {
       >
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Button
-                variant="ghost"
-                onClick={() => router.push('/guest-menu')}
-                className="text-white border-amber-400/50 hover:bg-amber-500/20 hover:border-amber-400"
+            <div className="flex gap-2">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                <ArrowLeft className="h-5 w-5 mr-2" />
-                العودة للقائمة الرئيسية
-              </Button>
-            </motion.div>
+                <Button
+                  variant="ghost"
+                  onClick={() => router.push('/guest-menu')}
+                  className="text-white border-amber-400/50 hover:bg-amber-500/20 hover:border-amber-400"
+                >
+                  <ArrowLeft className="h-5 w-5 mr-2" />
+                  العودة للقائمة الرئيسية
+                </Button>
+              </motion.div>
+              
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button
+                  variant="outline"
+                  onClick={() => router.push('/dashboard/inventory')}
+                  className="bg-orange-500/20 border-orange-400/30 text-orange-300 hover:bg-orange-500/30"
+                >
+                  <Utensils className="h-4 w-4 ml-2" />
+                  إدارة المخزون
+                </Button>
+              </motion.div>
+            </div>
             
             <motion.div 
               className="text-center"

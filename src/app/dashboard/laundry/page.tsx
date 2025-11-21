@@ -464,21 +464,38 @@ export default function LaundryPage() {
       >
         <div className="container mx-auto px-3 md:px-6 py-3 md:py-4">
           <div className="flex items-center justify-between gap-2">
-            {/* زر العودة - مخفي على الموبايل */}
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="hidden md:block"
-            >
-              <Button
-                variant="ghost"
-                onClick={() => router.push('/guest-menu')}
-                className="text-white border-cyan-400/50 hover:bg-cyan-500/20 hover:border-cyan-400"
+            {/* زر العودة والمخزون */}
+            <div className="flex gap-2">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="hidden md:block"
+              >
+                <Button
+                  variant="ghost"
+                  onClick={() => router.push('/guest-menu')}
+                  className="text-white border-cyan-400/50 hover:bg-cyan-500/20 hover:border-cyan-400"
               >
                 <ArrowLeft className="h-5 w-5 mr-2" />
                 العودة للقائمة الرئيسية
               </Button>
-            </motion.div>
+              </motion.div>
+              
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="hidden md:block"
+              >
+                <Button
+                  variant="outline"
+                  onClick={() => router.push('/dashboard/inventory')}
+                  className="bg-purple-500/20 border-purple-400/30 text-purple-300 hover:bg-purple-500/30"
+                >
+                  <Shirt className="h-4 w-4 ml-2" />
+                  إدارة المخزون
+                </Button>
+              </motion.div>
+            </div>
             
             <motion.div 
               className="text-center flex-1 md:flex-none"
