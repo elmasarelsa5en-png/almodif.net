@@ -53,7 +53,7 @@
     "framer-motion": "^12.23.24",
     "lucide-react": "^0.469.0",
     "mammoth": "^1.11.0",
-    "next": "15.5.4",
+    "next": "15.5.9",
     "peerjs": "^1.5.5",
     "puppeteer": "^24.26.1",
     "qr-code-styling": "^1.9.2",
